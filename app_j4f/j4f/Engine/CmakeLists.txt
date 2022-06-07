@@ -1,0 +1,140 @@
+cmake_minimum_required(VERSION 3.17.2)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+project(j4f_engine)
+
+set(ENGINE_SRC_DIRS)
+set(ENGINE_HEADERS)
+set(ENGINE_SOURCES)
+
+if(STATISTIC_ENABLED)
+	add_definitions(-DENABLE_STATISTIC)
+endif()
+
+if(PROFILER_ENABLE)
+	add_definitions(-DPROFILER_ENABLE)
+endif()
+
+add_definitions(-Dj4f_PLATFORM_${j4f_PLATFORM})
+
+if(j4f_PLATFORM STREQUAL "WINDOWS")
+    add_definitions(-DVK_USE_PLATFORM_WIN32_KHR=1)
+    add_definitions(-DGLFW_EXPOSE_NATIVE_WIN32)
+	add_definitions(-DNOMINMAX)
+endif()
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/glfw/3.3.6_win64/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/stb_image)
+#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/freeType/include)
+
+set(
+	ENGINE_SRC_DIRS ${ENGINE_SRC_DIRS}
+	
+	Core
+	Core/Math
+	Core/Memory
+	Core/Threads
+
+	Device
+	Device/GLFW
+
+	Graphics
+	Graphics/Animation
+	Graphics/Vulkan
+	Graphics/Vulkan/spirv
+	Graphics/Vulkan/spirv/include
+	Graphics/Vulkan/spirv/include/spirv
+	Graphics/Vulkan/spirv/include/spirv/unified1
+	Graphics/Texture
+	Graphics/Scene
+	Graphics/Scene/Shadows
+	Graphics/Render
+	Graphics/Mesh
+	Graphics/Text
+
+	Events
+	File
+	Log
+	Time
+	Input
+	ECS
+
+	Platform
+	Platform/GLFW
+
+	Utils
+	Utils/Debug
+	Utils/Json
+)
+
+####### для каждого заданного пути
+foreach(DIR ${ENGINE_SRC_DIRS})
+	message("DIR:" ${DIR})
+
+	# собираем список файлов (не рекурсивно, не GLOB_RECURSE !)
+	# можно еще обобщить, задавая список нужных расширений
+
+	file(GLOB
+		HEADERS
+		${CMAKE_CURRENT_SOURCE_DIR}/${DIR}/*.h
+	)
+
+	file(GLOB
+		SOURCES
+		${CMAKE_CURRENT_SOURCE_DIR}/${DIR}/*.c
+		${CMAKE_CURRENT_SOURCE_DIR}/${DIR}/*.cpp
+	)
+
+	list(APPEND ENGINE_HEADERS ${HEADERS})
+	list(APPEND ENGINE_SOURCES ${SOURCES})
+
+endforeach(DIR)
+
+list(REMOVE_DUPLICATES ENGINE_HEADERS)
+list(REMOVE_DUPLICATES ENGINE_SOURCES)
+#######
+
+#######
+foreach(source IN LISTS ENGINE_SOURCES)
+	get_filename_component(source_path "${source}" PATH)
+	string(REPLACE "/" "\\" source_path_msvc "${source_path}")
+	string(REPLACE ${CMAKE_CURRENT_SOURCE_DIR}/ "Engine/" source_path_msvc "${source_path}")
+	source_group("${source_path_msvc}" FILES "${source}")
+endforeach()
+
+foreach(source IN LISTS ENGINE_HEADERS)
+	get_filename_component(source_path "${source}" PATH)
+	string(REPLACE "/" "\\" source_path_msvc "${source_path}")
+	string(REPLACE ${CMAKE_CURRENT_SOURCE_DIR}/ "Engine/" source_path_msvc "${source_path}")
+	source_group("${source_path_msvc}" FILES "${source}")
+endforeach()
+#######
+
+set(
+	USED_FRAMEWORKS
+	general ${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/glfw/3.3.6_win64/lib-vc2019/glfw3_mt.lib
+	general $ENV{VULKAN_SDK}/Lib/vulkan-1.lib
+	general ${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/freeType/release_static/vs2015-2022/win64/freetype.lib
+)
+
+add_library(
+	j4f_engine
+	STATIC
+	${ENGINE_SOURCES}
+	${ENGINE_HEADERS}
+)
+
+target_link_libraries (
+	j4f_engine
+	${USED_FRAMEWORKS}
+)
+
+target_include_directories(j4f_engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Platform/GLFW)
+target_include_directories(j4f_engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/glm)
+target_include_directories(j4f_engine PUBLIC $ENV{VULKAN_SDK}/Include)
+target_include_directories(j4f_engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/freeType/include)
+
+message(STATUS "!!!!!engine generate success!!!!!")

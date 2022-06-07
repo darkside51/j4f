@@ -1,0 +1,11 @@
+Model Information:
+* title:	Chaman Ti-Pche (3 Animations)
+* source:	https://sketchfab.com/3d-models/chaman-ti-pche-3-animations-7d9ea0a08e4d426ca44074a504e9892b
+* author:	David Presa (https://sketchfab.com/kudeng)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Chaman Ti-Pche (3 Animations)" (https://sketchfab.com/3d-models/chaman-ti-pche-3-animations-7d9ea0a08e4d426ca44074a504e9892b) by David Presa (https://sketchfab.com/kudeng) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

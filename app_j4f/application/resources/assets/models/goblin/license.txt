@@ -1,0 +1,11 @@
+Model Information:
+* title:	Goblin Animations
+* source:	https://sketchfab.com/3d-models/goblin-animations-b9705b05dd6c47b29ec943bc096cbf3a
+* author:	codywellman (https://sketchfab.com/codywellman)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Goblin Animations" (https://sketchfab.com/3d-models/goblin-animations-b9705b05dd6c47b29ec943bc096cbf3a) by codywellman (https://sketchfab.com/codywellman) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

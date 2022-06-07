@@ -1,0 +1,56 @@
+cmake_minimum_required(VERSION 3.17.2)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+project(app_j4f)
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
+
+if(STATISTIC_ENABLED)
+	add_definitions(-DENABLE_STATISTIC)
+endif()
+
+add_definitions(-Dj4f_PLATFORM_${j4f_PLATFORM})
+
+#собираем engine
+add_subdirectory(j4f/Engine)
+
+#собираем приложение 
+add_executable(${PROJECT_NAME} application/src/main.cpp)
+
+#подключаем engine
+target_link_libraries(${PROJECT_NAME} j4f_engine)
+
+include_directories(j4f/)
+
+# копируем ресурсы
+#add_custom_command(TARGET ${PROJECT_NAME}  POST_BUILD
+#        COMMAND ${CMAKE_COMMAND} -E copy_directory
+#                ${CMAKE_CURRENT_SOURCE_DIR}/application/resources
+#                ${PROJECT_BINARY_DIR}/$<CONFIG>/resources)
+
+set(source_dir "${CMAKE_CURRENT_SOURCE_DIR}/application/resources")
+set(dest_dir "${PROJECT_BINARY_DIR}/$<CONFIG>/resources")
+
+add_custom_command(TARGET ${PROJECT_NAME}
+	POST_BUILD
+	COMMAND ${CMAKE_COMMAND}
+    	-Dsrc_dir="${source_dir}/assets"
+    	-Ddst_dir="${dest_dir}/assets"
+    	-P "${CMAKE_CURRENT_SOURCE_DIR}/j4f/Tools/cmake/update_directory.cmake"
+)
+
+#if(j4f_PLATFORM STREQUAL "WINDOWS")
+#	set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS")
+#endif()
+
+if(j4f_PLATFORM STREQUAL "WINDOWS")
+# конвертация шейдеров
+	add_custom_command(TARGET ${PROJECT_NAME}
+                   POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E make_directory ${dest_dir}/shaders
+                   COMMAND cmd /c ${CMAKE_CURRENT_SOURCE_DIR}/j4f/Tools/glslToSpirv/converter_to_build_win.cmd ${dest_dir}/shaders ${source_dir}/shaders)
+endif()
+
+message(STATUS "!!!!!project generate complete!!!!!")

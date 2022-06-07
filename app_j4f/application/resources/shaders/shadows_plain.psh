@@ -1,0 +1,68 @@
+#version 450
+
+#define SHADOW_MAP_CASCADE_COUNT 4
+#define ambient_c 1.0
+#define shadow_c 0.5
+
+layout (location = 0) in vec2 uv;
+layout (location = 1) in float viewDepth;
+layout (location = 2) in vec3 position;
+
+layout (location = 0) out vec4 outFragColor;
+
+layout (set = 0, binding = 0) uniform UBO {
+	vec4 cascade_splits;
+	mat4 cascade_matrix[SHADOW_MAP_CASCADE_COUNT];
+} u_ubo;
+
+layout (set = 1, binding = 0) uniform sampler2D u_texture;
+layout (set = 2, binding = 0) uniform sampler2DArray u_shadow_map;
+
+float textureProj(vec4 shCoord, vec2 offset, uint cascade) {
+	float dist = texture(u_shadow_map, vec3(shCoord.xy + offset, cascade)).r;
+	float bias = 0.001;
+	float depth = shCoord.z - bias;
+	depth *= step(-1.0, shCoord.z) * step(shCoord.z, 1.0);
+	return mix(ambient_c, shadow_c, step(dist, depth));
+}
+
+float filterPCF(vec4 sc, uint cascade) {
+	ivec2 texDim = textureSize(u_shadow_map, 0).xy;
+	float scale = 1.0;
+	float dx = scale * 1.0 / float(texDim.x);
+	float dy = scale * 1.0 / float(texDim.y);
+
+	float shadowFactor = 0.0;
+	int count = 0;
+	int range = 1;
+	
+	for (int x = -range; x <= range; x++) {
+		for (int y = -range; y <= range; y++) {
+			shadowFactor += textureProj(sc, vec2(dx*x, dy*y), cascade);
+			count++;
+		}
+	}
+	return shadowFactor / count;
+}
+
+void main() {
+
+	// get cascade index for the current fragment's view position
+	uint cascade = 0;
+	for (uint i = 0; i < (SHADOW_MAP_CASCADE_COUNT - 1); ++i) {
+		if (viewDepth < u_ubo.cascade_splits[i]) {	
+			cascade = i + 1;
+		}
+	}
+
+	vec4 shadowCoord = u_ubo.cascade_matrix[cascade] * vec4(position, 1.0);
+	shadowCoord.xy = (shadowCoord.xy + 1.0) * 0.5;	
+
+	//float shadow = textureProj(shadowCoord / shadowCoord.w, vec2(0.0), cascade);
+	float shadow = filterPCF(shadowCoord / shadowCoord.w, cascade);
+	outFragColor = texture(u_texture, uv, 0.0);
+	outFragColor.rgb *= shadow;
+
+	// debug cascades
+	//outFragColor.rgb *= vec3(0.4f + float(cascade) * 0.1);
+}
