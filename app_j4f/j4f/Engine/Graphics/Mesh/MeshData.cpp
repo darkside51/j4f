@@ -332,9 +332,10 @@ namespace engine {
 
 					switch (accessor.type) {
 						case gltf::AccessorType::VEC3: {
-							const glm::vec3* buf = static_cast<const glm::vec3*>(dataPtr);
+							struct vec3 { float x, y, z; };
+							const vec3* buf = static_cast<const vec3*>(dataPtr);
 							for (size_t index = 0; index < accessor.count; ++index) {
-								animSampler.outputs[index] = glm::vec4(buf[index], 0.0f);
+								animSampler.outputs[index] = glm::vec4(buf[index].x, buf[index].y, buf[index].z, 0.0f);
 							}
 							break;
 						}

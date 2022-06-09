@@ -455,13 +455,13 @@ namespace engine {
 
 			TextureLoadingParams tex_params2;
 			//tex_params2.file = "resources/assets/models/zombi/textures/survivor_MAT_diffuse.png";
-			tex_params2.file = "resources/assets/models/goblin/textures/lambert1_baseColor.jpeg";
+			tex_params2.file = "resources/assets/models/warcraft3/textures/Armor_2_baseColor.png";
 			tex_params2.flags->async = 1;
 			tex_params2.flags->use_cache = 1;
 			auto texture_v = assm->loadAsset<vulkan::VulkanTexture*>(tex_params2);
-			tex_params2.file = "resources/assets/models/goblin/textures/lambert2_baseColor.png";
+			tex_params2.file = "resources/assets/models/warcraft3/textures/body_baseColor.png";
 			auto texture_v2 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params2);
-			tex_params2.file = "resources/assets/models/goblin/textures/lambert3_baseColor.png";
+			tex_params2.file = "resources/assets/models/warcraft3/textures/Metal_baseColor.png";
 			auto texture_v3 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params2);
 
 			meshesGraphicsBuffer = new MeshGraphicsDataBuffer(10 * 1024 * 1024, 10 * 1024 * 1024); // or create with default constructor for unique buffer for mesh
@@ -476,7 +476,7 @@ namespace engine {
 
 			MeshLoadingParams mesh_params2;
 			//mesh_params2.file = "resources/assets/models/zombi/scene.gltf";
-			mesh_params2.file = "resources/assets/models/goblin/scene.gltf";
+			mesh_params2.file = "resources/assets/models/warcraft3/scene.gltf";
 			mesh_params2.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT, AttributesSemantic::TEXCOORD_0);
 			mesh_params2.latency = 3;
 			mesh_params2.flags->async = 1;
@@ -503,16 +503,20 @@ namespace engine {
 			mesh3 = assm->loadAsset<Mesh*>(mesh_params2, [program_gltf, texture_v, texture_v2, texture_v3](Mesh* asset, const AssetLoadingResult result) {
 				asset->setProgram(program_gltf);
 				asset->setParamByName("u_texture", texture_v, false);
-				asset->getRenderDataAt(1)->setParamByName("u_texture", texture_v2, false);
-				asset->getRenderDataAt(2)->setParamByName("u_texture", texture_v3, false);
+				asset->getRenderDataAt(3)->setParamByName("u_texture", texture_v3, false);
+				asset->getRenderDataAt(7)->setParamByName("u_texture", texture_v2, false); // eye
+				asset->getRenderDataAt(8)->setParamByName("u_texture", texture_v2, false); // head
+				asset->getRenderDataAt(9)->setParamByName("u_texture", texture_v3, false); // helm
+				asset->getRenderDataAt(11)->setParamByName("u_texture", texture_v3, false);
+				asset->getRenderDataAt(13)->setParamByName("u_texture", texture_v3, false);
 
 				//animTree2 = new AnimationTree(0.0f, asset->getNodesCount(), asset->getSkeleton()->getLatency());
 				//animTree2->getAnimator()->addChild(new AnimationTree::AnimatorType(&asset->getMeshData()->animations[0], 1.0f, asset->getSkeleton()->getLatency()));
 				//animTree2 = new MeshAnimationTree(&asset->getMeshData()->animations[0], 1.0f, asset->getSkeleton()->getLatency());
 
 				animTree2 = new MeshAnimationTree(0.0f, asset->getNodesCount(), asset->getSkeleton()->getLatency());
-				animTree2->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[0], 1.0f, asset->getSkeleton()->getLatency()));
-				animTree2->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[1], 0.0f, asset->getSkeleton()->getLatency()));
+				animTree2->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[1], 1.0f, asset->getSkeleton()->getLatency()));
+				animTree2->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[11], 0.0f, asset->getSkeleton()->getLatency()));
 
 				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
 				asset->onPipelineAttributesChanged();
@@ -657,22 +661,22 @@ namespace engine {
 			// mix test
 			static float mix = 0.7f;
 			static bool na = false;
-			const float step = 1.0f * delta;
+			const float step = 2.5f * delta;
 			if (!na) {
-				if (mix > -2.0f) {
+				if (mix > -4.0f) {
 					mix -= step;
 				}
 				else {
-					mix = -2.0f;
+					mix = -4.0f;
 					na = true;
 				}
 			}
 			else {
-				if (mix < 3.0f) {
+				if (mix < 5.0f) {
 					mix += step;
 				}
 				else {
-					mix = 3.0f;
+					mix = 5.0f;
 					na = false;
 				}
 			}
@@ -722,7 +726,7 @@ namespace engine {
 			translateMatrixTo(wtr2, glm::vec3(100.0f, -0.0f, 0.0f));
 
 			glm::mat4 wtr3(1.0f);
-			scaleMatrix(wtr3, glm::vec3(0.5f));
+			scaleMatrix(wtr3, glm::vec3(30.0f));
 			//rotateMatrix_xyz(wtr3, glm::vec3(3.14f, 0.0f, 0.0f));
 			directMatrix_yz(wtr3, 0.0f, 1.0f);
 			//directMatrix_yz(wtr3, -1.0f, 0.0f);
@@ -822,8 +826,9 @@ namespace engine {
 
 				glm::mat4 wtr4(1.0f);
 				//rotateMatrix_xyz(wtr4, glm::vec3(1.57f, 0.0f, angle));
+				scaleMatrix(wtr4, glm::vec3(50.0f));
 				rotateMatrix_xyz(wtr4, glm::vec3(0.0, angle, 0.0f));
-				translateMatrixTo(wtr4, glm::vec3(-float(width) * 0.5f + 100.0f, float(height) * 0.5f + mesh3->getMinCorner().z, 0.0f));
+				translateMatrixTo(wtr4, glm::vec3(-float(width) * 0.5f + 100.0f, float(height) * 0.5f - mesh3->getMaxCorner().y * 50.0f - 50.0f, 0.0f));
 				mesh3->draw(cameraMatrix2, wtr4, commandBuffer, currentFrame);
 
 				///////////

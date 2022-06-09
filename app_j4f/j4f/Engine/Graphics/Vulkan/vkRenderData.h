@@ -49,6 +49,7 @@ namespace vulkan {
 
 		RenderPart* renderParts;
 		uint8_t renderPartsCount = 0;
+		bool visible = true;
 
 		RenderData() : pipeline(nullptr), renderParts(nullptr), params(std::make_shared<engine::GpuProgramParams>()) {
 		}

@@ -17,7 +17,7 @@ namespace engine {
 
 				for (uint32_t i = 0; i < renderDataCount; ++i) {
 					vulkan::RenderData* r_data = renderData[i];
-					if (r_data == nullptr || r_data->pipeline == nullptr) continue;
+					if (r_data == nullptr || r_data->pipeline == nullptr || r_data->visible == false) continue;
 
 					if (cameraMatrix && camera_matrix) {
 						r_data->setRawDataForLayout(camera_matrix, const_cast<glm::mat4*>(cameraMatrix), false, sizeof(glm::mat4));
@@ -32,7 +32,7 @@ namespace engine {
 			{
 				for (uint32_t i = 0; i < renderDataCount; ++i) {
 					vulkan::RenderData* r_data = renderData[i];
-					if (r_data == nullptr || r_data->pipeline == nullptr) continue;
+					if (r_data == nullptr || r_data->pipeline == nullptr || r_data->visible == false) continue;
 
 					if (cameraMatrix && camera_matrix) {
 						r_data->setRawDataForLayout(camera_matrix, const_cast<glm::mat4*>(cameraMatrix), false, sizeof(glm::mat4));
