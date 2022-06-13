@@ -498,6 +498,9 @@ namespace engine {
 				asset->setProgram(program_gltf);
 				asset->setParamByName("u_texture", texture_zombi, false);
 				asset->setSkeleton(mesh->getSkeleton());
+
+				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
+				asset->onPipelineAttributesChanged();
 				});
 
 			mesh3 = assm->loadAsset<Mesh*>(mesh_params2, [program_gltf, texture_v, texture_v2, texture_v3](Mesh* asset, const AssetLoadingResult result) {
@@ -510,18 +513,14 @@ namespace engine {
 				asset->getRenderDataAt(11)->setParamByName("u_texture", texture_v3, false);
 				asset->getRenderDataAt(13)->setParamByName("u_texture", texture_v3, false);
 
-				//animTree2 = new AnimationTree(0.0f, asset->getNodesCount(), asset->getSkeleton()->getLatency());
-				//animTree2->getAnimator()->addChild(new AnimationTree::AnimatorType(&asset->getMeshData()->animations[0], 1.0f, asset->getSkeleton()->getLatency()));
-				//animTree2 = new MeshAnimationTree(&asset->getMeshData()->animations[0], 1.0f, asset->getSkeleton()->getLatency());
-
 				animTree2 = new MeshAnimationTree(0.0f, asset->getNodesCount(), asset->getSkeleton()->getLatency());
-				animTree2->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[1], 1.0f, asset->getSkeleton()->getLatency()));
-				animTree2->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[11], 0.0f, asset->getSkeleton()->getLatency()));
 
-				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
-				asset->onPipelineAttributesChanged();
+				animTree2->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[1], 1.0f, asset->getSkeleton()->getLatency(), 1.0f));
+				animTree2->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[2], 0.0f, asset->getSkeleton()->getLatency(), 1.0f));
+				animTree2->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[11], 0.0f, asset->getSkeleton()->getLatency(), 1.25f));
+				animTree2->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[10], 0.0f, asset->getSkeleton()->getLatency(), 1.0f));
+				animTree2->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[0], 0.0f, asset->getSkeleton()->getLatency(), 1.4f));
 				});
-
 
 			sceneRenderList.addDescriptor(&mesh->getRenderDescriptor());
 			sceneRenderList.addDescriptor(&mesh2->getRenderDescriptor());
@@ -661,12 +660,12 @@ namespace engine {
 			// mix test
 			static float mix = 0.7f;
 			static bool na = false;
-			const float step = 2.5f * delta;
+			const float step = 1.5f * delta;
+			static uint8_t animNum = 2;
 			if (!na) {
 				if (mix > -4.0f) {
 					mix -= step;
-				}
-				else {
+				} else {
 					mix = -4.0f;
 					na = true;
 				}
@@ -674,10 +673,10 @@ namespace engine {
 			else {
 				if (mix < 5.0f) {
 					mix += step;
-				}
-				else {
+				} else {
 					mix = 5.0f;
 					na = false;
+					animNum = engine::random(1, 4);
 				}
 			}
 
@@ -685,13 +684,12 @@ namespace engine {
 				const float mix_val = std::clamp(mix, 0.0f, 1.0f);
 				animTree->getAnimator()->children()[0]->value().setWeight(mix_val);
 				animTree->getAnimator()->children()[1]->value().setWeight(1.0f - mix_val);
-
 			}
 
 			if (animTree2) {
 				const float mix_val = std::clamp(mix, 0.0f, 1.0f);
 				animTree2->getAnimator()->children()[0]->value().setWeight(mix_val);
-				animTree2->getAnimator()->children()[1]->value().setWeight(1.0f - mix_val);
+				animTree2->getAnimator()->children()[animNum]->value().setWeight(1.0f - mix_val);
 			}
 
 			////

@@ -30,9 +30,10 @@ namespace engine {
 			}
 		}
 
-		MeshAnimator(const Mesh_Animation* animation, float weight, const uint8_t latency) :
+		MeshAnimator(const Mesh_Animation* animation, float weight, const uint8_t latency, float speed = 1.0f) :
 			_weight(weight),
 			_time(0.0f),
+			_speed(speed),
 			_animation(animation),
 			_frameTimes(latency),
 			_transforms(latency)
@@ -46,7 +47,7 @@ namespace engine {
 		inline void update(const float dt, const uint8_t i) {
 			if (_animation == nullptr) return;
 
-			_time += dt;
+			_time += _speed * dt;
 
 			if (_time > _animation->duration) {
 				_time -= _animation->duration;
@@ -165,6 +166,9 @@ namespace engine {
 		inline float getWeight() const { return _weight; }
 		inline void setWeight(const float w) { _weight = w; }
 
+		inline float getSpeed() const { return _speed; }
+		inline void setSpeed(const float s) { _speed = s; }
+
 		inline const Mesh_Animation* getAnimation() const { return _animation; }
 
 		inline void applyToSkeleton(Skeleton* skeleton, const uint8_t updateFrame) {
@@ -226,6 +230,7 @@ namespace engine {
 	private:
 		float _weight;
 		float _time;
+		float _speed;
 		const Mesh_Animation* _animation;
 		std::vector<float> _frameTimes;
 		std::vector<std::vector<Transform>> _transforms;
