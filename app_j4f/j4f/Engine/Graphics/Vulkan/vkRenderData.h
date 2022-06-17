@@ -135,7 +135,21 @@ namespace vulkan {
 		}
 
 		template <typename T>
+		inline void setParamForLayout(const GPUParamLayoutInfo* info, T&& value, const bool copyData, const uint32_t count = 1) {
+			params->operator[](info->id).setValue(&value, count, copyData);
+		}
+
+		template <typename T>
 		inline bool setParamByName(const std::string& name, T* value, bool copyData, const uint32_t count = 1) {
+			if (auto&& layout = getLayout(name)) {
+				setParamForLayout(layout, value, copyData, count);
+				return true;
+			}
+			return false;
+		}
+
+		template <typename T>
+		inline bool setParamByName(const std::string& name, T&& value, bool copyData, const uint32_t count = 1) {
 			if (auto&& layout = getLayout(name)) {
 				setParamForLayout(layout, value, copyData, count);
 				return true;

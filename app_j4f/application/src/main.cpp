@@ -31,9 +31,7 @@
 #include <Engine/ECS/Component.h>
 #include <Engine/ECS/BitMask.h>
 
-// for csm
- #include <Engine/Graphics/Vulkan/vkHelper.h>// "vkHelper.h"
-// for csm
+#include <Engine/Graphics/Scene/Shadows/CascadeShadowMap.h>
 
 namespace engine {
 
@@ -41,6 +39,8 @@ namespace engine {
 
 	Camera* camera = nullptr;
 	Camera* camera2 = nullptr;
+
+	CascadeShadowMap* shadowMap = nullptr;
 
 	Mesh* mesh = nullptr;
 	Mesh* mesh2 = nullptr;
@@ -66,228 +66,19 @@ namespace engine {
 	/// cascade shadow map
 	constexpr uint8_t SHADOW_MAP_CASCADE_COUNT = 4;
 	constexpr uint16_t SHADOWMAP_DIM = 4096;
-
-	float cascadeSplitLambda = 1.0f;
 	glm::vec3 lightPos = glm::vec3(-460.0f, -600.0f, 1000.0f);
-	vulkan::VulkanImage* depthImage;
-	VkDescriptorSet depthImageDescriptorSet;
-	VkRenderPass depthRenderPass;
-	VkSampler depthSampler;
-
-	vulkan::VulkanTexture* completeDepthTexture;
-
-	struct Cascade {
-		vulkan::VulkanFrameBuffer* frameBuffer; // нужен ли отдельный под каждый swapchain image?
-		VkImageView view;
-
-		void destroy(VkDevice device) {
-			vkDestroyImageView(device, view, nullptr);
-			delete frameBuffer;
-		}
-	};
-
-	Cascade cascades[SHADOW_MAP_CASCADE_COUNT];
-	float cascadeSplits[SHADOW_MAP_CASCADE_COUNT];
-	glm::mat4 cascadesViewProjMatrixes[SHADOW_MAP_CASCADE_COUNT];
-	glm::vec4 splitDepths;
-	const float frustumRadiusMult = 1.4f; // tune it
-	const float lightPositionCascadeLengthMult = 1.45f; // tune it
 	/// cascade shadow map
 
 	class ApplicationCustomData : public InputObserver, public ICameraTransformChangeObserver {
 	public:
 
-		void createDepthRenderPass() {
-			auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
-
-			auto depthFormat = renderer->getDevice()->getSupportedDepthFormat();
-
-			std::vector<VkAttachmentDescription> attachments(1);
-			attachments[0] = vulkan::createAttachmentDescription(
-				depthFormat,
-				VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL,
-				VK_ATTACHMENT_LOAD_OP_CLEAR,
-				VK_ATTACHMENT_STORE_OP_STORE,
-				VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-				VK_ATTACHMENT_STORE_OP_DONT_CARE,
-				VK_IMAGE_LAYOUT_UNDEFINED,
-				VK_SAMPLE_COUNT_1_BIT,
-				0
-			);
-
-			std::vector<VkSubpassDependency> dependencies(2);
-
-			dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
-			dependencies[0].dstSubpass = 0;
-			dependencies[0].srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-			dependencies[0].dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-			dependencies[0].srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
-			dependencies[0].dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-			dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
-
-			dependencies[1].srcSubpass = 0;
-			dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
-			dependencies[1].srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-			dependencies[1].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-			dependencies[1].srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-			dependencies[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-			dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
-
-			depthRenderPass = vulkan::createRenderPass(renderer->getDevice(), VK_PIPELINE_BIND_POINT_GRAPHICS, dependencies, attachments);
-
-			// create depthImage
-			depthImage = new vulkan::VulkanImage(
-				renderer->getDevice(),
-				VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-				VK_IMAGE_TYPE_2D,
-				depthFormat,
-				1,
-				SHADOWMAP_DIM,
-				SHADOWMAP_DIM,
-				1,
-				0,
-				SHADOW_MAP_CASCADE_COUNT,
-				VK_SAMPLE_COUNT_1_BIT,
-				VK_IMAGE_TILING_OPTIMAL
-			);
-
-			depthImage->createImageView(VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_ASPECT_DEPTH_BIT);
-
-			depthSampler = renderer->getSampler(
-				VK_FILTER_LINEAR,
-				VK_FILTER_LINEAR,
-				VK_SAMPLER_MIPMAP_MODE_LINEAR,
-				VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER, // VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE
-				VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER, // VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE
-				VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER, // VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE
-				VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE
-			);
-
-			////// depthImageDescriptorSet
-			uint32_t binding = 0;
-			VkDescriptorSetLayoutBinding bindingLayout = { binding, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr };
-			VkDescriptorSetLayout descriptorSetLayout = renderer->getDevice()->createDescriptorSetLayout({ bindingLayout }, nullptr);
-			depthImageDescriptorSet = renderer->allocateSingleDescriptorSetFromGlobalPool(descriptorSetLayout);
-			renderer->bindImageToSingleDescriptorSet(depthImageDescriptorSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, depthSampler, depthImage->view, VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, binding);
-			renderer->getDevice()->destroyDescriptorSetLayout(descriptorSetLayout, nullptr); // destroy there or store it????
-			//////
-
-			// completeDepthTexture
-			completeDepthTexture = new vulkan::VulkanTexture(renderer, VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, depthImageDescriptorSet, depthImage, depthSampler, SHADOWMAP_DIM, SHADOWMAP_DIM, 1);
-			//
-
-			// One image and framebuffer per cascade
-			for (uint8_t i = 0; i < SHADOW_MAP_CASCADE_COUNT; ++i) {
-				// Image view for this cascade's layer (inside the depth map)
-				// This view is used to render to that specific depth image layer
-				VkImageViewCreateInfo imageViewCI = {};
-				imageViewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-
-				imageViewCI.viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
-				imageViewCI.format = depthFormat;
-				imageViewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-				imageViewCI.subresourceRange.baseMipLevel = 0;
-				imageViewCI.subresourceRange.levelCount = 1;
-				imageViewCI.subresourceRange.baseArrayLayer = i;
-				imageViewCI.subresourceRange.layerCount = 1;
-				imageViewCI.image = depthImage->image;
-
-				vkCreateImageView(renderer->getDevice()->device, &imageViewCI, nullptr, &cascades[i].view);
-
-				cascades[i].frameBuffer = new vulkan::VulkanFrameBuffer(
-					renderer->getDevice(),
-					SHADOWMAP_DIM,
-					SHADOWMAP_DIM,
-					1,
-					depthRenderPass,
-					&cascades[i].view,
-					1
-				);
-			}
-		}
-
-		void initCascadeSplits(const float minZ, const float maxZ) {
-			const glm::vec2& nearFar = camera->getNearFar();
-
-			const float clipRange = nearFar.y - nearFar.x;
-
-			const float range = maxZ - minZ;
-			const float ratio = maxZ / minZ;
-
-			// calculate split depths based on view camera frustum
-			// based on method presented in https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch10.html
-			for (uint32_t i = 0; i < SHADOW_MAP_CASCADE_COUNT; ++i) {
-				const float p = static_cast<float>(i + 1) / static_cast<float>(SHADOW_MAP_CASCADE_COUNT);
-				const float log = minZ * std::pow(ratio, p);
-				const float uniform = minZ + range * p;
-				const float d = cascadeSplitLambda * (log - uniform) + uniform;
-				cascadeSplits[i] = (d - nearFar.x) / clipRange;
-			}
-		}
-
-		void updateCascades() {
-			const glm::vec2& nearFar = camera->getNearFar();
-			const float clipRange = nearFar.y - nearFar.x;
-
-			// calculate orthographic projection matrix for each cascade
-			float lastSplitDist = 0.0;
-			for (uint32_t i = 0; i < SHADOW_MAP_CASCADE_COUNT; ++i) {
-				float splitDist = cascadeSplits[i];
-
-				glm::vec3 frustumCorners[8] = {
-					glm::vec3(-1.0f,  1.0f, 0.0f),
-					glm::vec3( 1.0f,  1.0f, 0.0f),
-					glm::vec3( 1.0f, -1.0f, 0.0f),
-					glm::vec3(-1.0f, -1.0f,	0.0f),
-					glm::vec3(-1.0f,  1.0f, 1.0f),
-					glm::vec3( 1.0f,  1.0f, 1.0f),
-					glm::vec3( 1.0f, -1.0f, 1.0f),
-					glm::vec3(-1.0f, -1.0f, 1.0f)
-				};
-
-				// project frustum corners into world space
-				const glm::mat4& invCam = camera->getInvMatrix();
-				for (uint32_t i = 0; i < 8; ++i) {
-					glm::vec4 invCorner = invCam * glm::vec4(frustumCorners[i], 1.0f);
-					frustumCorners[i] = invCorner / invCorner.w;
-				}
-
-				for (uint32_t i = 0; i < 4; ++i) {
-					glm::vec3 dist = frustumCorners[i + 4] - frustumCorners[i];
-					frustumCorners[i + 4] = frustumCorners[i] + (dist * splitDist);
-					frustumCorners[i] = frustumCorners[i] + (dist * lastSplitDist);
-				}
-
-				// get frustum center
-				glm::vec3 frustumCenter = frustumCorners[0];
-				for (uint32_t i = 1; i < 8; ++i) { frustumCenter += frustumCorners[i]; }
-				frustumCenter /= 8.0f;
-
-				// для вычисления радиуса достаточно взять наибольшее расстояние от центра до вершин пирамиды
-				// т.к. пирамида расширяется, а оп построению frustumCenter в середине - до достаточно взять расстояние
-				// от центра до последней вершины пирамиды
-				const float radius = engine::vec_length(frustumCorners[7] - frustumCenter) * frustumRadiusMult;
-
-				glm::vec3 lightDir = normalize(-lightPos);
-
-				glm::mat4 lightViewMatrix = glm::lookAt(frustumCenter - lightDir * radius * lightPositionCascadeLengthMult, frustumCenter, glm::vec3(0.0f, 1.0f, 0.0f));
-				glm::mat4 lightOrthoMatrix = glm::ortho(-radius, radius, -radius, radius, 0.0f, 2.0f * radius);
-
-				// store split distance and matrix in cascade
-				splitDepths[i] = (nearFar.x + splitDist * clipRange) * -1.0f;
-				cascadesViewProjMatrixes[i] = lightOrthoMatrix * lightViewMatrix;
-
-				lastSplitDist = cascadeSplits[i];
-			}
-		}
-
 		void onCameraTransformChanged(const Camera* camera) override {
-			updateCascades();
+			shadowMap->updateCascades(camera);
 		}
 
 		ApplicationCustomData() {
 			PROFILE_TIME_SCOPED(ApplicationLoading)
-			log("ApplicationCustomData");
+				log("ApplicationCustomData");
 
 			FileManager* fm = Engine::getInstance().getModule<FileManager>();
 			auto&& fs = fm->getFileSystem<DefaultFileSystem>();
@@ -318,10 +109,12 @@ namespace engine {
 			delete texture_text;
 
 			delete meshesGraphicsBuffer;
+
+			delete shadowMap;
 		}
 
-		bool onInputPointerEvent(const PointerEvent& event) override { 
-		
+		bool onInputPointerEvent(const PointerEvent& event) override {
+
 			static bool m1 = false;
 
 			static float x = event.x;
@@ -347,7 +140,7 @@ namespace engine {
 					y = event.y;
 				}
 			}
-				break;
+			break;
 			default:
 				break;
 			}
@@ -355,38 +148,38 @@ namespace engine {
 			return false;
 		}
 
-		bool onInputWheelEvent(const float dx, const float dy) override { 
+		bool onInputWheelEvent(const float dx, const float dy) override {
 			camera->movePosition(glm::vec3(0.0f, 0.0f, dy * 20.0f));
 			return true;
 		}
 
 		bool onInpuKeyEvent(const KeyEvent& event) override {
-			
+
 			switch (event.key) {
-				case KeyBoardKey::K_E:
-					event.state == InputEventState::IES_RELEASE ? wasd.y -= 0.5f : wasd.y += 0.5f;
-					break;
-				case KeyBoardKey::K_Q:
-					event.state == InputEventState::IES_RELEASE ? wasd.y += 0.5f : wasd.y -= 0.5f;
-					break;
-				case KeyBoardKey::K_W:
-					event.state == InputEventState::IES_RELEASE ? wasd.z -= 1.0f : wasd.z += 1.0f;
-					break;
-				case KeyBoardKey::K_S:
-					event.state == InputEventState::IES_RELEASE ? wasd.z += 1.0f : wasd.z -= 1.0f;
-					break;
-				case KeyBoardKey::K_A:
-					event.state == InputEventState::IES_RELEASE ? wasd.x += 1.0f : wasd.x -= 1.0f;
-					break;
-				case KeyBoardKey::K_D:
-					event.state == InputEventState::IES_RELEASE ? wasd.x -= 1.0f : wasd.x += 1.0f;
-					break;
-				case KeyBoardKey::K_ESCAPE:
-					if (event.state != InputEventState::IES_RELEASE) break;
-					Engine::getInstance().getModule<Device>()->leaveMainLoop();
-					break;
-				default:
-					break;
+			case KeyBoardKey::K_E:
+				event.state == InputEventState::IES_RELEASE ? wasd.y -= 0.5f : wasd.y += 0.5f;
+				break;
+			case KeyBoardKey::K_Q:
+				event.state == InputEventState::IES_RELEASE ? wasd.y += 0.5f : wasd.y -= 0.5f;
+				break;
+			case KeyBoardKey::K_W:
+				event.state == InputEventState::IES_RELEASE ? wasd.z -= 1.0f : wasd.z += 1.0f;
+				break;
+			case KeyBoardKey::K_S:
+				event.state == InputEventState::IES_RELEASE ? wasd.z += 1.0f : wasd.z -= 1.0f;
+				break;
+			case KeyBoardKey::K_A:
+				event.state == InputEventState::IES_RELEASE ? wasd.x += 1.0f : wasd.x -= 1.0f;
+				break;
+			case KeyBoardKey::K_D:
+				event.state == InputEventState::IES_RELEASE ? wasd.x -= 1.0f : wasd.x += 1.0f;
+				break;
+			case KeyBoardKey::K_ESCAPE:
+				if (event.state != InputEventState::IES_RELEASE) break;
+				Engine::getInstance().getModule<Device>()->leaveMainLoop();
+				break;
+			default:
+				break;
 			}
 
 			return false;
@@ -414,8 +207,9 @@ namespace engine {
 			clearValues[1].depthStencil = { 1.0f, 0 };
 
 			////////////////////////
-			createDepthRenderPass();
-			initCascadeSplits(200.0f, 2100.0f);
+			shadowMap = new CascadeShadowMap(SHADOWMAP_DIM, SHADOW_MAP_CASCADE_COUNT, camera->getNearFar(), 200.0f, 2100.0f);
+			shadowMap->setLamdas(1.0f, 1.3f, 1.425f);
+			shadowMap->setLightPosition(lightPos);
 		}
 
 		void create() {
@@ -431,20 +225,8 @@ namespace engine {
 			psi.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/mesh.psh.spv");
 			VulkanGpuProgram* program_gltf = gpuProgramManager->getProgram(psi);
 
-			std::vector<engine::ProgramStageInfo> psi_shadow;
-			psi_shadow.emplace_back(ProgramStage::VERTEX, "resources/shaders/mesh_skin_depthpass.vsh.spv");
-			psi_shadow.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/depthpass.psh.spv");
-			vulkan::VulkanGpuProgram* shadowMap_program = gpuProgramManager->getProgram(psi_shadow);
-
-			std::vector<engine::ProgramStageInfo> psi_shadow_test;
-			//psi_shadow_test.emplace_back(ProgramStage::VERTEX, "resources/shaders/texture.vsh.spv");
-			//psi_shadow_test.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/texture_shadow.psh.spv");
-			psi_shadow_test.emplace_back(ProgramStage::VERTEX, "resources/shaders/plain_shadows.vsh.spv");
-			psi_shadow_test.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/plain_shadows.psh.spv");
-			vulkan::VulkanGpuProgram* texture_shadow = gpuProgramManager->getProgram(psi_shadow_test);
-
 			program_mesh_default = program_gltf;
-			program_mesh_shadow = shadowMap_program;
+			program_mesh_shadow = CascadeShadowMap::getShadowProgram<Mesh>();
 
 			TextureLoadingParams tex_params;
 			//tex_params.file = "resources/assets/models/zombiWarrior/textures/defaultMat_diffuse.png";
@@ -492,7 +274,7 @@ namespace engine {
 
 				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
 				asset->onPipelineAttributesChanged();
-			});
+				});
 
 			mesh2 = assm->loadAsset<Mesh*>(mesh_params, [program_gltf, texture_zombi](Mesh* asset, const AssetLoadingResult result) {
 				asset->setProgram(program_gltf);
@@ -549,7 +331,7 @@ namespace engine {
 						VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK
 					));
 				});
-			
+
 			/////// freeType test
 			FontLoadingParams font_loading_params("resources/assets/fonts/Roboto/Roboto-Regular.ttf");
 			Font* f = assm->loadAsset<Font*>(font_loading_params);
@@ -665,7 +447,8 @@ namespace engine {
 			if (!na) {
 				if (mix > -4.0f) {
 					mix -= step;
-				} else {
+				}
+				else {
 					mix = -4.0f;
 					na = true;
 				}
@@ -673,10 +456,15 @@ namespace engine {
 			else {
 				if (mix < 5.0f) {
 					mix += step;
-				} else {
+				}
+				else {
 					mix = 5.0f;
 					na = false;
 					animNum = engine::random(1, 4);
+
+					if (animTree2) {
+						animTree2->getAnimator()->children()[animNum]->value().resetTime();
+					}
 				}
 			}
 
@@ -751,9 +539,9 @@ namespace engine {
 			commandBuffer.begin();
 
 			/////// shadow pass
-			mesh->setProgram(program_mesh_shadow, depthRenderPass);
-			mesh2->setProgram(program_mesh_shadow, depthRenderPass);
-			mesh3->setProgram(program_mesh_shadow, depthRenderPass);
+			mesh->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
+			mesh2->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
+			mesh3->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
 
 			//if (animTree2) {
 				// у меня лайоуты совпадают у юниформов, для теней => не нужно вызывать переназначение, достаточно одного раза
@@ -762,14 +550,9 @@ namespace engine {
 				//mesh3->updateRenderData(wtr3);
 			//}
 
-			VkClearValue shadowClearValues[1];
-			shadowClearValues[0].depthStencil = { 1.0f, 0 };
-			
-			commandBuffer.cmdSetViewport(0.0f, 0.0f, static_cast<float>(SHADOWMAP_DIM), static_cast<float>(SHADOWMAP_DIM), 0.0f, 1.0f, false);
-			commandBuffer.cmdSetScissor(0, 0, SHADOWMAP_DIM, SHADOWMAP_DIM);
-
-			for (uint32_t i = 0; i < SHADOW_MAP_CASCADE_COUNT; ++i) {
-				commandBuffer.cmdBeginRenderPass(depthRenderPass, { {0, 0}, {SHADOWMAP_DIM, SHADOWMAP_DIM} }, &shadowClearValues[0], 1, cascades[i].frameBuffer->m_framebuffer, VK_SUBPASS_CONTENTS_INLINE);
+			shadowMap->prepareToRender(commandBuffer);
+			for (uint32_t i = 0; i < shadowMap->getCascadesCount(); ++i) {
+				shadowMap->beginRenderPass(commandBuffer, i);
 
 				//todo: проверять в какой каскад меш попадает и только там его и рисовать
 				//mesh->setCameraMatrix(cascadesViewProjMatrixes[i]);
@@ -779,10 +562,9 @@ namespace engine {
 				//mesh->render(commandBuffer, currentFrame, &cascadesViewProjMatrixes[i]);
 				//mesh2->render(commandBuffer, currentFrame, &cascadesViewProjMatrixes[i]);
 				//mesh3->render(commandBuffer, currentFrame, &cascadesViewProjMatrixes[i]);
+				sceneRenderList.render(commandBuffer, currentFrame, &shadowMap->getVPMatrix(i));
 
-				sceneRenderList.render(commandBuffer, currentFrame, &cascadesViewProjMatrixes[i]);
-
-				commandBuffer.cmdEndRenderPass();
+				shadowMap->endRenderPass(commandBuffer);
 			}
 
 			mesh->setProgram(program_mesh_default);
@@ -852,7 +634,7 @@ namespace engine {
 				static const vulkan::GPUParamLayoutInfo* mvp_layout = pipeline->program->getGPUParamLayoutByName("mvp");
 
 				//// floor
-				static auto&& pipeline_shadow_test = renderHelper->getPipeline(CommonPipelines::TEST);
+				static auto&& pipeline_shadow_test = CascadeShadowMap::getSpecialPipeline(ShadowMapSpecialPipelines::SH_PIPEINE_PLAIN);
 				static const vulkan::GPUParamLayoutInfo* mvp_layout2 = pipeline_shadow_test->program->getGPUParamLayoutByName("mvp");
 
 				TexturedVertex floorVtx[4] = {
@@ -871,10 +653,11 @@ namespace engine {
 				const glm::mat4& viewTransform = camera->getViewTransform();
 				renderDataFloor.setParamByName("view", &const_cast<glm::mat4&>(viewTransform), false);
 				renderDataFloor.setParamByName("u_texture", texture_floor, false);
-				renderDataFloor.setParamByName("u_shadow_map", completeDepthTexture, false);
-				renderDataFloor.setParamByName("cascade_matrix", &cascadesViewProjMatrixes[0], false, SHADOW_MAP_CASCADE_COUNT);
-				renderDataFloor.setParamByName("cascade_splits", &splitDepths, false, 1);
- 
+				renderDataFloor.setParamByName("u_shadow_map", shadowMap->getTexture(), false);
+				renderDataFloor.setParamByName("cascade_matrix", shadowMap->getVPMatrixes().data(), false, shadowMap->getCascadesCount());
+				renderDataFloor.setParamByName("cascade_splits", shadowMap->getSplitDepthsPointer<glm::vec4>(), false, 1);
+				renderDataFloor.setParamByName("shadow_c", 0.4f, true, 1);
+				
 				autoBatcher->addToDraw(&renderDataFloor, sizeof(TexturedVertex), &floorVtx[0], vertexBufferSize, &idxs[0], indexBufferSize, commandBuffer, currentFrame);
 
 				vulkan::RenderData renderData(const_cast<vulkan::VulkanPipeline*>(pipeline));
@@ -893,6 +676,7 @@ namespace engine {
 				}
 
 				autoBatcher->addToDraw(renderData.pipeline, sizeof(TexturedVertex), &vtx[0], vertexBufferSize, &idxs[0], indexBufferSize, renderData.params, commandBuffer, currentFrame);
+
 
 				/*TexturedVertex vtx2[4] = {
 					{ {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f} },
@@ -1071,7 +855,7 @@ int main() {
 		int a;
 	};
 	struct B {
-	
+
 		B() : a(0) {}
 		B(int aa) : a(aa) {}
 		int a;

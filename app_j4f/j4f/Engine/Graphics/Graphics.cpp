@@ -10,6 +10,7 @@
 #include "GpuProgramsManager.h"
 #include "Text/Font.h"
 #include "Render/RenderHelper.h"
+#include "Scene/Shadows/CascadeShadowMap.h"
 #include "Animation/AnimationManager.h"
 
 #include "../Log/Log.h"
@@ -41,7 +42,7 @@ namespace engine {
 			renderer->init();
 
 			{ // print gpu info
-				std::string gpuTypes[5] = {
+				const std::string gpuTypes[5] = {
 					"device_type_other",
 					"device_type_integrated_gpu",
 					"device_type_discrete_gpu",
@@ -81,6 +82,7 @@ namespace engine {
 
 	void Graphics::onEngineInitComplete() {
 		_renderHelper->initCommonPipelines();
+		CascadeShadowMap::initCommonData();
 		//Engine::getInstance().getModule<Device>()->swicthFullscreen(true);
 	}
 

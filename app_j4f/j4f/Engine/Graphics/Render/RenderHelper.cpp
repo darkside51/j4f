@@ -113,40 +113,6 @@ namespace engine {
 			stencilState,
 			programTextured
 		);
-
-		/////// test only - delete this code
-		depthState.depthWriteEnabled = true;
-		depthState.depthTestEnabled = true;
-
-		std::vector<engine::ProgramStageInfo> psi_shadow_test;
-		psi_shadow_test.emplace_back(ProgramStage::VERTEX, "resources/shaders/shadows_plain.vsh.spv");
-		psi_shadow_test.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/shadows_plain.psh.spv");
-		vulkan::VulkanGpuProgram* texture_shadow = _gpuProgramManager->getProgram(psi_shadow_test);
-
-		_commonPipelines[static_cast<uint8_t>(CommonPipelines::TEST)] = _renderer->getGraphicsPipeline(
-			vertexDescription,
-			primitiveTopology,
-			rasterisation,
-			CommonBlendModes::blend_alpha,
-			depthState,
-			stencilState,
-			texture_shadow
-		);
-
-		std::vector<engine::ProgramStageInfo> psi_shadow_test2;
-		psi_shadow_test2.emplace_back(ProgramStage::VERTEX, "resources/shaders/texture.vsh.spv");
-		psi_shadow_test2.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/texture_shadow.psh.spv");
-		vulkan::VulkanGpuProgram* texture_shadow2 = _gpuProgramManager->getProgram(psi_shadow_test2);
-
-		_commonPipelines[static_cast<uint8_t>(CommonPipelines::TEST2)] = _renderer->getGraphicsPipeline(
-			vertexDescription,
-			primitiveTopology,
-			rasterisation,
-			CommonBlendModes::blend_alpha,
-			depthState,
-			stencilState,
-			texture_shadow2
-		);
 	}
 
 	void RenderHelper::updateFrame() {

@@ -263,4 +263,30 @@ namespace engine {
             t.z = m1[3].z;
         }
     }
+
+    inline void lookAt(const glm::vec3& eye, const glm::vec3& center, const glm::vec3& up, glm::mat4& matrix) {
+        const glm::vec3 f(as_normalized(center - eye));
+        const glm::vec3 s(as_normalized(cross(f, up)));
+        const glm::vec3 u(cross(s, f));
+
+        matrix[0][3] = 0.0f;
+        matrix[1][3] = 0.0f;
+        matrix[2][3] = 0.0f;
+
+        matrix[0][0] = s.x;
+        matrix[1][0] = s.y;
+        matrix[2][0] = s.z;
+
+        matrix[0][1] = u.x;
+        matrix[1][1] = u.y;
+        matrix[2][1] = u.z;
+
+        matrix[0][2] = -f.x;
+        matrix[1][2] = -f.y;
+        matrix[2][2] = -f.z;
+
+        matrix[3][0] = -dot(s, eye);
+        matrix[3][1] = -dot(u, eye);
+        matrix[3][2] =  dot(f, eye);
+    }
 }

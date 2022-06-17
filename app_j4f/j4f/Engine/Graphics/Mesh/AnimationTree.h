@@ -169,6 +169,8 @@ namespace engine {
 		inline float getSpeed() const { return _speed; }
 		inline void setSpeed(const float s) { _speed = s; }
 
+		inline void resetTime() { _time = 0.0f; }
+
 		inline const Mesh_Animation* getAnimation() const { return _animation; }
 
 		inline void applyToSkeleton(Skeleton* skeleton, const uint8_t updateFrame) {
