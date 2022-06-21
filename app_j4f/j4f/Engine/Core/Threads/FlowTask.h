@@ -23,7 +23,7 @@ namespace engine {
 		explicit FlowTask(const TaskType type, F&& f, Args&&... args) : TaskHandler<T>(type, createTak<F, Args...>(std::forward<F>(f)), std::forward<Args>(args)...) {}
 
 		bool readyToRun() override { 
-			return (_dependency.fetch_sub(1, std::memory_order_acq_rel) == 1);
+			return (_dependency.fetch_sub(1, std::memory_order_release) == 1);
 		}
 
 		void addDependTask(ITaskHandlerPtr& handler) {

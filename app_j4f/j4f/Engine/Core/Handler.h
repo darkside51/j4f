@@ -34,9 +34,9 @@ namespace engine {
 			}
 		};
 
-		inline void inc() { _counter.fetch_add(1, std::memory_order_acq_rel) + 1; }
+		inline void inc() { _counter.fetch_add(1, std::memory_order_release) + 1; }
 		inline void dec() { 
-			if (_counter.fetch_sub(1, std::memory_order_acq_rel) == 1) { 
+			if (_counter.fetch_sub(1, std::memory_order_release) == 1) { 
 				if (_memory) {
 					this->~ValueStorage();
 				} else {
@@ -71,22 +71,22 @@ namespace engine {
 		}
 
 		~handler_ptr() {
-			if (auto&& s = _ptr.exchange(nullptr, std::memory_order_acq_rel)) s->dec();
+			if (auto&& s = _ptr.exchange(nullptr, std::memory_order_release)) s->dec();
 		}
 
 		handler_ptr& operator= (T* v) {
-			_ptr.exchange(new Storage(v), std::memory_order_acq_rel)->dec();
+			_ptr.exchange(new Storage(v), std::memory_order_release)->dec();
 			return *this;
 		}
 		handler_ptr& operator= (const handler_ptr& ptr) {
 			if (this == &ptr) return *this;
 			ptr._ptr.load(std::memory_order_acquire)->inc();
-			_ptr.exchange(ptr._ptr, std::memory_order_acq_rel)->dec();
+			_ptr.exchange(ptr._ptr, std::memory_order_release)->dec();
 			return *this;
 		}
 		handler_ptr& operator= (handler_ptr&& ptr) noexcept {
 			if (this == &ptr) return *this;
-			_ptr.exchange(ptr._ptr, std::memory_order_acq_rel)->dec();
+			_ptr.exchange(ptr._ptr, std::memory_order_release)->dec();
 			ptr._ptr.store(nullptr, std::memory_order_release);
 			return *this;
 		}

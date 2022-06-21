@@ -19,7 +19,7 @@ namespace vulkan {
 		}
 
 		inline uint32_t getCurrentOffset() const {
-			return offset.load(std::memory_order_acquire);
+			return offset.load(std::memory_order_consume);
 		}
 
 		inline uint32_t encrease() {

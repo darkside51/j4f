@@ -11,6 +11,10 @@ if(STATISTIC_ENABLED)
 	add_definitions(-DENABLE_STATISTIC)
 endif()
 
+if(PROFILER_ENABLE)
+	add_definitions(-DPROFILER_ENABLE)
+endif()
+
 add_definitions(-Dj4f_PLATFORM_${j4f_PLATFORM})
 
 #собираем engine

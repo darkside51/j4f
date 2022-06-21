@@ -20,7 +20,7 @@ namespace engine {
 		}
 
 		static void wait(std::atomic_bool& l) {
-			while (l.load(std::memory_order_acquire)) {
+			while (l.load(std::memory_order_consume)) {
 				std::this_thread::yield();
 			}
 		}
@@ -53,7 +53,7 @@ namespace engine {
 		}
 
 		inline void waitForEmpty() const {
-			while (_counter.load(std::memory_order_acquire) != 0) {
+			while (_counter.load(std::memory_order_consume) != 0) {
 				std::this_thread::yield();
 			}
 		}

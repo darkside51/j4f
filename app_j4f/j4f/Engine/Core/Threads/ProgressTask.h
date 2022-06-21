@@ -14,8 +14,8 @@ namespace engine {
 		inline void setStep(const uint16_t step) { _step.store(step, std::memory_order_release); }
 		inline void setTotalSteps(const uint16_t steps) { _totalSteps.store(steps, std::memory_order_release); }
 
-		inline uint16_t getCurrentStep() const { return _step.load(std::memory_order_acquire); }
-		inline uint16_t getTotalSteps() const { return _totalSteps.load(std::memory_order_acquire); }
+		inline uint16_t getCurrentStep() const { return _step.load(std::memory_order_consume); }
+		inline uint16_t getTotalSteps() const { return _totalSteps.load(std::memory_order_consume); }
 
 		float getProgress() const {
 			return static_cast<float>(getCurrentStep()) / getTotalSteps();

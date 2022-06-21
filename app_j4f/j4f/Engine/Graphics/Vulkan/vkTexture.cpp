@@ -203,7 +203,7 @@ namespace vulkan {
 	const VkImageView VulkanTexture::getImageView() const { return _img->view; }
 
 	void VulkanTexture::createSingleDescriptor(const VkImageLayout imageLayout, const uint32_t binding) {
-		if (_generationState.load(std::memory_order_acquire) == VulkanTextureCreationState::CREATION_COMPLETE) {
+		if (_generationState.load(std::memory_order_consume) == VulkanTextureCreationState::CREATION_COMPLETE) {
 			VkDescriptorSetLayoutBinding bindingLayout = { binding, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr };
 			VkDescriptorSetLayout descriptorSetLayout = _renderer->getDevice()->createDescriptorSetLayout({ bindingLayout }, nullptr);
 			_descriptor = _renderer->allocateSingleDescriptorSetFromGlobalPool(descriptorSetLayout);

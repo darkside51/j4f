@@ -29,7 +29,7 @@ namespace engine {
 
 			if (_tmpTime >= 1.0f) {
 				_fps = _tmpFrameCount;
-				_drawCalls = std::roundf(float(_tmpDrawCalls.exchange(0, std::memory_order_acq_rel)) / _fps);
+				_drawCalls = std::roundf(float(_tmpDrawCalls.exchange(0, std::memory_order_release)) / _fps);
 				_framePrepareTime /= _fps;
 				updateValues();
 				_tmpFrameCount = 0;

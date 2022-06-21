@@ -43,7 +43,7 @@ namespace vulkan {
 
 		void fillGpuData(VulkanBuffer* staging, VulkanCommandBuffer& cmdBuffer);
 
-		inline VulkanTextureCreationState generationState() const { return _generationState.load(std::memory_order_acquire); }
+		inline VulkanTextureCreationState generationState() const { return _generationState.load(std::memory_order_consume); }
 		inline void noGenerate() { _generationState.store(VulkanTextureCreationState::NO_CREATED, std::memory_order_release); }
 
 		void setImage(VulkanImage* img) { _img = img; }

@@ -78,7 +78,7 @@ namespace engine {
 
 		ApplicationCustomData() {
 			PROFILE_TIME_SCOPED(ApplicationLoading)
-				log("ApplicationCustomData");
+			log("ApplicationCustomData");
 
 			FileManager* fm = Engine::getInstance().getModule<FileManager>();
 			auto&& fs = fm->getFileSystem<DefaultFileSystem>();

@@ -40,7 +40,7 @@ namespace engine {
         friend class ITaskHandler;
     public:
         inline operator bool() const noexcept {
-            return _cancellation_token.load(std::memory_order_acquire);
+            return _cancellation_token.load(std::memory_order_consume);
         }
 
         CancellationToken() {
@@ -73,7 +73,7 @@ namespace engine {
         ITaskHandler() : _type(TaskType::COMMON), _state(TaskState::IDLE) { }
         ITaskHandler(const TaskType type) : _type(type), _state(TaskState::IDLE) { }
         
-        inline TaskState state() const { return _state.load(std::memory_order_acquire); }
+        inline TaskState state() const { return _state.load(std::memory_order_consume); }
 
         inline void operator()() {
             TaskState state = TaskState::IDLE;
