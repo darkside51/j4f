@@ -393,7 +393,7 @@ namespace engine {
 			_use_skin = p->program->getGPUParamLayoutByName("use_skin");
 		}
 
-		_renderDescriptor.camera_matrix = _camera_matrix;
+		_renderDescriptor.setCameraMatrix(_camera_matrix);
 		for (uint32_t i = 0; i < _renderDescriptor.renderDataCount; ++i) {
 			_renderDescriptor.renderData[i]->setPipeline(p);
 		}
@@ -481,7 +481,7 @@ namespace engine {
 			glm::mat4 model = worldMatrix * node.modelMatrix;
 
 			if (_use_skin) {
-				int useSkin = node.skinIndex != 0xffff ? 1 : 0;
+				int32_t useSkin = node.skinIndex != 0xffff ? 1 : 0;
 				r_data->setParamForLayout(_use_skin, &useSkin, true, 1);
 			}
 

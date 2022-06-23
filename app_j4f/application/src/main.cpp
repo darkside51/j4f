@@ -228,6 +228,11 @@ namespace engine {
 			program_mesh_default = program_gltf;
 			program_mesh_shadow = CascadeShadowMap::getShadowProgram<Mesh>();
 
+			// do this with no dynamic ubo
+			//auto l = program_mesh_default->getGPUParamLayoutByName("custom_color");
+			//glm::vec4 color(1.0f, 0.0f, 0.0f, 1.0f);
+			//program_mesh_default->setValueToLayout(l, &color, nullptr, 65, 16);
+
 			TextureLoadingParams tex_params;
 			//tex_params.file = "resources/assets/models/zombiWarrior/textures/defaultMat_diffuse.png";
 			tex_params.file = "resources/assets/models/chaman/textures/Ti-Pche_Mat_baseColor.png";
@@ -527,10 +532,6 @@ namespace engine {
 			mesh2->updateRenderData(wtr2);
 			mesh3->updateRenderData(wtr3);
 
-			/////// shadow maps try
-			//updateCascades();
-			/////// shadow maps try
-
 			const uint64_t wh = renderer->getWH();
 			const uint32_t width = static_cast<uint32_t>(wh >> 0);
 			const uint32_t height = static_cast<uint32_t>(wh >> 32);
@@ -559,9 +560,9 @@ namespace engine {
 				//mesh2->setCameraMatrix(cascadesViewProjMatrixes[i]);
 				//mesh3->setCameraMatrix(cascadesViewProjMatrixes[i]);
 
-				//mesh->render(commandBuffer, currentFrame, &cascadesViewProjMatrixes[i]);
-				//mesh2->render(commandBuffer, currentFrame, &cascadesViewProjMatrixes[i]);
-				//mesh3->render(commandBuffer, currentFrame, &cascadesViewProjMatrixes[i]);
+				//mesh->render(commandBuffer, currentFrame, &shadowMap->getVPMatrix(i));
+				//mesh2->render(commandBuffer, currentFrame, &shadowMap->getVPMatrix(i));
+				//mesh3->render(commandBuffer, currentFrame, &shadowMap->getVPMatrix(i));
 				sceneRenderList.render(commandBuffer, currentFrame, &shadowMap->getVPMatrix(i));
 
 				shadowMap->endRenderPass(commandBuffer);

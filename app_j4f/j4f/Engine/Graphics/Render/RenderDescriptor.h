@@ -33,6 +33,8 @@ namespace engine {
 
 		~RenderDescriptor() { destroy(); }
 
+		inline void setCameraMatrix(const vulkan::GPUParamLayoutInfo* layout) { camera_matrix = layout; }
+
 		void destroy() {
 			if (renderDataCount) {
 				for (uint32_t i = 0; i < renderDataCount; ++i) {

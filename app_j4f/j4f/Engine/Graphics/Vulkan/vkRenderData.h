@@ -241,7 +241,7 @@ namespace vulkan {
 					{
 						if (value) {
 							VulkanDynamicBuffer* buffer = reinterpret_cast<VulkanDynamicBuffer*>(l->parentLayout->data);
-							p.second = buffer->getCurrentOffset();
+							p.second = buffer->getCurrentOffset() - 1; // -1 because buffer offset has been encreased
 
 							dynamicOffsets[l->parentLayout->descriptorSetLayoutBinding->binding] = program->setValueToLayout(l, value, nullptr, p.second, size);
 						}
