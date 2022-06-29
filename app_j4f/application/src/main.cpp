@@ -229,9 +229,13 @@ namespace engine {
 			program_mesh_shadow = CascadeShadowMap::getShadowProgram<Mesh>();
 
 			// do this with no dynamic ubo
-			//auto l = program_mesh_default->getGPUParamLayoutByName("custom_color");
+			//auto l = program_mesh_default->getGPUParamLayoutByName("color");
 			//glm::vec4 color(1.0f, 0.0f, 0.0f, 1.0f);
 			//program_mesh_default->setValueToLayout(l, &color, nullptr, 65, 16);
+
+			auto l = program_mesh_default->getGPUParamLayoutByName("lightDirection");
+			glm::vec3 lightDir = as_normalized(-lightPos);
+			program_mesh_default->setValueToLayout(l, &lightDir, nullptr);
 
 			TextureLoadingParams tex_params;
 			//tex_params.file = "resources/assets/models/zombiWarrior/textures/defaultMat_diffuse.png";

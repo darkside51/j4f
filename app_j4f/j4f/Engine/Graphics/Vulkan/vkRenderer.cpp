@@ -566,7 +566,7 @@ namespace vulkan {
 	void VulkanRenderer::bindBufferToDescriptorSet(
 		const VulkanDescriptorSet* descriptorSet,
 		const VkDescriptorType type, 
-		const std::vector<VulkanBuffer>& buffer,
+		const VulkanBuffer* buffer,
 		const uint32_t binding,
 		const uint32_t alignedSize,
 		const uint32_t offset
@@ -1007,7 +1007,7 @@ namespace vulkan {
 	}
 
 	void VulkanRenderer::bindDynamicUniformBufferToDescriptorSet(const VulkanDescriptorSet* descriptorSet, VulkanDynamicBuffer* dynamicBuffer, const uint32_t binding) const {
-		bindBufferToDescriptorSet(descriptorSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, dynamicBuffer->buffers, binding, dynamicBuffer->alignedSize, 0);
+		bindBufferToDescriptorSet(descriptorSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, dynamicBuffer->buffers.data(), binding, dynamicBuffer->alignedSize, 0);
 	}
 
 	void VulkanRenderer::waitWorkComplete() const {

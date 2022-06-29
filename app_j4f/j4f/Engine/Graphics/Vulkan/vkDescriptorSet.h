@@ -14,20 +14,21 @@ namespace vulkan {
 	struct VulkanDescriptorSet {
 		VkDescriptorPool parentPool;
 		std::vector<VkDescriptorSet> set; // размер по количеству буфферов для кадра
+		uint8_t count;
 
-		VulkanDescriptorSet(const uint32_t size = 0) : set(static_cast<size_t>(size)) { }
+		VulkanDescriptorSet(const uint32_t size = 0) : set(static_cast<size_t>(size)), count(size) { }
 		~VulkanDescriptorSet() = default;
 
-		VkDescriptorSet& operator[] (const uint32_t i) { return set[i]; }
-		const VkDescriptorSet& operator[] (const uint32_t i) const { return set[i]; }
+		VkDescriptorSet& operator[] (const uint32_t i) { return set[i % count]; }
+		const VkDescriptorSet& operator[] (const uint32_t i) const { return set[i % count]; }
 
-		VkDescriptorSet& at(const uint32_t i) { return set[i]; }
-		const VkDescriptorSet& at(const uint32_t i) const { return set[i]; }
+		VkDescriptorSet& at(const uint32_t i) { return set[i % count]; }
+		const VkDescriptorSet& at(const uint32_t i) const { return set[i % count]; }
 
-		VkDescriptorSet* operator() (const uint32_t i) { return &set[i]; }
-		const VkDescriptorSet* operator() (const uint32_t i) const { return &set[i]; }
+		VkDescriptorSet* operator() (const uint32_t i) { return &set[i % count]; }
+		const VkDescriptorSet* operator() (const uint32_t i) const { return &set[i % count]; }
 
-		VkDescriptorSet* p_at(const uint32_t i) { return &set[i]; }
-		const VkDescriptorSet* p_at(const uint32_t i) const { return &set[i]; }
+		VkDescriptorSet* p_at(const uint32_t i) { return &set[i % count]; }
+		const VkDescriptorSet* p_at(const uint32_t i) const { return &set[i % count]; }
 	};
 }

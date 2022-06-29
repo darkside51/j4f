@@ -165,7 +165,7 @@ namespace vulkan {
 				case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER: // = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
 				{
 					const char* uniformTypeName = binding->type_description->type_name;
-					const bool constUniform = strstr(uniformTypeName, "const");
+					const bool constUniform = strstr(uniformTypeName, "static");
 
 					// создаем лаяут дескриптора юниформа или обновляем имеющийся
 					VkDescriptorSetLayoutBinding layoutBinding;
@@ -322,6 +322,8 @@ namespace vulkan {
 		m_descriptorSets.clear();
 
 		m_pushConstantsRanges.clear();
+
+		m_staticUniformBuffer.clear();
 	}
 
 	void VulkanGpuProgram::parseModules(const std::vector<VulkanShaderModule*>& modules) {
@@ -422,27 +424,31 @@ namespace vulkan {
 		////// generate programm data
 		m_pipelineDescriptorLayout = &m_renderer->getDescriptorLayout(descriptorSetLayoutBindings, m_pushConstantsRanges);
 
-		// allocate descriptor sets for only set 0
+		// allocate descriptor sets
 		if (!m_pipelineDescriptorLayout->descriptorSetLayouts.empty()) {
 
-			bool needToGenerateSet = false;
-			for (VkDescriptorSetLayoutBinding* binding : descriptorSetLayoutBindings[0]) {
-				switch (binding->descriptorType) {
-					case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
-					case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
-					case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
-					case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
-						needToGenerateSet = true;
-						break;
-					default:
-						break;
+			uint8_t buffersCount = 0;
+			uint8_t buffersTypes = 0;
+			for (auto& descriptorSetLayoutBinding : descriptorSetLayoutBindings) {
+				for (VkDescriptorSetLayoutBinding* binding : descriptorSetLayoutBinding) {
+					switch (binding->descriptorType) {
+						case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
+						case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
+							buffersTypes |= (1 << buffersCount);
+							++buffersCount;
+							break;
+						case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
+						case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
+							++buffersCount;
+							break;
+						default:
+							break;
+					}
 				}
-
-				if (needToGenerateSet) { break; }
 			}
 
-			if (needToGenerateSet) {
-				VulkanDescriptorSet* newDescriptorSet = m_renderer->allocateDescriptorSetFromGlobalPool(m_pipelineDescriptorLayout->descriptorSetLayouts[0]);
+			for (uint8_t i = 0; i < buffersCount; ++i) {
+				VulkanDescriptorSet* newDescriptorSet = m_renderer->allocateDescriptorSetFromGlobalPool(m_pipelineDescriptorLayout->descriptorSetLayouts[i], (buffersTypes & (1 << i)) ? 1 : 0);
 				m_descriptorSets.push_back(newDescriptorSet);
 			}
 		}
@@ -455,17 +461,52 @@ namespace vulkan {
 			if (layout->sizeInBytes == 0) continue;
 
 			switch (layout->type) {
+				case GPUParamLayoutType::UNIFORM_BUFFER:
+				{
+					VulkanDescriptorSet* descriptorSet = (m_descriptorSets.size() > 1 ? m_descriptorSets[1] : m_descriptorSets[0]); // todo: придумать, что - то нормальное в эту строчку
+					if (m_staticUniformBuffer.empty()) {
+						const uint8_t imagesCount = descriptorSet->count;
+						m_staticUniformBuffer.resize(imagesCount);
+
+						for (uint8_t i = 0; i < imagesCount; ++i) {
+							m_renderer->getDevice()->createBuffer(
+								VK_SHARING_MODE_EXCLUSIVE,
+								VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+								VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+								&m_staticUniformBuffer[i],
+								layout->sizeInBytes
+							);
+						}
+					}
+
+					m_renderer->bindBufferToDescriptorSet(
+						descriptorSet,
+						VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 
+						m_staticUniformBuffer.data(),
+						layout->descriptorSetLayoutBinding->binding,
+						layout->sizeInBytes,
+						0
+					);
+
+					layout->data = &m_staticUniformBuffer;
+					m_gpuBuffersSets |= (1 << layout->set);
+				}
+					break;
+				case GPUParamLayoutType::STORAGE_BUFFER:
+				{
+				}
+					break;
 				case GPUParamLayoutType::UNIFORM_BUFFER_DYNAMIC:
 				{
 					m_dynamicUniformBuffers.push_back(m_renderer->getDynamicUniformBufferForSize(layout->sizeInBytes));
 					m_renderer->bindDynamicUniformBufferToDescriptorSet(m_descriptorSets[0], m_dynamicUniformBuffers.back(), layout->descriptorSetLayoutBinding->binding);
 					layout->data = m_dynamicUniformBuffers.back();
-					m_dynamicSets |= (1 << layout->set);
+					m_gpuBuffersSets |= (1 << layout->set);
 				}
 					break;
 				case GPUParamLayoutType::STORAGE_BUFFER_DYNAMIC:
 				{
-					m_dynamicSets |= (1 << layout->set);
+					m_gpuBuffersSets |= (1 << layout->set);
 				}
 					break;
 				case GPUParamLayoutType::PUSH_CONSTANT:
@@ -483,7 +524,7 @@ namespace vulkan {
 		}
 
 		for (int i = 0; i < m_maxSetNum + 1; ++i) { // 8 сетов максимум, хватит?
-			if (m_dynamicSets & (1 << i)) ++m_dynamicSetsCount;
+			if (m_gpuBuffersSets & (1 << i)) ++m_gpuBuffersSetsCount;
 		}
 	}
 
@@ -527,6 +568,12 @@ namespace vulkan {
 				break;
 			case GPUParamLayoutType::UNIFORM_BUFFER: // full buffer
 			{
+				const uint32_t frame = m_renderer->getCurrentFrame();
+				std::vector<vulkan::VulkanBuffer>* bufferVec = reinterpret_cast<std::vector<vulkan::VulkanBuffer>*>(paramLayout->parentLayout->data);
+				vulkan::VulkanBuffer& buffer = bufferVec->operator[](frame% bufferVec->size());
+				void* memory = buffer.map(buffer.m_size);
+				memcpy(reinterpret_cast<void*>(reinterpret_cast<size_t>(memory) + paramLayout->offset), value, (knownSize == 0xffffffff ? paramLayout->sizeInBytes : knownSize));
+				buffer.unmap();
 			}
 				break;
 			case GPUParamLayoutType::STORAGE_BUFFER: // full buffer
@@ -535,6 +582,12 @@ namespace vulkan {
 				break;
 			case GPUParamLayoutType::BUFFER_PART: // part of buffer
 			{
+				const uint32_t frame = m_renderer->getCurrentFrame();
+				std::vector<vulkan::VulkanBuffer>* bufferVec = reinterpret_cast<std::vector<vulkan::VulkanBuffer>*>(paramLayout->parentLayout->data);
+				vulkan::VulkanBuffer& buffer = bufferVec->operator[](frame % bufferVec->size());
+				void* memory = buffer.map(buffer.m_size);
+				memcpy(reinterpret_cast<void*>(reinterpret_cast<size_t>(memory) + paramLayout->offset), value, (knownSize == 0xffffffff ? paramLayout->sizeInBytes : knownSize));
+				buffer.unmap();
 			}
 				break;
 			default:

@@ -197,12 +197,12 @@ namespace vulkan {
 			return m_dynamicUniformBuffers[i];
 		}
 
-		inline uint8_t getDynamicSetsNumbers() const { return m_dynamicSets; }
-		inline uint8_t getDynamicSetsCount(uint8_t* setsCount = nullptr) const { 
+		inline uint8_t getGPUSetsNumbers() const { return m_gpuBuffersSets; }
+		inline uint8_t getGPUSetsCount(uint8_t* setsCount = nullptr) const { 
 			if (setsCount) {
 				*setsCount = m_maxSetNum + 1;
 			}
-			return m_dynamicSetsCount;
+			return m_gpuBuffersSetsCount;
 		}
 
 		inline uint16_t getPushConstantsCount() const { return m_pushConstantsCount; }
@@ -218,8 +218,8 @@ namespace vulkan {
 		int16_t m_maxSetNum = -1;
 		uint16_t m_dynamicBuffersCount = 0;
 		uint16_t m_pushConstantsCount = 0;
-		uint8_t m_dynamicSets = 0;
-		uint8_t m_dynamicSetsCount = 0;
+		uint8_t m_gpuBuffersSets = 0;
+		uint8_t m_gpuBuffersSetsCount = 0;
 		VulkanRenderer* m_renderer;
 		std::vector<VkPipelineShaderStageCreateInfo> m_shaderStages;
 		PipelineDescriptorLayout* m_pipelineDescriptorLayout = nullptr;
@@ -232,5 +232,7 @@ namespace vulkan {
 
 		std::vector<VulkanDynamicBuffer*> m_dynamicUniformBuffers; // bind for m_descriptorSets[i]
 		std::vector<VulkanDynamicBuffer*> m_dynamicStorageBuffers; // bind for m_descriptorSets[i]
+
+		std::vector<vulkan::VulkanBuffer> m_staticUniformBuffer;
 	};
 }

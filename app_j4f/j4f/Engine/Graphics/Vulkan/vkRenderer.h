@@ -375,7 +375,7 @@ namespace vulkan {
 			vkFreeDescriptorSets(_vulkanDevice->device, set->parentPool, set->set.size(), set->set.data());
 		}
 
-		void bindBufferToDescriptorSet(const VulkanDescriptorSet* descriptorSet, const VkDescriptorType type, const std::vector<VulkanBuffer>& buffer, const uint32_t binding, const uint32_t alignedSize, const uint32_t offset) const;
+		void bindBufferToDescriptorSet(const VulkanDescriptorSet* descriptorSet, const VkDescriptorType type, const VulkanBuffer* buffer, const uint32_t binding, const uint32_t alignedSize, const uint32_t offset) const;
 		void bindImageToDescriptorSet(
 			const VulkanDescriptorSet* descriptorSet,
 			const VkDescriptorType type,

@@ -247,6 +247,27 @@ namespace vulkan {
 						}
 					}
 						break;
+					case GPUParamLayoutType::UNIFORM_BUFFER:
+					{
+						if (value) {
+							program->setValueToLayout(l, value, nullptr);
+						}
+					}
+						break;
+					case GPUParamLayoutType::STORAGE_BUFFER:
+					{
+						if (value) {
+							program->setValueToLayout(l, value, nullptr);
+						}
+					}
+						break;
+					case GPUParamLayoutType::BUFFER_PART:
+					{
+						if (value) {
+							program->setValueToLayout(l, value, nullptr);
+						}
+					}
+						break;
 					case GPUParamLayoutType::PUSH_CONSTANT: // full constant
 					{
 						if (value) {

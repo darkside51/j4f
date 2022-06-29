@@ -751,8 +751,8 @@ namespace vulkan {
 		) {
 			using namespace std;
 			uint8_t allProgramSetsCount;
-			const uint8_t dynamicSetsCount = pipeline->program->getDynamicSetsCount(&allProgramSetsCount);
-			const uint8_t setsCount = min(static_cast<uint8_t>(dynamicSetsCount + additionalSetsCount), allProgramSetsCount) - firstSet;
+			const uint8_t gpuSetsCount = pipeline->program->getGPUSetsCount(&allProgramSetsCount);
+			const uint8_t setsCount = min(static_cast<uint8_t>(gpuSetsCount + additionalSetsCount), allProgramSetsCount) - firstSet;
 			VkDescriptorSet* sets = setsCount > 0 ? static_cast<VkDescriptorSet*>(alloca(sizeof(VkDescriptorSet) * setsCount)) : nullptr;
 
 			if (sets) {
