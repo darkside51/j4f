@@ -20,7 +20,6 @@ namespace vulkan {
 
 	void parseBuffer(const SpvReflectDescriptorBinding* binding, VulkanDescriptorSetLayoutBindingDescription* parent, uint32_t& resultDescriptorSize) {
 		uint32_t elementOffset = 0;
-
 		parent->childInfos.resize(binding->type_description->member_count);
 
 		for (uint32_t j = 0; j < binding->type_description->member_count; ++j) {
@@ -56,6 +55,7 @@ namespace vulkan {
 			}
 			break;
 			case SpvOpTypeVector:
+				elementOffset = engine::alignValue(elementOffset, 16); // если не делать выравнивание по 16 для векторов - не правильно отрабатывает, если они не vec4
 				size = member->traits.numeric.vector.component_count * oneElementSize;
 				break;
 			case SpvOpTypeBool:
@@ -463,7 +463,7 @@ namespace vulkan {
 			switch (layout->type) {
 				case GPUParamLayoutType::UNIFORM_BUFFER:
 				{
-					VulkanDescriptorSet* descriptorSet = (m_descriptorSets.size() > 1 ? m_descriptorSets[1] : m_descriptorSets[0]); // todo: придумать, что - то нормальное в эту строчку
+					VulkanDescriptorSet* descriptorSet = m_descriptorSets[layout->set];
 					if (m_staticUniformBuffer.empty()) {
 						const uint8_t imagesCount = descriptorSet->count;
 						m_staticUniformBuffer.resize(imagesCount);
@@ -499,7 +499,7 @@ namespace vulkan {
 				case GPUParamLayoutType::UNIFORM_BUFFER_DYNAMIC:
 				{
 					m_dynamicUniformBuffers.push_back(m_renderer->getDynamicUniformBufferForSize(layout->sizeInBytes));
-					m_renderer->bindDynamicUniformBufferToDescriptorSet(m_descriptorSets[0], m_dynamicUniformBuffers.back(), layout->descriptorSetLayoutBinding->binding);
+					m_renderer->bindDynamicUniformBufferToDescriptorSet(m_descriptorSets[layout->set], m_dynamicUniformBuffers.back(), layout->descriptorSetLayoutBinding->binding);
 					layout->data = m_dynamicUniformBuffers.back();
 					m_gpuBuffersSets |= (1 << layout->set);
 				}
@@ -528,14 +528,14 @@ namespace vulkan {
 		}
 	}
 
-	uint32_t VulkanGpuProgram::setValueToLayout(const GPUParamLayoutInfo* paramLayout, const void* value, VulkanPushConstant* pConstant, const uint32_t knownOffset, const uint32_t knownSize) {
+	uint32_t VulkanGpuProgram::setValueToLayout(const GPUParamLayoutInfo* paramLayout, const void* value, VulkanPushConstant* pConstant, const uint32_t knownOffset, const uint32_t knownSize, const bool allBuffers) {
 		uint32_t result = 0xffffffff;
 
 		switch (paramLayout->type) {
 			case GPUParamLayoutType::UNIFORM_BUFFER_DYNAMIC: // full buffer
 			{
 				VulkanDynamicBuffer* buffer = reinterpret_cast<VulkanDynamicBuffer*>(paramLayout->data);
-				result = m_renderer->updateDynamicUniformBufferData(buffer, value, false, knownOffset, knownSize);
+				result = m_renderer->updateDynamicUniformBufferData(buffer, value, allBuffers, knownOffset, knownSize);
 			}
 				break;
 			case GPUParamLayoutType::STORAGE_BUFFER_DYNAMIC: // full buffer
@@ -545,7 +545,7 @@ namespace vulkan {
 			case GPUParamLayoutType::BUFFER_DYNAMIC_PART: // part of dynamic buffer
 			{
 				VulkanDynamicBuffer* buffer = reinterpret_cast<VulkanDynamicBuffer*>(paramLayout->parentLayout->data);
-				result = m_renderer->updateDynamicUniformBufferData(buffer, value, paramLayout->offset, (knownSize == 0xffffffff ? paramLayout->sizeInBytes : knownSize), false, knownOffset);
+				result = m_renderer->updateDynamicUniformBufferData(buffer, value, paramLayout->offset, (knownSize == UNDEFINED ? paramLayout->sizeInBytes : knownSize), allBuffers, knownOffset);
 			}
 				break;
 			case GPUParamLayoutType::PUSH_CONSTANT: // full constant
@@ -570,9 +570,9 @@ namespace vulkan {
 			{
 				const uint32_t frame = m_renderer->getCurrentFrame();
 				std::vector<vulkan::VulkanBuffer>* bufferVec = reinterpret_cast<std::vector<vulkan::VulkanBuffer>*>(paramLayout->parentLayout->data);
-				vulkan::VulkanBuffer& buffer = bufferVec->operator[](frame% bufferVec->size());
+				vulkan::VulkanBuffer& buffer = bufferVec->operator[](frame % bufferVec->size());
 				void* memory = buffer.map(buffer.m_size);
-				memcpy(reinterpret_cast<void*>(reinterpret_cast<size_t>(memory) + paramLayout->offset), value, (knownSize == 0xffffffff ? paramLayout->sizeInBytes : knownSize));
+				memcpy(reinterpret_cast<void*>(reinterpret_cast<size_t>(memory) + (knownOffset == UNDEFINED ? paramLayout->offset : knownOffset)), value, (knownSize == UNDEFINED ? paramLayout->sizeInBytes : knownSize));
 				buffer.unmap();
 			}
 				break;
@@ -586,7 +586,7 @@ namespace vulkan {
 				std::vector<vulkan::VulkanBuffer>* bufferVec = reinterpret_cast<std::vector<vulkan::VulkanBuffer>*>(paramLayout->parentLayout->data);
 				vulkan::VulkanBuffer& buffer = bufferVec->operator[](frame % bufferVec->size());
 				void* memory = buffer.map(buffer.m_size);
-				memcpy(reinterpret_cast<void*>(reinterpret_cast<size_t>(memory) + paramLayout->offset), value, (knownSize == 0xffffffff ? paramLayout->sizeInBytes : knownSize));
+				memcpy(reinterpret_cast<void*>(reinterpret_cast<size_t>(memory) + (knownOffset == UNDEFINED ? paramLayout->offset : knownOffset)), value, (knownSize == UNDEFINED ? paramLayout->sizeInBytes : knownSize));
 				buffer.unmap();
 			}
 				break;

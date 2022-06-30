@@ -169,6 +169,8 @@ namespace vulkan {
 	class VulkanGpuProgram {
 		friend class VulkanRenderer;
 	public:
+		inline static constexpr uint32_t UNDEFINED = 0xffffffff;
+
 		VulkanGpuProgram(VulkanRenderer* renderer, std::vector<ShaderStageInfo>& stages);
 		~VulkanGpuProgram();
 
@@ -190,7 +192,7 @@ namespace vulkan {
 			return nullptr;
 		}
 
-		uint32_t setValueToLayout(const GPUParamLayoutInfo* paramLayout, const void* value, VulkanPushConstant* pConstant, const uint32_t knownOffset = 0xffffffff, const uint32_t knownSize = 0xffffffff);
+		uint32_t setValueToLayout(const GPUParamLayoutInfo* paramLayout, const void* value, VulkanPushConstant* pConstant, const uint32_t knownOffset = UNDEFINED, const uint32_t knownSize = UNDEFINED, const bool allBuffers = false);
 		void finishUpdateParams();
 
 		VulkanDynamicBuffer* getDinamicUniformBuffer(const size_t i) {

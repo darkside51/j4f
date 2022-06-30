@@ -213,6 +213,7 @@ namespace vulkan {
 			using namespace vulkan;
 
 			VulkanGpuProgram* program = const_cast<VulkanGpuProgram*>(pipeline->program);
+			uint32_t increasedBuffers = 0;
 
 			for (auto&& p : layouts) {
 				const GPUParamLayoutInfo* l = p.first;
@@ -222,18 +223,28 @@ namespace vulkan {
 					case GPUParamLayoutType::UNIFORM_BUFFER_DYNAMIC: // full buffer
 					{
 						VulkanDynamicBuffer* buffer = reinterpret_cast<VulkanDynamicBuffer*>(l->data);
-						p.second = buffer->encrease();
+
 						if (value) {
-							dynamicOffsets[l->descriptorSetLayoutBinding->binding] = program->setValueToLayout(l, value, nullptr, p.second, size);
+							p.second = buffer->encrease();
+							increasedBuffers |= (uint64_t(1) << l->dynamcBufferIdx);
+							dynamicOffsets[l->dynamcBufferIdx] = program->setValueToLayout(l, value, nullptr, p.second, size);
+						} else {
+							const uint32_t bufferOffset = buffer->getCurrentOffset();
+							dynamicOffsets[l->dynamcBufferIdx] = bufferOffset == 0 ? 0 : (buffer->alignedSize * (bufferOffset - 1));
 						}
 					}
 						break;
 					case GPUParamLayoutType::STORAGE_BUFFER_DYNAMIC: // full buffer
 					{
 						VulkanDynamicBuffer* buffer = reinterpret_cast<VulkanDynamicBuffer*>(l->data);
-						p.second = buffer->encrease();
+
 						if (value) {
-							dynamicOffsets[l->descriptorSetLayoutBinding->binding] = program->setValueToLayout(l, value, nullptr, p.second, size);
+							p.second = buffer->encrease();
+							increasedBuffers |= (uint64_t(1) << l->dynamcBufferIdx);
+							dynamicOffsets[l->dynamcBufferIdx] = program->setValueToLayout(l, value, nullptr, p.second, size);
+						} else {
+							const uint32_t bufferOffset = buffer->getCurrentOffset();
+							dynamicOffsets[l->dynamcBufferIdx] = bufferOffset == 0 ? 0 : (buffer->alignedSize * (bufferOffset - 1));
 						}
 					}
 						break;
@@ -241,9 +252,15 @@ namespace vulkan {
 					{
 						if (value) {
 							VulkanDynamicBuffer* buffer = reinterpret_cast<VulkanDynamicBuffer*>(l->parentLayout->data);
-							p.second = buffer->getCurrentOffset() - 1; // -1 because buffer offset has been encreased
+							if ((increasedBuffers & (uint64_t(1) << l->parentLayout->dynamcBufferIdx)) == 0) {
+								increasedBuffers |= (uint64_t(1) << l->parentLayout->dynamcBufferIdx);
+								p.second = buffer->encrease();
+							} else {
+								const uint32_t bufferOffset = buffer->getCurrentOffset();
+								p.second = bufferOffset == 0 ? 0 : bufferOffset - 1;
+							}
 
-							dynamicOffsets[l->parentLayout->descriptorSetLayoutBinding->binding] = program->setValueToLayout(l, value, nullptr, p.second, size);
+							dynamicOffsets[l->parentLayout->dynamcBufferIdx] = program->setValueToLayout(l, value, nullptr, p.second, size);
 						}
 					}
 						break;

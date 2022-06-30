@@ -232,10 +232,13 @@ namespace engine {
 			//auto l = program_mesh_default->getGPUParamLayoutByName("color");
 			//glm::vec4 color(1.0f, 0.0f, 0.0f, 1.0f);
 			//program_mesh_default->setValueToLayout(l, &color, nullptr, 65, 16);
-
 			auto l = program_mesh_default->getGPUParamLayoutByName("lightDirection");
 			glm::vec3 lightDir = as_normalized(-lightPos);
-			program_mesh_default->setValueToLayout(l, &lightDir, nullptr);
+			program_mesh_default->setValueToLayout(l, &lightDir, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+
+			auto l2 = program_mesh_default->getGPUParamLayoutByName("lightMinMax");
+			glm::vec2 lightMinMax(0.3333f, 1.25f);
+			program_mesh_default->setValueToLayout(l2, &lightMinMax, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 
 			TextureLoadingParams tex_params;
 			//tex_params.file = "resources/assets/models/zombiWarrior/textures/defaultMat_diffuse.png";
