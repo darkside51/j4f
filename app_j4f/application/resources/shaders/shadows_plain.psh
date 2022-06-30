@@ -1,7 +1,6 @@
 #version 450
 
 #define SHADOW_MAP_CASCADE_COUNT 4
-#define ambient_c 1.0
 
 layout (location = 0) in vec2 uv;
 layout (location = 1) in float viewDepth;
@@ -12,18 +11,22 @@ layout (location = 0) out vec4 outFragColor;
 layout (set = 0, binding = 0) uniform UBO {
 	vec4 cascade_splits;
 	mat4 cascade_matrix[SHADOW_MAP_CASCADE_COUNT];
-	float shadow_c;
 } u_ubo;
 
-layout (set = 1, binding = 0) uniform sampler2D u_texture;
-layout (set = 2, binding = 0) uniform sampler2DArray u_shadow_map;
+layout (set = 1, binding = 0) uniform static_UBO {
+	float lightMin;
+	vec4 lightColor;
+} u_constants;
+
+layout (set = 2, binding = 0) uniform sampler2D u_texture;
+layout (set = 3, binding = 0) uniform sampler2DArray u_shadow_map;
 
 float textureProj(vec4 shCoord, vec2 offset, uint cascade) {
 	float dist = texture(u_shadow_map, vec3(shCoord.xy + offset, cascade)).r;
 	float bias = 0.001;
 	float depth = shCoord.z - bias;
 	depth *= step(-1.0, shCoord.z) * step(shCoord.z, 1.0);
-	return mix(ambient_c, u_ubo.shadow_c, step(dist, depth));
+	return mix(1.0, u_constants.lightMin, step(dist, depth));
 }
 
 float filterPCF(vec4 sc, uint cascade) {
@@ -60,7 +63,8 @@ void main() {
 
 	//float shadow = textureProj(shadowCoord / shadowCoord.w, vec2(0.0), cascade);
 	float shadow = filterPCF(shadowCoord / shadowCoord.w, cascade);
-	outFragColor = texture(u_texture, uv, 0.0);
+	outFragColor = u_constants.lightColor * texture(u_texture, uv, 0.0);
+	//outFragColor = vec4(0.5, 0.5, 0.5, 1.0);
 	outFragColor.rgb *= shadow;
 
 	// debug cascades

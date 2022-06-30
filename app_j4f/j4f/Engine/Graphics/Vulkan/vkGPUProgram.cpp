@@ -28,48 +28,48 @@ namespace vulkan {
 			if (member->type_flags & SPV_REFLECT_TYPE_FLAG_VOID) continue;
 
 			const uint32_t oneElementSize =
-				(member->type_flags & SPV_REFLECT_TYPE_FLAG_FLOAT) ? sizeof(float) :
-				(member->type_flags & SPV_REFLECT_TYPE_FLAG_INT) ? sizeof(int32_t) :
-				(member->type_flags & SPV_REFLECT_TYPE_FLAG_BOOL) ? sizeof(bool) :
+				(member->type_flags & SPV_REFLECT_TYPE_FLAG_FLOAT)	? sizeof(float) :
+				(member->type_flags & SPV_REFLECT_TYPE_FLAG_INT)	? sizeof(int32_t) :
+				(member->type_flags & SPV_REFLECT_TYPE_FLAG_BOOL)	? sizeof(bool) :
 				(member->traits.numeric.scalar.width / 8); // размер элемента данных в байтах
 
 			uint32_t size = 0;
 			switch (member->op) {
-			case SpvOpTypeMatrix:
-			{
-				const uint32_t stride = member->traits.numeric.matrix.stride; // выравнивание элемента
-				const uint32_t startMatrixStride = stride / oneElementSize; // размер выравнивания для начала матрицы
-				size = member->traits.numeric.matrix.row_count * member->traits.numeric.matrix.column_count * oneElementSize;
-				elementOffset = engine::alignValue(elementOffset, startMatrixStride); // матрицы должны быть выровнены по размеру элемента, иначе работает не правильно
-			}
-			break;
-			case SpvOpTypeArray:
-			{
-				const uint32_t stride = member->traits.array.stride; // выравнивание элемента
-				const uint32_t startArrayStride = stride / oneElementSize; // размер выравнивания для начала массива
-				size = stride;
-				for (size_t n = 0; n < member->traits.array.dims_count; ++n) {
-					size *= member->traits.array.dims[n];
+				case SpvOpTypeMatrix:
+				{
+					const uint32_t stride = member->traits.numeric.matrix.stride; // выравнивание элемента
+					const uint32_t startMatrixStride = stride / oneElementSize; // размер выравнивания для начала матрицы
+					size = member->traits.numeric.matrix.row_count * member->traits.numeric.matrix.column_count * oneElementSize;
+					elementOffset = engine::alignValue(elementOffset, startMatrixStride); // матрицы должны быть выровнены по размеру элемента, иначе работает не правильно
 				}
-				elementOffset = engine::alignValue(elementOffset, startArrayStride); // массивы должны быть выровнены по размеру элемента, иначе работает не правильно
-			}
-			break;
-			case SpvOpTypeVector:
-				elementOffset = engine::alignValue(elementOffset, 16); // если не делать выравнивание по 16 для векторов - не правильно отрабатывает, если они не vec4
-				size = member->traits.numeric.vector.component_count * oneElementSize;
-				break;
-			case SpvOpTypeBool:
-				size = oneElementSize;
-				break;
-			case SpvOpTypeFloat:
-				size = oneElementSize;
-				break;
-			case SpvOpTypeInt:
-				size = oneElementSize;
-				break;
-			default:
-				size = oneElementSize;
-				break;
+					break;
+				case SpvOpTypeArray:
+				{
+					const uint32_t stride = member->traits.array.stride; // выравнивание элемента
+					const uint32_t startArrayStride = stride / oneElementSize; // размер выравнивания для начала массива
+					size = stride;
+					for (size_t n = 0; n < member->traits.array.dims_count; ++n) {
+						size *= member->traits.array.dims[n];
+					}
+					elementOffset = engine::alignValue(elementOffset, startArrayStride); // массивы должны быть выровнены по размеру элемента, иначе работает не правильно
+				}
+					break;
+				case SpvOpTypeVector:
+					elementOffset = engine::alignValue(elementOffset, 16); // если не делать выравнивание по 16 для векторов - не правильно отрабатывает, если они не vec4
+					size = member->traits.numeric.vector.component_count * oneElementSize;
+					break;
+				case SpvOpTypeBool:
+					size = oneElementSize;
+					break;
+				case SpvOpTypeFloat:
+					size = oneElementSize;
+					break;
+				case SpvOpTypeInt:
+					size = oneElementSize;
+					break;
+				default:
+					size = oneElementSize;
+					break;
 			}
 
 			// сохраняем данные о смещении и размере

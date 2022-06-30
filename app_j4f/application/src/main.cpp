@@ -227,18 +227,26 @@ namespace engine {
 
 			program_mesh_default = program_gltf;
 			program_mesh_shadow = CascadeShadowMap::getShadowProgram<Mesh>();
+			VulkanGpuProgram* shadowPlainProgram = const_cast<VulkanGpuProgram*>(CascadeShadowMap::getSpecialPipeline(ShadowMapSpecialPipelines::SH_PIPEINE_PLAIN)->program);
 
-			// do this with no dynamic ubo
-			//auto l = program_mesh_default->getGPUParamLayoutByName("color");
-			//glm::vec4 color(1.0f, 0.0f, 0.0f, 1.0f);
-			//program_mesh_default->setValueToLayout(l, &color, nullptr, 65, 16);
-			auto l = program_mesh_default->getGPUParamLayoutByName("lightDirection");
 			glm::vec3 lightDir = as_normalized(-lightPos);
+			glm::vec2 lightMinMax(0.35f, 1.5f);
+			glm::vec4 lightColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+			auto l = program_mesh_default->getGPUParamLayoutByName("lightDirection");
 			program_mesh_default->setValueToLayout(l, &lightDir, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 
 			auto l2 = program_mesh_default->getGPUParamLayoutByName("lightMinMax");
-			glm::vec2 lightMinMax(0.3333f, 1.25f);
 			program_mesh_default->setValueToLayout(l2, &lightMinMax, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+
+			auto l3 = shadowPlainProgram->getGPUParamLayoutByName("lightMin");
+			shadowPlainProgram->setValueToLayout(l3, &lightMinMax.x, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+
+			auto l4 = program_mesh_default->getGPUParamLayoutByName("lightColor");
+			auto l5 = shadowPlainProgram->getGPUParamLayoutByName("lightColor");
+			program_mesh_default->setValueToLayout(l4, &lightColor, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			shadowPlainProgram->setValueToLayout(l5, &lightColor, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+
 
 			TextureLoadingParams tex_params;
 			//tex_params.file = "resources/assets/models/zombiWarrior/textures/defaultMat_diffuse.png";
@@ -645,11 +653,12 @@ namespace engine {
 				static auto&& pipeline_shadow_test = CascadeShadowMap::getSpecialPipeline(ShadowMapSpecialPipelines::SH_PIPEINE_PLAIN);
 				static const vulkan::GPUParamLayoutInfo* mvp_layout2 = pipeline_shadow_test->program->getGPUParamLayoutByName("mvp");
 
+				const float tc = 8.0f;
 				TexturedVertex floorVtx[4] = {
-					{ {-1024.0f, -1024.0f, 0.0f}, {0.0f, 8.0f} },
-					{ {1024.0f, -1024.0f, 0.0f}, {8.0f, 8.0f} },
-					{ {-1024.0f, 1024.0f, 0.0f}, {0.0f, 0.0f} },
-					{ {1024.0f, 1024.0f, 0.0f}, {8.0f, 0.0f} }
+					{ {-1024.0f, -1024.0f, 0.0f},	{0.0f, tc} },
+					{ {1024.0f, -1024.0f, 0.0f},	{tc, tc} },
+					{ {-1024.0f, 1024.0f, 0.0f},	{0.0f, 0.0f} },
+					{ {1024.0f, 1024.0f, 0.0f},		{tc, 0.0f} }
 				};
 
 				//vulkan::RenderData renderDataFloor(const_cast<vulkan::VulkanPipeline*>(renderHelper->getPipeline(CommonPipelines::COMMON_PIPELINE_TEXTURED_DEPTH_RW)));
@@ -664,7 +673,6 @@ namespace engine {
 				renderDataFloor.setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 				renderDataFloor.setParamByName("cascade_matrix", shadowMap->getVPMatrixes().data(), false, shadowMap->getCascadesCount());
 				renderDataFloor.setParamByName("cascade_splits", shadowMap->getSplitDepthsPointer<glm::vec4>(), false, 1);
-				renderDataFloor.setParamByName("shadow_c", 0.4f, true, 1);
 				
 				autoBatcher->addToDraw(&renderDataFloor, sizeof(TexturedVertex), &floorVtx[0], vertexBufferSize, &idxs[0], indexBufferSize, commandBuffer, currentFrame);
 
