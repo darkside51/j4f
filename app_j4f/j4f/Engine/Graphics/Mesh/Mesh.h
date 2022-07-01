@@ -124,7 +124,30 @@ namespace engine {
 		void updateSkins(const uint8_t updateFrame);
 		void updateTransforms(const uint8_t updateFrame);
 
-		inline static bool updateHierarhyMatrix(HierarchyRaw<Mesh_Node>* node) {
+		struct HierarchyMatrixUpdater {
+			inline static bool _(HierarchyRaw<Mesh_Node>* node) {
+				Mesh_Node& mNode = node->value();
+				mNode.dirtyModelTransform = false;
+				mNode.calculateLocalMatrix();
+
+				auto&& parent = node->getParent();
+				if (parent) {
+					mNode.dirtyModelTransform |= parent->value().dirtyModelTransform;
+				}
+
+				if (mNode.dirtyModelTransform) {
+					if (parent) {
+						mNode.calculateModelMatrix(parent->value().modelMatrix);
+					} else {
+						memcpy(&mNode.modelMatrix, &mNode.localMatrix, sizeof(glm::mat4));
+					}
+				}
+
+				return true;
+			}
+		};
+
+		inline static bool updateHierarchyMatrix(HierarchyRaw<Mesh_Node>* node) {
 			Mesh_Node& mNode = node->value();
 			mNode.dirtyModelTransform = false;
 			mNode.calculateLocalMatrix();

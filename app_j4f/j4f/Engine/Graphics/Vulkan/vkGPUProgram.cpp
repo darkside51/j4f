@@ -523,13 +523,13 @@ namespace vulkan {
 			}
 		}
 
-		for (int i = 0; i < m_maxSetNum + 1; ++i) { // 8 сетов максимум, хватит?
+		for (int16_t i = 0; i < m_maxSetNum + 1; ++i) { // 8 сетов максимум, хватит?
 			if (m_gpuBuffersSets & (1 << i)) ++m_gpuBuffersSetsCount;
 		}
 	}
 
 	uint32_t VulkanGpuProgram::setValueToLayout(const GPUParamLayoutInfo* paramLayout, const void* value, VulkanPushConstant* pConstant, const uint32_t knownOffset, const uint32_t knownSize, const bool allBuffers) {
-		uint32_t result = 0xffffffff;
+		uint32_t result = UNDEFINED;
 
 		switch (paramLayout->type) {
 			case GPUParamLayoutType::UNIFORM_BUFFER_DYNAMIC: // full buffer

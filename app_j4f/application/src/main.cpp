@@ -231,7 +231,7 @@ namespace engine {
 
 			glm::vec3 lightDir = as_normalized(-lightPos);
 			glm::vec2 lightMinMax(0.35f, 1.5f);
-			glm::vec4 lightColor(1.0f, 1.0f, 1.0f, 1.0f);
+			glm::vec4 lightColor(1.0f, 1.0f, 1.1f, 1.0f);
 
 			auto l = program_mesh_default->getGPUParamLayoutByName("lightDirection");
 			program_mesh_default->setValueToLayout(l, &lightDir, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
@@ -335,7 +335,7 @@ namespace engine {
 			texture_1 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params_logo);
 
 			TextureLoadingParams tex_params_floor;
-			tex_params_floor.file = "resources/assets/textures/sand-1.jpg";
+			tex_params_floor.file = "resources/assets/textures/ground4.jpg";
 			tex_params_floor.flags->async = 1;
 			tex_params_floor.flags->use_cache = 1;
 			texture_floor = assm->loadAsset<vulkan::VulkanTexture*>(tex_params_floor, [](vulkan::VulkanTexture* asset, const AssetLoadingResult result) {
@@ -653,7 +653,7 @@ namespace engine {
 				static auto&& pipeline_shadow_test = CascadeShadowMap::getSpecialPipeline(ShadowMapSpecialPipelines::SH_PIPEINE_PLAIN);
 				static const vulkan::GPUParamLayoutInfo* mvp_layout2 = pipeline_shadow_test->program->getGPUParamLayoutByName("mvp");
 
-				const float tc = 8.0f;
+				const float tc = 12.0f;
 				TexturedVertex floorVtx[4] = {
 					{ {-1024.0f, -1024.0f, 0.0f},	{0.0f, tc} },
 					{ {1024.0f, -1024.0f, 0.0f},	{tc, tc} },

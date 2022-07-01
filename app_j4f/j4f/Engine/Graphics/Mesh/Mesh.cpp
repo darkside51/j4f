@@ -253,7 +253,8 @@ namespace engine {
 
 	void Skeleton::updateTransforms(const uint8_t updateFrame) {
 		for (HierarchyRaw<Mesh_Node>* h : _hierarchyes[updateFrame]) {
-			h->execute(updateHierarhyMatrix);
+			//h->execute(updateHierarchyMatrix);
+			h->execute_with<HierarchyMatrixUpdater>();
 		}
 	}
 	////////////////////////////////

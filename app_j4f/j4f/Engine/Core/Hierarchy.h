@@ -219,6 +219,117 @@ namespace engine {
 			}
 		}
 
+		template<typename E, typename ...Args>
+		inline void execute_with(Args&&... args) { // no recursive execute f for all hierarchy
+			const Hierarchy* current = this;
+			while (current) {
+				if (E::_(const_cast<Hierarchy*>(current), std::forward<Args>(args)...)) { // can skip some
+					const std::vector<children_type>& children = current->_children;
+					if (!children.empty()) {
+						if constexpr (std::is_pointer<children_type>()) {
+							current = current->_children[0];
+						} else {
+							current = current->_children[0].get();
+						}
+						continue;
+					} else if (current != this) {
+						if (current->_next) {
+							current = current->_next;
+							continue;
+						} else if (current->_parent && current->_parent != this) {
+							while (current->_parent) {
+								current = current->_parent;
+								if (current == this) return;
+								if (current->_next) {
+									current = current->_next;
+									break;
+								}
+							}
+							continue;
+						} else {
+							break;
+						}
+					} else {
+						break;
+					}
+				} else if (current != this) {
+					if (current->_next) {
+						current = current->_next;
+						continue;
+					} else if (current->_parent && current->_parent != this) {
+						while (current->_parent) {
+							current = current->_parent;
+							if (current == this) return;
+							if (current->_next) {
+								current = current->_next;
+								break;
+							}
+						}
+						continue;
+					} else {
+						break;
+					}
+				}
+			}
+		}
+
+		template<typename E, typename Echeck, typename ...Args>
+		inline void r_execute_with(Args&&... args) { // no recursive reverse execute f for all hierarchy
+			const Hierarchy* current = this;
+			while (current) {
+				if (Echeck::_(const_cast<Hierarchy*>(current)) || current == this) { // can skip some
+					const std::vector<children_type>& children = current->_children;
+					if (!children.empty()) {
+						if constexpr (std::is_pointer<children_type>()) {
+							current = current->_children[0];
+						} else {
+							current = current->_children[0].get();
+						}
+						continue;
+					} else if (current != this) {
+						E::_(const_cast<Hierarchy*>(current), std::forward<Args>(args)...); // call for childless element
+						if (current->_next) {
+							current = current->_next;
+							continue;
+						} else if (current->_parent) {
+							while (current->_parent) {
+								current = current->_parent;
+								E::_(const_cast<Hierarchy*>(current), std::forward<Args>(args)...); // call for parent
+								if (current == this) return;
+								if (current->_next) {
+									current = current->_next;
+									break;
+								}
+							}
+							continue;
+						} else {
+							break;
+						}
+					} else {
+						break;
+					}
+				} else if (current != this) {
+					if (current->_next) {
+						current = current->_next;
+						continue;
+					} else if (current->_parent) {
+						while (current->_parent) {
+							current = current->_parent;
+							E::_(const_cast<Hierarchy*>(current), std::forward<Args>(args)...); // call for parent
+							if (current == this) return;
+							if (current->_next) {
+								current = current->_next;
+								break;
+							}
+						}
+						continue;
+					} else {
+						break;
+					}
+				}
+			}
+		}
+
 		inline T& value() { return _value; }
 		inline const T& value() const { return _value; }
 

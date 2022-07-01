@@ -238,6 +238,32 @@ namespace engine {
 		std::vector<std::vector<Transform>> _transforms;
 	};
 
+	struct AnimatorUpdater {
+		using TreeAnimator = MeshAnimator;
+		using AnimatorType = HierarchyRaw<TreeAnimator>;
+
+		inline static bool _(AnimatorType* animator, const float delta, const uint8_t i) {
+			if (animator->value().getWeight() > 0.0f) {
+				animator->value().update(delta, i);
+			}
+			return true;
+		}
+	};
+
+	struct AnimatorCalculator {
+		using TreeAnimator = MeshAnimator;
+		using AnimatorType = HierarchyRaw<TreeAnimator>;
+
+		static bool _(AnimatorType* animator, const uint8_t i);
+	};
+
+	struct AnimatorSkipper {
+		using TreeAnimator = MeshAnimator;
+		using AnimatorType = HierarchyRaw<TreeAnimator>;
+
+		inline static bool _(AnimatorType* animator) { return animator->value().getWeight() > 0.0f; }
+	};
+
 	class MeshAnimationTree {
 		using TreeAnimator = MeshAnimator;
 	public:
@@ -258,7 +284,8 @@ namespace engine {
 			if (_animator->value().getWeight() >= 1.0f) {
 				_animator->value().update(delta, i);
 			} else {
-				_animator->execute(updateAnimators, delta, i);
+				//_animator->execute(updateAnimators, delta, i);
+				_animator->execute_with<AnimatorUpdater>(delta, i);
 			}
 		}
 
@@ -266,7 +293,8 @@ namespace engine {
 			if (_animator->value().getWeight() >= 1.0f) {
 				_animator->value()(_animator->value().getCurrentTime(i), i);
 			} else {
-				_animator->r_execute(calculateAnimators, skipAnimator, i);
+				//_animator->r_execute(calculateAnimators, skipAnimator, i);
+				_animator->r_execute_with<AnimatorCalculator, AnimatorSkipper>(i);
 			}
 		}
 
