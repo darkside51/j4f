@@ -37,10 +37,10 @@ namespace engine {
 
 #ifdef PROFILER_ENABLE
 #define PROFILE_TIME_SCOPED(x) ExecutionTime x(STR(x));
-#define PROFILE_TIME_SCOPED_M(x, m) ExecutionTime x(STR(x)); x.modifyName(STR(m));
-#define PROFILE_TIME_ENTER_SCOPE(x) ExecutionTime *x = new ExecutionTime(STR(x));
-#define PROFILE_TIME_ENTER_SCOPE_M(x, m) ExecutionTime *x = new ExecutionTime(STR(x)); x->modifyName(STR(m));
-#define PROFILE_TIME_LEAVE_SCOPE(x) delete x;
+#define PROFILE_TIME_SCOPED_M(x, m) ExecutionTime et_##x(STR(x)); et_##x.modifyName(m);
+#define PROFILE_TIME_ENTER_SCOPE(x) ExecutionTime *et_##x = new ExecutionTime(STR(x));
+#define PROFILE_TIME_ENTER_SCOPE_M(x, m) ExecutionTime *et_##x = new ExecutionTime(STR(x)); et_##x->modifyName(m);
+#define PROFILE_TIME_LEAVE_SCOPE(x) delete et_##x;
 #else // PROFILER_ENABLE
 #define PROFILE_TIME_SCOPED(x)
 #define PROFILE_TIME_SCOPED_M(x, m)

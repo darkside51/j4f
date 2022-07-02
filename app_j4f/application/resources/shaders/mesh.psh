@@ -1,7 +1,13 @@
 #version 450
 
+#define SHADOW_MAP_CASCADE_COUNT 4
+
 layout (location = 0) in vec3 in_normal;
 layout (location = 1) in vec2 in_uv;
+
+layout (location = 2) in float in_view_depth;
+layout (location = 3) in vec3 in_position;
+
 layout (location = 0) out vec4 outColor;
 
 //layout (set = 0, binding = 0) uniform UBO {
@@ -9,21 +15,87 @@ layout (location = 0) out vec4 outColor;
 //	mat4 skin_matrixes[192];
 //} u_ubo;
 
-layout (set = 1, binding = 0) uniform static_lightUBO {
+layout (set = 1, binding = 0) uniform static_shadowUBO {
+	vec4 cascade_splits;
+	mat4 cascade_matrix[SHADOW_MAP_CASCADE_COUNT];
+	mat4 view;
+} u_shadow;
+
+layout (set = 2, binding = 0) uniform static_lightUBO {
 	vec3 lightDirection;
 	vec2 lightMinMax;
 	vec4 lightColor;
 } u_constants;
 
-layout (set = 2, binding = 0) uniform sampler2D u_texture;
+layout (set = 3, binding = 0) uniform sampler2DArray u_shadow_map;
+layout (set = 4, binding = 0) uniform sampler2D u_texture;
+
+float textureProj(vec4 shCoord, vec2 offset, uint cascade) {
+	float dist = texture(u_shadow_map, vec3(shCoord.xy + offset, cascade)).r;
+	float bias = 0.0001;
+	float depth = shCoord.z - bias;
+	depth *= step(-1.0, shCoord.z) * step(shCoord.z, 1.0);
+	return mix(1.0, u_constants.lightMinMax.x, step(dist, depth));
+}
+
+float filterPCF(vec4 sc, uint cascade) {
+	ivec2 texDim = textureSize(u_shadow_map, 0).xy;
+	float scale = 0.75;
+	float dx = scale * 1.0 / float(texDim.x);
+	float dy = scale * 1.0 / float(texDim.y);
+
+	float shadowFactor = 0.0;
+	int count = 0;
+	int range = 2;
+	
+	for (int x = -range; x <= range; x++) {
+		for (int y = -range; y <= range; y++) {
+			shadowFactor += textureProj(sc, vec2(dx*x, dy*y), cascade);
+			count++;
+		}
+	}
+	return shadowFactor / count;
+}
 
 void main() {
 	vec4 color = texture(u_texture, in_uv, 0.0);
 	if (color.a < 0.5) {
 		discard;
 	} else {
+		// get cascade index for the current fragment's view position
+		uint cascade = 0;
+		for (uint i = 0; i < (SHADOW_MAP_CASCADE_COUNT - 1); ++i) {
+			if (in_view_depth < u_shadow.cascade_splits[i]) {	
+				cascade = i + 1;
+			}
+		}
+
+		vec4 shadowCoord = u_shadow.cascade_matrix[cascade] * vec4(in_position, 1.0);
+		shadowCoord.xy = (shadowCoord.xy + 1.0) * 0.5;
+		float shadow = filterPCF(shadowCoord / shadowCoord.w, cascade);
+
+		color.rgb *= shadow;
+
 		const float light = max(dot(in_normal, -u_constants.lightDirection), 0.0);
 		color.rgb *= clamp(u_constants.lightMinMax.y * light, u_constants.lightMinMax.x, u_constants.lightMinMax.y);
 		outColor = u_constants.lightColor * color;
+
+		// debug cascades
+		/*switch(cascade) {
+			case 0:
+				outColor.rgb *= vec3(1.0, 0.0, 0.0);
+				break;
+			case 1:
+				outColor.rgb *= vec3(0.0, 1.0, 0.0);
+				break;
+			case 2:
+				outColor.rgb *= vec3(0.0, 0.0, 1.0);
+				break;
+			case 3:
+				outColor.rgb *= vec3(1.0, 1.0, 0.0);
+				break;
+			default:
+				break;
+		}*/
 	}	
 }

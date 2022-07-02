@@ -4,7 +4,7 @@
 namespace engine {
 
 	inline const glm::mat4& NodeGraphicLink::transform() const {
-		return _completeTransform ? _node->model() : *_completeTransform;
+		return _completeTransform ? *_completeTransform : _node->model();
 	}
 
 	void NodeGraphicLink::updateCustomTransform(const glm::mat4& tr) {

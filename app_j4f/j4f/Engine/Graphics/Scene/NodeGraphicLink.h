@@ -5,10 +5,29 @@
 namespace engine {
 
 	class Node;
+	struct RenderDescriptor;
 
 	class Graphic {
 	public:
 		virtual ~Graphic() = default;
+		inline RenderDescriptor* getRenderDescriptor() const { return _descriptor; }
+
+	protected:
+		RenderDescriptor* _descriptor = nullptr;
+	};
+
+	template <typename T>
+	class NodeGraphic : public Graphic {
+	public:
+		NodeGraphic(T* g) : _descriptor(&g->getRenderDescriptor()), _graphics(g) {}
+
+		~NodeGraphic() {
+			_descriptor = nullptr;
+			delete _graphics;
+			_graphics = nullptr;
+		}
+	private:
+		T* _graphic = nullptr;
 	};
 
 	class NodeGraphicLink {
@@ -33,6 +52,8 @@ namespace engine {
 
 		void updateCustomTransform(const glm::mat4& tr);
 		void updateNodeTransform();
+
+		const Graphic* getGraphic() const { return _graphic; }
 
 	private:
 		Node* _node = nullptr;

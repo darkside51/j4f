@@ -323,7 +323,7 @@ namespace vulkan {
 
 		m_pushConstantsRanges.clear();
 
-		m_staticUniformBuffer.clear();
+		m_staticUniformBuffers.clear();
 	}
 
 	void VulkanGpuProgram::parseModules(const std::vector<VulkanShaderModule*>& modules) {
@@ -429,6 +429,7 @@ namespace vulkan {
 
 			uint8_t buffersCount = 0;
 			uint8_t buffersTypes = 0;
+			uint8_t staticBuffersCount = 0;
 			for (auto& descriptorSetLayoutBinding : descriptorSetLayoutBindings) {
 				for (VkDescriptorSetLayoutBinding* binding : descriptorSetLayoutBinding) {
 					switch (binding->descriptorType) {
@@ -436,6 +437,7 @@ namespace vulkan {
 						case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
 							buffersTypes |= (1 << buffersCount);
 							++buffersCount;
+							++staticBuffersCount;
 							break;
 						case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
 						case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
@@ -451,11 +453,14 @@ namespace vulkan {
 				VulkanDescriptorSet* newDescriptorSet = m_renderer->allocateDescriptorSetFromGlobalPool(m_pipelineDescriptorLayout->descriptorSetLayouts[i], (buffersTypes & (1 << i)) ? 1 : 0);
 				m_descriptorSets.push_back(newDescriptorSet);
 			}
+
+			m_staticUniformBuffers.resize(staticBuffersCount);
 		}
 	}
 
 	void VulkanGpuProgram::assignParams() {
 		uint32_t pushConstantNum = 0;
+		uint32_t staticUBONum = 0;
 		for (auto&& it = m_paramLayouts.begin(); it != m_paramLayouts.end(); ++it) {
 			GPUParamLayoutInfo* layout = it->second;
 			if (layout->sizeInBytes == 0) continue;
@@ -464,32 +469,26 @@ namespace vulkan {
 				case GPUParamLayoutType::UNIFORM_BUFFER:
 				{
 					VulkanDescriptorSet* descriptorSet = m_descriptorSets[layout->set];
-					if (m_staticUniformBuffer.empty()) {
-						const uint8_t imagesCount = descriptorSet->count;
-						m_staticUniformBuffer.resize(imagesCount);
-
-						for (uint8_t i = 0; i < imagesCount; ++i) {
-							m_renderer->getDevice()->createBuffer(
-								VK_SHARING_MODE_EXCLUSIVE,
-								VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-								VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-								&m_staticUniformBuffer[i],
-								layout->sizeInBytes
-							);
-						}
-					}
+					m_renderer->getDevice()->createBuffer(
+						VK_SHARING_MODE_EXCLUSIVE,
+						VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+						VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+						&m_staticUniformBuffers[staticUBONum],
+						layout->sizeInBytes
+					);
 
 					m_renderer->bindBufferToDescriptorSet(
 						descriptorSet,
 						VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 
-						m_staticUniformBuffer.data(),
+						&m_staticUniformBuffers[staticUBONum],
 						layout->descriptorSetLayoutBinding->binding,
 						layout->sizeInBytes,
 						0
 					);
 
-					layout->data = &m_staticUniformBuffer;
+					layout->data = &m_staticUniformBuffers[staticUBONum];
 					m_gpuBuffersSets |= (1 << layout->set);
+					++staticUBONum;
 				}
 					break;
 				case GPUParamLayoutType::STORAGE_BUFFER:
@@ -568,12 +567,10 @@ namespace vulkan {
 				break;
 			case GPUParamLayoutType::UNIFORM_BUFFER: // full buffer
 			{
-				const uint32_t frame = m_renderer->getCurrentFrame();
-				std::vector<vulkan::VulkanBuffer>* bufferVec = reinterpret_cast<std::vector<vulkan::VulkanBuffer>*>(paramLayout->parentLayout->data);
-				vulkan::VulkanBuffer& buffer = bufferVec->operator[](frame % bufferVec->size());
-				void* memory = buffer.map(buffer.m_size);
+				vulkan::VulkanBuffer* buffer = reinterpret_cast<vulkan::VulkanBuffer*>(paramLayout->data);
+				void* memory = buffer->map(buffer->m_size);
 				memcpy(reinterpret_cast<void*>(reinterpret_cast<size_t>(memory) + (knownOffset == UNDEFINED ? paramLayout->offset : knownOffset)), value, (knownSize == UNDEFINED ? paramLayout->sizeInBytes : knownSize));
-				buffer.unmap();
+				buffer->unmap();
 			}
 				break;
 			case GPUParamLayoutType::STORAGE_BUFFER: // full buffer
@@ -582,12 +579,10 @@ namespace vulkan {
 				break;
 			case GPUParamLayoutType::BUFFER_PART: // part of buffer
 			{
-				const uint32_t frame = m_renderer->getCurrentFrame();
-				std::vector<vulkan::VulkanBuffer>* bufferVec = reinterpret_cast<std::vector<vulkan::VulkanBuffer>*>(paramLayout->parentLayout->data);
-				vulkan::VulkanBuffer& buffer = bufferVec->operator[](frame % bufferVec->size());
-				void* memory = buffer.map(buffer.m_size);
+				vulkan::VulkanBuffer* buffer = reinterpret_cast<vulkan::VulkanBuffer*>(paramLayout->parentLayout->data);
+				void* memory = buffer->map(buffer->m_size);
 				memcpy(reinterpret_cast<void*>(reinterpret_cast<size_t>(memory) + (knownOffset == UNDEFINED ? paramLayout->offset : knownOffset)), value, (knownSize == UNDEFINED ? paramLayout->sizeInBytes : knownSize));
-				buffer.unmap();
+				buffer->unmap();
 			}
 				break;
 			default:

@@ -1,5 +1,7 @@
 #version 450
 
+#define SHADOW_MAP_CASCADE_COUNT 4
+
 layout (location = 0) in vec3 a_position;
 layout (location = 1) in vec3 a_normal;
 layout (location = 2) in vec4 a_joints;
@@ -10,6 +12,12 @@ layout (set = 0, binding = 0) uniform UBO {
 	int use_skin;
 	mat4 skin_matrixes[192];
 } u_ubo;
+
+layout (set = 1, binding = 0) uniform static_shadowUBO {
+	vec4 cascade_splits;
+	mat4 cascade_matrix[SHADOW_MAP_CASCADE_COUNT];
+	mat4 view;
+} u_shadow;
 
 layout(push_constant) uniform PUSH_CONST {
 	mat4 camera_matrix;

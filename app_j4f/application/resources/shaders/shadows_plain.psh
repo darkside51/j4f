@@ -8,22 +8,20 @@ layout (location = 2) in vec3 position;
 
 layout (location = 0) out vec4 outFragColor;
 
-layout (set = 0, binding = 0) uniform UBO {
+layout (set = 0, binding = 0) uniform static_UBO {
 	vec4 cascade_splits;
 	mat4 cascade_matrix[SHADOW_MAP_CASCADE_COUNT];
-} u_ubo;
-
-layout (set = 1, binding = 0) uniform static_UBO {
 	float lightMin;
 	vec4 lightColor;
+	mat4 view;
 } u_constants;
 
-layout (set = 2, binding = 0) uniform sampler2D u_texture;
-layout (set = 3, binding = 0) uniform sampler2DArray u_shadow_map;
+layout (set = 1, binding = 0) uniform sampler2D u_texture;
+layout (set = 2, binding = 0) uniform sampler2DArray u_shadow_map;
 
 float textureProj(vec4 shCoord, vec2 offset, uint cascade) {
 	float dist = texture(u_shadow_map, vec3(shCoord.xy + offset, cascade)).r;
-	float bias = 0.001;
+	float bias = 0.0001;
 	float depth = shCoord.z - bias;
 	depth *= step(-1.0, shCoord.z) * step(shCoord.z, 1.0);
 	return mix(1.0, u_constants.lightMin, step(dist, depth));
@@ -53,20 +51,36 @@ void main() {
 	// get cascade index for the current fragment's view position
 	uint cascade = 0;
 	for (uint i = 0; i < (SHADOW_MAP_CASCADE_COUNT - 1); ++i) {
-		if (viewDepth < u_ubo.cascade_splits[i]) {	
+		if (viewDepth < u_constants.cascade_splits[i]) {	
 			cascade = i + 1;
 		}
 	}
 
-	vec4 shadowCoord = u_ubo.cascade_matrix[cascade] * vec4(position, 1.0);
+	vec4 shadowCoord = u_constants.cascade_matrix[cascade] * vec4(position, 1.0);
 	shadowCoord.xy = (shadowCoord.xy + 1.0) * 0.5;	
 
 	//float shadow = textureProj(shadowCoord / shadowCoord.w, vec2(0.0), cascade);
 	float shadow = filterPCF(shadowCoord / shadowCoord.w, cascade);
 	outFragColor = u_constants.lightColor * texture(u_texture, uv, 0.0);
 	//outFragColor = vec4(0.5, 0.5, 0.5, 1.0);
-	outFragColor.rgb *= shadow;
+	outFragColor.rgb *= gl_FrontFacing ? shadow : 1.0;
 
 	// debug cascades
 	//outFragColor.rgb *= vec3(0.4f + float(cascade) * 0.1);
+	/*switch(cascade) {
+		case 0:
+			outFragColor.rgb *= vec3(1.0, 0.0, 0.0);
+			break;
+		case 1:
+			outFragColor.rgb *= vec3(0.0, 1.0, 0.0);
+			break;
+		case 2:
+			outFragColor.rgb *= vec3(0.0, 0.0, 1.0);
+			break;
+		case 3:
+			outFragColor.rgb *= vec3(1.0, 1.0, 0.0);
+			break;
+		default:
+			break;
+	}*/
 }

@@ -235,6 +235,6 @@ namespace vulkan {
 		std::vector<VulkanDynamicBuffer*> m_dynamicUniformBuffers; // bind for m_descriptorSets[i]
 		std::vector<VulkanDynamicBuffer*> m_dynamicStorageBuffers; // bind for m_descriptorSets[i]
 
-		std::vector<vulkan::VulkanBuffer> m_staticUniformBuffer;
+		std::vector<vulkan::VulkanBuffer> m_staticUniformBuffers;
 	};
 }

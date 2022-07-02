@@ -74,6 +74,23 @@ namespace engine {
 
 		void onCameraTransformChanged(const Camera* camera) override {
 			shadowMap->updateCascades(camera);
+
+			auto&& shadowProgram = const_cast<vulkan::VulkanGpuProgram*>(CascadeShadowMap::getSpecialPipeline(ShadowMapSpecialPipelines::SH_PIPEINE_PLAIN)->program);
+
+			auto l1 = shadowProgram->getGPUParamLayoutByName("view");
+			auto l2 = shadowProgram->getGPUParamLayoutByName("cascade_matrix");
+			auto l3 = shadowProgram->getGPUParamLayoutByName("cascade_splits");
+			shadowProgram->setValueToLayout(l1, &const_cast<glm::mat4&>(camera->getViewTransform()), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			shadowProgram->setValueToLayout(l2, shadowMap->getVPMatrixes().data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			shadowProgram->setValueToLayout(l3, shadowMap->getSplitDepthsPointer<glm::vec4>(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+
+			//
+			auto ml1 = program_mesh_default->getGPUParamLayoutByName("view");
+			auto ml2 = program_mesh_default->getGPUParamLayoutByName("cascade_matrix");
+			auto ml3 = program_mesh_default->getGPUParamLayoutByName("cascade_splits");
+			program_mesh_default->setValueToLayout(ml1, &const_cast<glm::mat4&>(camera->getViewTransform()), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			program_mesh_default->setValueToLayout(ml2, shadowMap->getVPMatrixes().data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			program_mesh_default->setValueToLayout(ml3, shadowMap->getSplitDepthsPointer<glm::vec4>(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 		}
 
 		ApplicationCustomData() {
@@ -230,7 +247,7 @@ namespace engine {
 			VulkanGpuProgram* shadowPlainProgram = const_cast<VulkanGpuProgram*>(CascadeShadowMap::getSpecialPipeline(ShadowMapSpecialPipelines::SH_PIPEINE_PLAIN)->program);
 
 			glm::vec3 lightDir = as_normalized(-lightPos);
-			glm::vec2 lightMinMax(0.35f, 1.5f);
+			glm::vec2 lightMinMax(0.5f, 1.5f);
 			glm::vec4 lightColor(1.0f, 1.0f, 1.1f, 1.0f);
 
 			auto l = program_mesh_default->getGPUParamLayoutByName("lightDirection");
@@ -287,6 +304,7 @@ namespace engine {
 			mesh = assm->loadAsset<Mesh*>(mesh_params, [program_gltf, texture_zombi, this](Mesh* asset, const AssetLoadingResult result) {
 				asset->setProgram(program_gltf);
 				asset->setParamByName("u_texture", texture_zombi, false);
+				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 
 				animTree = new MeshAnimationTree(0.0f, asset->getNodesCount(), asset->getSkeleton()->getLatency());
 				animTree->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[2], 1.0f, asset->getSkeleton()->getLatency()));
@@ -299,6 +317,8 @@ namespace engine {
 			mesh2 = assm->loadAsset<Mesh*>(mesh_params, [program_gltf, texture_zombi](Mesh* asset, const AssetLoadingResult result) {
 				asset->setProgram(program_gltf);
 				asset->setParamByName("u_texture", texture_zombi, false);
+				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
+
 				asset->setSkeleton(mesh->getSkeleton());
 
 				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
@@ -308,6 +328,8 @@ namespace engine {
 			mesh3 = assm->loadAsset<Mesh*>(mesh_params2, [program_gltf, texture_v, texture_v2, texture_v3](Mesh* asset, const AssetLoadingResult result) {
 				asset->setProgram(program_gltf);
 				asset->setParamByName("u_texture", texture_v, false);
+				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
+
 				asset->getRenderDataAt(3)->setParamByName("u_texture", texture_v3, false);
 				asset->getRenderDataAt(7)->setParamByName("u_texture", texture_v2, false); // eye
 				asset->getRenderDataAt(8)->setParamByName("u_texture", texture_v2, false); // head
@@ -510,7 +532,6 @@ namespace engine {
 			camera->calculateTransform();
 			camera2->calculateTransform();
 
-
 			if (animTree) {
 				mesh->getSkeleton()->updateAnimation(delta, animTree);
 			}
@@ -668,12 +689,10 @@ namespace engine {
 				vulkan::RenderData renderDataFloor(const_cast<vulkan::VulkanPipeline*>(pipeline_shadow_test));
 				renderDataFloor.setParamForLayout(mvp_layout2, &const_cast<glm::mat4&>(cameraMatrix), false);
 				const glm::mat4& viewTransform = camera->getViewTransform();
-				renderDataFloor.setParamByName("view", &const_cast<glm::mat4&>(viewTransform), false);
+
 				renderDataFloor.setParamByName("u_texture", texture_floor, false);
 				renderDataFloor.setParamByName("u_shadow_map", shadowMap->getTexture(), false);
-				renderDataFloor.setParamByName("cascade_matrix", shadowMap->getVPMatrixes().data(), false, shadowMap->getCascadesCount());
-				renderDataFloor.setParamByName("cascade_splits", shadowMap->getSplitDepthsPointer<glm::vec4>(), false, 1);
-				
+
 				autoBatcher->addToDraw(&renderDataFloor, sizeof(TexturedVertex), &floorVtx[0], vertexBufferSize, &idxs[0], indexBufferSize, commandBuffer, currentFrame);
 
 				vulkan::RenderData renderData(const_cast<vulkan::VulkanPipeline*>(pipeline));

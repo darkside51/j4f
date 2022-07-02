@@ -107,12 +107,18 @@ namespace engine {
 								switch (allowedAttributes[i]) {
 									case gltf::AttributesSemantic::JOINTS:
 									case gltf::AttributesSemantic::WEIGHT:
+									case gltf::AttributesSemantic::TANGENT:
+									case gltf::AttributesSemantic::COLOR: // vec4 or vec3?
 									{
 										mesh_vertexSize += 4;
 										buffersDimensions[a_idx] = 4;
 									}
 										break;
 									case gltf::AttributesSemantic::TEXCOORD_0:
+									case gltf::AttributesSemantic::TEXCOORD_1:
+									case gltf::AttributesSemantic::TEXCOORD_2:
+									case gltf::AttributesSemantic::TEXCOORD_3:
+									case gltf::AttributesSemantic::TEXCOORD_4:
 									{
 										mesh_vertexSize += 2;
 										buffersDimensions[a_idx] = 2;
