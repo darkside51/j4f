@@ -19,6 +19,12 @@ layout (set = 1, binding = 0) uniform static_shadowUBO {
 	mat4 view;
 } u_shadow;
 
+layout (set = 2, binding = 0) uniform static_lightUBO {
+	vec3 lightDirection;
+	vec2 lightMinMax;
+	vec4 lightColor;
+} u_constants;
+
 layout(push_constant) uniform PUSH_CONST {
 	mat4 camera_matrix;
 	mat4 model_matrix;

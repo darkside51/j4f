@@ -159,7 +159,23 @@ namespace gltf {
 			node.translation.y = matrix[3][1];
 			node.translation.z = matrix[3][2];
 
+			matrix[0][0] /= node.scale.x;
+			matrix[0][1] /= node.scale.x;
+			matrix[0][2] /= node.scale.x;
+			matrix[0][3] /= node.scale.x;
+
+			matrix[1][0] /= node.scale.y;
+			matrix[1][1] /= node.scale.y;
+			matrix[1][2] /= node.scale.y;
+			matrix[1][3] /= node.scale.y;
+
+			matrix[2][0] /= node.scale.z;
+			matrix[2][1] /= node.scale.z;
+			matrix[2][2] /= node.scale.z;
+			matrix[2][3] /= node.scale.z;
+
 			node.rotation = mat4_to_vec4_rotation(matrix);
+			return;
 		} 
 
 		auto scaleJs = js.find("scale");

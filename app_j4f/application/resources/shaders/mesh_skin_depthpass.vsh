@@ -19,6 +19,12 @@ layout (set = 1, binding = 0) uniform static_shadowUBO {
 	mat4 view;
 } u_shadow;
 
+layout (set = 2, binding = 0) uniform static_lightUBO {
+	vec3 lightDirection;
+	vec2 lightMinMax;
+	vec4 lightColor;
+} u_constants;
+
 layout(push_constant) uniform PUSH_CONST {
 	mat4 camera_matrix;
 	mat4 model_matrix;
@@ -28,7 +34,11 @@ out gl_PerVertex {
     vec4 gl_Position;   
 };
 
+layout (location = 0) out vec2 out_uv;
+
 void main() {
+	out_uv = a_uv;
+
 	if (u_ubo.use_skin == 1) {
 		mat4 skin = u_ubo.skin_matrixes[int(a_joints.x)] * a_weights.x
 			 	  + u_ubo.skin_matrixes[int(a_joints.y)] * a_weights.y

@@ -2,13 +2,18 @@
 
 #include "../../Core/Hierarchy.h"
 #include "../../Core/Math/math.h"
-#include "NodeGraphicLink.h"
+#include "NodeGraphicsLink.h"
 
 namespace engine {
 	
 	class Node {
 	public:
-		virtual ~Node() = default;
+		virtual ~Node() {
+			if (_graphics) {
+				delete _graphics;
+				_graphics = nullptr;
+			}
+		}
 
 		inline void calculateModelMatrix(const glm::mat4& parentModel) {
 			_model = parentModel * _local;
@@ -44,13 +49,22 @@ namespace engine {
 		}
 
 		inline const glm::mat4& model() const { return _model; }
+		inline const NodeGraphicsLink* getGraphics() const { return _graphics; }
+
+		inline void setGraphics(NodeGraphicsLink* g) {
+			if (_graphics) {
+				delete _graphics;
+				_graphics = nullptr;
+			}
+			_graphics = g;
+		}
 
 	private:
 		bool _dirtyModel = false;
 		bool _modelChanged = false;
 		glm::mat4 _local = glm::mat4(1.0f);
 		glm::mat4 _model = glm::mat4(1.0f);
-		NodeGraphicLink* _graphics = nullptr;
+		NodeGraphicsLink* _graphics = nullptr;
 	};
 
 	using H_Node = HierarchyRaw<Node>;

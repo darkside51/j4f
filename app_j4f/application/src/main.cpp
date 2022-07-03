@@ -33,6 +33,9 @@
 
 #include <Engine/Graphics/Scene/Shadows/CascadeShadowMap.h>
 
+#include <Engine/Graphics/Scene/Node.h>
+#include <Engine/Graphics/Scene/NodeGraphicsLink.h>
+
 namespace engine {
 
 	MeshGraphicsDataBuffer* meshesGraphicsBuffer;
@@ -45,6 +48,8 @@ namespace engine {
 	Mesh* mesh = nullptr;
 	Mesh* mesh2 = nullptr;
 	Mesh* mesh3 = nullptr;
+	Mesh* mesh4 = nullptr;
+
 	MeshAnimationTree* animTree = nullptr;
 	MeshAnimationTree* animTree2 = nullptr;
 
@@ -69,6 +74,8 @@ namespace engine {
 	glm::vec3 lightPos = glm::vec3(-460.0f, -600.0f, 1000.0f);
 	/// cascade shadow map
 
+	H_Node* rootNode;
+
 	class ApplicationCustomData : public InputObserver, public ICameraTransformChangeObserver {
 	public:
 
@@ -77,17 +84,17 @@ namespace engine {
 
 			auto&& shadowProgram = const_cast<vulkan::VulkanGpuProgram*>(CascadeShadowMap::getSpecialPipeline(ShadowMapSpecialPipelines::SH_PIPEINE_PLAIN)->program);
 
-			auto l1 = shadowProgram->getGPUParamLayoutByName("view");
-			auto l2 = shadowProgram->getGPUParamLayoutByName("cascade_matrix");
-			auto l3 = shadowProgram->getGPUParamLayoutByName("cascade_splits");
+			static const auto l1 = shadowProgram->getGPUParamLayoutByName("view");
+			static const auto l2 = shadowProgram->getGPUParamLayoutByName("cascade_matrix");
+			static const auto l3 = shadowProgram->getGPUParamLayoutByName("cascade_splits");
 			shadowProgram->setValueToLayout(l1, &const_cast<glm::mat4&>(camera->getViewTransform()), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 			shadowProgram->setValueToLayout(l2, shadowMap->getVPMatrixes().data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 			shadowProgram->setValueToLayout(l3, shadowMap->getSplitDepthsPointer<glm::vec4>(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 
 			//
-			auto ml1 = program_mesh_default->getGPUParamLayoutByName("view");
-			auto ml2 = program_mesh_default->getGPUParamLayoutByName("cascade_matrix");
-			auto ml3 = program_mesh_default->getGPUParamLayoutByName("cascade_splits");
+			static const auto ml1 = program_mesh_default->getGPUParamLayoutByName("view");
+			static const auto ml2 = program_mesh_default->getGPUParamLayoutByName("cascade_matrix");
+			static const auto ml3 = program_mesh_default->getGPUParamLayoutByName("cascade_splits");
 			program_mesh_default->setValueToLayout(ml1, &const_cast<glm::mat4&>(camera->getViewTransform()), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 			program_mesh_default->setValueToLayout(ml2, shadowMap->getVPMatrixes().data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 			program_mesh_default->setValueToLayout(ml3, shadowMap->getSplitDepthsPointer<glm::vec4>(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
@@ -119,7 +126,8 @@ namespace engine {
 
 			delete mesh;
 			delete mesh2;
-			delete mesh3;
+			//delete mesh3;
+			delete mesh4;
 			delete animTree;
 			delete animTree2;
 
@@ -128,6 +136,8 @@ namespace engine {
 			delete meshesGraphicsBuffer;
 
 			delete shadowMap;
+
+			delete rootNode;
 		}
 
 		bool onInputPointerEvent(const PointerEvent& event) override {
@@ -223,15 +233,17 @@ namespace engine {
 			clearValues[0].color = { 0.5f, 0.5f, 0.5f, 1.0f };
 			clearValues[1].depthStencil = { 1.0f, 0 };
 
-			////////////////////////
+			/////////////////////////
 			shadowMap = new CascadeShadowMap(SHADOWMAP_DIM, SHADOW_MAP_CASCADE_COUNT, camera->getNearFar(), 200.0f, 2100.0f);
-			shadowMap->setLamdas(1.0f, 1.3f, 1.425f);
+			shadowMap->setLamdas(1.0f, 2.0f, 1.5f);
 			shadowMap->setLightPosition(lightPos);
 		}
 
 		void create() {
 			using namespace vulkan;
 			using namespace gltf;
+
+			rootNode = new H_Node();
 
 			auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
 			auto&& gpuProgramManager = Engine::getInstance().getModule<Graphics>()->getGpuProgramsManager();
@@ -247,8 +259,8 @@ namespace engine {
 			VulkanGpuProgram* shadowPlainProgram = const_cast<VulkanGpuProgram*>(CascadeShadowMap::getSpecialPipeline(ShadowMapSpecialPipelines::SH_PIPEINE_PLAIN)->program);
 
 			glm::vec3 lightDir = as_normalized(-lightPos);
-			glm::vec2 lightMinMax(0.5f, 1.5f);
-			glm::vec4 lightColor(1.0f, 1.0f, 1.1f, 1.0f);
+			glm::vec2 lightMinMax(0.6f, 1.5f);
+			glm::vec4 lightColor(1.0f, 1.0f, 1.2f, 1.0f);
 
 			auto l = program_mesh_default->getGPUParamLayoutByName("lightDirection");
 			program_mesh_default->setValueToLayout(l, &lightDir, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
@@ -283,6 +295,14 @@ namespace engine {
 			tex_params2.file = "resources/assets/models/warcraft3/textures/Metal_baseColor.png";
 			auto texture_v3 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params2);
 
+			TextureLoadingParams tex_params3;
+			tex_params2.file = "resources/assets/models/tree1/textures/tree2_baseColor.png";
+			tex_params2.flags->async = 1;
+			tex_params2.flags->use_cache = 1;
+			auto texture_t = assm->loadAsset<vulkan::VulkanTexture*>(tex_params2);
+			tex_params2.file = "resources/assets/models/tree1/textures/branches_baseColor.png";
+			auto texture_t2 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params2);
+
 			meshesGraphicsBuffer = new MeshGraphicsDataBuffer(10 * 1024 * 1024, 10 * 1024 * 1024); // or create with default constructor for unique buffer for mesh
 
 			MeshLoadingParams mesh_params;
@@ -301,6 +321,13 @@ namespace engine {
 			mesh_params2.flags->async = 1;
 			mesh_params2.graphicsBuffer = meshesGraphicsBuffer;
 
+			MeshLoadingParams mesh_params3;
+			mesh_params3.file = "resources/assets/models/tree1/scene.gltf";
+			mesh_params3.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT, AttributesSemantic::TEXCOORD_0);
+			mesh_params3.latency = 3;
+			mesh_params3.flags->async = 1;
+			mesh_params3.graphicsBuffer = meshesGraphicsBuffer;
+
 			mesh = assm->loadAsset<Mesh*>(mesh_params, [program_gltf, texture_zombi, this](Mesh* asset, const AssetLoadingResult result) {
 				asset->setProgram(program_gltf);
 				asset->setParamByName("u_texture", texture_zombi, false);
@@ -312,6 +339,8 @@ namespace engine {
 
 				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
 				asset->onPipelineAttributesChanged();
+
+				sceneRenderList.addDescriptor(&asset->getRenderDescriptor());
 				});
 
 			mesh2 = assm->loadAsset<Mesh*>(mesh_params, [program_gltf, texture_zombi](Mesh* asset, const AssetLoadingResult result) {
@@ -323,6 +352,8 @@ namespace engine {
 
 				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
 				asset->onPipelineAttributesChanged();
+
+				sceneRenderList.addDescriptor(&asset->getRenderDescriptor());
 				});
 
 			mesh3 = assm->loadAsset<Mesh*>(mesh_params2, [program_gltf, texture_v, texture_v2, texture_v3](Mesh* asset, const AssetLoadingResult result) {
@@ -344,11 +375,32 @@ namespace engine {
 				animTree2->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[11], 0.0f, asset->getSkeleton()->getLatency(), 1.25f));
 				animTree2->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[10], 0.0f, asset->getSkeleton()->getLatency(), 1.0f));
 				animTree2->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[0], 0.0f, asset->getSkeleton()->getLatency(), 1.4f));
+
+				sceneRenderList.addDescriptor(&asset->getRenderDescriptor());
+
+				////////////////////
+				glm::mat4 wtr(1.0f);
+				scaleMatrix(wtr, glm::vec3(30.0f));
+				directMatrix_yz(wtr, 0.0f, 1.0f);
+				translateMatrixTo(wtr, glm::vec3(0.0f, 0.0f, 0.0f));
+
+				H_Node* node = new H_Node();
+				node->value().setLocalMatrix(wtr);
+				node->value().setGraphics(new NodeGraphicsLink(&node->value(), new NodeGraphicsType<Mesh>(asset)));
+				rootNode->addChild(node);
 				});
 
-			sceneRenderList.addDescriptor(&mesh->getRenderDescriptor());
-			sceneRenderList.addDescriptor(&mesh2->getRenderDescriptor());
-			sceneRenderList.addDescriptor(&mesh3->getRenderDescriptor());
+			mesh4 = assm->loadAsset<Mesh*>(mesh_params3, [program_gltf, texture_t, texture_t2, this](Mesh* asset, const AssetLoadingResult result) {
+				asset->setProgram(program_gltf);
+				asset->setParamByName("u_texture", texture_t, false);
+				asset->getRenderDataAt(1)->setParamByName("u_texture", texture_t2, false);
+				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
+
+				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
+				asset->onPipelineAttributesChanged();
+
+				sceneRenderList.addDescriptor(&asset->getRenderDescriptor());
+				});
 
 			TextureLoadingParams tex_params_logo;
 			tex_params_logo.file = "resources/assets/textures/vulkan_logo.png";
@@ -541,14 +593,14 @@ namespace engine {
 			}
 
 			glm::mat4 wtr(1.0f);
-			scaleMatrix(wtr, glm::vec3(0.5f));
+			scaleMatrix(wtr, glm::vec3(20.0f));
 			rotateMatrix_xyz(wtr, glm::vec3(1.57f, 0.45f, 0.0f));
 			translateMatrixTo(wtr, glm::vec3(-100.0f, -0.0f, 0.0f));
 
 			static float angle = 0.0f;
 			angle -= delta;
 			glm::mat4 wtr2(1.0f);
-			scaleMatrix(wtr2, glm::vec3(0.5f));
+			scaleMatrix(wtr2, glm::vec3(20.0f));
 			rotateMatrix_xyz(wtr2, glm::vec3(1.57f, -0.45f - angle, 0.0f));
 			translateMatrixTo(wtr2, glm::vec3(100.0f, -0.0f, 0.0f));
 
@@ -564,9 +616,15 @@ namespace engine {
 
 			translateMatrixTo(wtr3, glm::vec3(0.0f, 0.0f, 0.0f));
 
+			glm::mat4 wtrTree(1.0f);
+			scaleMatrix(wtrTree, glm::vec3(0.5f));
+			rotateMatrix_xyz(wtrTree, glm::vec3(1.57f, 0.0f, 0.0f));
+			translateMatrixTo(wtrTree, glm::vec3(-120.0f, -130.0f, 0.0f));
+
 			mesh->updateRenderData(wtr);
 			mesh2->updateRenderData(wtr2);
 			mesh3->updateRenderData(wtr3);
+			mesh4->updateRenderData(wtrTree);
 
 			const uint64_t wh = renderer->getWH();
 			const uint32_t width = static_cast<uint32_t>(wh >> 0);
@@ -579,6 +637,7 @@ namespace engine {
 			mesh->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
 			mesh2->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
 			mesh3->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
+			mesh4->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
 
 			//if (animTree2) {
 				// у меня лайоуты совпадают у юниформов, для теней => не нужно вызывать переназначение, достаточно одного раза
@@ -607,6 +666,7 @@ namespace engine {
 			mesh->setProgram(program_mesh_default);
 			mesh2->setProgram(program_mesh_default);
 			mesh3->setProgram(program_mesh_default);
+			mesh4->setProgram(program_mesh_default);
 			/////// shadow pass
 
 			commandBuffer.cmdBeginRenderPass(renderer->getMainRenderPass(), { {0, 0}, {width, height} }, &clearValues[0], 2, renderer->getFrameBuffer().m_framebuffer, VK_SUBPASS_CONTENTS_INLINE);
@@ -636,17 +696,21 @@ namespace engine {
 				//mesh->drawBoundingBox(cameraMatrix, wtr, commandBuffer, currentFrame);
 				//mesh2->drawBoundingBox(cameraMatrix, wtr2, commandBuffer, currentFrame);
 				//mesh3->drawBoundingBox(cameraMatrix, wtr3, commandBuffer, currentFrame);
+				//mesh4->drawBoundingBox(cameraMatrix, wtrTree, commandBuffer, currentFrame);
 			}
 
 			{ // ortho matrix draw
 				const glm::mat4& cameraMatrix2 = camera2->getMatrix();
 
-				glm::mat4 wtr4(1.0f);
-				//rotateMatrix_xyz(wtr4, glm::vec3(1.57f, 0.0f, angle));
-				scaleMatrix(wtr4, glm::vec3(50.0f));
-				rotateMatrix_xyz(wtr4, glm::vec3(0.0, angle, 0.0f));
-				translateMatrixTo(wtr4, glm::vec3(-float(width) * 0.5f + 100.0f, float(height) * 0.5f - mesh3->getMaxCorner().y * 50.0f - 50.0f, 0.0f));
-				mesh3->draw(cameraMatrix2, wtr4, commandBuffer, currentFrame);
+				if (animTree2) {
+
+					glm::mat4 wtr4(1.0f);
+					//rotateMatrix_xyz(wtr4, glm::vec3(1.57f, 0.0f, angle));
+					scaleMatrix(wtr4, glm::vec3(50.0f));
+					rotateMatrix_xyz(wtr4, glm::vec3(0.0, angle, 0.0f));
+					translateMatrixTo(wtr4, glm::vec3(-float(width) * 0.5f + 100.0f, float(height) * 0.5f - mesh3->getMaxCorner().y * 50.0f - 50.0f, 0.0f));
+					mesh3->draw(cameraMatrix2, wtr4, commandBuffer, currentFrame);
+				}
 
 				///////////
 				TexturedVertex vtx[4] = {

@@ -46,7 +46,7 @@ float filterPCF(vec4 sc, uint cascade) {
 
 	float shadowFactor = 0.0;
 	int count = 0;
-	int range = 2;
+	int range = 1;
 	
 	for (int x = -range; x <= range; x++) {
 		for (int y = -range; y <= range; y++) {
@@ -59,7 +59,7 @@ float filterPCF(vec4 sc, uint cascade) {
 
 void main() {
 	vec4 color = texture(u_texture, in_uv, 0.0);
-	if (color.a < 0.5) {
+	if (color.a < 0.9) {
 		discard;
 	} else {
 		// get cascade index for the current fragment's view position
