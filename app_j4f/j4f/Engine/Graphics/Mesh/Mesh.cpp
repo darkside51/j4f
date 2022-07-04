@@ -263,7 +263,6 @@ namespace engine {
 	void Mesh::createRenderData() {
 		const size_t renderDataCount = _meshData->renderData.size();
 
-		_renderDescriptor.renderDataCount = renderDataCount;
 		_renderDescriptor.renderData = new vulkan::RenderData*[renderDataCount];
 
 		for (size_t i = 0; i < renderDataCount; ++i) {
@@ -309,6 +308,8 @@ namespace engine {
 			_renderDescriptor.renderData[i]->indexes = _meshData->indicesBuffer;
 			_renderDescriptor.renderData[i]->vertexes = _meshData->verticesBuffer;
 		}
+
+		_renderDescriptor.renderDataCount = renderDataCount;
 
 		_renderState.vertexDescription.bindings_strides.push_back(std::make_pair(0, sizeOfVertex()));
 		_renderState.topology = { vulkan::TRIANGLE_LIST, false };
