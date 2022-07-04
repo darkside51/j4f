@@ -406,7 +406,7 @@ namespace vulkan {
 		inline VkQueue getMainQueue() { return _mainQueue; }
 		inline const VkQueue getMainQueue() const { return _mainQueue; }
 		 
-		inline uint32_t getSwapchainImagCount() const { return _swapChain.imageCount; }
+		inline uint32_t getSwapchainImagesCount() const { return _swapChain.imageCount; }
 
 		void resize(const uint32_t w, const uint32_t h, const bool vSync);
 

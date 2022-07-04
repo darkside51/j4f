@@ -126,6 +126,23 @@ namespace engine {
 		template <typename T>
 		inline T* getSplitDepthsPointer() const { return reinterpret_cast<T*>(const_cast<float*>(_splitDepths.data())); }
 
+		void updateShadowUniforms(vulkan::VulkanGpuProgram* program, const glm::mat4& cameraMatrix);
+
+		inline void updateShadowUniformsForRegesteredPrograms(const glm::mat4& cameraMatrix) {
+			if (_dirtyCascades > 0) {
+				--_dirtyCascades;
+				for (auto it = _programsShadowUniforms.begin(); it != _programsShadowUniforms.end(); ++it) {
+					const ShadowUniforms& uniforms = it->second;
+					it->first->setValueToLayout(uniforms.viewLayout, &const_cast<glm::mat4&>(cameraMatrix), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, false);
+					it->first->setValueToLayout(uniforms.cascadeMatrixLayout, _cascadeViewProjects.data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, false);
+					it->first->setValueToLayout(uniforms.cascadeSplitLayout, getSplitDepthsPointer<glm::vec4>(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, false);
+				}
+			}
+		}
+
+		void registerProgramAsReciever(vulkan::VulkanGpuProgram* program);
+		void unregisterProgramAsReciever(vulkan::VulkanGpuProgram* program);
+
 	private:
 		static void initPipelines();
 		static void registerCommonShadowPrograms();
@@ -157,6 +174,15 @@ namespace engine {
 		vulkan::VulkanTexture* _shadowMapTexture;
 
 		glm::vec3 _lightDirection;
+
+		struct ShadowUniforms {
+			const vulkan::GPUParamLayoutInfo* viewLayout;
+			const vulkan::GPUParamLayoutInfo* cascadeMatrixLayout;
+			const vulkan::GPUParamLayoutInfo* cascadeSplitLayout;
+		};
+
+		uint8_t _dirtyCascades = 0;
+		std::unordered_map<vulkan::VulkanGpuProgram*, ShadowUniforms> _programsShadowUniforms;
 	};
 
 }

@@ -266,6 +266,47 @@ namespace engine {
 
 			lastSplitDist = _cascadeSplits[i];
 		}
+
+		_dirtyCascades = Engine::getInstance().getModule<Graphics>()->getRenderer()->getSwapchainImagesCount();
+	}
+
+	void CascadeShadowMap::registerProgramAsReciever(vulkan::VulkanGpuProgram* program) {
+		auto it = _programsShadowUniforms.find(program);
+		if (it == _programsShadowUniforms.end()) {
+			ShadowUniforms uniforms;
+			uniforms.viewLayout = program->getGPUParamLayoutByName("view");
+			uniforms.cascadeMatrixLayout = program->getGPUParamLayoutByName("cascade_matrix");
+			uniforms.cascadeSplitLayout = program->getGPUParamLayoutByName("cascade_splits");
+			_programsShadowUniforms.insert({ program, uniforms });
+		}
+	}
+
+	void CascadeShadowMap::unregisterProgramAsReciever(vulkan::VulkanGpuProgram* program) {
+		auto it = _programsShadowUniforms.find(program);
+		if (it != _programsShadowUniforms.end()) {
+			_programsShadowUniforms.erase(it);
+		}
+	}
+
+	void CascadeShadowMap::updateShadowUniforms(vulkan::VulkanGpuProgram* program, const glm::mat4& cameraMatrix) {
+		auto it = _programsShadowUniforms.find(program);
+		if (it != _programsShadowUniforms.end()) {
+			const ShadowUniforms& uniforms = it->second;
+			program->setValueToLayout(uniforms.viewLayout, &const_cast<glm::mat4&>(cameraMatrix), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, false);
+			program->setValueToLayout(uniforms.cascadeMatrixLayout, _cascadeViewProjects.data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, false);
+			program->setValueToLayout(uniforms.cascadeSplitLayout, getSplitDepthsPointer<glm::vec4>(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, false);
+		} else {
+			ShadowUniforms uniforms;
+			uniforms.viewLayout = program->getGPUParamLayoutByName("view");
+			uniforms.cascadeMatrixLayout = program->getGPUParamLayoutByName("cascade_matrix");
+			uniforms.cascadeSplitLayout = program->getGPUParamLayoutByName("cascade_splits");
+
+			program->setValueToLayout(uniforms.viewLayout, &const_cast<glm::mat4&>(cameraMatrix), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, false);
+			program->setValueToLayout(uniforms.cascadeMatrixLayout, _cascadeViewProjects.data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, false);
+			program->setValueToLayout(uniforms.cascadeSplitLayout, getSplitDepthsPointer<glm::vec4>(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, false);
+
+			_programsShadowUniforms.insert({ program, uniforms });
+		}
 	}
 
 	void CascadeShadowMap::renderShadows(vulkan::VulkanCommandBuffer& commandBuffer) {

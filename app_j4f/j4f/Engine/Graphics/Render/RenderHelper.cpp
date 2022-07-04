@@ -28,7 +28,7 @@ namespace engine {
 	//////////////////////////////////
 
 	RenderHelper::RenderHelper(vulkan::VulkanRenderer* r, GpuProgramsManager* m) : _renderer(r), _gpuProgramManager(m), _autoBatchRenderer(new AutoBatchRenderer()) {
-		const uint8_t swapChainImagesCount = _renderer->getSwapchainImagCount();
+		const uint8_t swapChainImagesCount = _renderer->getSwapchainImagesCount();
 		_dynamic_vertices.resize(swapChainImagesCount);
 		_dynamic_indices.resize(swapChainImagesCount);
 	}

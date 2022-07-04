@@ -70,7 +70,8 @@ namespace engine {
 
 	/// cascade shadow map
 	constexpr uint8_t SHADOW_MAP_CASCADE_COUNT = 4;
-	constexpr uint16_t SHADOWMAP_DIM = 2048;
+	constexpr uint16_t SHADOWMAP_DIM = 4096; // VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
+	//constexpr uint16_t SHADOWMAP_DIM = 2048; // VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU
 	glm::vec3 lightPos = glm::vec3(-460.0f, -600.0f, 1000.0f);
 	/// cascade shadow map
 
@@ -81,25 +82,6 @@ namespace engine {
 
 		void onCameraTransformChanged(const Camera* camera) override {
 			shadowMap->updateCascades(camera);
-
-			/*
-			auto&& shadowProgram = const_cast<vulkan::VulkanGpuProgram*>(CascadeShadowMap::getSpecialPipeline(ShadowMapSpecialPipelines::SH_PIPEINE_PLAIN)->program);
-
-			static const auto l1 = shadowProgram->getGPUParamLayoutByName("view");
-			static const auto l2 = shadowProgram->getGPUParamLayoutByName("cascade_matrix");
-			static const auto l3 = shadowProgram->getGPUParamLayoutByName("cascade_splits");
-			shadowProgram->setValueToLayout(l1, &const_cast<glm::mat4&>(camera->getViewTransform()), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
-			shadowProgram->setValueToLayout(l2, shadowMap->getVPMatrixes().data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
-			shadowProgram->setValueToLayout(l3, shadowMap->getSplitDepthsPointer<glm::vec4>(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
-
-			//
-			static const auto ml1 = program_mesh_default->getGPUParamLayoutByName("view");
-			static const auto ml2 = program_mesh_default->getGPUParamLayoutByName("cascade_matrix");
-			static const auto ml3 = program_mesh_default->getGPUParamLayoutByName("cascade_splits");
-			program_mesh_default->setValueToLayout(ml1, &const_cast<glm::mat4&>(camera->getViewTransform()), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
-			program_mesh_default->setValueToLayout(ml2, shadowMap->getVPMatrixes().data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
-			program_mesh_default->setValueToLayout(ml3, shadowMap->getSplitDepthsPointer<glm::vec4>(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
-			*/
 		}
 
 		ApplicationCustomData() {
@@ -278,6 +260,8 @@ namespace engine {
 			program_mesh_default->setValueToLayout(l4, &lightColor, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 			shadowPlainProgram->setValueToLayout(l5, &lightColor, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 
+			shadowMap->registerProgramAsReciever(program_mesh_default);
+			shadowMap->registerProgramAsReciever(shadowPlainProgram);
 
 			TextureLoadingParams tex_params;
 			//tex_params.file = "resources/assets/models/zombiWarrior/textures/defaultMat_diffuse.png";
@@ -539,27 +523,17 @@ namespace engine {
 			auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
 			const uint32_t currentFrame = renderer->getCurrentFrame();
 
-			camera->movePosition(150.0f * delta * engine::as_normalized(wasd));
+			camera->movePosition(100.0f * delta * engine::as_normalized(wasd));
 
 			camera->calculateTransform();
 			camera2->calculateTransform();
 
-			auto&& shadowProgram = const_cast<vulkan::VulkanGpuProgram*>(CascadeShadowMap::getSpecialPipeline(ShadowMapSpecialPipelines::SH_PIPEINE_PLAIN)->program);
+			//auto&& shadowProgram = const_cast<vulkan::VulkanGpuProgram*>(CascadeShadowMap::getSpecialPipeline(ShadowMapSpecialPipelines::SH_PIPEINE_PLAIN)->program);
 
-			static const auto l1 = shadowProgram->getGPUParamLayoutByName("view");
-			static const auto l2 = shadowProgram->getGPUParamLayoutByName("cascade_matrix");
-			static const auto l3 = shadowProgram->getGPUParamLayoutByName("cascade_splits");
-			shadowProgram->setValueToLayout(l1, &const_cast<glm::mat4&>(camera->getViewTransform()), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, false);
-			shadowProgram->setValueToLayout(l2, shadowMap->getVPMatrixes().data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, false);
-			shadowProgram->setValueToLayout(l3, shadowMap->getSplitDepthsPointer<glm::vec4>(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, false);
+			//shadowMap->updateShadowUniforms(shadowProgram, camera->getViewTransform());
+			//shadowMap->updateShadowUniforms(program_mesh_default, camera->getViewTransform());
 
-			//
-			static const auto ml1 = program_mesh_default->getGPUParamLayoutByName("view");
-			static const auto ml2 = program_mesh_default->getGPUParamLayoutByName("cascade_matrix");
-			static const auto ml3 = program_mesh_default->getGPUParamLayoutByName("cascade_splits");
-			program_mesh_default->setValueToLayout(ml1, &const_cast<glm::mat4&>(camera->getViewTransform()), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, false);
-			program_mesh_default->setValueToLayout(ml2, shadowMap->getVPMatrixes().data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, false);
-			program_mesh_default->setValueToLayout(ml3, shadowMap->getSplitDepthsPointer<glm::vec4>(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, false);
+			shadowMap->updateShadowUniformsForRegesteredPrograms(camera->getViewTransform());
 
 			// mix test
 			static float mix = 0.7f;
