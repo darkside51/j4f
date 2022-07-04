@@ -70,7 +70,7 @@ namespace engine {
 
 	/// cascade shadow map
 	constexpr uint8_t SHADOW_MAP_CASCADE_COUNT = 4;
-	constexpr uint16_t SHADOWMAP_DIM = 4096;
+	constexpr uint16_t SHADOWMAP_DIM = 2048;
 	glm::vec3 lightPos = glm::vec3(-460.0f, -600.0f, 1000.0f);
 	/// cascade shadow map
 
@@ -82,6 +82,7 @@ namespace engine {
 		void onCameraTransformChanged(const Camera* camera) override {
 			shadowMap->updateCascades(camera);
 
+			/*
 			auto&& shadowProgram = const_cast<vulkan::VulkanGpuProgram*>(CascadeShadowMap::getSpecialPipeline(ShadowMapSpecialPipelines::SH_PIPEINE_PLAIN)->program);
 
 			static const auto l1 = shadowProgram->getGPUParamLayoutByName("view");
@@ -98,6 +99,7 @@ namespace engine {
 			program_mesh_default->setValueToLayout(ml1, &const_cast<glm::mat4&>(camera->getViewTransform()), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 			program_mesh_default->setValueToLayout(ml2, shadowMap->getVPMatrixes().data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 			program_mesh_default->setValueToLayout(ml3, shadowMap->getSplitDepthsPointer<glm::vec4>(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			*/
 		}
 
 		ApplicationCustomData() {
@@ -233,9 +235,9 @@ namespace engine {
 			clearValues[0].color = { 0.5f, 0.5f, 0.5f, 1.0f };
 			clearValues[1].depthStencil = { 1.0f, 0 };
 
-			/////////////////////////
-			shadowMap = new CascadeShadowMap(SHADOWMAP_DIM, SHADOW_MAP_CASCADE_COUNT, camera->getNearFar(), 200.0f, 2100.0f);
-			shadowMap->setLamdas(1.0f, 2.0f, 1.5f);
+			////////////////////////////
+			shadowMap = new CascadeShadowMap(SHADOWMAP_DIM, SHADOW_MAP_CASCADE_COUNT, camera->getNearFar(), 500.0f, 1600.0f);
+			shadowMap->setLamdas(1.0f, 1.3f, 1.6f);
 			shadowMap->setLightPosition(lightPos);
 		}
 
@@ -533,6 +535,32 @@ namespace engine {
 		}
 
 		void draw(const float delta) {
+
+			auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
+			const uint32_t currentFrame = renderer->getCurrentFrame();
+
+			camera->movePosition(150.0f * delta * engine::as_normalized(wasd));
+
+			camera->calculateTransform();
+			camera2->calculateTransform();
+
+			auto&& shadowProgram = const_cast<vulkan::VulkanGpuProgram*>(CascadeShadowMap::getSpecialPipeline(ShadowMapSpecialPipelines::SH_PIPEINE_PLAIN)->program);
+
+			static const auto l1 = shadowProgram->getGPUParamLayoutByName("view");
+			static const auto l2 = shadowProgram->getGPUParamLayoutByName("cascade_matrix");
+			static const auto l3 = shadowProgram->getGPUParamLayoutByName("cascade_splits");
+			shadowProgram->setValueToLayout(l1, &const_cast<glm::mat4&>(camera->getViewTransform()), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, false);
+			shadowProgram->setValueToLayout(l2, shadowMap->getVPMatrixes().data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, false);
+			shadowProgram->setValueToLayout(l3, shadowMap->getSplitDepthsPointer<glm::vec4>(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, false);
+
+			//
+			static const auto ml1 = program_mesh_default->getGPUParamLayoutByName("view");
+			static const auto ml2 = program_mesh_default->getGPUParamLayoutByName("cascade_matrix");
+			static const auto ml3 = program_mesh_default->getGPUParamLayoutByName("cascade_splits");
+			program_mesh_default->setValueToLayout(ml1, &const_cast<glm::mat4&>(camera->getViewTransform()), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, false);
+			program_mesh_default->setValueToLayout(ml2, shadowMap->getVPMatrixes().data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, false);
+			program_mesh_default->setValueToLayout(ml3, shadowMap->getSplitDepthsPointer<glm::vec4>(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, false);
+
 			// mix test
 			static float mix = 0.7f;
 			static bool na = false;
@@ -541,8 +569,7 @@ namespace engine {
 			if (!na) {
 				if (mix > -4.0f) {
 					mix -= step;
-				}
-				else {
+				} else {
 					mix = -4.0f;
 					na = true;
 				}
@@ -550,8 +577,7 @@ namespace engine {
 			else {
 				if (mix < 5.0f) {
 					mix += step;
-				}
-				else {
+				} else {
 					mix = 5.0f;
 					na = false;
 					animNum = engine::random(1, 4);
@@ -575,15 +601,6 @@ namespace engine {
 			}
 
 			////
-
-			auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
-			const uint32_t currentFrame = renderer->getCurrentFrame();
-
-			camera->movePosition(250.0f * delta * engine::as_normalized(wasd));
-
-			camera->calculateTransform();
-			camera2->calculateTransform();
-
 			if (animTree) {
 				mesh->getSkeleton()->updateAnimation(delta, animTree);
 			}

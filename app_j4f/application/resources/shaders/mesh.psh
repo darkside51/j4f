@@ -15,7 +15,7 @@ layout (location = 0) out vec4 outColor;
 //	mat4 skin_matrixes[192];
 //} u_ubo;
 
-layout (set = 1, binding = 0) uniform static_shadowUBO {
+layout (set = 1, binding = 0) uniform shadowUBO {
 	vec4 cascade_splits;
 	mat4 cascade_matrix[SHADOW_MAP_CASCADE_COUNT];
 	mat4 view;
@@ -47,6 +47,17 @@ float filterPCF(vec4 sc, uint cascade) {
 	float shadowFactor = 0.0;
 	int count = 0;
 	int range = 1;
+
+	switch(cascade) {
+		case 0:
+			range = 2;
+			break;
+		case 3:
+			range = 0;
+			break;
+		default:
+			break;
+	}
 	
 	for (int x = -range; x <= range; x++) {
 		for (int y = -range; y <= range; y++) {

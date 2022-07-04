@@ -13,7 +13,7 @@ layout (set = 0, binding = 0) uniform UBO {
 	mat4 skin_matrixes[192];
 } u_ubo;
 
-layout (set = 1, binding = 0) uniform static_shadowUBO {
+layout (set = 1, binding = 0) uniform shadowUBO {
 	vec4 cascade_splits;
 	mat4 cascade_matrix[SHADOW_MAP_CASCADE_COUNT];
 	mat4 view;
