@@ -217,9 +217,9 @@ namespace engine {
 			clearValues[0].color = { 0.5f, 0.5f, 0.5f, 1.0f };
 			clearValues[1].depthStencil = { 1.0f, 0 };
 
-			////////////////////////////
-			shadowMap = new CascadeShadowMap(SHADOWMAP_DIM, SHADOW_MAP_CASCADE_COUNT, camera->getNearFar(), 500.0f, 1600.0f);
-			shadowMap->setLamdas(1.0f, 1.3f, 1.6f);
+			/////////////////////////////////
+			shadowMap = new CascadeShadowMap(SHADOWMAP_DIM, SHADOW_MAP_CASCADE_COUNT, camera->getNearFar(), 250.0f, 1600.0f);
+			shadowMap->setLamdas(1.0f, 1.0f, 1.0f);
 			shadowMap->setLightPosition(lightPos);
 		}
 
@@ -243,8 +243,8 @@ namespace engine {
 			VulkanGpuProgram* shadowPlainProgram = const_cast<VulkanGpuProgram*>(CascadeShadowMap::getSpecialPipeline(ShadowMapSpecialPipelines::SH_PIPEINE_PLAIN)->program);
 
 			glm::vec3 lightDir = as_normalized(-lightPos);
-			glm::vec2 lightMinMax(0.6f, 1.5f);
-			glm::vec4 lightColor(1.0f, 1.0f, 1.2f, 1.0f);
+			glm::vec2 lightMinMax(0.45f, 1.5f);
+			glm::vec4 lightColor(1.0f, 1.0f, 1.1f, 1.0f);
 
 			auto l = program_mesh_default->getGPUParamLayoutByName("lightDirection");
 			program_mesh_default->setValueToLayout(l, &lightDir, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
@@ -547,8 +547,7 @@ namespace engine {
 					mix = -4.0f;
 					na = true;
 				}
-			}
-			else {
+			} else {
 				if (mix < 5.0f) {
 					mix += step;
 				} else {

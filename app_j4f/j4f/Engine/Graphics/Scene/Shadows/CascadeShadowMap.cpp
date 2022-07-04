@@ -258,7 +258,7 @@ namespace engine {
 			const float radius = vec_length(frustumCorners[7] - frustumCenter) * _frustumRadiusLambda;
 
 			glm::mat4 lightViewMatrix = glm::lookAt(frustumCenter - _lightDirection * radius * _cascadeLigthLambda, frustumCenter, glm::vec3(0.0f, 1.0f, 0.0f));
-			glm::mat4 lightOrthoMatrix = glm::ortho(-radius, radius, -radius, radius, 0.0f, 2.0f * radius);
+			glm::mat4 lightOrthoMatrix = glm::ortho(-radius, radius, -radius, radius, -2.0f * radius, 2.0f * radius);
 
 			// store split distance and matrix in cascade
 			_splitDepths[i] = (nearFar.x + splitDist * clipRange) * -1.0f;
