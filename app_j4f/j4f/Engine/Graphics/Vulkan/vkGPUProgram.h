@@ -209,6 +209,8 @@ namespace vulkan {
 
 		inline uint16_t getPushConstantsCount() const { return m_pushConstantsCount; }
 
+		inline uint8_t getGPUBuffersSetsTypes() const { return m_gpuBuffersSetsTypes; } // типы буферов, 0 - статический(UNIFORM_BUFFER или STORAGE_BUFFER), 1 - динамический(UNIFORM_BUFFER_DYNAMIC или STORAGE_BUFFER_DYNAMIC)
+
 		inline const std::unordered_map<std::string, GPUParamLayoutInfo*>& getParamLayouts() const { return m_paramLayouts; }
 		inline const std::vector<GPUParamLayoutInfo*>& getParamsLayoutSortedVec() const { return m_paramLayoutsVec; }
 
@@ -222,6 +224,7 @@ namespace vulkan {
 		uint16_t m_pushConstantsCount = 0;
 		uint8_t m_gpuBuffersSets = 0;
 		uint8_t m_gpuBuffersSetsCount = 0;
+		uint8_t m_gpuBuffersSetsTypes = 0;
 		VulkanRenderer* m_renderer;
 		std::vector<VkPipelineShaderStageCreateInfo> m_shaderStages;
 		PipelineDescriptorLayout* m_pipelineDescriptorLayout = nullptr;

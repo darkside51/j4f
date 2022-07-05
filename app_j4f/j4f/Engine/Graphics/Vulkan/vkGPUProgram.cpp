@@ -428,19 +428,19 @@ namespace vulkan {
 		if (!m_pipelineDescriptorLayout->descriptorSetLayouts.empty()) {
 
 			uint8_t buffersCount = 0;
-			uint8_t buffersTypes = 0;
 			uint8_t staticBuffersCount = 0;
+			m_gpuBuffersSetsTypes = 0;
 			for (auto& descriptorSetLayoutBinding : descriptorSetLayoutBindings) {
 				for (VkDescriptorSetLayoutBinding* binding : descriptorSetLayoutBinding) {
 					switch (binding->descriptorType) {
 						case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
 						case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
-							buffersTypes |= (1 << buffersCount);
 							++buffersCount;
 							++staticBuffersCount;
 							break;
 						case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
 						case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
+							m_gpuBuffersSetsTypes |= (1 << buffersCount);
 							++buffersCount;
 							break;
 						default:
@@ -450,7 +450,7 @@ namespace vulkan {
 			}
 
 			for (uint8_t i = 0; i < buffersCount; ++i) {
-				VulkanDescriptorSet* newDescriptorSet = m_renderer->allocateDescriptorSetFromGlobalPool(m_pipelineDescriptorLayout->descriptorSetLayouts[i], (buffersTypes & (1 << i)) ? 1 : 0);
+				VulkanDescriptorSet* newDescriptorSet = m_renderer->allocateDescriptorSetFromGlobalPool(m_pipelineDescriptorLayout->descriptorSetLayouts[i], (m_gpuBuffersSetsTypes & (1 << i)) ? 0 : 1);
 				m_descriptorSets.push_back(newDescriptorSet);
 			}
 

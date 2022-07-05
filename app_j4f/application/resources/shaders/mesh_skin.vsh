@@ -8,10 +8,11 @@ layout (location = 2) in vec4 a_joints;
 layout (location = 3) in vec4 a_weights;
 layout (location = 4) in vec2 a_uv;
 
-layout (set = 0, binding = 0) uniform UBO {
-	int use_skin;
-	mat4 skin_matrixes[192];
-} u_ubo;
+layout (set = 0, binding = 0) uniform static_lightUBO {
+	vec3 lightDirection;
+	vec2 lightMinMax;
+	vec4 lightColor;
+} u_constants;
 
 layout (set = 1, binding = 0) uniform shadowUBO {
 	vec4 cascade_splits;
@@ -19,11 +20,10 @@ layout (set = 1, binding = 0) uniform shadowUBO {
 	mat4 view;
 } u_shadow;
 
-layout (set = 2, binding = 0) uniform static_lightUBO {
-	vec3 lightDirection;
-	vec2 lightMinMax;
-	vec4 lightColor;
-} u_constants;
+layout (set = 2, binding = 0) uniform UBO {
+	int use_skin;
+	mat4 skin_matrixes[192];
+} u_ubo;
 
 layout(push_constant) uniform PUSH_CONST {
 	mat4 camera_matrix;
