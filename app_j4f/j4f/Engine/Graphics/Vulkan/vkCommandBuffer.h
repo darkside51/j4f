@@ -12,6 +12,7 @@
 
 #include <vulkan/vulkan.h>
 #include <vector>
+#include <array>
 #include <type_traits>
 #include <algorithm>
 #include <assert.h>
@@ -29,9 +30,9 @@ namespace vulkan {
 
 		public:
 			struct Descriptors {
-				uint32_t dynamicOffsetCount[descriptor_sets_max_count];
+				uint32_t dynamicOffsetCount;
 				VkDescriptorSet descriptorSets[descriptor_sets_max_count];
-				uint32_t pDynamicOffsets[descriptor_sets_max_count][dynamic_offsets_max_count];
+				uint32_t pDynamicOffsets[descriptor_sets_max_count];
 			};
 			
 			std::unordered_map<VkPipelineLayout, Descriptors*> layoutDescriptors;
@@ -46,10 +47,40 @@ namespace vulkan {
 				for (auto it = layoutDescriptors.begin(); it != layoutDescriptors.end(); ++it) {
 					for (uint8_t i = 0; i < descriptor_sets_max_count; ++i) {
 						it->second->descriptorSets[i] = VK_NULL_HANDLE;
-						it->second->dynamicOffsetCount[i] = 0;
+						it->second->dynamicOffsetCount = 0;
 					}
 				}
 			}
+		};
+
+		struct NeedBindDescriptors {
+			uint8_t firstSet = 0;
+			uint8_t setsCount = 0;
+			uint8_t dynamicOffsetsCount = 0;
+			std::array<uint32_t, 8> dynamicOffsets;
+			std::array<VkDescriptorSet, 8> sets;
+
+			NeedBindDescriptors() = default;
+
+			NeedBindDescriptors(NeedBindDescriptors&& rvalue) noexcept :
+				firstSet(rvalue.firstSet),
+				setsCount(rvalue.setsCount),
+				dynamicOffsetsCount(rvalue.dynamicOffsetsCount),
+				dynamicOffsets(std::move(rvalue.dynamicOffsets)),
+				sets(std::move(rvalue.sets)) {
+			}
+
+			NeedBindDescriptors& operator= (NeedBindDescriptors&& rvalue) noexcept {
+				firstSet = rvalue.firstSet;
+				setsCount = rvalue.setsCount;
+				dynamicOffsetsCount = rvalue.dynamicOffsetsCount;
+				dynamicOffsets = std::move(rvalue.dynamicOffsets);
+				sets = std::move(rvalue.sets);
+				return *this;
+			}
+
+			NeedBindDescriptors(const NeedBindDescriptors& lvalue) = delete;
+			NeedBindDescriptors& operator= (const NeedBindDescriptors& lvalue) = delete;
 		};
 
 		VkPipelineBindPoint m_pipelineBindPoint = VK_PIPELINE_BIND_POINT_MAX_ENUM;
@@ -161,9 +192,9 @@ namespace vulkan {
 
 		inline bool bindDescriptorSet(
 			const VkPipelineBindPoint pipelineBindPoint,
-			VkPipelineLayout layout,
+			const VkPipelineLayout layout,
 			const uint32_t set,
-			VkDescriptorSet descriptorSet,
+			const VkDescriptorSet descriptorSet,
 			const uint32_t dynamicOffsetCount = 0,
 			const uint32_t* pDynamicOffsets = nullptr
 		) {
@@ -172,27 +203,27 @@ namespace vulkan {
 
 			uint8_t bindSetNum;
 			switch (pipelineBindPoint) {
-			case VK_PIPELINE_BIND_POINT_GRAPHICS:
-			{
-				bindSetNum = 0;
-			}
-				break;
-			case VK_PIPELINE_BIND_POINT_COMPUTE:
-			{
-				bindSetNum = 1;
-			}
-			break;
-			case VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR:
-			{
-				bindSetNum = 2;
-			}
-			break;
-			default:
-			{
-				assert(false);
-				return false;
-			}
-				break;
+				case VK_PIPELINE_BIND_POINT_GRAPHICS:
+				{
+					bindSetNum = 0;
+				}
+					break;
+				case VK_PIPELINE_BIND_POINT_COMPUTE:
+				{
+					bindSetNum = 1;
+				}
+					break;
+				case VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR:
+				{
+					bindSetNum = 2;
+				}
+					break;
+				default:
+				{
+					assert(false);
+					return false;
+				}
+					break;
 			}
 
 			BindingSets& bindSet = m_bindSets[bindSetNum];
@@ -209,23 +240,111 @@ namespace vulkan {
 			VkDescriptorSet& bindedDescriptorSet = descriptors->descriptorSets[set];
 			if (bindedDescriptorSet != descriptorSet) {
 				bindedDescriptorSet = descriptorSet;
-				descriptors->dynamicOffsetCount[set] = dynamicOffsetCount;
-				memcpy(descriptors->pDynamicOffsets[set], pDynamicOffsets, sizeof(uint32_t) * dynamicOffsetCount);
 				return true;
 			} else {
-				if (descriptors->dynamicOffsetCount[set] != dynamicOffsetCount) {
-					descriptors->dynamicOffsetCount[set] = dynamicOffsetCount;
-					memcpy(descriptors->pDynamicOffsets[set], pDynamicOffsets, sizeof(uint32_t) * dynamicOffsetCount);
-					return true;
-				}
-				const size_t sz = sizeof(uint32_t) * dynamicOffsetCount;
-				if (memcmp(descriptors->pDynamicOffsets[set], pDynamicOffsets, sz)) {
-					memcpy(descriptors->pDynamicOffsets[set], pDynamicOffsets, sz);
-					return true;
-				}
+				
 			}
 
 			return false;
+		}
+
+		NeedBindDescriptors bindDescriptorSets(
+			const uint32_t frame,
+			const VkPipelineBindPoint pipelineBindPoint,
+			const VulkanPipeline* pipeline,
+			const uint32_t firstSet,							// номер первого сет привязки
+			const uint8_t dynamicOffsetsCount,					// количество оффсетов для динамических буфферов
+			const uint32_t* dynamicOffsets,						// оффсеты для динамических буфферов
+			const uint8_t additionalSetsCount,					// количество дополнительных сетов, которые хочется привязать
+			const VkDescriptorSet* additionalSets				// дополнительные сеты, которые хочется привязать
+		) {
+			NeedBindDescriptors dirtyBind;
+			dirtyBind.firstSet = firstSet;
+
+			uint8_t bindSetNum;
+			switch (pipelineBindPoint) {
+				case VK_PIPELINE_BIND_POINT_GRAPHICS:
+				{
+					bindSetNum = 0;
+				}
+					break;
+				case VK_PIPELINE_BIND_POINT_COMPUTE:
+				{
+					bindSetNum = 1;
+				}
+					break;
+				case VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR:
+				{
+					bindSetNum = 2;
+				}
+					break;
+				default:
+				{
+					assert(false);
+					return dirtyBind;
+				}
+				break;
+			}
+
+			BindingSets& bindSet = m_bindSets[bindSetNum];
+			BindingSets::Descriptors* descriptors;
+
+			const VkPipelineLayout layout = pipeline->program->getPipeLineLayout();
+
+			auto it = bindSet.layoutDescriptors.find(layout);
+			if (it != bindSet.layoutDescriptors.end()) {
+				descriptors = it->second;
+			} else {
+				descriptors = new BindingSets::Descriptors();
+				bindSet.layoutDescriptors[layout] = descriptors;
+			}
+
+			uint8_t allProgramSetsCount;
+			//const uint8_t gpuSets = pipeline->program->getGPUSetsNumbers();
+			const uint8_t gpuSetsCount = pipeline->program->getGPUSetsCount(&allProgramSetsCount);
+			const uint8_t buffersSetsTypes = pipeline->program->getGPUBuffersSetsTypes();
+			const uint8_t setsCount = std::min(static_cast<uint8_t>(gpuSetsCount + additionalSetsCount), allProgramSetsCount) - firstSet;
+
+			/* todo! : проверить, если это так и есть - раскоментировать findDirtySet
+			// если нашли один изменившийся динамический - остальные тоже привязываем(буферы располагать по частоте обновления). это нужно, чтоб не вызывать команду нескольок раз из - за смещений dynamicOffsets
+			bool findDirtySet = false; 
+			*/
+			uint8_t dynamicBufferNum = 0;
+			for (uint8_t i = 0; i < setsCount; ++i) {
+				const uint8_t set = firstSet + i;
+				
+				VkDescriptorSet& bindedDescriptorSet = descriptors->descriptorSets[set];
+
+				const bool isBufferDynamic = (buffersSetsTypes & (1 << set));
+				const VulkanDescriptorSet* dset = pipeline->program->getDescriptorSet(i);
+				const VkDescriptorSet& currentSet = dset->operator[](frame);
+
+				const uint32_t bufferOffset = isBufferDynamic ? dynamicOffsets[dynamicBufferNum++] : 0;
+
+				if (bindedDescriptorSet != currentSet /*|| findDirtySet*/) {
+					bindedDescriptorSet = currentSet;
+					descriptors->pDynamicOffsets[set] = bufferOffset;
+
+					if (isBufferDynamic) {
+						dirtyBind.dynamicOffsets[dirtyBind.dynamicOffsetsCount++] = bufferOffset;
+						//findDirtySet = true;
+					}
+					dirtyBind.sets[dirtyBind.setsCount++] = currentSet;
+				} else if (descriptors->pDynamicOffsets[set] != bufferOffset) {
+					descriptors->pDynamicOffsets[set] = bufferOffset;
+
+					if (isBufferDynamic) {
+						dirtyBind.dynamicOffsets[dirtyBind.dynamicOffsetsCount++] = bufferOffset;
+						//findDirtySet = true;
+					}
+
+					dirtyBind.sets[dirtyBind.setsCount++] = currentSet;
+				} else {
+					++dirtyBind.firstSet;
+				}
+			}
+
+			return dirtyBind;
 		}
 
 	};
@@ -749,18 +868,34 @@ namespace vulkan {
 			const uint8_t additionalSetsCount,					// количество дополнительных сетов, которые хочется привязать
 			const VkDescriptorSet* additionalSets				// дополнительные сеты, которые хочется привязать
 		) {
-			using namespace std;
-			uint8_t allProgramSetsCount;
-			const uint8_t gpuSetsCount = pipeline->program->getGPUSetsCount(&allProgramSetsCount);
-			const uint8_t setsCount = min(static_cast<uint8_t>(gpuSetsCount + additionalSetsCount), allProgramSetsCount) - firstSet;
-			VkDescriptorSet* sets = setsCount > 0 ? static_cast<VkDescriptorSet*>(alloca(sizeof(VkDescriptorSet) * setsCount)) : nullptr;
+			if constexpr (stated) { // use this?
+				const state_type::NeedBindDescriptors needBind = state.bindDescriptorSets(
+					frame,
+					VK_PIPELINE_BIND_POINT_GRAPHICS,
+					pipeline,
+					firstSet,
+					dynamicOffsetsCount,
+					dynamicOffsets,
+					additionalSetsCount,
+					additionalSets
+				);
 
-			if (sets) {
-				pipeline->fillDescriptorSets(frame, sets, additionalSets, setsCount);
-				cmdBindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->program->getPipeLineLayout(), firstSet, setsCount, sets, dynamicOffsetsCount, dynamicOffsets);
-			} else if (setsCount > 0) {
-				assert(false);
-				return;
+				if (needBind.setsCount > 0) {
+					cmdBindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->program->getPipeLineLayout(), needBind.firstSet, needBind.setsCount, needBind.sets.data(), needBind.dynamicOffsetsCount, needBind.dynamicOffsets.data());
+				}
+			} else {
+				uint8_t allProgramSetsCount;
+				const uint8_t gpuSetsCount = pipeline->program->getGPUSetsCount(&allProgramSetsCount);
+				const uint8_t setsCount = std::min(static_cast<uint8_t>(gpuSetsCount + additionalSetsCount), allProgramSetsCount) - firstSet;
+				VkDescriptorSet* sets = setsCount > 0 ? static_cast<VkDescriptorSet*>(alloca(sizeof(VkDescriptorSet) * setsCount)) : nullptr;
+
+				if (sets) {
+					pipeline->fillDescriptorSets(frame, sets, additionalSets, setsCount);
+					cmdBindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->program->getPipeLineLayout(), firstSet, setsCount, sets, dynamicOffsetsCount, dynamicOffsets);
+				} else if (setsCount > 0) {
+					assert(false);
+					return;
+				}
 			}
 
 			const uint16_t pushConstantsCount = pipeline->program->getPushConstantsCount();
