@@ -4,6 +4,8 @@
 #include "../RenderSurfaceInitialisez.h"
 #include "vkTexture.h"
 
+#include "vkDebugMarker.h"
+
 #include <unordered_map>
 #include <unordered_set>
 #include <cassert>
@@ -157,7 +159,12 @@ namespace vulkan {
 
 		_useSharedMemory =_vulkanDevice->gpuProperties.deviceType != VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
 
+		DEBUG_MARKERS_INIT(_vulkanDevice, extensions);
+
 		const VkResult res = _vulkanDevice->createDevice(features, extensions, _deviceCreatepNextChain);
+
+		DEBUG_MARKERS_SETUP(_vulkanDevice);
+
 		return res == VK_SUCCESS;
 	}
 
@@ -508,6 +515,7 @@ namespace vulkan {
 				}
 				descriptorSetLayout = _vulkanDevice->createDescriptorSetLayout(bindings, nullptr);
 				descriptorSetLayoutsHandled |= (1 << i);
+				DEBUG_MARKER_SET_OBJECT_NAME(descriptorSetLayout, VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT_EXT, "j4f descriptor set layout");
 			}
 			++i;
 		}
@@ -523,6 +531,8 @@ namespace vulkan {
 		} else {
 			_vulkanDevice->createPipelineLayout(&pipelineLayout, descriptorSetLayouts.size(), &descriptorSetLayouts[0], constantsCount, &pushConstants[0]);
 		}
+
+		DEBUG_MARKER_SET_OBJECT_NAME(pipelineLayout, VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_LAYOUT_EXT, "j4f pipeline layout");
 
 		CachedDescriptorLayouts* layout = new CachedDescriptorLayouts(std::move(bindingsCharacterVec), std::move(constantsCharacterVec), { pipelineLayout, descriptorSetLayouts }, descriptorSetLayoutsHandled);
 		_descriptorLayoutsCache.push_back(layout);
@@ -957,6 +967,8 @@ namespace vulkan {
 
 		// create rendering pipeline using the specified states
 		vkCreateGraphicsPipelines(_vulkanDevice->device, _pipelineCache, 1, &pipelineCreateInfo, nullptr, &pipeline->pipeline);
+
+		DEBUG_MARKER_SET_OBJECT_NAME(pipeline->pipeline, VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT, "j4f pipeline");
 
 		return pipeline;
 	}

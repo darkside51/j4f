@@ -18,6 +18,10 @@ if(PROFILER_ENABLE)
 	add_definitions(-DPROFILER_ENABLE)
 endif()
 
+if(GPU_DEBUG_MARKER_ENABLED)
+	add_definitions(-DGPU_DEBUG_MARKER_ENABLED)
+endif()
+
 add_definitions(-Dj4f_PLATFORM_${j4f_PLATFORM})
 
 if(j4f_PLATFORM STREQUAL "WINDOWS")

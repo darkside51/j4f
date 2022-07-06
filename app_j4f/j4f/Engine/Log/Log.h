@@ -27,11 +27,6 @@ namespace engine {
 }
 #endif
 
-#define STR(x) #x
-#define LOG_TAG(tag, fmt, ...) log_tag(STR(::tag::), fmt, __VA_ARGS__)
-#define LOG_FILE(fmt, ...) log_tag(__FILENAME__, fmt, __VA_ARGS__)
-#define LOG_LINE(fmt, ...) log_tag(fmt_string("%s::%d", __FILENAME__, __LINE__), fmt, __VA_ARGS__)
-
 namespace engine {
 
 	template <typename...Args>
@@ -46,3 +41,8 @@ namespace engine {
 		printLog(f1, std::forward<Args>(args)...);
 	}
 }
+
+#define STR(x) #x
+#define LOG_TAG(tag, fmt, ...) engine::log_tag(STR(::tag::), fmt, __VA_ARGS__)
+#define LOG_FILE(fmt, ...) engine::log_tag(__FILENAME__, fmt, __VA_ARGS__)
+#define LOG_LINE(fmt, ...) engine::log_tag(fmt_string("%s::%d", __FILENAME__, __LINE__), fmt, __VA_ARGS__)
