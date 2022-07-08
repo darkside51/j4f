@@ -49,6 +49,7 @@ namespace engine {
 	Mesh* mesh2 = nullptr;
 	Mesh* mesh3 = nullptr;
 	Mesh* mesh4 = nullptr;
+	Mesh* mesh5 = nullptr;
 
 	MeshAnimationTree* animTree = nullptr;
 	MeshAnimationTree* animTree2 = nullptr;
@@ -112,6 +113,7 @@ namespace engine {
 			delete mesh2;
 			//delete mesh3;
 			delete mesh4;
+			delete mesh5;
 			delete animTree;
 			delete animTree2;
 
@@ -282,12 +284,20 @@ namespace engine {
 			auto texture_v3 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params2);
 
 			TextureLoadingParams tex_params3;
-			tex_params2.file = "resources/assets/models/tree1/textures/tree2_baseColor.png";
-			tex_params2.flags->async = 1;
-			tex_params2.flags->use_cache = 1;
-			auto texture_t = assm->loadAsset<vulkan::VulkanTexture*>(tex_params2);
-			tex_params2.file = "resources/assets/models/tree1/textures/branches_baseColor.png";
-			auto texture_t2 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params2);
+			tex_params3.flags->async = 1;
+			tex_params3.flags->use_cache = 1;
+
+			tex_params3.file = "resources/assets/models/tree1/textures/tree2_baseColor.png";
+			auto texture_t = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
+
+			tex_params3.file = "resources/assets/models/tree1/textures/branches_baseColor.png";
+			auto texture_t2 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
+
+			tex_params3.file = "resources/assets/models/pineTree/textures/Leavs_baseColor.png";
+			auto texture_t3 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
+
+			tex_params3.file = "resources/assets/models/pineTree/textures/Trank_baseColor.png";
+			auto texture_t4 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
 			meshesGraphicsBuffer = new MeshGraphicsDataBuffer(10 * 1024 * 1024, 10 * 1024 * 1024); // or create with default constructor for unique buffer for mesh
 
@@ -313,6 +323,14 @@ namespace engine {
 			mesh_params3.latency = 3;
 			mesh_params3.flags->async = 1;
 			mesh_params3.graphicsBuffer = meshesGraphicsBuffer;
+
+			MeshLoadingParams mesh_params4;
+			//mesh_params3.file = "resources/assets/models/tree1/scene.gltf";
+			mesh_params4.file = "resources/assets/models/pineTree/scene.gltf";
+			mesh_params4.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT, AttributesSemantic::TEXCOORD_0);
+			mesh_params4.latency = 3;
+			mesh_params4.flags->async = 1;
+			mesh_params4.graphicsBuffer = meshesGraphicsBuffer;
 
 			mesh = assm->loadAsset<Mesh*>(mesh_params, [program_gltf, texture_zombi, this](Mesh* asset, const AssetLoadingResult result) {
 				asset->setProgram(program_gltf);
@@ -380,6 +398,18 @@ namespace engine {
 				asset->setProgram(program_gltf);
 				asset->setParamByName("u_texture", texture_t, false);
 				asset->getRenderDataAt(1)->setParamByName("u_texture", texture_t2, false);
+				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
+
+				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
+				asset->onPipelineAttributesChanged();
+
+				sceneRenderList.addDescriptor(&asset->getRenderDescriptor());
+				});
+
+			mesh5 = assm->loadAsset<Mesh*>(mesh_params4, [program_gltf, texture_t3, texture_t4, this](Mesh* asset, const AssetLoadingResult result) {
+				asset->setProgram(program_gltf);
+				asset->setParamByName("u_texture", texture_t3, false);
+				asset->getRenderDataAt(1)->setParamByName("u_texture", texture_t4, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 
 				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
@@ -611,10 +641,16 @@ namespace engine {
 			rotateMatrix_xyz(wtrTree, glm::vec3(1.57f, 0.0f, 0.0f));
 			translateMatrixTo(wtrTree, glm::vec3(-120.0f, -130.0f, 0.0f));
 
+			glm::mat4 wtrTree2(1.0f);
+			scaleMatrix(wtrTree2, glm::vec3(0.5f));
+			rotateMatrix_xyz(wtrTree2, glm::vec3(1.57f, 0.0f, 0.0f));
+			translateMatrixTo(wtrTree2, glm::vec3(-20.0f, -190.0f, 0.0f));
+
 			mesh->updateRenderData(wtr);
 			mesh2->updateRenderData(wtr2);
 			mesh3->updateRenderData(wtr3);
 			mesh4->updateRenderData(wtrTree);
+			mesh5->updateRenderData(wtrTree2);
 
 			const uint64_t wh = renderer->getWH();
 			const uint32_t width = static_cast<uint32_t>(wh >> 0);
@@ -628,6 +664,7 @@ namespace engine {
 			mesh2->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
 			mesh3->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
 			mesh4->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
+			mesh5->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
 
 			//if (animTree2) {
 				// у меня лайоуты совпадают у юниформов, для теней => не нужно вызывать переназначение, достаточно одного раза
@@ -657,6 +694,7 @@ namespace engine {
 			mesh2->setProgram(program_mesh_default);
 			mesh3->setProgram(program_mesh_default);
 			mesh4->setProgram(program_mesh_default);
+			mesh5->setProgram(program_mesh_default);
 			/////// shadow pass
 
 			commandBuffer.cmdBeginRenderPass(renderer->getMainRenderPass(), { {0, 0}, {width, height} }, &clearValues[0], 2, renderer->getFrameBuffer().m_framebuffer, VK_SUBPASS_CONTENTS_INLINE);
@@ -687,6 +725,7 @@ namespace engine {
 				//mesh2->drawBoundingBox(cameraMatrix, wtr2, commandBuffer, currentFrame);
 				//mesh3->drawBoundingBox(cameraMatrix, wtr3, commandBuffer, currentFrame);
 				//mesh4->drawBoundingBox(cameraMatrix, wtrTree, commandBuffer, currentFrame);
+				//mesh5->drawBoundingBox(cameraMatrix, wtrTree2, commandBuffer, currentFrame);
 			}
 
 			{ // ortho matrix draw
