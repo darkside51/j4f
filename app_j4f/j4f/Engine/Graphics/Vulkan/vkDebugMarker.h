@@ -8,13 +8,13 @@
 
 namespace vulkan::debugMarker {
 
-	PFN_vkDebugMarkerSetObjectTagEXT vkDebugMarkerSetObjectTag		= VK_NULL_HANDLE;
-	PFN_vkDebugMarkerSetObjectNameEXT vkDebugMarkerSetObjectName	= VK_NULL_HANDLE;
-	PFN_vkCmdDebugMarkerBeginEXT vkCmdDebugMarkerBegin				= VK_NULL_HANDLE;
-	PFN_vkCmdDebugMarkerEndEXT vkCmdDebugMarkerEnd					= VK_NULL_HANDLE;
-	PFN_vkCmdDebugMarkerInsertEXT vkCmdDebugMarkerInsert			= VK_NULL_HANDLE;
+	inline PFN_vkDebugMarkerSetObjectTagEXT vkDebugMarkerSetObjectTag		= VK_NULL_HANDLE;
+	inline PFN_vkDebugMarkerSetObjectNameEXT vkDebugMarkerSetObjectName		= VK_NULL_HANDLE;
+	inline PFN_vkCmdDebugMarkerBeginEXT vkCmdDebugMarkerBegin				= VK_NULL_HANDLE;
+	inline PFN_vkCmdDebugMarkerEndEXT vkCmdDebugMarkerEnd					= VK_NULL_HANDLE;
+	inline PFN_vkCmdDebugMarkerInsertEXT vkCmdDebugMarkerInsert				= VK_NULL_HANDLE;
 
-	VkDevice vkDevice = VK_NULL_HANDLE;
+	inline VkDevice vkDevice = VK_NULL_HANDLE;
 
 	inline void init(vulkan::VulkanDevice* device, std::vector<const char*>& extensions) {
 		if (device->extensionSupported(VK_EXT_DEBUG_MARKER_EXTENSION_NAME)) {
@@ -103,19 +103,20 @@ namespace vulkan::debugMarker {
 }
 
 #ifdef GPU_DEBUG_MARKER_ENABLED
-#define DEBUG_MARKERS_INIT(device, extensions) vulkan::debugMarker::init(device, extensions)
-#define DEBUG_MARKERS_SETUP(device) vulkan::debugMarker::setup(device)
-#define	DEBUG_MARKER_SET_OBJECT_NAME(object, objectType, name) vulkan::debugMarker::setObjectName((uint64_t)object, objectType, name)
-#define	DEBUG_MARKER_SET_OBJECT_TAG(object, objectType, name, tagSize, tag) vulkan::debugMarker::setObjectTag((uint64_t)object, objectType, name, tagSize, tag)
-#define	DEBUG_MARKER_BEGIN_REGION(cmdbuffer, markerName, color) vulkan::debugMarker::beginRegion(cmdbuffer, markerName, color)
-#define	DEBUG_MARKER_INSERT(cmdbuffer, markerName, color) vulkan::debugMarker::insert(cmdbuffer, markerName, color)
-#define	DEBUG_MARKER_END_REGION(cmdbuffer) vulkan::debugMarker::endRegion(cmdbuffer)
+#define GPU_DEBUG_MARKERS
+#define GPU_DEBUG_MARKERS_INIT(device, extensions) vulkan::debugMarker::init(device, extensions)
+#define GPU_DEBUG_MARKERS_SETUP(device) vulkan::debugMarker::setup(device)
+#define	GPU_DEBUG_MARKER_SET_OBJECT_NAME(object, objectType, name) vulkan::debugMarker::setObjectName((uint64_t)object, objectType, name)
+#define	GPU_DEBUG_MARKER_SET_OBJECT_TAG(object, objectType, name, tagSize, tag) vulkan::debugMarker::setObjectTag((uint64_t)object, objectType, name, tagSize, tag)
+#define	GPU_DEBUG_MARKER_BEGIN_REGION(cmdbuffer, markerName, r, g, b, a) vulkan::debugMarker::beginRegion(cmdbuffer, markerName, {r, g, b, a})
+#define	GPU_DEBUG_MARKER_INSERT(cmdbuffer, markerName, r, g, b, a) vulkan::debugMarker::insert(cmdbuffer, markerName, {r, g, b, a})
+#define	GPU_DEBUG_MARKER_END_REGION(cmdbuffer) vulkan::debugMarker::endRegion(cmdbuffer)
 #else
-#define DEBUG_MARKERS_INIT(device, extensions)
-#define DEBUG_MARKERS_SETUP(device) 
-#define	DEBUG_MARKER_SET_OBJECT_NAME(object, objectType, name) 
-#define	DEBUG_MARKER_SET_OBJECT_TAG(object, objectType, name, tagSize, tag) 
-#define	DEBUG_MARKER_BEGIN_REGION(cmdbuffer, markerName, color) 
-#define	DEBUG_MARKER_INSERT(cmdbuffer, markerName, color) 
-#define	DEBUG_MARKER_END_REGION(cmdbuffer) 
+#define GPU_DEBUG_MARKERS_INIT(device, extensions)
+#define GPU_DEBUG_MARKERS_SETUP(device) 
+#define	GPU_DEBUG_MARKER_SET_OBJECT_NAME(object, objectType, name) 
+#define	GPU_DEBUG_MARKER_SET_OBJECT_TAG(object, objectType, name, tagSize, tag) 
+#define	GPU_DEBUG_MARKER_BEGIN_REGION(cmdbuffer, markerName, r, g, b, a) 
+#define	GPU_DEBUG_MARKER_INSERT(cmdbuffer, markerName, r, g, b, a) 
+#define	GPU_DEBUG_MARKER_END_REGION(cmdbuffer) 
 #endif // DEBUG

@@ -2,10 +2,12 @@
 #include "vkDevice.h"
 #include "vkHelper.h"
 #include "VkRenderer.h"
+#include "vkDebugMarker.h"
 
 #include "../../Core/Cache.h"
 #include "../../Core/Engine.h"
 #include "../../File/FileManager.h"
+#include "../../Utils/StringHelper.h"
 
 // reflect
 #include "spirv/spirv_reflect.h"
@@ -424,6 +426,18 @@ namespace vulkan {
 		////// generate programm data
 		m_pipelineDescriptorLayout = &m_renderer->getDescriptorLayout(descriptorSetLayoutBindings, m_pushConstantsRanges);
 
+#ifdef  GPU_DEBUG_MARKERS
+
+		GPU_DEBUG_MARKER_SET_OBJECT_NAME(m_pipelineDescriptorLayout->pipelineLayout, VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_LAYOUT_EXT, engine::fmt_string("j4f pipeline layout (program %d)", m_id));
+
+		uint8_t set = 0;
+		for (VkDescriptorSetLayout& descriptorSetLayout : m_pipelineDescriptorLayout->descriptorSetLayouts) {
+			GPU_DEBUG_MARKER_SET_OBJECT_NAME(descriptorSetLayout, VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT_EXT, engine::fmt_string("j4f descriptor set layout (set %d, program %d)", set, m_id));
+			++set;
+		}
+#endif //  GPU_DEBUG_MARKERS
+
+		
 		// allocate descriptor sets
 		if (!m_pipelineDescriptorLayout->descriptorSetLayouts.empty()) {
 

@@ -747,6 +747,7 @@ namespace engine {
 				renderDataFloor.setParamByName("u_texture", texture_floor, false);
 				renderDataFloor.setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 
+				GPU_DEBUG_MARKER_INSERT(commandBuffer.m_commandBuffer, "project render shadow plain", 0.5f, 0.5f, 0.5f, 1.0f);
 				autoBatcher->addToDraw(&renderDataFloor, sizeof(TexturedVertex), &floorVtx[0], vertexBufferSize, &idxs[0], indexBufferSize, commandBuffer, currentFrame);
 
 				vulkan::RenderData renderData(const_cast<vulkan::VulkanPipeline*>(pipeline));
@@ -758,12 +759,14 @@ namespace engine {
 				renderData.setParamForLayout(mvp_layout, &transform, false);
 				renderData.setParamByName("u_texture", texture_1, false);
 
+				GPU_DEBUG_MARKER_INSERT(commandBuffer.m_commandBuffer, "project render vulkan sprite", 0.5f, 0.5f, 0.5f, 1.0f);
 				autoBatcher->addToDraw(renderData.pipeline, sizeof(TexturedVertex), &vtx[0], vertexBufferSize, &idxs[0], indexBufferSize, renderData.params, commandBuffer, currentFrame);
 
 				for (TexturedVertex& tv : vtx) {
 					tv.position[0] += 350.0f;
 				}
 
+				GPU_DEBUG_MARKER_INSERT(commandBuffer.m_commandBuffer, "project render vulkan sprite", 0.5f, 0.5f, 0.5f, 1.0f);
 				autoBatcher->addToDraw(renderData.pipeline, sizeof(TexturedVertex), &vtx[0], vertexBufferSize, &idxs[0], indexBufferSize, renderData.params, commandBuffer, currentFrame);
 
 
