@@ -47,6 +47,8 @@ namespace vulkan {
 		const VulkanBuffer* vertexes = nullptr;		// вершины
 		const VulkanBuffer* indexes = nullptr;		// индексы
 
+		std::vector<VkDescriptorSet> additionalDescriptorsSets;
+
 		RenderPart* renderParts;
 		uint8_t renderPartsCount = 0;
 		bool visible = true;
@@ -214,6 +216,7 @@ namespace vulkan {
 
 			VulkanGpuProgram* program = const_cast<VulkanGpuProgram*>(pipeline->program);
 			uint32_t increasedBuffers = 0;
+			uint8_t additionalSetNum = 0;
 
 			for (auto&& p : layouts) {
 				const GPUParamLayoutInfo* l = p.first;
@@ -301,18 +304,25 @@ namespace vulkan {
 						break;
 					case GPUParamLayoutType::COMBINED_IMAGE_SAMPLER: // image sampler
 					{
+						if (additionalDescriptorsSets.size() < additionalSetNum + 1) {
+							additionalDescriptorsSets.resize(additionalSetNum + 1);
+						}
+
 						if (value) { // bind single texture set only if it change previous
 							const VulkanTexture* texture = static_cast<const VulkanTexture*>(value);
 							const VkDescriptorSet set = texture->getSingleDescriptor();
 							if (set != VK_NULL_HANDLE) {
-								commandBuffer.cmdBindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, program->getPipeLineLayout(), l->set, set);
+								//commandBuffer.cmdBindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, program->getPipeLineLayout(), l->set, set);
+								additionalDescriptorsSets[additionalSetNum++] = set;
 							} else {
 								const VkDescriptorSet emptySet = engine::Engine::getInstance().getModule<engine::Graphics>()->getRenderer()->getEmptyTexture()->getSingleDescriptor();
-								commandBuffer.cmdBindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, program->getPipeLineLayout(), l->set, emptySet);
+								//commandBuffer.cmdBindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, program->getPipeLineLayout(), l->set, emptySet);
+								additionalDescriptorsSets[additionalSetNum++] = emptySet;
 							}
 						} else {
 							const VkDescriptorSet emptySet = engine::Engine::getInstance().getModule<engine::Graphics>()->getRenderer()->getEmptyTexture()->getSingleDescriptor();
-							commandBuffer.cmdBindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, program->getPipeLineLayout(), l->set, emptySet);
+							//commandBuffer.cmdBindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, program->getPipeLineLayout(), l->set, emptySet);
+							additionalDescriptorsSets[additionalSetNum++] = emptySet;
 						}
 					}
 						break;
@@ -329,7 +339,7 @@ namespace vulkan {
 					commandBuffer.renderIndexed(
 						pipeline, frame, constants.data(),
 						0, dynamicOffsets.size(), dynamicOffsets.data(),
-						adittionalSetsCount, adittionalSets,
+						additionalDescriptorsSets.size(), additionalDescriptorsSets.data(),
 						*vertexes, *indexes, part.firstIndex, part.indexCount, part.firstVertex, part.instanceCount, part.firstInstance, part.vbOffset, part.ibOffset
 					);
 				}

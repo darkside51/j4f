@@ -317,9 +317,12 @@ namespace vulkan {
 		m_paramLayouts.clear();
 		m_paramLayoutsVec.clear();
 
+		uint8_t i = 0;
 		for (VulkanDescriptorSet* descriptorSet : m_descriptorSets) {
-			m_renderer->freeDescriptorSets(descriptorSet);
-			delete descriptorSet;
+			if ((m_externalDescriptors & (1 << i++)) == 0) {
+				m_renderer->freeDescriptorSets(descriptorSet);
+				delete descriptorSet;
+			}
 		}
 		m_descriptorSets.clear();
 
@@ -443,6 +446,7 @@ namespace vulkan {
 
 			uint8_t buffersCount = 0;
 			uint8_t staticBuffersCount = 0;
+			uint8_t descriptorsCount = 0;
 			m_gpuBuffersSetsTypes = 0;
 			for (auto& descriptorSetLayoutBinding : descriptorSetLayoutBindings) {
 				for (VkDescriptorSetLayoutBinding* binding : descriptorSetLayoutBinding) {
@@ -451,11 +455,17 @@ namespace vulkan {
 						case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
 							++buffersCount;
 							++staticBuffersCount;
+							++descriptorsCount;
 							break;
 						case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
 						case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
-							m_gpuBuffersSetsTypes |= (1 << buffersCount);
+							m_gpuBuffersSetsTypes |= (1 << descriptorsCount);
 							++buffersCount;
+							++descriptorsCount;
+							break;
+						case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
+							m_externalDescriptors |= (1 << descriptorsCount);
+							++descriptorsCount;
 							break;
 						default:
 							break;
@@ -463,9 +473,13 @@ namespace vulkan {
 				}
 			}
 
-			for (uint8_t i = 0; i < buffersCount; ++i) {
-				VulkanDescriptorSet* newDescriptorSet = m_renderer->allocateDescriptorSetFromGlobalPool(m_pipelineDescriptorLayout->descriptorSetLayouts[i], (m_gpuBuffersSetsTypes & (1 << i)) ? 0 : 1);
-				m_descriptorSets.push_back(newDescriptorSet);
+			for (uint8_t i = 0; i < descriptorsCount; ++i) {
+				if (m_externalDescriptors & (1 << i)) {
+					m_descriptorSets.push_back(nullptr);
+				} else {
+					VulkanDescriptorSet* newDescriptorSet = m_renderer->allocateDescriptorSetFromGlobalPool(m_pipelineDescriptorLayout->descriptorSetLayouts[i], (m_gpuBuffersSetsTypes & (1 << i)) ? 0 : 1);
+					m_descriptorSets.push_back(newDescriptorSet);
+				}
 			}
 
 			m_staticUniformBuffers.resize(staticBuffersCount);

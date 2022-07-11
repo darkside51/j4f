@@ -21,14 +21,14 @@ layout (set = 0, binding = 0) uniform static_lightUBO {
 	vec4 lightColor;
 } u_constants;
 
-layout (set = 1, binding = 0) uniform shadowUBO {
+layout (set = 2, binding = 0) uniform shadowUBO {
 	vec4 cascade_splits;
 	mat4 cascade_matrix[SHADOW_MAP_CASCADE_COUNT];
 	mat4 view;
 } u_shadow;
 
-layout (set = 3, binding = 0) uniform sampler2DArray u_shadow_map;
-layout (set = 4, binding = 0) uniform sampler2D u_texture;
+layout (set = 1, binding = 0) uniform sampler2DArray u_shadow_map;
+layout (set = 3, binding = 0) uniform sampler2D u_texture;
 
 float textureProj(vec4 shCoord, vec2 offset, uint cascade) {
 	float dist = texture(u_shadow_map, vec3(shCoord.xy + offset, cascade)).r;

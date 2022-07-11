@@ -425,7 +425,7 @@ namespace engine {
 			texture_1 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params_logo);
 
 			TextureLoadingParams tex_params_floor;
-			tex_params_floor.file = "resources/assets/textures/ground4.jpg";
+			tex_params_floor.file = "resources/assets/textures/ground3.jpg";
 			tex_params_floor.flags->async = 1;
 			tex_params_floor.flags->use_cache = 1;
 			texture_floor = assm->loadAsset<vulkan::VulkanTexture*>(tex_params_floor, [](vulkan::VulkanTexture* asset, const AssetLoadingResult result) {
@@ -807,7 +807,6 @@ namespace engine {
 
 				GPU_DEBUG_MARKER_INSERT(commandBuffer.m_commandBuffer, "project render vulkan sprite", 0.5f, 0.5f, 0.5f, 1.0f);
 				autoBatcher->addToDraw(renderData.pipeline, sizeof(TexturedVertex), &vtx[0], vertexBufferSize, &idxs[0], indexBufferSize, renderData.params, commandBuffer, currentFrame);
-
 
 				/*TexturedVertex vtx2[4] = {
 					{ {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f} },

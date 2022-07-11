@@ -225,6 +225,7 @@ namespace vulkan {
 		uint8_t m_gpuBuffersSets = 0;
 		uint8_t m_gpuBuffersSetsCount = 0;
 		uint8_t m_gpuBuffersSetsTypes = 0;
+		uint8_t m_externalDescriptors = 0;
 		VulkanRenderer* m_renderer;
 		std::vector<VkPipelineShaderStageCreateInfo> m_shaderStages;
 		PipelineDescriptorLayout* m_pipelineDescriptorLayout = nullptr;

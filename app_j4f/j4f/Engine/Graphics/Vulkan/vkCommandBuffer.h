@@ -248,7 +248,7 @@ namespace vulkan {
 			return false;
 		}
 
-		NeedBindDescriptors bindDescriptorSets(
+		std::array<NeedBindDescriptors, 8> bindDescriptorSets(
 			const uint32_t frame,
 			const VkPipelineBindPoint pipelineBindPoint,
 			const VulkanPipeline* pipeline,
@@ -258,8 +258,8 @@ namespace vulkan {
 			const uint8_t additionalSetsCount,					// количество дополнительных сетов, которые хочется привязать
 			const VkDescriptorSet* additionalSets				// дополнительные сеты, которые хочется привязать
 		) {
-			NeedBindDescriptors dirtyBind;
-			dirtyBind.firstSet = firstSet;
+			std::array<NeedBindDescriptors, 8> dirtyBind;
+			dirtyBind[0].firstSet = firstSet;
 
 			uint8_t bindSetNum;
 			switch (pipelineBindPoint) {
@@ -300,16 +300,16 @@ namespace vulkan {
 			}
 
 			uint8_t allProgramSetsCount;
-			//const uint8_t gpuSets = pipeline->program->getGPUSetsNumbers();
 			const uint8_t gpuSetsCount = pipeline->program->getGPUSetsCount(&allProgramSetsCount);
 			const uint8_t buffersSetsTypes = pipeline->program->getGPUBuffersSetsTypes();
 			const uint8_t setsCount = std::min(static_cast<uint8_t>(gpuSetsCount + additionalSetsCount), allProgramSetsCount) - firstSet;
 
-			/* todo! : проверить, если это так и есть - раскоментировать findDirtySet
-			// если нашли один изменившийся динамический - остальные тоже привязываем(буферы располагать по частоте обновления). это нужно, чтоб не вызывать команду нескольок раз из - за смещений dynamicOffsets
-			bool findDirtySet = false; 
-			*/
 			uint8_t dynamicBufferNum = 0;
+			uint8_t j = 0;
+
+			uint8_t currentBindDescriptorsCount = 0;
+			uint8_t currentBind = 0;
+
 			for (uint8_t i = 0; i < setsCount; ++i) {
 				const uint8_t set = firstSet + i;
 				
@@ -317,30 +317,35 @@ namespace vulkan {
 
 				const bool isBufferDynamic = (buffersSetsTypes & (1 << set));
 				const VulkanDescriptorSet* dset = pipeline->program->getDescriptorSet(i);
-				const VkDescriptorSet& currentSet = dset->operator[](frame);
+				const VkDescriptorSet& currentSet = (dset) ? dset->operator[](frame) : additionalSets[j++];
 
 				const uint32_t bufferOffset = isBufferDynamic ? dynamicOffsets[dynamicBufferNum++] : 0;
 
-				if (bindedDescriptorSet != currentSet /*|| findDirtySet*/) {
+				if (bindedDescriptorSet != currentSet) {
 					bindedDescriptorSet = currentSet;
 					descriptors->pDynamicOffsets[set] = bufferOffset;
 
 					if (isBufferDynamic) {
-						dirtyBind.dynamicOffsets[dirtyBind.dynamicOffsetsCount++] = bufferOffset;
-						//findDirtySet = true;
+						dirtyBind[currentBind].dynamicOffsets[dirtyBind[currentBind].dynamicOffsetsCount++] = bufferOffset;
 					}
-					dirtyBind.sets[dirtyBind.setsCount++] = currentSet;
+					dirtyBind[currentBind].sets[dirtyBind[currentBind].setsCount++] = currentSet;
+					++currentBindDescriptorsCount;
 				} else if (descriptors->pDynamicOffsets[set] != bufferOffset) {
 					descriptors->pDynamicOffsets[set] = bufferOffset;
 
 					if (isBufferDynamic) {
-						dirtyBind.dynamicOffsets[dirtyBind.dynamicOffsetsCount++] = bufferOffset;
-						//findDirtySet = true;
+						dirtyBind[currentBind].dynamicOffsets[dirtyBind[currentBind].dynamicOffsetsCount++] = bufferOffset;
 					}
 
-					dirtyBind.sets[dirtyBind.setsCount++] = currentSet;
+					dirtyBind[currentBind].sets[dirtyBind[currentBind].setsCount++] = currentSet;
+					++currentBindDescriptorsCount;
 				} else {
-					++dirtyBind.firstSet;
+					if (currentBindDescriptorsCount > 0) {
+						currentBindDescriptorsCount = 0;
+						dirtyBind[++currentBind].firstSet = set + 1;
+					} else {
+						++dirtyBind[currentBind].firstSet;
+					}
 				}
 			}
 
@@ -869,7 +874,7 @@ namespace vulkan {
 			const VkDescriptorSet* additionalSets				// дополнительные сеты, которые хочется привязать
 		) {
 			if constexpr (stated) { // use this?
-				const state_type::NeedBindDescriptors needBind = state.bindDescriptorSets(
+				const std::array<state_type::NeedBindDescriptors, 8> needBind = state.bindDescriptorSets(
 					frame,
 					VK_PIPELINE_BIND_POINT_GRAPHICS,
 					pipeline,
@@ -880,8 +885,19 @@ namespace vulkan {
 					additionalSets
 				);
 
-				if (needBind.setsCount > 0) {
-					cmdBindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->program->getPipeLineLayout(), needBind.firstSet, needBind.setsCount, needBind.sets.data(), needBind.dynamicOffsetsCount, needBind.dynamicOffsets.data());
+				uint8_t i = 0;
+				while (needBind[i].setsCount) {
+					vkCmdBindDescriptorSets(
+						m_commandBuffer,
+						VK_PIPELINE_BIND_POINT_GRAPHICS,
+						pipeline->program->getPipeLineLayout(),
+						needBind[i].firstSet,
+						needBind[i].setsCount,
+						needBind[i].sets.data(),
+						needBind[i].dynamicOffsetsCount,
+						needBind[i].dynamicOffsets.data()
+					);
+					++i;
 				}
 			} else {
 				uint8_t allProgramSetsCount;

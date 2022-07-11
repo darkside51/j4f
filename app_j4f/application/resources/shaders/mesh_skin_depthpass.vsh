@@ -14,13 +14,13 @@ layout (set = 0, binding = 0) uniform static_lightUBO {
 	vec4 lightColor;
 } u_constants;
 
-layout (set = 1, binding = 0) uniform shadowUBO {
+layout (set = 2, binding = 0) uniform shadowUBO {
 	vec4 cascade_splits;
 	mat4 cascade_matrix[SHADOW_MAP_CASCADE_COUNT];
 	mat4 view;
 } u_shadow;
 
-layout (set = 2, binding = 0) uniform UBO {
+layout (set = 4, binding = 0) uniform UBO {
 	int use_skin;
 	mat4 skin_matrixes[192];
 } u_ubo;

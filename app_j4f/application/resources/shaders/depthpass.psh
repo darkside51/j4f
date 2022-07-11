@@ -2,8 +2,8 @@
 
 layout (location = 0) in vec2 in_uv;
 
-layout (set = 3, binding = 0) uniform sampler2DArray u_shadow_map;
-layout (set = 4, binding = 0) uniform sampler2D u_texture;
+layout (set = 1, binding = 0) uniform sampler2DArray u_shadow_map;
+layout (set = 3, binding = 0) uniform sampler2D u_texture;
 
 void main() {
 	if (texture(u_texture, in_uv, 0.0).a < 0.5) {
