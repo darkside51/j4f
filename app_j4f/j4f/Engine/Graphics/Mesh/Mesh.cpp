@@ -464,7 +464,7 @@ namespace engine {
 			r_data->setParamForLayout(_model_matrix, &model, true, 1);
 
 			r_data->prepareRender(commandBuffer);
-			r_data->render(commandBuffer, currentFrame, _renderDescriptor.adittionalSetsCount, _renderDescriptor.adittionalSets);
+			r_data->render(commandBuffer, currentFrame);
 		}
 	}
 

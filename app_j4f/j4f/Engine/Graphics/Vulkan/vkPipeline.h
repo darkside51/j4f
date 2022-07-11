@@ -36,15 +36,15 @@ namespace vulkan {
 		VulkanPipeline(const VulkanPipeline& p) = delete;
 		VulkanPipeline& operator= (const VulkanPipeline& p) = delete;
 
-		void fillDescriptorSets(const uint32_t frameNum, VkDescriptorSet* descriptorSets, const VkDescriptorSet* additionalSets, const uint8_t setsCount) const {
+		void fillDescriptorSets(const uint32_t frameNum, VkDescriptorSet* descriptorSets, const VkDescriptorSet* externalSets, const uint8_t setsCount) const {
 			const uint8_t gpuSets = program->getGPUSetsNumbers();
 			uint8_t j = 0;
 			for (uint8_t i = 0; i < setsCount; ++i) {
 				if (gpuSets & (1 << i)) {
 					const VulkanDescriptorSet* set = program->getDescriptorSet(i);
 					descriptorSets[i] = set->operator[](frameNum);
-				} else if (additionalSets) {
-					descriptorSets[i] = additionalSets[j++];
+				} else if (externalSets) {
+					descriptorSets[i] = externalSets[j++];
 				}
 			}
 		}

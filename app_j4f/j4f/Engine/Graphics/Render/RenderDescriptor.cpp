@@ -26,7 +26,7 @@ namespace engine {
 					}
 
 					r_data->prepareRender(commandBuffer);
-					r_data->render(commandBuffer, currentFrame, adittionalSetsCount, adittionalSets);
+					r_data->render(commandBuffer, currentFrame);
 				}
 			}
 				break;

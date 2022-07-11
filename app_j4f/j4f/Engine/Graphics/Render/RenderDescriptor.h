@@ -21,9 +21,7 @@ namespace engine {
 
 	struct RenderDescriptor {
 		uint32_t renderDataCount = 0;
-		uint32_t adittionalSetsCount = 0;
 		vulkan::RenderData** renderData = nullptr;
-		VkDescriptorSet* adittionalSets = nullptr;
 		BatchingParams* batchingParams = nullptr;
 		RenderDescritorMode mode = RenderDescritorMode::RDM_SINGLE_DRAW;
 		uint16_t order = 0;

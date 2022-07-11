@@ -255,8 +255,8 @@ namespace vulkan {
 			const uint32_t firstSet,							// номер первого сет привязки
 			const uint8_t dynamicOffsetsCount,					// количество оффсетов для динамических буфферов
 			const uint32_t* dynamicOffsets,						// оффсеты для динамических буфферов
-			const uint8_t additionalSetsCount,					// количество дополнительных сетов, которые хочется привязать
-			const VkDescriptorSet* additionalSets				// дополнительные сеты, которые хочется привязать
+			const uint8_t externalSetsCount,					// количество дополнительных сетов, которые хочется привязать
+			const VkDescriptorSet* externalSets					// дополнительные сеты, которые хочется привязать
 		) {
 			std::array<NeedBindDescriptors, 8> dirtyBind;
 			dirtyBind[0].firstSet = firstSet;
@@ -302,11 +302,9 @@ namespace vulkan {
 			uint8_t allProgramSetsCount;
 			const uint8_t gpuSetsCount = pipeline->program->getGPUSetsCount(&allProgramSetsCount);
 			const uint8_t buffersSetsTypes = pipeline->program->getGPUBuffersSetsTypes();
-			const uint8_t setsCount = std::min(static_cast<uint8_t>(gpuSetsCount + additionalSetsCount), allProgramSetsCount) - firstSet;
+			const uint8_t setsCount = std::min(static_cast<uint8_t>(gpuSetsCount + externalSetsCount), allProgramSetsCount) - firstSet;
 
 			uint8_t dynamicBufferNum = 0;
-			uint8_t j = 0;
-
 			uint8_t currentBindDescriptorsCount = 0;
 			uint8_t currentBind = 0;
 
@@ -317,7 +315,7 @@ namespace vulkan {
 
 				const bool isBufferDynamic = (buffersSetsTypes & (1 << set));
 				const VulkanDescriptorSet* dset = pipeline->program->getDescriptorSet(i);
-				const VkDescriptorSet& currentSet = (dset) ? dset->operator[](frame) : additionalSets[j++];
+				const VkDescriptorSet& currentSet = ((dset != nullptr) ? dset->operator[](frame) : *externalSets++);
 
 				const uint32_t bufferOffset = isBufferDynamic ? dynamicOffsets[dynamicBufferNum++] : 0;
 
@@ -870,8 +868,8 @@ namespace vulkan {
 			const uint32_t firstSet,							// номер первого сет привязки
 			const uint8_t dynamicOffsetsCount,					// количество оффсетов для динамических буфферов
 			const uint32_t* dynamicOffsets,						// оффсеты для динамических буфферов
-			const uint8_t additionalSetsCount,					// количество дополнительных сетов, которые хочется привязать
-			const VkDescriptorSet* additionalSets				// дополнительные сеты, которые хочется привязать
+			const uint8_t externalSetsCount,					// количество дополнительных сетов, которые хочется привязать
+			const VkDescriptorSet* externalSets				// дополнительные сеты, которые хочется привязать
 		) {
 			if constexpr (stated) { // use this?
 				const std::array<state_type::NeedBindDescriptors, 8> needBind = state.bindDescriptorSets(
@@ -881,8 +879,8 @@ namespace vulkan {
 					firstSet,
 					dynamicOffsetsCount,
 					dynamicOffsets,
-					additionalSetsCount,
-					additionalSets
+					externalSetsCount,
+					externalSets
 				);
 
 				uint8_t i = 0;
@@ -902,11 +900,11 @@ namespace vulkan {
 			} else {
 				uint8_t allProgramSetsCount;
 				const uint8_t gpuSetsCount = pipeline->program->getGPUSetsCount(&allProgramSetsCount);
-				const uint8_t setsCount = std::min(static_cast<uint8_t>(gpuSetsCount + additionalSetsCount), allProgramSetsCount) - firstSet;
+				const uint8_t setsCount = std::min(static_cast<uint8_t>(gpuSetsCount + externalSetsCount), allProgramSetsCount) - firstSet;
 				VkDescriptorSet* sets = setsCount > 0 ? static_cast<VkDescriptorSet*>(alloca(sizeof(VkDescriptorSet) * setsCount)) : nullptr;
 
 				if (sets) {
-					pipeline->fillDescriptorSets(frame, sets, additionalSets, setsCount);
+					pipeline->fillDescriptorSets(frame, sets, externalSets, setsCount);
 					cmdBindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->program->getPipeLineLayout(), firstSet, setsCount, sets, dynamicOffsetsCount, dynamicOffsets);
 				} else if (setsCount > 0) {
 					assert(false);
@@ -943,8 +941,8 @@ namespace vulkan {
 			const uint32_t firstSet,							// номер первого сет привязки
 			const uint8_t dynamicOffsetsCount,					// количество оффсетов для динамических буфферов
 			const uint32_t* dynamicOffsets,						// оффсеты для динамических буфферов
-			const uint8_t additionalSetsCount,					// количество дополнительных сетов, которые хочется привязать
-			const VkDescriptorSet* additionalSets,				// дополнительные сеты, которые хочется привязать
+			const uint8_t externalSetsCount,					// количество дополнительных сетов, которые хочется привязать
+			const VkDescriptorSet* externalSets,				// дополнительные сеты, которые хочется привязать
 			const VulkanBuffer& vertexes,						// вершины
 			const uint32_t firstVertex,							// номер первой вершины
 			const uint32_t vertexCount,							// количество вершин
@@ -952,10 +950,10 @@ namespace vulkan {
 			const uint32_t firstInstance = 0,					// номер первого инстанса
 			const VkDeviceSize vbOffset = 0						// оффсет в вершинном буфере
 		) {
+			prepareRender(pipeline, frame, pushConstants, firstSet, dynamicOffsetsCount, dynamicOffsets, externalSetsCount, externalSets);
+
 			cmdBindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipeline);
 			cmdBindVertexBuffer(vertexes, vbOffset);
-
-			prepareRender(pipeline, frame, pushConstants, firstSet, dynamicOffsetsCount, dynamicOffsets, additionalSetsCount, additionalSets);
 
 			// draw
 			cmdDraw(vertexCount, firstVertex, instanceCount, firstInstance);
@@ -968,8 +966,8 @@ namespace vulkan {
 			const uint32_t firstSet,							// номер первого сет привязки
 			const uint8_t dynamicOffsetsCount,					// количество оффсетов для динамических буфферов
 			const uint32_t* dynamicOffsets,						// оффсеты для динамических буфферов
-			const uint8_t additionalSetsCount,					// количество дополнительных сетов, которые хочется привязать
-			const VkDescriptorSet* additionalSets,				// дополнительные сеты, которые хочется привязать
+			const uint8_t externalSetsCount,					// количество дополнительных сетов, которые хочется привязать
+			const VkDescriptorSet* externalSets,				// дополнительные сеты, которые хочется привязать
 			const VulkanBuffer& vertexes,						// вершины
 			const VulkanBuffer& indexes,						// индексы
 			const uint32_t firstIndex,							// номер первого индекса
@@ -981,7 +979,7 @@ namespace vulkan {
 			const VkDeviceSize ibOffset = 0,					// оффсет в индексном буффере
 			const VkIndexType indexType = VK_INDEX_TYPE_UINT32	// тип индексов
 			) {
-				prepareRender(pipeline, frame, pushConstants, firstSet, dynamicOffsetsCount, dynamicOffsets, additionalSetsCount, additionalSets);
+				prepareRender(pipeline, frame, pushConstants, firstSet, dynamicOffsetsCount, dynamicOffsets, externalSetsCount, externalSets);
 
 				cmdBindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipeline);
 				cmdBindVertexBuffer(vertexes, vbOffset);
