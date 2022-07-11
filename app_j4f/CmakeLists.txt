@@ -19,6 +19,10 @@ if(GPU_DEBUG_MARKER_ENABLED)
 	add_definitions(-DGPU_DEBUG_MARKER_ENABLED)
 endif()
 
+if(GPU_VALIDATION_ENABLED)
+	add_definitions(-DGPU_VALIDATION_ENABLED)
+endif()
+
 add_definitions(-Dj4f_PLATFORM_${j4f_PLATFORM})
 
 #собираем engine

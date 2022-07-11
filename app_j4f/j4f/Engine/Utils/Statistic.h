@@ -70,7 +70,7 @@ namespace engine {
 		float _framePrepareTime = 0.0f;
 
 		uint16_t _tmpFrameCount = 0;
-		std::atomic<uint16_t> _tmpDrawCalls = 0;
+		std::atomic<uint32_t> _tmpDrawCalls = 0;
 		float _tmpTime = 0.0f;	
 		std::vector<IStatisticObserver*> _observers;
 	};

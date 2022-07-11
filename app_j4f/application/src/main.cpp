@@ -50,6 +50,7 @@ namespace engine {
 	Mesh* mesh3 = nullptr;
 	Mesh* mesh4 = nullptr;
 	Mesh* mesh5 = nullptr;
+	Mesh* mesh6 = nullptr;
 
 	MeshAnimationTree* animTree = nullptr;
 	MeshAnimationTree* animTree2 = nullptr;
@@ -114,6 +115,7 @@ namespace engine {
 			//delete mesh3;
 			delete mesh4;
 			delete mesh5;
+			delete mesh6;
 			delete animTree;
 			delete animTree2;
 
@@ -246,7 +248,7 @@ namespace engine {
 
 			glm::vec3 lightDir = as_normalized(-lightPos);
 			glm::vec2 lightMinMax(0.4f, 1.5f);
-			glm::vec4 lightColor(1.0f, 1.0f, 1.1f, 1.0f);
+			glm::vec4 lightColor(1.0f, 1.0f, 1.15f, 1.0f);
 
 			auto l = program_mesh_default->getGPUParamLayoutByName("lightDirection");
 			program_mesh_default->setValueToLayout(l, &lightDir, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
@@ -299,6 +301,24 @@ namespace engine {
 			tex_params3.file = "resources/assets/models/pineTree/textures/Trank_baseColor.png";
 			auto texture_t4 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
+			tex_params3.file = "resources/assets/models/viking_hut/textures/Main_Material2_baseColor.jpeg";
+			auto texture_t5 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3, [](vulkan::VulkanTexture* asset, const AssetLoadingResult result) {
+				auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
+				asset->setSampler(
+					renderer->getSampler(
+						VK_FILTER_LINEAR,
+						VK_FILTER_LINEAR,
+						VK_SAMPLER_MIPMAP_MODE_LINEAR,
+						VK_SAMPLER_ADDRESS_MODE_REPEAT,
+						VK_SAMPLER_ADDRESS_MODE_REPEAT,
+						VK_SAMPLER_ADDRESS_MODE_REPEAT,
+						VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK
+					));
+				});
+
+			tex_params3.file = "resources/assets/models/viking_hut/textures/Snow_baseColor.png";
+			auto texture_t6 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
+
 			meshesGraphicsBuffer = new MeshGraphicsDataBuffer(10 * 1024 * 1024, 10 * 1024 * 1024); // or create with default constructor for unique buffer for mesh
 
 			MeshLoadingParams mesh_params;
@@ -331,6 +351,14 @@ namespace engine {
 			mesh_params4.latency = 3;
 			mesh_params4.flags->async = 1;
 			mesh_params4.graphicsBuffer = meshesGraphicsBuffer;
+
+			MeshLoadingParams mesh_params5;
+			//mesh_params3.file = "resources/assets/models/tree1/scene.gltf";
+			mesh_params5.file = "resources/assets/models/viking_hut/scene.gltf";
+			mesh_params5.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT, AttributesSemantic::TEXCOORD_0);
+			mesh_params5.latency = 3;
+			mesh_params5.flags->async = 1;
+			mesh_params5.graphicsBuffer = meshesGraphicsBuffer;
 
 			mesh = assm->loadAsset<Mesh*>(mesh_params, [program_gltf, texture_zombi, this](Mesh* asset, const AssetLoadingResult result) {
 				asset->setProgram(program_gltf);
@@ -390,7 +418,8 @@ namespace engine {
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
-				node->value().setGraphics(new NodeGraphicsLink(&node->value(), new NodeGraphicsType<Mesh>(asset)));
+				//node->value().setGraphicsLink(new NodeGraphicsLink(&node->value(), new NodeGraphicsType<Mesh>(asset)));
+				node->value().makeGraphicsLink<Mesh>(asset);
 				rootNode->addChild(node);
 				});
 
@@ -411,6 +440,22 @@ namespace engine {
 				asset->setParamByName("u_texture", texture_t3, false);
 				asset->getRenderDataAt(1)->setParamByName("u_texture", texture_t4, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
+
+				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
+				asset->onPipelineAttributesChanged();
+
+				sceneRenderList.addDescriptor(&asset->getRenderDescriptor());
+				});
+
+			mesh6 = assm->loadAsset<Mesh*>(mesh_params5, [program_gltf, texture_t5, texture_t6, this](Mesh* asset, const AssetLoadingResult result) {
+				asset->setProgram(program_gltf);
+				asset->setParamByName("u_texture", texture_t5, false);
+				//asset->getRenderDataAt(1)->setParamByName("u_texture", texture_t4, false);
+				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
+
+				for (size_t i = asset->getRenderDescriptor().renderDataCount - 5; i < asset->getRenderDescriptor().renderDataCount; ++i) {
+					asset->getRenderDataAt(i)->visible = false;
+				}
 
 				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
 				asset->onPipelineAttributesChanged();
@@ -646,11 +691,17 @@ namespace engine {
 			rotateMatrix_xyz(wtrTree2, glm::vec3(1.57f, 0.0f, 0.0f));
 			translateMatrixTo(wtrTree2, glm::vec3(-20.0f, -190.0f, 0.0f));
 
+			glm::mat4 wtrVikingHut(1.0f);
+			scaleMatrix(wtrVikingHut, glm::vec3(35.0f));
+			rotateMatrix_xyz(wtrVikingHut, glm::vec3(1.57f, 1.25f, 0.0f));
+			translateMatrixTo(wtrVikingHut, glm::vec3(100.0f, 275.0f, 0.0f));
+
 			mesh->updateRenderData(wtr);
 			mesh2->updateRenderData(wtr2);
 			mesh3->updateRenderData(wtr3);
 			mesh4->updateRenderData(wtrTree);
 			mesh5->updateRenderData(wtrTree2);
+			mesh6->updateRenderData(wtrVikingHut);
 
 			const uint64_t wh = renderer->getWH();
 			const uint32_t width = static_cast<uint32_t>(wh >> 0);
@@ -665,6 +716,7 @@ namespace engine {
 			mesh3->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
 			mesh4->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
 			mesh5->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
+			mesh6->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
 
 			//if (animTree2) {
 				// у меня лайоуты совпадают у юниформов, для теней => не нужно вызывать переназначение, достаточно одного раза
@@ -695,6 +747,7 @@ namespace engine {
 			mesh3->setProgram(program_mesh_default);
 			mesh4->setProgram(program_mesh_default);
 			mesh5->setProgram(program_mesh_default);
+			mesh6->setProgram(program_mesh_default);
 			/////// shadow pass
 
 			commandBuffer.cmdBeginRenderPass(renderer->getMainRenderPass(), { {0, 0}, {width, height} }, &clearValues[0], 2, renderer->getFrameBuffer().m_framebuffer, VK_SUBPASS_CONTENTS_INLINE);
@@ -726,6 +779,7 @@ namespace engine {
 				//mesh3->drawBoundingBox(cameraMatrix, wtr3, commandBuffer, currentFrame);
 				//mesh4->drawBoundingBox(cameraMatrix, wtrTree, commandBuffer, currentFrame);
 				//mesh5->drawBoundingBox(cameraMatrix, wtrTree2, commandBuffer, currentFrame);
+				//mesh6->drawBoundingBox(cameraMatrix, wtrVikingHut, commandBuffer, currentFrame);
 			}
 
 			{ // ortho matrix draw

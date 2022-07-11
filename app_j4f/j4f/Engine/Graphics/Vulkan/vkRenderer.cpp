@@ -47,7 +47,11 @@ namespace vulkan {
 		std::vector<const char*> instancelayers;
 
 #ifdef _DEBUG
+#ifdef GPU_VALIDATION_ENABLED
 		const bool validationEnable = true;
+#else
+		const bool validationEnable = false;
+#endif // GPU_VALIDATION_ENABLED
 #else
 		const bool validationEnable = false;
 #endif
@@ -979,7 +983,7 @@ namespace vulkan {
 			return it->second;
 		}
 
-		constexpr uint32_t dynamicUniformBuffersCount = 1024; // todo: configure this value
+		constexpr uint32_t dynamicUniformBuffersCount = 2048; // todo: configure this value
 		VulkanDynamicBuffer* newDynamicBuffer = new VulkanDynamicBuffer(size, _swapchainImagesCount, dynamicUniformBuffersCount);
 
 		const uint32_t bufferSize = static_cast<uint32_t>(dynamicUniformBuffersCount * size);
