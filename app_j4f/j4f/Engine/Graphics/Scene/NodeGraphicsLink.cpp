@@ -3,7 +3,7 @@
 
 namespace engine {
 
-	inline const glm::mat4& NodeGraphicsLink::transform() const {
+	const glm::mat4& NodeGraphicsLink::transform() const {
 		return _completeTransform ? *_completeTransform : _node->model();
 	}
 

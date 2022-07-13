@@ -156,6 +156,8 @@ namespace engine {
 					} else {
 						break;
 					}
+				} else {
+					break;
 				}
 			}
 		}
@@ -269,6 +271,8 @@ namespace engine {
 					} else {
 						break;
 					}
+				} else {
+					break;
 				}
 			}
 		}

@@ -6,6 +6,17 @@ namespace engine {
 
 	class Node;
 	struct RenderDescriptor;
+	class NodeGraphicsLink;
+
+	class SceneGraphicsObject {
+	public:
+		virtual ~SceneGraphicsObject() { _nodeGraphicsLink = nullptr; }
+
+		inline const NodeGraphicsLink* getNodeLink() const { return _nodeGraphicsLink; }
+		inline void setNodeLink(const NodeGraphicsLink* l) { _nodeGraphicsLink = const_cast<NodeGraphicsLink*>(l); }
+	protected:
+		NodeGraphicsLink* _nodeGraphicsLink = nullptr;
+	};
 
 	class NodeGraphics {
 	public:

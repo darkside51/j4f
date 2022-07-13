@@ -3,10 +3,12 @@
 #include "../../Core/Hierarchy.h"
 #include "../../Core/Math/math.h"
 #include "NodeGraphicsLink.h"
+#include "../Render/RenderList.h"
 
 namespace engine {
 	
 	class Node {
+		friend struct NodeMatrixUpdater;
 	public:
 		virtual ~Node() {
 			if (_graphicsLink) {
@@ -67,6 +69,16 @@ namespace engine {
 			_graphicsLink = new NodeGraphicsLink(this, new NodeGraphicsType<G>(std::forward<Args>(args)...));
 		}
 
+		template<typename G = SceneGraphicsObject>
+		inline void makeGraphicsLink(G* g) {
+			if (_graphicsLink) {
+				delete _graphicsLink;
+			}
+
+			_graphicsLink = new NodeGraphicsLink(this, new NodeGraphicsType(g));
+			g->setNodeLink(_graphicsLink);
+		}
+
 	private:
 		bool _dirtyModel = false;
 		bool _modelChanged = false;
@@ -77,4 +89,53 @@ namespace engine {
 
 	using H_Node = HierarchyRaw<Node>;
 	using Hs_Node = HierarchyShared<Node>;
+
+	class Camera;
+
+	struct NodeMatrixUpdater {
+		inline static bool _(H_Node* node, Camera* camera = nullptr) {
+			// todo: check visible with camera
+
+			Node& mNode = node->value();
+			mNode._modelChanged = false;
+
+			auto&& parent = node->getParent();
+			if (parent) {
+				mNode._dirtyModel |= parent->value()._modelChanged;
+			}
+
+			if (mNode._dirtyModel) {
+				if (parent) {
+					mNode.calculateModelMatrix(parent->value()._model);
+				} else {
+					memcpy(&mNode._model, &mNode._local, sizeof(glm::mat4));
+					mNode._dirtyModel = false;
+					mNode._modelChanged = true;
+				}
+
+				if (mNode._graphicsLink) {
+					mNode._graphicsLink->updateNodeTransform();
+				}
+			}
+
+			return true;
+		}
+	};
+
+	struct RenderListEmplacer {
+		inline static bool _(H_Node* node, RenderList& list, Camera* camera = nullptr) {
+			if (auto&& link = node->value().getGraphicsLink()) {
+				if (NodeMatrixUpdater::_(node, camera)) {
+					list.addDescriptor(link->getGraphics()->getRenderDescriptor());
+				}
+			}
+			return true;
+		}
+	};
+
+	inline void reloadRenderList(RenderList& list, H_Node* node, Camera* camera = nullptr) {
+		list.clear();
+		node->execute_with<RenderListEmplacer>(list, camera);
+		list.sort();
+	}
 }

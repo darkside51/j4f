@@ -110,12 +110,12 @@ namespace engine {
 			delete camera;
 			delete camera2;
 
-			delete mesh;
-			delete mesh2;
+			//delete mesh;
+			//delete mesh2;
 			//delete mesh3;
-			delete mesh4;
-			delete mesh5;
-			delete mesh6;
+			//delete mesh4;
+			//delete mesh5;
+			//delete mesh6;
 			delete animTree;
 			delete animTree2;
 
@@ -373,6 +373,17 @@ namespace engine {
 				asset->onPipelineAttributesChanged();
 
 				sceneRenderList.addDescriptor(&asset->getRenderDescriptor());
+
+				////////////////////
+				glm::mat4 wtr(1.0f);
+				scaleMatrix(wtr, glm::vec3(20.0f));
+				rotateMatrix_xyz(wtr, glm::vec3(1.57f, 0.45f, 0.0f));
+				translateMatrixTo(wtr, glm::vec3(-100.0f, -0.0f, 0.0f));
+
+				H_Node* node = new H_Node();
+				node->value().setLocalMatrix(wtr);
+				node->value().makeGraphicsLink(asset);
+				rootNode->addChild(node);
 				});
 
 			mesh2 = assm->loadAsset<Mesh*>(mesh_params, [program_gltf, texture_zombi](Mesh* asset, const AssetLoadingResult result) {
@@ -386,6 +397,17 @@ namespace engine {
 				asset->onPipelineAttributesChanged();
 
 				sceneRenderList.addDescriptor(&asset->getRenderDescriptor());
+
+				////////////////////
+				glm::mat4 wtr(1.0f);
+				scaleMatrix(wtr, glm::vec3(20.0f));
+				rotateMatrix_xyz(wtr, glm::vec3(1.57f, -0.45f, 0.0f));
+				translateMatrixTo(wtr, glm::vec3(100.0f, -0.0f, 0.0f));
+
+				H_Node* node = new H_Node();
+				node->value().setLocalMatrix(wtr);
+				node->value().makeGraphicsLink(asset);
+				rootNode->addChild(node);
 				});
 
 			mesh3 = assm->loadAsset<Mesh*>(mesh_params2, [program_gltf, texture_v, texture_v2, texture_v3](Mesh* asset, const AssetLoadingResult result) {
@@ -418,8 +440,7 @@ namespace engine {
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
-				//node->value().setGraphicsLink(new NodeGraphicsLink(&node->value(), new NodeGraphicsType<Mesh>(asset)));
-				node->value().makeGraphicsLink<Mesh>(asset);
+				node->value().makeGraphicsLink(asset);
 				rootNode->addChild(node);
 				});
 
@@ -433,6 +454,17 @@ namespace engine {
 				asset->onPipelineAttributesChanged();
 
 				sceneRenderList.addDescriptor(&asset->getRenderDescriptor());
+
+				////////////////////
+				glm::mat4 wtr(1.0f);
+				scaleMatrix(wtr, glm::vec3(0.5f));
+				rotateMatrix_xyz(wtr, glm::vec3(1.57f, 0.0f, 0.0f));
+				translateMatrixTo(wtr, glm::vec3(-120.0f, -130.0f, 0.0f));
+
+				H_Node* node = new H_Node();
+				node->value().setLocalMatrix(wtr);
+				node->value().makeGraphicsLink(asset);
+				rootNode->addChild(node);
 				});
 
 			mesh5 = assm->loadAsset<Mesh*>(mesh_params4, [program_gltf, texture_t3, texture_t4, this](Mesh* asset, const AssetLoadingResult result) {
@@ -445,6 +477,17 @@ namespace engine {
 				asset->onPipelineAttributesChanged();
 
 				sceneRenderList.addDescriptor(&asset->getRenderDescriptor());
+
+				////////////////////
+				glm::mat4 wtr(1.0f);
+				scaleMatrix(wtr, glm::vec3(0.5f));
+				rotateMatrix_xyz(wtr, glm::vec3(1.57f, 0.0f, 0.0f));
+				translateMatrixTo(wtr, glm::vec3(-20.0f, -190.0f, 0.0f));
+
+				H_Node* node = new H_Node();
+				node->value().setLocalMatrix(wtr);
+				node->value().makeGraphicsLink(asset);
+				rootNode->addChild(node);
 				});
 
 			mesh6 = assm->loadAsset<Mesh*>(mesh_params5, [program_gltf, texture_t5, texture_t6, this](Mesh* asset, const AssetLoadingResult result) {
@@ -461,6 +504,17 @@ namespace engine {
 				asset->onPipelineAttributesChanged();
 
 				sceneRenderList.addDescriptor(&asset->getRenderDescriptor());
+
+				////////////////////
+				glm::mat4 wtr(1.0f);
+				scaleMatrix(wtr, glm::vec3(35.0f));
+				rotateMatrix_xyz(wtr, glm::vec3(1.57f, 1.25f, 0.0f));
+				translateMatrixTo(wtr, glm::vec3(100.0f, 275.0f, 0.0f));
+
+				H_Node* node = new H_Node();
+				node->value().setLocalMatrix(wtr);
+				node->value().makeGraphicsLink(asset);
+				rootNode->addChild(node);
 				});
 
 			TextureLoadingParams tex_params_logo;
@@ -657,51 +711,16 @@ namespace engine {
 				mesh3->getSkeleton()->updateAnimation(delta, animTree2);
 			}
 
-			glm::mat4 wtr(1.0f);
-			scaleMatrix(wtr, glm::vec3(20.0f));
-			rotateMatrix_xyz(wtr, glm::vec3(1.57f, 0.45f, 0.0f));
-			translateMatrixTo(wtr, glm::vec3(-100.0f, -0.0f, 0.0f));
+			//rootNode->execute_with<NodeMatrixUpdater>();
 
-			static float angle = 0.0f;
-			angle -= delta;
-			glm::mat4 wtr2(1.0f);
-			scaleMatrix(wtr2, glm::vec3(20.0f));
-			rotateMatrix_xyz(wtr2, glm::vec3(1.57f, -0.45f - angle, 0.0f));
-			translateMatrixTo(wtr2, glm::vec3(100.0f, -0.0f, 0.0f));
+			reloadRenderList(sceneRenderList, rootNode, camera);
 
-			glm::mat4 wtr3(1.0f);
-			scaleMatrix(wtr3, glm::vec3(30.0f));
-			//rotateMatrix_xyz(wtr3, glm::vec3(3.14f, 0.0f, 0.0f));
-			directMatrix_yz(wtr3, 0.0f, 1.0f);
-			//directMatrix_yz(wtr3, -1.0f, 0.0f);
-			//directMatrix_xy(wtr3, 0.0f, 1.0f);
-			//directMatrix_xz(wtr3, 0.0f, 1.0f);
-
-			//directMatrix(wtr3, glm::vec3(0.0, 0.0, -1.0));
-
-			translateMatrixTo(wtr3, glm::vec3(0.0f, 0.0f, 0.0f));
-
-			glm::mat4 wtrTree(1.0f);
-			scaleMatrix(wtrTree, glm::vec3(0.5f));
-			rotateMatrix_xyz(wtrTree, glm::vec3(1.57f, 0.0f, 0.0f));
-			translateMatrixTo(wtrTree, glm::vec3(-120.0f, -130.0f, 0.0f));
-
-			glm::mat4 wtrTree2(1.0f);
-			scaleMatrix(wtrTree2, glm::vec3(0.5f));
-			rotateMatrix_xyz(wtrTree2, glm::vec3(1.57f, 0.0f, 0.0f));
-			translateMatrixTo(wtrTree2, glm::vec3(-20.0f, -190.0f, 0.0f));
-
-			glm::mat4 wtrVikingHut(1.0f);
-			scaleMatrix(wtrVikingHut, glm::vec3(35.0f));
-			rotateMatrix_xyz(wtrVikingHut, glm::vec3(1.57f, 1.25f, 0.0f));
-			translateMatrixTo(wtrVikingHut, glm::vec3(100.0f, 275.0f, 0.0f));
-
-			mesh->updateRenderData(wtr);
-			mesh2->updateRenderData(wtr2);
-			mesh3->updateRenderData(wtr3);
-			mesh4->updateRenderData(wtrTree);
-			mesh5->updateRenderData(wtrTree2);
-			mesh6->updateRenderData(wtrVikingHut);
+			mesh->updateRenderData();
+			mesh2->updateRenderData();
+			mesh3->updateRenderData();
+			mesh4->updateRenderData();
+			mesh5->updateRenderData();
+			mesh6->updateRenderData();
 
 			const uint64_t wh = renderer->getWH();
 			const uint32_t width = static_cast<uint32_t>(wh >> 0);
@@ -786,6 +805,9 @@ namespace engine {
 				const glm::mat4& cameraMatrix2 = camera2->getMatrix();
 
 				if (animTree2) {
+
+					static float angle = 0.0f;
+					angle -= delta;
 
 					glm::mat4 wtr4(1.0f);
 					//rotateMatrix_xyz(wtr4, glm::vec3(1.57f, 0.0f, angle));
