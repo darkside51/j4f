@@ -45,12 +45,12 @@ namespace engine {
 
 	CascadeShadowMap* shadowMap = nullptr;
 
-	Mesh* mesh = nullptr;
-	Mesh* mesh2 = nullptr;
-	Mesh* mesh3 = nullptr;
-	Mesh* mesh4 = nullptr;
-	Mesh* mesh5 = nullptr;
-	Mesh* mesh6 = nullptr;
+	NodeRenderer<Mesh>* mesh = nullptr;
+	NodeRenderer<Mesh>* mesh2 = nullptr;
+	NodeRenderer<Mesh>* mesh3 = nullptr;
+	NodeRenderer<Mesh>* mesh4 = nullptr;
+	NodeRenderer<Mesh>* mesh5 = nullptr;
+	NodeRenderer<Mesh>* mesh6 = nullptr;
 
 	MeshAnimationTree* animTree = nullptr;
 	MeshAnimationTree* animTree2 = nullptr;
@@ -360,7 +360,14 @@ namespace engine {
 			mesh_params5.flags->async = 1;
 			mesh_params5.graphicsBuffer = meshesGraphicsBuffer;
 
-			mesh = assm->loadAsset<Mesh*>(mesh_params, [program_gltf, texture_zombi, this](Mesh* asset, const AssetLoadingResult result) {
+			mesh = new NodeRenderer<Mesh>();
+			mesh2 = new NodeRenderer<Mesh>();
+			mesh3 = new NodeRenderer<Mesh>();
+			mesh4 = new NodeRenderer<Mesh>();
+			mesh5 = new NodeRenderer<Mesh>();
+			mesh6 = new NodeRenderer<Mesh>();
+
+			assm->loadAsset<Mesh*>(mesh_params, [program_gltf, texture_zombi, this](Mesh* asset, const AssetLoadingResult result) {
 				asset->setProgram(program_gltf);
 				asset->setParamByName("u_texture", texture_zombi, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
@@ -375,6 +382,7 @@ namespace engine {
 				sceneRenderList.addDescriptor(&asset->getRenderDescriptor());
 
 				////////////////////
+				mesh->setGraphics(asset);
 				glm::mat4 wtr(1.0f);
 				scaleMatrix(wtr, glm::vec3(20.0f));
 				rotateMatrix_xyz(wtr, glm::vec3(1.57f, 0.45f, 0.0f));
@@ -382,16 +390,16 @@ namespace engine {
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
-				node->value().makeGraphicsLink(asset);
+				node->value().makeGraphicsLink(mesh);
 				rootNode->addChild(node);
 				});
 
-			mesh2 = assm->loadAsset<Mesh*>(mesh_params, [program_gltf, texture_zombi](Mesh* asset, const AssetLoadingResult result) {
+			assm->loadAsset<Mesh*>(mesh_params, [program_gltf, texture_zombi](Mesh* asset, const AssetLoadingResult result) {
 				asset->setProgram(program_gltf);
 				asset->setParamByName("u_texture", texture_zombi, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 
-				asset->setSkeleton(mesh->getSkeleton());
+				asset->setSkeleton(mesh->graphics()->getSkeleton());
 
 				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
 				asset->onPipelineAttributesChanged();
@@ -399,6 +407,7 @@ namespace engine {
 				sceneRenderList.addDescriptor(&asset->getRenderDescriptor());
 
 				////////////////////
+				mesh2->setGraphics(asset);
 				glm::mat4 wtr(1.0f);
 				scaleMatrix(wtr, glm::vec3(20.0f));
 				rotateMatrix_xyz(wtr, glm::vec3(1.57f, -0.45f, 0.0f));
@@ -406,11 +415,11 @@ namespace engine {
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
-				node->value().makeGraphicsLink(asset);
+				node->value().makeGraphicsLink(mesh2);
 				rootNode->addChild(node);
 				});
 
-			mesh3 = assm->loadAsset<Mesh*>(mesh_params2, [program_gltf, texture_v, texture_v2, texture_v3](Mesh* asset, const AssetLoadingResult result) {
+			assm->loadAsset<Mesh*>(mesh_params2, [program_gltf, texture_v, texture_v2, texture_v3](Mesh* asset, const AssetLoadingResult result) {
 				asset->setProgram(program_gltf);
 				asset->setParamByName("u_texture", texture_v, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
@@ -433,6 +442,7 @@ namespace engine {
 				sceneRenderList.addDescriptor(&asset->getRenderDescriptor());
 
 				////////////////////
+				mesh3->setGraphics(asset);
 				glm::mat4 wtr(1.0f);
 				scaleMatrix(wtr, glm::vec3(30.0f));
 				directMatrix_yz(wtr, 0.0f, 1.0f);
@@ -440,11 +450,11 @@ namespace engine {
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
-				node->value().makeGraphicsLink(asset);
+				node->value().makeGraphicsLink(mesh3);
 				rootNode->addChild(node);
 				});
 
-			mesh4 = assm->loadAsset<Mesh*>(mesh_params3, [program_gltf, texture_t, texture_t2, this](Mesh* asset, const AssetLoadingResult result) {
+			assm->loadAsset<Mesh*>(mesh_params3, [program_gltf, texture_t, texture_t2, this](Mesh* asset, const AssetLoadingResult result) {
 				asset->setProgram(program_gltf);
 				asset->setParamByName("u_texture", texture_t, false);
 				asset->getRenderDataAt(1)->setParamByName("u_texture", texture_t2, false);
@@ -456,6 +466,7 @@ namespace engine {
 				sceneRenderList.addDescriptor(&asset->getRenderDescriptor());
 
 				////////////////////
+				mesh4->setGraphics(asset);
 				glm::mat4 wtr(1.0f);
 				scaleMatrix(wtr, glm::vec3(0.5f));
 				rotateMatrix_xyz(wtr, glm::vec3(1.57f, 0.0f, 0.0f));
@@ -463,11 +474,11 @@ namespace engine {
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
-				node->value().makeGraphicsLink(asset);
+				node->value().makeGraphicsLink(mesh4);
 				rootNode->addChild(node);
 				});
 
-			mesh5 = assm->loadAsset<Mesh*>(mesh_params4, [program_gltf, texture_t3, texture_t4, this](Mesh* asset, const AssetLoadingResult result) {
+			assm->loadAsset<Mesh*>(mesh_params4, [program_gltf, texture_t3, texture_t4, this](Mesh* asset, const AssetLoadingResult result) {
 				asset->setProgram(program_gltf);
 				asset->setParamByName("u_texture", texture_t3, false);
 				asset->getRenderDataAt(1)->setParamByName("u_texture", texture_t4, false);
@@ -479,6 +490,7 @@ namespace engine {
 				sceneRenderList.addDescriptor(&asset->getRenderDescriptor());
 
 				////////////////////
+				mesh5->setGraphics(asset);
 				glm::mat4 wtr(1.0f);
 				scaleMatrix(wtr, glm::vec3(0.5f));
 				rotateMatrix_xyz(wtr, glm::vec3(1.57f, 0.0f, 0.0f));
@@ -486,11 +498,11 @@ namespace engine {
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
-				node->value().makeGraphicsLink(asset);
+				node->value().makeGraphicsLink(mesh5);
 				rootNode->addChild(node);
 				});
 
-			mesh6 = assm->loadAsset<Mesh*>(mesh_params5, [program_gltf, texture_t5, texture_t6, this](Mesh* asset, const AssetLoadingResult result) {
+			assm->loadAsset<Mesh*>(mesh_params5, [program_gltf, texture_t5, texture_t6, this](Mesh* asset, const AssetLoadingResult result) {
 				asset->setProgram(program_gltf);
 				asset->setParamByName("u_texture", texture_t5, false);
 				//asset->getRenderDataAt(1)->setParamByName("u_texture", texture_t4, false);
@@ -506,6 +518,7 @@ namespace engine {
 				sceneRenderList.addDescriptor(&asset->getRenderDescriptor());
 
 				////////////////////
+				mesh6->setGraphics(asset);
 				glm::mat4 wtr(1.0f);
 				scaleMatrix(wtr, glm::vec3(35.0f));
 				rotateMatrix_xyz(wtr, glm::vec3(1.57f, 1.25f, 0.0f));
@@ -513,7 +526,7 @@ namespace engine {
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
-				node->value().makeGraphicsLink(asset);
+				node->value().makeGraphicsLink(mesh6);
 				rootNode->addChild(node);
 				});
 
@@ -704,11 +717,11 @@ namespace engine {
 
 			////
 			if (animTree) {
-				mesh->getSkeleton()->updateAnimation(delta, animTree);
+				mesh->graphics()->getSkeleton()->updateAnimation(delta, animTree);
 			}
 
 			if (animTree2) {
-				mesh3->getSkeleton()->updateAnimation(delta, animTree2);
+				mesh3->graphics()->getSkeleton()->updateAnimation(delta, animTree2);
 			}
 
 			//rootNode->execute_with<NodeMatrixUpdater>();
@@ -813,8 +826,8 @@ namespace engine {
 					//rotateMatrix_xyz(wtr4, glm::vec3(1.57f, 0.0f, angle));
 					scaleMatrix(wtr4, glm::vec3(50.0f));
 					rotateMatrix_xyz(wtr4, glm::vec3(0.0, angle, 0.0f));
-					translateMatrixTo(wtr4, glm::vec3(-float(width) * 0.5f + 100.0f, float(height) * 0.5f - mesh3->getMaxCorner().y * 50.0f - 50.0f, 0.0f));
-					mesh3->draw(cameraMatrix2, wtr4, commandBuffer, currentFrame);
+					translateMatrixTo(wtr4, glm::vec3(-float(width) * 0.5f + 100.0f, float(height) * 0.5f - mesh3->graphics()->getMaxCorner().y * 50.0f - 50.0f, 0.0f));
+					mesh3->graphics()->draw(cameraMatrix2, wtr4, commandBuffer, currentFrame);
 				}
 
 				///////////

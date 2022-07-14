@@ -3,11 +3,11 @@
 
 namespace engine {
 
-	const glm::mat4& NodeGraphicsLink::transform() const {
+	const glm::mat4& GraphicsLink::transform() const {
 		return _completeTransform ? *_completeTransform : _node->model();
 	}
 
-	void NodeGraphicsLink::updateCustomTransform(const glm::mat4& tr) {
+	void GraphicsLink::updateCustomTransform(const glm::mat4& tr) {
 		if (_customTransform == nullptr) {
 			_customTransform = new glm::mat4(1.0f);
 			_completeTransform = new glm::mat4(1.0f);
@@ -19,7 +19,7 @@ namespace engine {
 		}
 	}
 
-	void NodeGraphicsLink::updateNodeTransform() {
+	void GraphicsLink::updateNodeTransform() {
 		if (_customTransform == nullptr) return;
 		*_completeTransform = _node->model() * (*_customTransform);
 	}

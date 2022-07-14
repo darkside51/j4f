@@ -180,7 +180,7 @@ namespace engine {
 		uint8_t _updateFrameNum = 0;
 	};
 
-	class Mesh : public SceneGraphicsObject {
+	class Mesh {
 	public:
 		~Mesh();
 
@@ -233,7 +233,6 @@ namespace engine {
 		void drawBoundingBox(const glm::mat4& cameraMatrix, const glm::mat4& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame);
 
 		void updateRenderData(const glm::mat4& worldMatrix);
-		void updateRenderData();
 
 		inline void setCameraMatrix(const glm::mat4& cameraMatrix, const bool copy = false) {
 			_renderDescriptor.setRawDataForLayout(_camera_matrix, &const_cast<glm::mat4&>(cameraMatrix), copy, sizeof(glm::mat4));

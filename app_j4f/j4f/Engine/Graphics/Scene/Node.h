@@ -23,60 +23,29 @@ namespace engine {
 			_modelChanged = true;
 		}
 
-		inline static bool updateModelMatrix(HierarchyRaw<Node>* node) {
-			Node& mNode = node->value();
-			mNode._modelChanged = false;
-
-			auto&& parent = node->getParent();
-			if (parent) {
-				mNode._dirtyModel |= parent->value()._modelChanged;
-			}
-
-			if (mNode._dirtyModel) {
-				if (parent) {
-					mNode.calculateModelMatrix(parent->value()._model);
-				} else {
-					memcpy(&mNode._model, &mNode._local, sizeof(glm::mat4));
-					mNode._dirtyModel = false;
-					mNode._modelChanged = true;
-				}
-			}
-
-			return true;
-		}
-
 		inline void setLocalMatrix(const glm::mat4& m) {
 			memcpy(&_local, &m, sizeof(glm::mat4));
 			_dirtyModel = true;
 		}
 
 		inline const glm::mat4& model() const { return _model; }
-		inline const NodeGraphicsLink* getGraphicsLink() const { return _graphicsLink; }
+		inline const GraphicsLink* getGraphicsLink() const { return _graphicsLink; }
 
-		inline void setGraphicsLink(NodeGraphicsLink* g) {
+		inline void setGraphicsLink(GraphicsLink* g) {
 			if (_graphicsLink) {
 				delete _graphicsLink;
 			}
 			_graphicsLink = g;
 		}
 
-		template<typename G, typename... Args>
-		inline void makeGraphicsLink(Args&&... args) {
+		template <typename T>
+		inline void makeGraphicsLink(NodeRenderer<T>* r) {
 			if (_graphicsLink) {
 				delete _graphicsLink;
 			}
 
-			_graphicsLink = new NodeGraphicsLink(this, new NodeGraphicsType<G>(std::forward<Args>(args)...));
-		}
-
-		template<typename G = SceneGraphicsObject>
-		inline void makeGraphicsLink(G* g) {
-			if (_graphicsLink) {
-				delete _graphicsLink;
-			}
-
-			_graphicsLink = new NodeGraphicsLink(this, new NodeGraphicsType(g));
-			g->setNodeLink(_graphicsLink);
+			_graphicsLink = new GraphicsLink(this);
+			r->setNodeLink(_graphicsLink);
 		}
 
 	private:
@@ -84,7 +53,7 @@ namespace engine {
 		bool _modelChanged = false;
 		glm::mat4 _local = glm::mat4(1.0f);
 		glm::mat4 _model = glm::mat4(1.0f);
-		NodeGraphicsLink* _graphicsLink = nullptr;
+		GraphicsLink* _graphicsLink = nullptr;
 	};
 
 	using H_Node = HierarchyRaw<Node>;

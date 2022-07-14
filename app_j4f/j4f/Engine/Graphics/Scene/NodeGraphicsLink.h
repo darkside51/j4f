@@ -1,27 +1,26 @@
 #pragma once
 
 #include "../../Core/Math/math.h"
+#include <vulkan/vulkan.h>
+
+namespace vulkan {
+	class VulkanGpuProgram;
+}
 
 namespace engine {
 
 	class Node;
 	struct RenderDescriptor;
-	class NodeGraphicsLink;
+	class GraphicsLink;
 
-	class SceneGraphicsObject {
+	class RenderObject {
 	public:
-		virtual ~SceneGraphicsObject() { _nodeGraphicsLink = nullptr; }
+		virtual ~RenderObject() {
+			_descriptor = nullptr;
+		};
 
-		inline const NodeGraphicsLink* getNodeLink() const { return _nodeGraphicsLink; }
-		inline void setNodeLink(const NodeGraphicsLink* l) { _nodeGraphicsLink = const_cast<NodeGraphicsLink*>(l); }
-	protected:
-		NodeGraphicsLink* _nodeGraphicsLink = nullptr;
-	};
-
-	class NodeGraphics {
-	public:
-		virtual ~NodeGraphics() = default;
-		NodeGraphics(RenderDescriptor* d) : _descriptor(d) {}
+		RenderObject() = default;
+		RenderObject(RenderDescriptor* d) : _descriptor(d) {}
 		inline RenderDescriptor* getRenderDescriptor() const { return _descriptor; }
 
 	protected:
@@ -29,25 +28,65 @@ namespace engine {
 	};
 
 	template <typename T>
-	class NodeGraphicsType : public NodeGraphics {
+	class NodeRenderer : public RenderObject {
 	public:
-		NodeGraphicsType(T* g) : NodeGraphics(&g->getRenderDescriptor()), _graphics(g) {}
+		using type = T*;
 
-		~NodeGraphicsType() {
-			_descriptor = nullptr;
-			delete _graphics;
-			_graphics = nullptr;
+		~NodeRenderer() {
+			if (_graphics) {
+				delete _graphics;
+				_graphics = nullptr;
+			}
+			_link = nullptr;
 		}
+
+		NodeRenderer() = default;
+		NodeRenderer(type g) : NodeGraphics(&g->getRenderDescriptor()), _graphics(g) {}
+
+		inline const GraphicsLink* getNodeLink() const { return _link; }
+		inline void setNodeLink(const GraphicsLink* l) {
+			_link = const_cast<GraphicsLink*>(l);
+			_link->setGraphics(this);
+		}
+
+		inline void setGraphics(type g) {
+			if (_graphics) {
+				delete _graphics;
+				_graphics = nullptr;
+			}
+
+			_descriptor = &g->getRenderDescriptor();
+			_graphics = g;
+		}
+
+		inline void updateRenderData() {
+			if (_graphics && _link) {
+				_graphics->updateRenderData(_link->transform());
+			}
+		}
+
+		inline void setProgram(vulkan::VulkanGpuProgram* program, VkRenderPass renderPass = nullptr) {
+			if (_graphics) {
+				_graphics->setProgram(program, renderPass);
+			}
+		}
+
+		inline type operator->() { return _graphics; }
+		inline const type operator->() const { return _graphics; }
+
+		inline type graphics() { return _graphics; }
+		inline const type graphics() const { return _graphics; }
+
 	private:
-		T* _graphics = nullptr;
+		type _graphics = nullptr;
+		GraphicsLink* _link = nullptr;
 	};
 
-	class NodeGraphicsLink {
+	class GraphicsLink {
 	public:
+		GraphicsLink(Node* n, RenderObject* g = nullptr) : _node(n), _graphics(g) {}
 
-		NodeGraphicsLink(Node* n, NodeGraphics* g) : _node(n), _graphics(g) {}
-
-		~NodeGraphicsLink() {
+		~GraphicsLink() {
 			if (_customTransform) {
 				delete _customTransform;
 				delete _completeTransform;
@@ -68,9 +107,9 @@ namespace engine {
 		void updateCustomTransform(const glm::mat4& tr);
 		void updateNodeTransform();
 
-		inline const NodeGraphics* getGraphics() const { return _graphics; }
+		inline const RenderObject* getGraphics() const { return _graphics; }
 
-		inline void setGraphics(NodeGraphics* g) {
+		inline void setGraphics(RenderObject* g) {
 			if (_graphics) {
 				delete _graphics;
 				_graphics = nullptr;
@@ -80,7 +119,7 @@ namespace engine {
 
 	private:
 		Node* _node = nullptr;
-		NodeGraphics* _graphics = nullptr;
+		RenderObject* _graphics = nullptr;
 		glm::mat4* _customTransform = nullptr;
 		glm::mat4* _completeTransform = nullptr;
 	};

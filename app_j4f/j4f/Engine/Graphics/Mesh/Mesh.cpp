@@ -495,35 +495,6 @@ namespace engine {
 		}
 	}
 
-	void Mesh::updateRenderData() {
-		if (!_nodeGraphicsLink || !_skeleton) return;
-
-		const glm::mat4& worldMatrix = _nodeGraphicsLink->transform();
-
-		const uint8_t renderFrameNum = (_skeleton->_updateFrameNum + 1) % _skeleton->_latency;
-
-		_skeleton->checkAnimCalculation(renderFrameNum);
-
-		for (uint32_t i = 0; i < _renderDescriptor.renderDataCount; ++i) {
-			vulkan::RenderData* r_data = _renderDescriptor.renderData[i];
-			if (r_data == nullptr || r_data->pipeline == nullptr) continue;
-
-			const Mesh_Node& node = _skeleton->_nodes[renderFrameNum][_meshData->meshes[i].nodeIndex]->value();
-			glm::mat4 model = worldMatrix * node.modelMatrix;
-
-			if (_use_skin) {
-				int32_t useSkin = node.skinIndex != 0xffff ? 1 : 0;
-				r_data->setParamForLayout(_use_skin, &useSkin, true, 1);
-			}
-
-			if (node.skinIndex != 0xffff && _skin_matrices) {
-				r_data->setParamForLayout(_skin_matrices, &(_skeleton->_skinsMatrices[renderFrameNum][node.skinIndex][0]), false, _skeleton->_skinsMatrices[renderFrameNum][node.skinIndex].size());
-			}
-
-			r_data->setParamForLayout(_model_matrix, &model, true, 1);
-		}
-	}
-
 	void Mesh::createWithData(Mesh_Data* mData, const uint16_t semantic_mask, const uint8_t latency) {
 		_meshData = mData;
 		_semanticMask = semantic_mask;
