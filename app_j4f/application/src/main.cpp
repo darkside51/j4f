@@ -248,7 +248,7 @@ namespace engine {
 
 			glm::vec3 lightDir = as_normalized(-lightPos);
 			glm::vec2 lightMinMax(0.4f, 1.5f);
-			glm::vec4 lightColor(1.0f, 1.0f, 1.15f, 1.0f);
+			glm::vec4 lightColor(1.0f, 1.0f, 1.0f, 1.0f);
 
 			auto l = program_mesh_default->getGPUParamLayoutByName("lightDirection");
 			program_mesh_default->setValueToLayout(l, &lightDir, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
@@ -301,22 +301,10 @@ namespace engine {
 			tex_params3.file = "resources/assets/models/pineTree/textures/Trank_baseColor.png";
 			auto texture_t4 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
-			tex_params3.file = "resources/assets/models/viking_hut/textures/Main_Material2_baseColor.jpeg";
-			auto texture_t5 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3, [](vulkan::VulkanTexture* asset, const AssetLoadingResult result) {
-				auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
-				asset->setSampler(
-					renderer->getSampler(
-						VK_FILTER_LINEAR,
-						VK_FILTER_LINEAR,
-						VK_SAMPLER_MIPMAP_MODE_LINEAR,
-						VK_SAMPLER_ADDRESS_MODE_REPEAT,
-						VK_SAMPLER_ADDRESS_MODE_REPEAT,
-						VK_SAMPLER_ADDRESS_MODE_REPEAT,
-						VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK
-					));
-				});
+			tex_params3.file = "resources/assets/models/vikingHut/textures/texture1.jpg";
+			auto texture_t5 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
-			tex_params3.file = "resources/assets/models/viking_hut/textures/Snow_baseColor.png";
+			tex_params3.file = "resources/assets/models/vikingHut/textures/texture1.jpg";
 			auto texture_t6 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
 			meshesGraphicsBuffer = new MeshGraphicsDataBuffer(10 * 1024 * 1024, 10 * 1024 * 1024); // or create with default constructor for unique buffer for mesh
@@ -353,8 +341,7 @@ namespace engine {
 			mesh_params4.graphicsBuffer = meshesGraphicsBuffer;
 
 			MeshLoadingParams mesh_params5;
-			//mesh_params3.file = "resources/assets/models/tree1/scene.gltf";
-			mesh_params5.file = "resources/assets/models/viking_hut/scene.gltf";
+			mesh_params5.file = "resources/assets/models/vikingHut/scene.gltf";
 			mesh_params5.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT, AttributesSemantic::TEXCOORD_0);
 			mesh_params5.latency = 3;
 			mesh_params5.flags->async = 1;
@@ -468,7 +455,7 @@ namespace engine {
 				////////////////////
 				mesh4->setGraphics(asset);
 				glm::mat4 wtr(1.0f);
-				scaleMatrix(wtr, glm::vec3(0.5f));
+				scaleMatrix(wtr, glm::vec3(0.6f));
 				rotateMatrix_xyz(wtr, glm::vec3(1.57f, 0.0f, 0.0f));
 				translateMatrixTo(wtr, glm::vec3(-120.0f, -130.0f, 0.0f));
 
@@ -494,7 +481,7 @@ namespace engine {
 				glm::mat4 wtr(1.0f);
 				scaleMatrix(wtr, glm::vec3(0.5f));
 				rotateMatrix_xyz(wtr, glm::vec3(1.57f, 0.0f, 0.0f));
-				translateMatrixTo(wtr, glm::vec3(-20.0f, -190.0f, 0.0f));
+				translateMatrixTo(wtr, glm::vec3(270.0f, -30.0f, 0.0f));
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
@@ -505,12 +492,16 @@ namespace engine {
 			assm->loadAsset<Mesh*>(mesh_params5, [program_gltf, texture_t5, texture_t6, this](Mesh* asset, const AssetLoadingResult result) {
 				asset->setProgram(program_gltf);
 				asset->setParamByName("u_texture", texture_t5, false);
-				//asset->getRenderDataAt(1)->setParamByName("u_texture", texture_t4, false);
+				//asset->getRenderDataAt(1)->setParamByName("u_texture", texture_t5, false);
+				//asset->getRenderDataAt(0)->visible = false;
+				//asset->getRenderDataAt(0)->setParamByName("u_texture", texture_t5, false);
+				//asset->getRenderDataAt(2)->setParamByName("u_texture", texture_t5, false);
+				//asset->getRenderDataAt(3)->setParamByName("u_texture", texture_t5, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 
-				for (size_t i = asset->getRenderDescriptor().renderDataCount - 5; i < asset->getRenderDescriptor().renderDataCount; ++i) {
+				/*for (size_t i = asset->getRenderDescriptor().renderDataCount - 5; i < asset->getRenderDescriptor().renderDataCount; ++i) {
 					asset->getRenderDataAt(i)->visible = false;
-				}
+				}*/
 
 				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
 				asset->onPipelineAttributesChanged();
@@ -520,9 +511,9 @@ namespace engine {
 				////////////////////
 				mesh6->setGraphics(asset);
 				glm::mat4 wtr(1.0f);
-				scaleMatrix(wtr, glm::vec3(35.0f));
+				scaleMatrix(wtr, glm::vec3(40.0f));
 				rotateMatrix_xyz(wtr, glm::vec3(1.57f, 1.25f, 0.0f));
-				translateMatrixTo(wtr, glm::vec3(100.0f, 275.0f, 0.0f));
+				translateMatrixTo(wtr, glm::vec3(200.0f, 225.0f, 0.0f));
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
