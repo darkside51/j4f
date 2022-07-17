@@ -74,7 +74,7 @@ void main() {
 		shadowCoord.xy = (shadowCoord.xy + 1.0) * 0.5;
 		float shadow = filterPCF(shadowCoord / shadowCoord.w, cascade);
 
-		const float light = shadow * max(dot(in_normal, -u_constants.lightDirection), 0.0);
+		const float light = shadow * max(dot((gl_FrontFacing ? in_normal : -in_normal), -u_constants.lightDirection), 0.0);
 		color.rgb *= clamp(u_constants.lightMinMax.y * light, u_constants.lightMinMax.x, u_constants.lightMinMax.y);
 		outColor = u_constants.lightColor * color;
 

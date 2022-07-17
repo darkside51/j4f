@@ -268,14 +268,12 @@ namespace engine {
 			shadowMap->registerProgramAsReciever(shadowPlainProgram);
 
 			TextureLoadingParams tex_params;
-			//tex_params.file = "resources/assets/models/zombiWarrior/textures/defaultMat_diffuse.png";
 			tex_params.file = "resources/assets/models/chaman/textures/Ti-Pche_Mat_baseColor.png";
 			tex_params.flags->async = 1;
 			tex_params.flags->use_cache = 1;
 			auto texture_zombi = assm->loadAsset<vulkan::VulkanTexture*>(tex_params);
 
 			TextureLoadingParams tex_params2;
-			//tex_params2.file = "resources/assets/models/zombi/textures/survivor_MAT_diffuse.png";
 			tex_params2.file = "resources/assets/models/warcraft3/textures/Armor_2_baseColor.png";
 			tex_params2.flags->async = 1;
 			tex_params2.flags->use_cache = 1;
@@ -310,7 +308,6 @@ namespace engine {
 			meshesGraphicsBuffer = new MeshGraphicsDataBuffer(10 * 1024 * 1024, 10 * 1024 * 1024); // or create with default constructor for unique buffer for mesh
 
 			MeshLoadingParams mesh_params;
-			//mesh_params.file = "resources/assets/models/zombiWarrior/scene.gltf";
 			mesh_params.file = "resources/assets/models/chaman/scene.gltf";
 			mesh_params.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT, AttributesSemantic::TEXCOORD_0);
 			mesh_params.latency = 3;
@@ -318,7 +315,6 @@ namespace engine {
 			mesh_params.graphicsBuffer = meshesGraphicsBuffer;
 
 			MeshLoadingParams mesh_params2;
-			//mesh_params2.file = "resources/assets/models/zombi/scene.gltf";
 			mesh_params2.file = "resources/assets/models/warcraft3/scene.gltf";
 			mesh_params2.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT, AttributesSemantic::TEXCOORD_0);
 			mesh_params2.latency = 3;
@@ -333,7 +329,6 @@ namespace engine {
 			mesh_params3.graphicsBuffer = meshesGraphicsBuffer;
 
 			MeshLoadingParams mesh_params4;
-			//mesh_params3.file = "resources/assets/models/tree1/scene.gltf";
 			mesh_params4.file = "resources/assets/models/pineTree/scene.gltf";
 			mesh_params4.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT, AttributesSemantic::TEXCOORD_0);
 			mesh_params4.latency = 3;
@@ -492,16 +487,7 @@ namespace engine {
 			assm->loadAsset<Mesh*>(mesh_params5, [program_gltf, texture_t5, texture_t6, this](Mesh* asset, const AssetLoadingResult result) {
 				asset->setProgram(program_gltf);
 				asset->setParamByName("u_texture", texture_t5, false);
-				//asset->getRenderDataAt(1)->setParamByName("u_texture", texture_t5, false);
-				//asset->getRenderDataAt(0)->visible = false;
-				//asset->getRenderDataAt(0)->setParamByName("u_texture", texture_t5, false);
-				//asset->getRenderDataAt(2)->setParamByName("u_texture", texture_t5, false);
-				//asset->getRenderDataAt(3)->setParamByName("u_texture", texture_t5, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
-
-				/*for (size_t i = asset->getRenderDescriptor().renderDataCount - 5; i < asset->getRenderDescriptor().renderDataCount; ++i) {
-					asset->getRenderDataAt(i)->visible = false;
-				}*/
 
 				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
 				asset->onPipelineAttributesChanged();

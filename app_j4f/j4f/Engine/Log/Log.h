@@ -31,13 +31,13 @@ namespace engine {
 
 	template <typename...Args>
 	inline void log(const char* fmt, Args&&...args) {
-		const char* f1 = fmt_string("(%" PRIu64 ") %s\n", unixUTCTime(), fmt); // good variant?
+		const char* f1 = fmt_string("(%" PRIu64 ") %s \n", unixUTCTime(), fmt); // good variant?
 		printLog(f1, std::forward<Args>(args)...);
 	}
 
 	template <typename...Args>
 	inline void log_tag(const char* tag, const char* fmt, Args&&...args) {
-		const char* f1 = fmt_string("(%" PRIu64 ") (%s) %s\n", unixUTCTime(), tag, fmt);
+		const char* f1 = fmt_string("(%" PRIu64 ") (%s) %s \n", unixUTCTime(), tag, fmt);
 		printLog(f1, std::forward<Args>(args)...);
 	}
 }

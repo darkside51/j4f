@@ -224,8 +224,63 @@ namespace vulkan {
 				}
 				break;
 				case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_BUFFER: // = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
+				{
+					const char* uniformTypeName = binding->type_description->type_name;
+					const bool constUniform = strstr(uniformTypeName, "static");
+
+					// создаем лаяут дескриптора юниформа или обновляем имеющийся
+					VkDescriptorSetLayoutBinding layoutBinding;
+					layoutBinding.binding = binding->binding;
+					layoutBinding.descriptorType = constUniform ? VK_DESCRIPTOR_TYPE_STORAGE_BUFFER : VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
+					layoutBinding.descriptorCount = binding->count;
+					layoutBinding.stageFlags = stage;
+					layoutBinding.pImmutableSamplers = nullptr;
+
+					VulkanDescriptorSetLayoutBindingDescription* bindingDescription = new VulkanDescriptorSetLayoutBindingDescription();
+					bindingDescription->binding = layoutBinding;
+					bindingDescription->set = setInfo->set;
+					bindingDescription->name = binding->name;
+
+					m_descriptorSetLayoutBindings[i].push_back(bindingDescription);
+
+					uint32_t sizeInBytes = 0;
+					parseBuffer(binding, bindingDescription, sizeInBytes);
+
+					const uint32_t minUboAlignment = static_cast<uint32_t>(renderer->getDevice()->gpuProperties.limits.minUniformBufferOffsetAlignment);
+					if (minUboAlignment > 0) {
+						sizeInBytes = engine::alignValue(sizeInBytes, minUboAlignment);
+					}
+
+					bindingDescription->sizeInBytes = sizeInBytes;
+				}
 					break;
 				case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC: // = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC
+				{
+					// создаем лаяут дескриптора юниформа или обновляем имеющийся
+					VkDescriptorSetLayoutBinding layoutBinding;
+					layoutBinding.binding = binding->binding;
+					layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
+					layoutBinding.descriptorCount = binding->count;
+					layoutBinding.stageFlags = stage;
+					layoutBinding.pImmutableSamplers = nullptr;
+
+					VulkanDescriptorSetLayoutBindingDescription* bindingDescription = new VulkanDescriptorSetLayoutBindingDescription();
+					bindingDescription->binding = layoutBinding;
+					bindingDescription->set = setInfo->set;
+					bindingDescription->name = binding->name;
+
+					m_descriptorSetLayoutBindings[i].push_back(bindingDescription);
+
+					uint32_t sizeInBytes = 0;
+					parseBuffer(binding, bindingDescription, sizeInBytes);
+
+					const size_t minUboAlignment = renderer->getDevice()->gpuProperties.limits.minUniformBufferOffsetAlignment;
+					if (minUboAlignment > 0) {
+						sizeInBytes = engine::alignValue(sizeInBytes, minUboAlignment);
+					}
+
+					bindingDescription->sizeInBytes = sizeInBytes;
+				}
 					break;
 				case SPV_REFLECT_DESCRIPTOR_TYPE_INPUT_ATTACHMENT: // = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT
 					break;

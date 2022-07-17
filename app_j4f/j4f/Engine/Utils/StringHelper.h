@@ -8,9 +8,9 @@ namespace engine {
 
 	template <typename...Args>
 	inline const char* fmt_string(const char* fmt, Args&&...args) {
-		constexpr uint16_t max_buffer_size = 256;
+		constexpr uint16_t max_buffer_size = 1024;
 		static thread_local char buffer[max_buffer_size]; // max_buffer_size bytes memory for every thread, with static allocation
-		snprintf(buffer, max_buffer_size - 1, fmt, std::forward<Args>(args)...);
+		snprintf(buffer, max_buffer_size, fmt, std::forward<Args>(args)...);
 		return buffer;
 	}
 
