@@ -52,6 +52,8 @@ namespace engine {
 	NodeRenderer<Mesh>* mesh5 = nullptr;
 	NodeRenderer<Mesh>* mesh6 = nullptr;
 
+	NodeRenderer<Mesh>* grassMesh = nullptr;
+
 	MeshAnimationTree* animTree = nullptr;
 	MeshAnimationTree* animTree2 = nullptr;
 
@@ -302,7 +304,7 @@ namespace engine {
 			tex_params3.file = "resources/assets/models/vikingHut/textures/texture1.jpg";
 			auto texture_t5 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
-			tex_params3.file = "resources/assets/models/vikingHut/textures/texture1.jpg";
+			tex_params3.file = "resources/assets/models/grass/textures/grass.png";
 			auto texture_t6 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
 			meshesGraphicsBuffer = new MeshGraphicsDataBuffer(10 * 1024 * 1024, 10 * 1024 * 1024); // or create with default constructor for unique buffer for mesh
@@ -342,12 +344,20 @@ namespace engine {
 			mesh_params5.flags->async = 1;
 			mesh_params5.graphicsBuffer = meshesGraphicsBuffer;
 
+			MeshLoadingParams mesh_params_grass;
+			mesh_params_grass.file = "resources/assets/models/grass/scene.gltf";
+			mesh_params_grass.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT, AttributesSemantic::TEXCOORD_0);
+			mesh_params_grass.latency = 3;
+			mesh_params_grass.flags->async = 1;
+			mesh_params_grass.graphicsBuffer = meshesGraphicsBuffer;
+
 			mesh = new NodeRenderer<Mesh>();
 			mesh2 = new NodeRenderer<Mesh>();
 			mesh3 = new NodeRenderer<Mesh>();
 			mesh4 = new NodeRenderer<Mesh>();
 			mesh5 = new NodeRenderer<Mesh>();
 			mesh6 = new NodeRenderer<Mesh>();
+			grassMesh = new NodeRenderer<Mesh>();
 
 			assm->loadAsset<Mesh*>(mesh_params, [program_gltf, texture_zombi, this](Mesh* asset, const AssetLoadingResult result) {
 				asset->setProgram(program_gltf);
@@ -360,8 +370,6 @@ namespace engine {
 
 				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
 				asset->onPipelineAttributesChanged();
-
-				sceneRenderList.addDescriptor(&asset->getRenderDescriptor());
 
 				////////////////////
 				mesh->setGraphics(asset);
@@ -385,8 +393,6 @@ namespace engine {
 
 				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
 				asset->onPipelineAttributesChanged();
-
-				sceneRenderList.addDescriptor(&asset->getRenderDescriptor());
 
 				////////////////////
 				mesh2->setGraphics(asset);
@@ -421,8 +427,6 @@ namespace engine {
 				animTree2->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[10], 0.0f, asset->getSkeleton()->getLatency(), 1.0f));
 				animTree2->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[0], 0.0f, asset->getSkeleton()->getLatency(), 1.4f));
 
-				sceneRenderList.addDescriptor(&asset->getRenderDescriptor());
-
 				////////////////////
 				mesh3->setGraphics(asset);
 				glm::mat4 wtr(1.0f);
@@ -444,8 +448,6 @@ namespace engine {
 
 				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
 				asset->onPipelineAttributesChanged();
-
-				sceneRenderList.addDescriptor(&asset->getRenderDescriptor());
 
 				////////////////////
 				mesh4->setGraphics(asset);
@@ -469,8 +471,6 @@ namespace engine {
 				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
 				asset->onPipelineAttributesChanged();
 
-				sceneRenderList.addDescriptor(&asset->getRenderDescriptor());
-
 				////////////////////
 				mesh5->setGraphics(asset);
 				glm::mat4 wtr(1.0f);
@@ -492,8 +492,6 @@ namespace engine {
 				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
 				asset->onPipelineAttributesChanged();
 
-				sceneRenderList.addDescriptor(&asset->getRenderDescriptor());
-
 				////////////////////
 				mesh6->setGraphics(asset);
 				glm::mat4 wtr(1.0f);
@@ -504,6 +502,27 @@ namespace engine {
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
 				node->value().makeGraphicsLink(mesh6);
+				rootNode->addChild(node);
+				});
+
+			assm->loadAsset<Mesh*>(mesh_params_grass, [program_gltf, texture_t6, this](Mesh* asset, const AssetLoadingResult result) {
+				asset->setProgram(program_gltf);
+				asset->setParamByName("u_texture", texture_t6, false);
+				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
+
+				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
+				asset->onPipelineAttributesChanged();
+
+				////////////////////
+				grassMesh->setGraphics(asset);
+				glm::mat4 wtr(1.0f);
+				scaleMatrix(wtr, glm::vec3(10000.0f));
+				rotateMatrix_xyz(wtr, glm::vec3(1.57f, 0.0f, 0.0f));
+				translateMatrixTo(wtr, glm::vec3(200.0f, -100.0f, 0.0f));
+
+				H_Node* node = new H_Node();
+				node->value().setLocalMatrix(wtr);
+				node->value().makeGraphicsLink(grassMesh);
 				rootNode->addChild(node);
 				});
 
@@ -711,6 +730,7 @@ namespace engine {
 			mesh4->updateRenderData();
 			mesh5->updateRenderData();
 			mesh6->updateRenderData();
+			grassMesh->updateRenderData();
 
 			const uint64_t wh = renderer->getWH();
 			const uint32_t width = static_cast<uint32_t>(wh >> 0);
@@ -726,6 +746,7 @@ namespace engine {
 			mesh4->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
 			mesh5->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
 			mesh6->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
+			grassMesh->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
 
 			//if (animTree2) {
 				// у меня лайоуты совпадают у юниформов, для теней => не нужно вызывать переназначение, достаточно одного раза
@@ -757,6 +778,7 @@ namespace engine {
 			mesh4->setProgram(program_mesh_default);
 			mesh5->setProgram(program_mesh_default);
 			mesh6->setProgram(program_mesh_default);
+			grassMesh->setProgram(program_mesh_default);
 			/////// shadow pass
 
 			commandBuffer.cmdBeginRenderPass(renderer->getMainRenderPass(), { {0, 0}, {width, height} }, &clearValues[0], 2, renderer->getFrameBuffer().m_framebuffer, VK_SUBPASS_CONTENTS_INLINE);

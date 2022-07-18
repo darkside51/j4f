@@ -78,6 +78,10 @@ namespace engine {
 			_prev = nullptr;
 		}
 
+		inline void reserve(const size_t sz) {
+			_children.reserve(sz);
+		}
+
 		void addChild(children_type c) {
 			if (!_children.empty()) { 
 				if constexpr (std::is_pointer<children_type>()) {
