@@ -724,11 +724,7 @@ namespace vulkan {
 		vulkan::waitFenceAndReset(_vulkanDevice->device, _waitFences[_currentFrame].fence);
 
 		if (_mainSupportCommandBuffers[_currentFrame].begin() == VK_SUCCESS) {
-			for (auto it = _dinamicUniformBuffers.begin(); it != _dinamicUniformBuffers.end(); ++it) {
-				it->second->resetOffset();
-			}
-
-			for (auto it = _dinamicStorageBuffers.begin(); it != _dinamicStorageBuffers.end(); ++it) {
+			for (auto it = _dinamicGPUBuffers.begin(); it != _dinamicGPUBuffers.end(); ++it) {
 				it->second->resetOffset();
 			}
 
@@ -974,23 +970,22 @@ namespace vulkan {
 		return pipeline;
 	}
 
-	VulkanDynamicBuffer* VulkanRenderer::getDynamicUniformBufferForSize(const uint32_t size) {
+	VulkanDynamicBuffer* VulkanRenderer::getDynamicGPUBufferForSize(const uint32_t size, const VkBufferUsageFlags usageFlags, const uint32_t maxCount) {
 		// todo: need synchronisation
 		if (size == 0) return nullptr;
 
-		auto it = _dinamicUniformBuffers.find(size);
-		if (it != _dinamicUniformBuffers.end()) {
+		auto it = _dinamicGPUBuffers.find(size);
+		if (it != _dinamicGPUBuffers.end()) {
 			return it->second;
 		}
 
-		constexpr uint32_t dynamicUniformBuffersCount = 2048; // todo: configure this value
-		VulkanDynamicBuffer* newDynamicBuffer = new VulkanDynamicBuffer(size, _swapchainImagesCount, dynamicUniformBuffersCount);
+		VulkanDynamicBuffer* newDynamicBuffer = new VulkanDynamicBuffer(size, _swapchainImagesCount, maxCount);
 
-		const uint32_t bufferSize = static_cast<uint32_t>(dynamicUniformBuffersCount * size);
+		const uint32_t bufferSize = static_cast<uint32_t>(maxCount * size);
 		for (size_t i = 0; i < _swapchainImagesCount; ++i) {
 			_vulkanDevice->createBuffer(
 				VK_SHARING_MODE_EXCLUSIVE,
-				VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+				usageFlags,
 				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 				&newDynamicBuffer->buffers[i],
 				bufferSize
@@ -999,11 +994,11 @@ namespace vulkan {
 
 		newDynamicBuffer->map();
 
-		_dinamicUniformBuffers.emplace(size, newDynamicBuffer);
+		_dinamicGPUBuffers.emplace(size, newDynamicBuffer);
 		return newDynamicBuffer;
 	}
 
-	uint32_t VulkanRenderer::updateDynamicUniformBufferData(VulkanDynamicBuffer* dynamicBuffer, const void* data, const uint32_t offset, const uint32_t size, const bool allBuffers, const uint32_t knownOffset) const {
+	uint32_t VulkanRenderer::updateDynamicBufferData(VulkanDynamicBuffer* dynamicBuffer, const void* data, const uint32_t offset, const uint32_t size, const bool allBuffers, const uint32_t knownOffset) const {
 		if (dynamicBuffer == nullptr) return 0;
 		// todo: think about max count of mapped dynamic buffers
 		const uint32_t bufferOffset = dynamicBuffer->alignedSize * (knownOffset == 0xffffffff ? dynamicBuffer->getCurrentOffset() : knownOffset);
@@ -1021,6 +1016,10 @@ namespace vulkan {
 
 	void VulkanRenderer::bindDynamicUniformBufferToDescriptorSet(const VulkanDescriptorSet* descriptorSet, VulkanDynamicBuffer* dynamicBuffer, const uint32_t binding) const {
 		bindBufferToDescriptorSet(descriptorSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, dynamicBuffer->buffers.data(), binding, dynamicBuffer->alignedSize, 0);
+	}
+
+	void VulkanRenderer::bindDynamicStorageBufferToDescriptorSet(const VulkanDescriptorSet* descriptorSet, VulkanDynamicBuffer* dynamicBuffer, const uint32_t binding) const {
+		bindBufferToDescriptorSet(descriptorSet, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, dynamicBuffer->buffers.data(), binding, dynamicBuffer->alignedSize, 0);
 	}
 
 	void VulkanRenderer::waitWorkComplete() const {
@@ -1051,17 +1050,11 @@ namespace vulkan {
 
 				delete _emptyTexture;
 
-				for (auto it = _dinamicUniformBuffers.begin(); it != _dinamicUniformBuffers.end(); ++it) {
+				for (auto it = _dinamicGPUBuffers.begin(); it != _dinamicGPUBuffers.end(); ++it) {
 					it->second->unmap();
 					delete it->second;
 				}
-				_dinamicUniformBuffers.clear();
-
-				for (auto it = _dinamicStorageBuffers.begin(); it != _dinamicStorageBuffers.end(); ++it) {
-					it->second->unmap();
-					delete it->second;
-				}
-				_dinamicStorageBuffers.clear();
+				_dinamicGPUBuffers.clear();
 
 				for (auto it = _graphicsPipelinesCache.begin(); it != _graphicsPipelinesCache.end(); ++it) {
 					vkDestroyPipeline(_vulkanDevice->device, it->second->pipeline, nullptr);

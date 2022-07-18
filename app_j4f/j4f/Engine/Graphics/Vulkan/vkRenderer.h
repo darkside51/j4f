@@ -467,16 +467,17 @@ namespace vulkan {
 		VkDescriptorPool getGlobalDescriptorPool() const { return _globalDescriptorPool; }
 
 		// dynamic uniform buffers
-		VulkanDynamicBuffer* getDynamicUniformBufferForSize(const uint32_t size);
-		uint32_t updateDynamicUniformBufferData(VulkanDynamicBuffer* dynamicBuffer, const void* data, const uint32_t offset, const uint32_t size, const bool allBuffers = false, const uint32_t knownOffset = 0xffffffff) const;
+		VulkanDynamicBuffer* getDynamicGPUBufferForSize(const uint32_t size, const VkBufferUsageFlags usageFlags, const uint32_t maxCount = 2048);
+		uint32_t updateDynamicBufferData(VulkanDynamicBuffer* dynamicBuffer, const void* data, const uint32_t offset, const uint32_t size, const bool allBuffers = false, const uint32_t knownOffset = 0xffffffff) const;
 
-		inline uint32_t updateDynamicUniformBufferData(VulkanDynamicBuffer* dynamicBuffer, const void* data, const bool allBuffers = false, const uint32_t knownOffset = 0xffffffff, const uint32_t knownSize = 0xffffffff) const {
+		inline uint32_t updateDynamicBufferData(VulkanDynamicBuffer* dynamicBuffer, const void* data, const bool allBuffers = false, const uint32_t knownOffset = 0xffffffff, const uint32_t knownSize = 0xffffffff) const {
 			if (dynamicBuffer == nullptr) return 0;
-			const uint32_t bufferOffset = updateDynamicUniformBufferData(dynamicBuffer, data, 0, (knownSize == 0xffffffff ? dynamicBuffer->alignedSize : knownSize), allBuffers, knownOffset);
+			const uint32_t bufferOffset = updateDynamicBufferData(dynamicBuffer, data, 0, (knownSize == 0xffffffff ? dynamicBuffer->alignedSize : knownSize), allBuffers, knownOffset);
 			return bufferOffset;
 		}
 
 		void bindDynamicUniformBufferToDescriptorSet(const VulkanDescriptorSet* descriptorSet, VulkanDynamicBuffer* dynamicBuffer, const uint32_t binding) const;
+		void bindDynamicStorageBufferToDescriptorSet(const VulkanDescriptorSet* descriptorSet, VulkanDynamicBuffer* dynamicBuffer, const uint32_t binding) const;
 
 		VkSampler getSampler(
 			const VkFilter minFilter,
@@ -598,8 +599,7 @@ namespace vulkan {
 		//// caches
 
 		// dynamic buffers
-		std::unordered_map<uint32_t, VulkanDynamicBuffer*> _dinamicUniformBuffers;
-		std::unordered_map<uint32_t, VulkanDynamicBuffer*> _dinamicStorageBuffers;
+		std::unordered_map<uint32_t, VulkanDynamicBuffer*> _dinamicGPUBuffers;
 
 		// samplers
 		std::unordered_map<uint16_t, VkSampler> _samplers;

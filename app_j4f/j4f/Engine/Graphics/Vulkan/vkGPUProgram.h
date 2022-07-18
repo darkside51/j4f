@@ -195,9 +195,8 @@ namespace vulkan {
 		uint32_t setValueToLayout(const GPUParamLayoutInfo* paramLayout, const void* value, VulkanPushConstant* pConstant, const uint32_t knownOffset = UNDEFINED, const uint32_t knownSize = UNDEFINED, const bool allBuffers = false);
 		void finishUpdateParams();
 
-		VulkanDynamicBuffer* getDinamicUniformBuffer(const size_t i) {
-			return m_dynamicUniformBuffers[i];
-		}
+		inline VulkanDynamicBuffer* getDinamicGPUBuffer(const size_t i) { return m_dynamicGPUBuffers[i]; }
+		inline const VulkanDynamicBuffer* getDinamicGPUBuffer(const size_t i) const { return m_dynamicGPUBuffers[i]; }
 
 		inline uint8_t getGPUSetsNumbers() const { return m_gpuBuffersSets; }
 		inline uint8_t getGPUSetsCount(uint8_t* setsCount = nullptr) const { 
@@ -236,9 +235,7 @@ namespace vulkan {
 		std::vector<VulkanDescriptorSet*> m_descriptorSets;
 		std::vector<VkPushConstantRange*> m_pushConstantsRanges;
 
-		std::vector<VulkanDynamicBuffer*> m_dynamicUniformBuffers; // bind for m_descriptorSets[i]
-		std::vector<VulkanDynamicBuffer*> m_dynamicStorageBuffers; // bind for m_descriptorSets[i]
-
-		std::vector<vulkan::VulkanBuffer> m_staticUniformBuffers;
+		std::vector<VulkanDynamicBuffer*> m_dynamicGPUBuffers; // bind for m_descriptorSets[i]
+		std::vector<vulkan::VulkanBuffer> m_staticGPUBuffers;
 	};
 }

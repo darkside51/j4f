@@ -29,11 +29,12 @@ namespace vulkan {
 
 			if (member->type_flags & SPV_REFLECT_TYPE_FLAG_VOID) continue;
 
-			const uint32_t oneElementSize =
-				(member->type_flags & SPV_REFLECT_TYPE_FLAG_FLOAT)	? sizeof(float) :
-				(member->type_flags & SPV_REFLECT_TYPE_FLAG_INT)	? sizeof(int32_t) :
-				(member->type_flags & SPV_REFLECT_TYPE_FLAG_BOOL)	? sizeof(bool) :
-				(member->traits.numeric.scalar.width / 8); // размер элемента данных в байтах
+			// https://vulkan-tutorial.com/Uniform_buffers/Descriptor_pool_and_sets#page_Alignment-requirements
+			const uint32_t oneElementSize = 4;
+				//(member->type_flags & SPV_REFLECT_TYPE_FLAG_FLOAT)	? sizeof(float) :
+				//(member->type_flags & SPV_REFLECT_TYPE_FLAG_INT)	? sizeof(int32_t) :
+				//(member->type_flags & SPV_REFLECT_TYPE_FLAG_BOOL)	? sizeof(bool) :
+				//(member->traits.numeric.scalar.width / 8); // размер элемента данных в байтах
 
 			uint32_t size = 0;
 			switch (member->op) {
@@ -57,7 +58,20 @@ namespace vulkan {
 				}
 					break;
 				case SpvOpTypeVector:
-					elementOffset = engine::alignValue(elementOffset, 16); // если не делать выравнивание по 16 для векторов - не правильно отрабатывает, если они не vec4
+					// https://vulkan-tutorial.com/Uniform_buffers/Descriptor_pool_and_sets#page_Alignment-requirements
+					switch (member->traits.numeric.vector.component_count) {
+						case 2:
+							elementOffset = engine::alignValue(elementOffset, 8);
+							break;
+						case 3:
+							elementOffset = engine::alignValue(elementOffset, 16);
+							break;
+						case 4:
+							elementOffset = engine::alignValue(elementOffset, 16);
+							break;
+						default:
+							break;
+					}
 					size = member->traits.numeric.vector.component_count * oneElementSize;
 					break;
 				case SpvOpTypeBool:
@@ -155,7 +169,7 @@ namespace vulkan {
 
 					m_descriptorSetLayoutBindings[i].push_back(bindingDescription);
 				}
-				break;
+					break;
 				case SPV_REFLECT_DESCRIPTOR_TYPE_SAMPLED_IMAGE: // = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE
 					break;
 				case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_IMAGE: // = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE
@@ -194,7 +208,7 @@ namespace vulkan {
 
 					bindingDescription->sizeInBytes = sizeInBytes;
 				}
-				break;
+					break;
 				case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC: // = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC
 				{
 					// создаем лаяут дескриптора юниформа или обновляем имеющийся
@@ -222,7 +236,7 @@ namespace vulkan {
 
 					bindingDescription->sizeInBytes = sizeInBytes;
 				}
-				break;
+					break;
 				case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_BUFFER: // = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
 				{
 					const char* uniformTypeName = binding->type_description->type_name;
@@ -383,7 +397,7 @@ namespace vulkan {
 
 		m_pushConstantsRanges.clear();
 
-		m_staticUniformBuffers.clear();
+		m_staticGPUBuffers.clear();
 	}
 
 	void VulkanGpuProgram::parseModules(const std::vector<VulkanShaderModule*>& modules) {
@@ -537,7 +551,7 @@ namespace vulkan {
 				}
 			}
 
-			m_staticUniformBuffers.resize(staticBuffersCount);
+			m_staticGPUBuffers.resize(staticBuffersCount);
 		}
 	}
 
@@ -556,38 +570,62 @@ namespace vulkan {
 						VK_SHARING_MODE_EXCLUSIVE,
 						VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 						VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-						&m_staticUniformBuffers[staticUBONum],
+						&m_staticGPUBuffers[staticUBONum],
 						layout->sizeInBytes
 					);
 
 					m_renderer->bindBufferToDescriptorSet(
 						descriptorSet,
 						VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 
-						&m_staticUniformBuffers[staticUBONum],
+						&m_staticGPUBuffers[staticUBONum],
 						layout->descriptorSetLayoutBinding->binding,
 						layout->sizeInBytes,
 						0
 					);
 
-					layout->data = &m_staticUniformBuffers[staticUBONum];
+					layout->data = &m_staticGPUBuffers[staticUBONum];
 					m_gpuBuffersSets |= (1 << layout->set);
 					++staticUBONum;
 				}
 					break;
 				case GPUParamLayoutType::STORAGE_BUFFER:
 				{
+					VulkanDescriptorSet* descriptorSet = m_descriptorSets[layout->set];
+					m_renderer->getDevice()->createBuffer(
+						VK_SHARING_MODE_EXCLUSIVE,
+						VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+						VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+						&m_staticGPUBuffers[staticUBONum],
+						layout->sizeInBytes
+					);
+
+					m_renderer->bindBufferToDescriptorSet(
+						descriptorSet,
+						VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+						&m_staticGPUBuffers[staticUBONum],
+						layout->descriptorSetLayoutBinding->binding,
+						layout->sizeInBytes,
+						0
+					);
+
+					layout->data = &m_staticGPUBuffers[staticUBONum];
+					m_gpuBuffersSets |= (1 << layout->set);
+					++staticUBONum;
 				}
 					break;
 				case GPUParamLayoutType::UNIFORM_BUFFER_DYNAMIC:
 				{
-					m_dynamicUniformBuffers.push_back(m_renderer->getDynamicUniformBufferForSize(layout->sizeInBytes));
-					m_renderer->bindDynamicUniformBufferToDescriptorSet(m_descriptorSets[layout->set], m_dynamicUniformBuffers.back(), layout->descriptorSetLayoutBinding->binding);
-					layout->data = m_dynamicUniformBuffers.back();
+					m_dynamicGPUBuffers.push_back(m_renderer->getDynamicGPUBufferForSize(layout->sizeInBytes, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT));
+					m_renderer->bindDynamicUniformBufferToDescriptorSet(m_descriptorSets[layout->set], m_dynamicGPUBuffers.back(), layout->descriptorSetLayoutBinding->binding);
+					layout->data = m_dynamicGPUBuffers.back();
 					m_gpuBuffersSets |= (1 << layout->set);
 				}
 					break;
 				case GPUParamLayoutType::STORAGE_BUFFER_DYNAMIC:
 				{
+					m_dynamicGPUBuffers.push_back(m_renderer->getDynamicGPUBufferForSize(layout->sizeInBytes, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT));
+					m_renderer->bindDynamicStorageBufferToDescriptorSet(m_descriptorSets[layout->set], m_dynamicGPUBuffers.back(), layout->descriptorSetLayoutBinding->binding);
+					layout->data = m_dynamicGPUBuffers.back();
 					m_gpuBuffersSets |= (1 << layout->set);
 				}
 					break;
@@ -617,17 +655,19 @@ namespace vulkan {
 			case GPUParamLayoutType::UNIFORM_BUFFER_DYNAMIC: // full buffer
 			{
 				VulkanDynamicBuffer* buffer = reinterpret_cast<VulkanDynamicBuffer*>(paramLayout->data);
-				result = m_renderer->updateDynamicUniformBufferData(buffer, value, allBuffers, knownOffset, knownSize);
+				result = m_renderer->updateDynamicBufferData(buffer, value, allBuffers, knownOffset, knownSize);
 			}
 				break;
 			case GPUParamLayoutType::STORAGE_BUFFER_DYNAMIC: // full buffer
 			{
+				VulkanDynamicBuffer* buffer = reinterpret_cast<VulkanDynamicBuffer*>(paramLayout->data);
+				result = m_renderer->updateDynamicBufferData(buffer, value, allBuffers, knownOffset, knownSize);
 			}
 				break;
 			case GPUParamLayoutType::BUFFER_DYNAMIC_PART: // part of dynamic buffer
 			{
 				VulkanDynamicBuffer* buffer = reinterpret_cast<VulkanDynamicBuffer*>(paramLayout->parentLayout->data);
-				result = m_renderer->updateDynamicUniformBufferData(buffer, value, paramLayout->offset, (knownSize == UNDEFINED ? paramLayout->sizeInBytes : knownSize), allBuffers, knownOffset);
+				result = m_renderer->updateDynamicBufferData(buffer, value, paramLayout->offset, (knownSize == UNDEFINED ? paramLayout->sizeInBytes : knownSize), allBuffers, knownOffset);
 			}
 				break;
 			case GPUParamLayoutType::PUSH_CONSTANT: // full constant
@@ -658,6 +698,10 @@ namespace vulkan {
 				break;
 			case GPUParamLayoutType::STORAGE_BUFFER: // full buffer
 			{
+				vulkan::VulkanBuffer* buffer = reinterpret_cast<vulkan::VulkanBuffer*>(paramLayout->data);
+				void* memory = buffer->map(buffer->m_size);
+				memcpy(reinterpret_cast<void*>(reinterpret_cast<size_t>(memory) + (knownOffset == UNDEFINED ? paramLayout->offset : knownOffset)), value, (knownSize == UNDEFINED ? paramLayout->sizeInBytes : knownSize));
+				buffer->unmap();
 			}
 				break;
 			case GPUParamLayoutType::BUFFER_PART: // part of buffer
@@ -676,12 +720,8 @@ namespace vulkan {
 	}
 
 	void VulkanGpuProgram::finishUpdateParams() {
-		for (VulkanDynamicBuffer* ub : m_dynamicUniformBuffers) {
+		for (VulkanDynamicBuffer* ub : m_dynamicGPUBuffers) {
 			ub->encrease();
-		}
-
-		for (VulkanDynamicBuffer* sb : m_dynamicStorageBuffers) {
-			sb->encrease();
 		}
 	}
 }
