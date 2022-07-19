@@ -38,6 +38,9 @@
 
 namespace engine {
 
+	vulkan::VulkanGpuProgram* grass_default = nullptr;
+	vulkan::VulkanGpuProgram* grass_shadow = nullptr;
+
 	MeshGraphicsDataBuffer* meshesGraphicsBuffer;
 
 	Camera* camera = nullptr;
@@ -53,7 +56,7 @@ namespace engine {
 	NodeRenderer<Mesh>* mesh6 = nullptr;
 
 	NodeRenderer<Mesh>* grassMesh = nullptr;
-
+	
 	MeshAnimationTree* animTree = nullptr;
 	MeshAnimationTree* animTree2 = nullptr;
 
@@ -67,6 +70,7 @@ namespace engine {
 	VkClearValue clearValues[2];
 
 	RenderList sceneRenderList;
+	RenderList shadowRenderList;
 
 	glm::vec3 wasd(0.0f);
 
@@ -80,6 +84,85 @@ namespace engine {
 	/// cascade shadow map
 
 	H_Node* rootNode;
+
+	//
+	class GrassRenderer {
+	public:
+		GrassRenderer(const uint32_t instanceCount, vulkan::VulkanGpuProgram* program, vulkan::VulkanGpuProgram* shadowProgram) : _instanceCount(instanceCount), _mesh(nullptr) {
+			auto&& gpuProgramManager = Engine::getInstance().getModule<Graphics>()->getGpuProgramsManager();
+			std::vector<engine::ProgramStageInfo> psi;
+			psi.emplace_back(ProgramStage::VERTEX, "resources/shaders/grass.vsh.spv");
+			psi.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/grass.psh.spv");
+			grass_default = gpuProgramManager->getProgram(psi);
+
+			std::vector<engine::ProgramStageInfo> psi2;
+			psi2.emplace_back(ProgramStage::VERTEX, "resources/shaders/grass_depthpass.vsh.spv");
+			psi2.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/grass_depthpass.psh.spv");
+			grass_shadow = gpuProgramManager->getProgram(psi2);
+
+			glm::vec3 lightDir = as_normalized(-lightPos);
+			glm::vec2 lightMinMax(0.4f, 1.2f);
+			glm::vec4 lightColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+			auto l = grass_default->getGPUParamLayoutByName("lightDirection");
+			grass_default->setValueToLayout(l, &lightDir, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			auto l2 = grass_default->getGPUParamLayoutByName("lightMinMax");
+			grass_default->setValueToLayout(l2, &lightMinMax, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			auto l4 = grass_default->getGPUParamLayoutByName("lightColor");
+			grass_default->setValueToLayout(l4, &lightColor, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+
+			shadowMap->registerProgramAsReciever(program_mesh_default);
+
+			std::vector<glm::mat4> grassTransforms(instanceCount);
+			for (size_t i = 0; i < instanceCount; ++i) {
+				glm::mat4 wtr(1.0f);
+				scaleMatrix(wtr, glm::vec3(engine::random(10,25) * 1700.0f, engine::random(10, 25) * 1700.0f, engine::random(5, 25) * 600.0f));
+				rotateMatrix_xyz(wtr, glm::vec3(0.0f, 0.0f, engine::random(-3.1415926, 3.1415926)));
+				translateMatrixTo(wtr, glm::vec3(-325.0f + (i % 30) * 28.0f, 350.0f - (i / 30) * 28.0f, 0.0f));
+				grassTransforms[i] = std::move(wtr);
+			}
+
+			auto lssbo = grass_default->getGPUParamLayoutByName("models");
+			grass_default->setValueToLayout(lssbo, grassTransforms.data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, sizeof(glm::mat4) * instanceCount, true);
+
+			auto lssbo2 = grass_shadow->getGPUParamLayoutByName("models");
+			grass_shadow->setValueToLayout(lssbo2, grassTransforms.data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, sizeof(glm::mat4) * instanceCount, true);
+		}
+		~GrassRenderer() {
+			if (_mesh) {
+				delete _mesh;
+				_mesh = nullptr;
+			}
+		}
+
+		void setMesh(Mesh* asset) {
+			_mesh = asset;
+
+			auto&& rdescriptor = _mesh->getRenderDescriptor();
+			for (size_t i = 0; i < rdescriptor.renderDataCount; ++i) {
+				for (size_t j = 0; j < rdescriptor.renderData[i]->renderPartsCount; ++j) {
+					rdescriptor.renderData[i]->renderParts[j].instanceCount = _instanceCount;
+				}
+			}
+		}
+
+		inline void updateRenderData(const glm::mat4& worldMatrix) {
+			_mesh->updateRenderData(worldMatrix);
+		}
+
+		inline void setProgram(vulkan::VulkanGpuProgram* program, VkRenderPass renderPass = nullptr) {
+			_mesh->setProgram(program, renderPass);
+		}
+
+		inline const RenderDescriptor& getRenderDescriptor() const { return _mesh->getRenderDescriptor(); }
+		inline RenderDescriptor& getRenderDescriptor() { return _mesh->getRenderDescriptor(); }
+
+	private:
+		uint32_t _instanceCount;
+		Mesh* _mesh;
+	};
+
+	NodeRenderer<GrassRenderer>* grassMesh2 = nullptr;
 
 	class ApplicationCustomData : public InputObserver, public ICameraTransformChangeObserver {
 	public:
@@ -304,7 +387,7 @@ namespace engine {
 			tex_params3.file = "resources/assets/models/vikingHut/textures/texture1.jpg";
 			auto texture_t5 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
-			tex_params3.file = "resources/assets/models/grass/textures/grass.png";
+			tex_params3.file = "resources/assets/models/grass/textures/grass75.png";
 			auto texture_t6 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
 			meshesGraphicsBuffer = new MeshGraphicsDataBuffer(10 * 1024 * 1024, 10 * 1024 * 1024); // or create with default constructor for unique buffer for mesh
@@ -357,7 +440,8 @@ namespace engine {
 			mesh4 = new NodeRenderer<Mesh>();
 			mesh5 = new NodeRenderer<Mesh>();
 			mesh6 = new NodeRenderer<Mesh>();
-			grassMesh = new NodeRenderer<Mesh>();
+			//grassMesh = new NodeRenderer<Mesh>();
+			grassMesh2 = new NodeRenderer<GrassRenderer>();
 
 			assm->loadAsset<Mesh*>(mesh_params, [program_gltf, texture_zombi, this](Mesh* asset, const AssetLoadingResult result) {
 				asset->setProgram(program_gltf);
@@ -382,6 +466,8 @@ namespace engine {
 				node->value().setLocalMatrix(wtr);
 				node->value().makeGraphicsLink(mesh);
 				rootNode->addChild(node);
+
+				shadowRenderList.addDescriptor(&asset->getRenderDescriptor());
 				});
 
 			assm->loadAsset<Mesh*>(mesh_params, [program_gltf, texture_zombi](Mesh* asset, const AssetLoadingResult result) {
@@ -405,6 +491,8 @@ namespace engine {
 				node->value().setLocalMatrix(wtr);
 				node->value().makeGraphicsLink(mesh2);
 				rootNode->addChild(node);
+
+				shadowRenderList.addDescriptor(&asset->getRenderDescriptor());
 				});
 
 			assm->loadAsset<Mesh*>(mesh_params2, [program_gltf, texture_v, texture_v2, texture_v3](Mesh* asset, const AssetLoadingResult result) {
@@ -438,6 +526,8 @@ namespace engine {
 				node->value().setLocalMatrix(wtr);
 				node->value().makeGraphicsLink(mesh3);
 				rootNode->addChild(node);
+
+				shadowRenderList.addDescriptor(&asset->getRenderDescriptor());
 				});
 
 			assm->loadAsset<Mesh*>(mesh_params3, [program_gltf, texture_t, texture_t2, this](Mesh* asset, const AssetLoadingResult result) {
@@ -460,6 +550,8 @@ namespace engine {
 				node->value().setLocalMatrix(wtr);
 				node->value().makeGraphicsLink(mesh4);
 				rootNode->addChild(node);
+
+				shadowRenderList.addDescriptor(&asset->getRenderDescriptor());
 				});
 
 			assm->loadAsset<Mesh*>(mesh_params4, [program_gltf, texture_t3, texture_t4, this](Mesh* asset, const AssetLoadingResult result) {
@@ -482,6 +574,8 @@ namespace engine {
 				node->value().setLocalMatrix(wtr);
 				node->value().makeGraphicsLink(mesh5);
 				rootNode->addChild(node);
+
+				shadowRenderList.addDescriptor(&asset->getRenderDescriptor());
 				});
 
 			assm->loadAsset<Mesh*>(mesh_params5, [program_gltf, texture_t5, texture_t6, this](Mesh* asset, const AssetLoadingResult result) {
@@ -503,18 +597,24 @@ namespace engine {
 				node->value().setLocalMatrix(wtr);
 				node->value().makeGraphicsLink(mesh6);
 				rootNode->addChild(node);
+
+				shadowRenderList.addDescriptor(&asset->getRenderDescriptor());
 				});
 
-			assm->loadAsset<Mesh*>(mesh_params_grass, [program_gltf, texture_t6, this](Mesh* asset, const AssetLoadingResult result) {
-				asset->setProgram(program_gltf);
+			assm->loadAsset<Mesh*>(mesh_params_grass, [texture_t6, this](Mesh* asset, const AssetLoadingResult result) {
+				GrassRenderer* grenderer = new GrassRenderer(900, nullptr, nullptr);
+				asset->setProgram(grass_default);
 				asset->setParamByName("u_texture", texture_t6, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 
 				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
 				asset->onPipelineAttributesChanged();
 
-				////////////////////
-				grassMesh->setGraphics(asset);
+				/////////////////////
+				grenderer->setMesh(asset);
+				grassMesh2->setGraphics(grenderer);
+
+				//grassMesh->setGraphics(asset);
 				glm::mat4 wtr(1.0f);
 				scaleMatrix(wtr, glm::vec3(10000.0f));
 				rotateMatrix_xyz(wtr, glm::vec3(1.57f, 0.0f, 0.0f));
@@ -522,7 +622,8 @@ namespace engine {
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
-				node->value().makeGraphicsLink(grassMesh);
+				//node->value().makeGraphicsLink(grassMesh);
+				node->value().makeGraphicsLink(grassMesh2);
 				rootNode->addChild(node);
 				});
 
@@ -721,7 +822,6 @@ namespace engine {
 			}
 
 			//rootNode->execute_with<NodeMatrixUpdater>();
-
 			reloadRenderList(sceneRenderList, rootNode, camera);
 
 			mesh->updateRenderData();
@@ -730,7 +830,7 @@ namespace engine {
 			mesh4->updateRenderData();
 			mesh5->updateRenderData();
 			mesh6->updateRenderData();
-			grassMesh->updateRenderData();
+			grassMesh2->updateRenderData();
 
 			const uint64_t wh = renderer->getWH();
 			const uint32_t width = static_cast<uint32_t>(wh >> 0);
@@ -746,7 +846,7 @@ namespace engine {
 			mesh4->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
 			mesh5->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
 			mesh6->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
-			grassMesh->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
+			grassMesh2->setProgram(grass_shadow, shadowMap->getRenderPass());
 
 			//if (animTree2) {
 				// у меня лайоуты совпадают у юниформов, для теней => не нужно вызывать переназначение, достаточно одного раза
@@ -767,7 +867,9 @@ namespace engine {
 				//mesh->render(commandBuffer, currentFrame, &shadowMap->getVPMatrix(i));
 				//mesh2->render(commandBuffer, currentFrame, &shadowMap->getVPMatrix(i));
 				//mesh3->render(commandBuffer, currentFrame, &shadowMap->getVPMatrix(i));
-				sceneRenderList.render(commandBuffer, currentFrame, &shadowMap->getVPMatrix(i));
+				//sceneRenderList.render(commandBuffer, currentFrame, &shadowMap->getVPMatrix(i));
+
+				shadowRenderList.render(commandBuffer, currentFrame, &shadowMap->getVPMatrix(i));
 
 				shadowMap->endRenderPass(commandBuffer);
 			}
@@ -778,7 +880,7 @@ namespace engine {
 			mesh4->setProgram(program_mesh_default);
 			mesh5->setProgram(program_mesh_default);
 			mesh6->setProgram(program_mesh_default);
-			grassMesh->setProgram(program_mesh_default);
+			grassMesh2->setProgram(grass_default);
 			/////// shadow pass
 
 			commandBuffer.cmdBeginRenderPass(renderer->getMainRenderPass(), { {0, 0}, {width, height} }, &clearValues[0], 2, renderer->getFrameBuffer().m_framebuffer, VK_SUBPASS_CONTENTS_INLINE);

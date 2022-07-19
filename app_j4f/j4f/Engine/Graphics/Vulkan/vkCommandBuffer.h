@@ -158,9 +158,23 @@ namespace vulkan {
 		}
 
 		inline bool bindPipeline(const VkPipelineBindPoint pipelineBindPoint, VkPipeline pipeline) { 
-			if (m_pipelineBindPoint != pipelineBindPoint || m_pipeline != pipeline) {
+			if (/*m_pipelineBindPoint != pipelineBindPoint ||*/ m_pipeline != pipeline) {
 				m_pipelineBindPoint = pipelineBindPoint;
 				m_pipeline = pipeline;
+
+				switch (m_pipelineBindPoint) {
+					case VK_PIPELINE_BIND_POINT_GRAPHICS:
+						m_bindSets[0].invalidate();
+						break;
+					case VK_PIPELINE_BIND_POINT_COMPUTE:
+						m_bindSets[1].invalidate();
+						break;
+					case VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR:
+						m_bindSets[2].invalidate();
+						break;
+					default:
+						break;
+				}
 				return true;
 			}
 			return false;

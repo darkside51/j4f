@@ -64,8 +64,8 @@ void main() {
 
 	//float shadow = textureProj(shadowCoord / shadowCoord.w, vec2(0.0), cascade);
 	float shadow = filterPCF(shadowCoord / shadowCoord.w, cascade);
-	//outFragColor = u_constants.lightColor * texture(u_texture, uv, 0.0);
-	outFragColor = vec4(0.5, 0.5, 0.5, 1.0);
+	outFragColor = u_constants.lightColor * texture(u_texture, uv, 0.0);
+	//outFragColor = vec4(0.5, 0.5, 0.5, 1.0);
 	outFragColor.rgb *= gl_FrontFacing ? shadow : 1.0;
 
 	// debug cascades
