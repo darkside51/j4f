@@ -71,7 +71,7 @@ void main() {
 		float shadow = textureProj(shadowCoord / shadowCoord.w, vec2(0.0, 0.0), cascade);
 		//float shadow = filterPCF(shadowCoord / shadowCoord.w, cascade);
 
-		const float light = shadow * max(dot((gl_FrontFacing ? in_normal : -in_normal), -u_constants.lightDirection), u_constants.lightMinMax.x + 0.23);
+		const float light = shadow * max(dot((gl_FrontFacing ? in_normal : -in_normal), -u_constants.lightDirection), u_constants.lightMinMax.x + 0.25);
 		color.rgb *= clamp(u_constants.lightMinMax.y * light, u_constants.lightMinMax.x, u_constants.lightMinMax.y);
 		outColor = u_constants.lightColor * color;
 

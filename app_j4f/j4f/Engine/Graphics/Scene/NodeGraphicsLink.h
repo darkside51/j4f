@@ -43,7 +43,9 @@ namespace engine {
 		NodeRenderer() = default;
 		NodeRenderer(type g) : NodeGraphics(&g->getRenderDescriptor()), _graphics(g) {}
 
+		inline GraphicsLink* getNodeLink() { return _link; }
 		inline const GraphicsLink* getNodeLink() const { return _link; }
+
 		inline void setNodeLink(const GraphicsLink* l) {
 			_link = const_cast<GraphicsLink*>(l);
 			_link->setGraphics(this);
@@ -116,6 +118,9 @@ namespace engine {
 			}
 			_graphics = g;
 		}
+
+		inline Node* getNode() { return _node; }
+		inline const Node* getNode() const { return _node; }
 
 	private:
 		Node* _node = nullptr;

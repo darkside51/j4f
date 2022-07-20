@@ -8,6 +8,9 @@
 #include "../../Vulkan/vkTexture.h"
 #include "../../../Core/Engine.h"
 
+// todo: read this
+// https://docs.microsoft.com/ru-ru/windows/win32/dxtecharts/common-techniques-to-improve-shadow-depth-maps
+
 namespace engine {
 
 	class Mesh;

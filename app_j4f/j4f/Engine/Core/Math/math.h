@@ -21,6 +21,7 @@ namespace engine {
 
     namespace math_constants {
         inline constexpr float pi       = 3.14159265359f;
+        inline constexpr float pi2      = pi * 2.0f;
         inline constexpr float e        = 2.71828182846f;
         inline constexpr float radInDeg = pi / 180.0f;
         inline constexpr float degInRad = 180.0f / pi;

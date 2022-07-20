@@ -48,9 +48,13 @@ void main() {
 	out_uv = a_uv;
 
 	mat4 modelMatrix = u_transforms.models[gl_InstanceIndex];
+	float t = u_push_const.model_matrix[0][0];
+	float st = 0.025 * sin(t + modelMatrix[3][0]) * a_position.z;
+	vec4 p = vec4(a_position, 1.0);
+	p.xy += st;
 
 	out_normal = normalize((modelMatrix * vec4(a_normal, 0.0)).xyz);
-	vec4 world_position = modelMatrix * vec4(a_position, 1.0);
+	vec4 world_position = modelMatrix * p;
 	vec3 view_position = (u_shadow.view * world_position).xyz;
 
 	out_view_depth = view_position.z;

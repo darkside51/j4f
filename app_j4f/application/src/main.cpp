@@ -39,7 +39,6 @@
 namespace engine {
 
 	vulkan::VulkanGpuProgram* grass_default = nullptr;
-	vulkan::VulkanGpuProgram* grass_shadow = nullptr;
 
 	MeshGraphicsDataBuffer* meshesGraphicsBuffer;
 
@@ -79,12 +78,12 @@ namespace engine {
 	/// cascade shadow map
 	constexpr uint8_t SHADOW_MAP_CASCADE_COUNT = 4;
 	constexpr uint16_t SHADOWMAP_DIM = 4096; // VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
-	//constexpr uint16_t SHADOWMAP_DIM = 2048; // VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU
+	//constexpr uint16_t SHADOWMAP_DIM = 1024; // VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU
 	glm::vec3 lightPos = glm::vec3(-460.0f, -600.0f, 1000.0f);
 	/// cascade shadow map
 
-	H_Node* rootNode;
 
+	H_Node* rootNode;
 	//
 	class GrassRenderer {
 	public:
@@ -95,13 +94,8 @@ namespace engine {
 			psi.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/grass.psh.spv");
 			grass_default = gpuProgramManager->getProgram(psi);
 
-			std::vector<engine::ProgramStageInfo> psi2;
-			psi2.emplace_back(ProgramStage::VERTEX, "resources/shaders/grass_depthpass.vsh.spv");
-			psi2.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/grass_depthpass.psh.spv");
-			grass_shadow = gpuProgramManager->getProgram(psi2);
-
 			glm::vec3 lightDir = as_normalized(-lightPos);
-			glm::vec2 lightMinMax(0.4f, 1.2f);
+			glm::vec2 lightMinMax(0.4f, 1.25f);
 			glm::vec4 lightColor(1.0f, 1.0f, 1.0f, 1.0f);
 
 			auto l = grass_default->getGPUParamLayoutByName("lightDirection");
@@ -114,19 +108,18 @@ namespace engine {
 			shadowMap->registerProgramAsReciever(program_mesh_default);
 
 			std::vector<glm::mat4> grassTransforms(instanceCount);
+			const int step = static_cast<int>(sqrtf(instanceCount));
+			const float space = 28.0f;
 			for (size_t i = 0; i < instanceCount; ++i) {
 				glm::mat4 wtr(1.0f);
 				scaleMatrix(wtr, glm::vec3(engine::random(10,25) * 1700.0f, engine::random(10, 25) * 1700.0f, engine::random(5, 25) * 600.0f));
 				rotateMatrix_xyz(wtr, glm::vec3(0.0f, 0.0f, engine::random(-3.1415926, 3.1415926)));
-				translateMatrixTo(wtr, glm::vec3(-325.0f + (i % 30) * 28.0f, 350.0f - (i / 30) * 28.0f, 0.0f));
+				translateMatrixTo(wtr, glm::vec3(-(step * space * 0.5f) + (i % step) * space, -(step * space * 0.5f) + (i / step) * space, 0.0f));
 				grassTransforms[i] = std::move(wtr);
 			}
 
 			auto lssbo = grass_default->getGPUParamLayoutByName("models");
 			grass_default->setValueToLayout(lssbo, grassTransforms.data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, sizeof(glm::mat4) * instanceCount, true);
-
-			auto lssbo2 = grass_shadow->getGPUParamLayoutByName("models");
-			grass_shadow->setValueToLayout(lssbo2, grassTransforms.data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, sizeof(glm::mat4) * instanceCount, true);
 		}
 		~GrassRenderer() {
 			if (_mesh) {
@@ -602,7 +595,7 @@ namespace engine {
 				});
 
 			assm->loadAsset<Mesh*>(mesh_params_grass, [texture_t6, this](Mesh* asset, const AssetLoadingResult result) {
-				GrassRenderer* grenderer = new GrassRenderer(900, nullptr, nullptr);
+				GrassRenderer* grenderer = new GrassRenderer(4900, nullptr, nullptr);
 				asset->setProgram(grass_default);
 				asset->setParamByName("u_texture", texture_t6, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
@@ -616,9 +609,9 @@ namespace engine {
 
 				//grassMesh->setGraphics(asset);
 				glm::mat4 wtr(1.0f);
-				scaleMatrix(wtr, glm::vec3(10000.0f));
-				rotateMatrix_xyz(wtr, glm::vec3(1.57f, 0.0f, 0.0f));
-				translateMatrixTo(wtr, glm::vec3(200.0f, -100.0f, 0.0f));
+				//scaleMatrix(wtr, glm::vec3(10000.0f));
+				//rotateMatrix_xyz(wtr, glm::vec3(1.57f, 0.0f, 0.0f));
+				//translateMatrixTo(wtr, glm::vec3(200.0f, -100.0f, 0.0f));
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
@@ -634,7 +627,7 @@ namespace engine {
 			texture_1 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params_logo);
 
 			TextureLoadingParams tex_params_floor;
-			tex_params_floor.file = "resources/assets/textures/ground3.jpg";
+			tex_params_floor.file = "resources/assets/textures/swamp6.jpg";
 			tex_params_floor.flags->async = 1;
 			tex_params_floor.flags->use_cache = 1;
 			texture_floor = assm->loadAsset<vulkan::VulkanTexture*>(tex_params_floor, [](vulkan::VulkanTexture* asset, const AssetLoadingResult result) {
@@ -821,6 +814,18 @@ namespace engine {
 				mesh3->graphics()->getSkeleton()->updateAnimation(delta, animTree2);
 			}
 
+			////////
+			if (auto&& link = grassMesh2->getNodeLink()) {
+				static float t = 0.0f;
+				t += delta;
+
+				if (t > math_constants::pi2) {
+					t -= math_constants::pi2;
+				}
+
+				link->getNode()->setLocalMatrix(glm::mat4(t));
+			}
+
 			//rootNode->execute_with<NodeMatrixUpdater>();
 			reloadRenderList(sceneRenderList, rootNode, camera);
 
@@ -846,7 +851,6 @@ namespace engine {
 			mesh4->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
 			mesh5->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
 			mesh6->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
-			grassMesh2->setProgram(grass_shadow, shadowMap->getRenderPass());
 
 			//if (animTree2) {
 				// у меня лайоуты совпадают у юниформов, для теней => не нужно вызывать переназначение, достаточно одного раза
