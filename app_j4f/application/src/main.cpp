@@ -82,6 +82,7 @@ namespace engine {
 	glm::vec3 lightPos = glm::vec3(-460.0f, -600.0f, 1000.0f);
 	/// cascade shadow map
 
+	glm::vec4 lightColor(1.3f, 1.3f, 1.0f, 1.0f);
 
 	H_Node* rootNode;
 	//
@@ -96,8 +97,7 @@ namespace engine {
 
 			glm::vec3 lightDir = as_normalized(-lightPos);
 			glm::vec2 lightMinMax(0.4f, 1.25f);
-			glm::vec4 lightColor(1.0f, 1.0f, 1.0f, 1.0f);
-
+			
 			auto l = grass_default->getGPUParamLayoutByName("lightDirection");
 			grass_default->setValueToLayout(l, &lightDir, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 			auto l2 = grass_default->getGPUParamLayoutByName("lightMinMax");
@@ -109,10 +109,13 @@ namespace engine {
 
 			std::vector<glm::mat4> grassTransforms(instanceCount);
 			const int step = static_cast<int>(sqrtf(instanceCount));
-			const float space = 28.0f;
+			const float space = 29.0f;
 			for (size_t i = 0; i < instanceCount; ++i) {
+				const float scale_xy = (engine::random(10, 25) * 1700.0f);
+				const float scale_z = (engine::random(10, 30) * 600.0f);
+
 				glm::mat4 wtr(1.0f);
-				scaleMatrix(wtr, glm::vec3(engine::random(10,25) * 1700.0f, engine::random(10, 25) * 1700.0f, engine::random(5, 25) * 600.0f));
+				scaleMatrix(wtr, glm::vec3(scale_xy, scale_xy, scale_z));
 				rotateMatrix_xyz(wtr, glm::vec3(0.0f, 0.0f, engine::random(-3.1415926, 3.1415926)));
 				translateMatrixTo(wtr, glm::vec3(-(step * space * 0.5f) + (i % step) * space, -(step * space * 0.5f) + (i / step) * space, 0.0f));
 				grassTransforms[i] = std::move(wtr);
@@ -326,7 +329,6 @@ namespace engine {
 
 			glm::vec3 lightDir = as_normalized(-lightPos);
 			glm::vec2 lightMinMax(0.4f, 1.5f);
-			glm::vec4 lightColor(1.0f, 1.0f, 1.0f, 1.0f);
 
 			auto l = program_mesh_default->getGPUParamLayoutByName("lightDirection");
 			program_mesh_default->setValueToLayout(l, &lightDir, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
@@ -817,7 +819,7 @@ namespace engine {
 			////////
 			if (auto&& link = grassMesh2->getNodeLink()) {
 				static float t = 0.0f;
-				t += delta;
+				t += 3.0f * delta;
 
 				if (t > math_constants::pi2) {
 					t -= math_constants::pi2;

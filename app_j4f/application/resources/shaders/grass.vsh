@@ -40,6 +40,8 @@ layout (location = 1) out vec2 out_uv;
 layout (location = 2) out float out_view_depth;
 layout (location = 3) out vec3 out_position;
 
+layout (location = 4) out float out_st;
+
 out gl_PerVertex {
     vec4 gl_Position;   
 };
@@ -48,16 +50,16 @@ void main() {
 	out_uv = a_uv;
 
 	mat4 modelMatrix = u_transforms.models[gl_InstanceIndex];
-	float t = u_push_const.model_matrix[0][0];
-	float st = 0.025 * sin(t + modelMatrix[3][0]) * a_position.z;
-	vec4 p = vec4(a_position, 1.0);
-	p.xy += st;
 
 	out_normal = normalize((modelMatrix * vec4(a_normal, 0.0)).xyz);
-	vec4 world_position = modelMatrix * p;
+	vec4 world_position = modelMatrix * vec4(a_position, 1.0);
 	vec3 view_position = (u_shadow.view * world_position).xyz;
 
 	out_view_depth = view_position.z;
 	out_position = world_position.xyz;
+
+	float t = u_push_const.model_matrix[0][0];
+	out_st = 0.0025 * sin(t + (world_position.x + world_position.y) * 0.1) * world_position.z;
+
 	gl_Position = u_push_const.camera_matrix * world_position;
 }
