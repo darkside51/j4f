@@ -10,22 +10,7 @@
 #include "../Vulkan/vkTexture.h"
 #include "../../Utils/Debug/Profiler.h"
 
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-
 namespace engine {
-
-	inline void getTextureInfo(const char* file, int* w, int* h, int* c) {
-		stbi_info(file, w, h, c); // texture dimensions + channels without load
-	}
-
-	inline unsigned char* loadImageDataFromBuffer (const unsigned char* buffer, const size_t size, int* w, int* h, int* c){
-		return stbi_load_from_memory(buffer, size, w, h, c, 4);
-	}
-
-	inline void freeImageData(unsigned char* img) {
-		stbi_image_free(img);
-	}
 
 	void TextureLoader::addCallback(vulkan::VulkanTexture* t, const TextureLoadingCallback& c) {
 		AtomicLock lock(_callbacksLock);
@@ -50,36 +35,42 @@ namespace engine {
 
 	vulkan::VulkanTexture* TextureLoader::createTexture(const TextureLoadingParams& params, const TextureLoadingCallback& callback) {
 		auto&& engine = Engine::getInstance();
-		FileManager* fm = engine.getModule<engine::FileManager>();
-		int width, height, channels;
-		getTextureInfo(fm->getFullPath(params.file).c_str(), &width, &height, &channels); // texture dimensions + channels without load
-
 		auto&& renderer = engine.getModule<engine::Graphics>()->getRenderer();
-		vulkan::VulkanTexture* texture = new vulkan::VulkanTexture(renderer, width, height, 1);
+
+		vulkan::VulkanTexture* texture;
+		if (params.texData) {
+			texture = new vulkan::VulkanTexture(renderer, params.texData->width(), params.texData->height(), 1);
+		} else {
+			FileManager* fm = engine.getModule<engine::FileManager>();
+			int width, height, channels;
+			TextureData::getInfo(fm->getFullPath(params.files[0]).c_str(), &width, &height, &channels); // texture dimensions + channels without load
+
+			texture = new vulkan::VulkanTexture(renderer, width, height, 1);
+		}
 
 		if (params.flags->async) {
 			if (callback) { addCallback(texture, callback); }
 
 			engine.getModule<AssetManager>()->getThreadPool()->enqueue(TaskType::COMMON, 0, [params, texture](const CancellationToken& token) {
-				PROFILE_TIME_SCOPED_M(textureLoading, params.file)
-				FileManager* fm = engine::Engine::getInstance().getModule<engine::FileManager>();
-				size_t fsize;
-				char* imgBuffer = fm->readFile(params.file, fsize);
+				PROFILE_TIME_SCOPED_M(textureLoading, params.files[0])
+				if (params.texData) {
+					if (!params.texData->operator bool()) {
+						executeCallbacks(texture, AssetLoadingResult::LOADING_ERROR);
+						texture->noGenerate();
+						return;
+					}
+					texture->create(params.texData->data(), params.texData->format(), params.texData->bpp(), params.textureFlags->useMipMaps, true);
+				} else {
+					TextureData img(params.files[0]);
 
-				int width, height, channels;
-				unsigned char* img = loadImageDataFromBuffer(reinterpret_cast<unsigned char*>(imgBuffer), fsize, &width, &height, &channels);
+					if (!img) {
+						executeCallbacks(texture, AssetLoadingResult::LOADING_ERROR);
+						texture->noGenerate();
+						return;
+					}
 
-				delete imgBuffer;
-
-				if (img == nullptr) {
-					executeCallbacks(texture, AssetLoadingResult::LOADING_ERROR);
-					texture->noGenerate();
-					return;
+					texture->create(img.data(), img.format(), img.bpp(), params.textureFlags->useMipMaps, true);
 				}
-
-				texture->create(img, VK_FORMAT_R8G8B8A8_UNORM, 32, params.textureFlags->useMipMaps, true);
-
-				freeImageData(img);
 
 				if (params.imageLayout != VK_IMAGE_LAYOUT_MAX_ENUM) {
 					texture->createSingleDescriptor(params.imageLayout, params.binding);
@@ -88,25 +79,25 @@ namespace engine {
 				executeCallbacks(texture, AssetLoadingResult::LOADING_SUCCESS);
 			});
 		} else {
-			PROFILE_TIME_SCOPED_M(textureLoading, params.file)
-			FileManager* fm = engine.getModule<engine::FileManager>();
-			size_t fsize;
-			const char* imgBuffer = fm->readFile(params.file, fsize);
-			unsigned char* img = loadImageDataFromBuffer(reinterpret_cast<const unsigned char*>(imgBuffer), fsize, &width, &height, &channels);
-
-			delete imgBuffer;
-
-			if (img == nullptr) {
-				if (callback) {
-					callback(texture, AssetLoadingResult::LOADING_ERROR);
+			PROFILE_TIME_SCOPED_M(textureLoading, params.files[0])
+			if (params.texData) {
+				if (!params.texData->operator bool()) {
+					executeCallbacks(texture, AssetLoadingResult::LOADING_ERROR);
+					texture->noGenerate();
+					return texture;
 				}
-				texture->noGenerate();
-				return texture;
+				texture->create(params.texData->data(), params.texData->format(), params.texData->bpp(), params.textureFlags->useMipMaps, true);
+			} else {
+				TextureData img(params.files[0]);
+
+				if (!img) {
+					if (callback) { callback(texture, AssetLoadingResult::LOADING_ERROR); }
+					texture->noGenerate();
+					return texture;
+				}
+
+				texture->create(img.data(), img.format(), img.bpp(), params.textureFlags->useMipMaps, params.textureFlags->deffered);
 			}
-
-			texture->create(img, VK_FORMAT_R8G8B8A8_UNORM, 32, params.textureFlags->useMipMaps, params.textureFlags->deffered);
-
-			freeImageData(img);
 
 			if (params.imageLayout != VK_IMAGE_LAYOUT_MAX_ENUM) {
 				texture->createSingleDescriptor(params.imageLayout, params.binding);
@@ -124,7 +115,7 @@ namespace engine {
 		auto&& cache = engine.getModule<CacheManager>()->getCache<std::string, vulkan::VulkanTexture*>();
 
 		if (params.flags->use_cache) {
-			if (v = cache->getValue(params.file)) {
+			if (v = cache->getValue(params.files[0])) {
 				if (callback) {
 					switch (v->generationState()) {
 					case vulkan::VulkanTextureCreationState::NO_CREATED:
@@ -143,7 +134,7 @@ namespace engine {
 		}
 
 		if (params.flags->use_cache) {
-			v = cache->getOrSetValue(params.file, [](const TextureLoadingParams& params, const TextureLoadingCallback& callback) {
+			v = cache->getOrSetValue(params.files[0], [](const TextureLoadingParams& params, const TextureLoadingCallback& callback) {
 				return createTexture(params, callback);
 			}, params, callback);
 		} else {

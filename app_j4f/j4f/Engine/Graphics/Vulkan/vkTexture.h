@@ -41,7 +41,7 @@ namespace vulkan {
 		inline const VkSampler getSampler() const { return _sampler; }
 		inline const VkDescriptorSet getSingleDescriptor() const { return _descriptor; }
 
-		void fillGpuData(VulkanBuffer* staging, VulkanCommandBuffer& cmdBuffer);
+		void fillGpuData(VulkanBuffer* staging, VulkanCommandBuffer& cmdBuffer, const uint32_t baseLayer, const uint32_t layerCount);
 
 		inline VulkanTextureCreationState generationState() const { return _generationState.load(std::memory_order_consume); }
 		inline void noGenerate() { _generationState.store(VulkanTextureCreationState::NO_CREATED, std::memory_order_release); }

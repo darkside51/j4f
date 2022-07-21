@@ -2,7 +2,10 @@
 
 #include "../../Core/AssetManager.h"
 
+#include "TextureData.h"
+
 #include <vulkan/vulkan.h>
+#include <vector>
 #include <string>
 #include <unordered_map>
 #include <atomic>
@@ -31,9 +34,11 @@ namespace engine {
 			const TextureFlags* operator->() const { return &flags; }
 		};
 
-		std::string file;
+		std::vector<std::string> files;
 		VkImageLayout imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		uint32_t binding = 0;
+
+		TextureData *texData = nullptr;
 
 		TextureLoadingFlags textureFlags;
 	};

@@ -18,17 +18,17 @@ namespace vulkan {
 		VulkanBuffer* staging = generateWithData(data, format, bpp, createMipMaps);
 
 		if (deffered) {
-			_renderer->addDefferedGenerateTexture(this, staging);
+			_renderer->addDefferedGenerateTexture(this, staging, 0, 1);
 		} else {
 			auto&& cmdBuffer = _renderer->getSupportCommandBuffer();
-			fillGpuData(staging, cmdBuffer);
+			fillGpuData(staging, cmdBuffer, 0, 1);
 			_renderer->addTmpBuffer(staging);
 		}
 	}
 
 	VulkanBuffer* VulkanTexture::generateWithData(const void* data, const VkFormat format, const uint8_t bpp, const bool createMipMaps) {
 		const size_t dataSize = _width * _height * (bpp / 8);
-		const uint8_t mipLevels = (createMipMaps ? (std::floor(std::log2(std::max(_width, _height))) + 1) : 1);
+		const uint8_t mipLevels = (createMipMaps ? (static_cast<uint8_t>(std::floor(std::log2(std::max(_width, _height)))) + 1) : 1);
 
 		VulkanBuffer* staging = new VulkanBuffer();
 		_renderer->getDevice()->createBuffer(
@@ -88,7 +88,7 @@ namespace vulkan {
 		return staging;
 	}
 
-	void VulkanTexture::fillGpuData(VulkanBuffer* staging, VulkanCommandBuffer& cmdBuffer) {
+	void VulkanTexture::fillGpuData(VulkanBuffer* staging, VulkanCommandBuffer& cmdBuffer, const uint32_t baseLayer, const uint32_t layerCount) {
 		cmdBuffer.begin();
 
 		// image memory barriers for the texture image
@@ -108,8 +108,8 @@ namespace vulkan {
 		region.bufferImageHeight = 0;
 		region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		region.imageSubresource.mipLevel = 0;
-		region.imageSubresource.baseArrayLayer = 0;
-		region.imageSubresource.layerCount = 1;
+		region.imageSubresource.baseArrayLayer = baseLayer;
+		region.imageSubresource.layerCount = layerCount;
 		region.imageOffset = { 0, 0, 0 };
 		region.imageExtent = { _width, _height, _depth };
 

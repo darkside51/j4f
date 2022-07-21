@@ -109,10 +109,12 @@ namespace engine {
 
 			std::vector<glm::mat4> grassTransforms(instanceCount);
 			const int step = static_cast<int>(sqrtf(instanceCount));
-			const float space = 29.0f;
+			
+
 			for (size_t i = 0; i < instanceCount; ++i) {
-				const float scale_xy = (engine::random(10, 25) * 1700.0f);
-				const float scale_z = (engine::random(10, 30) * 600.0f);
+				const float space = engine::random(18, 20);
+				const float scale_xy = (engine::random(15, 25) * 1000.0f);
+				const float scale_z = (engine::random(10, 45) * 300.0f);
 
 				glm::mat4 wtr(1.0f);
 				scaleMatrix(wtr, glm::vec3(scale_xy, scale_xy, scale_z));
@@ -348,41 +350,41 @@ namespace engine {
 			shadowMap->registerProgramAsReciever(shadowPlainProgram);
 
 			TextureLoadingParams tex_params;
-			tex_params.file = "resources/assets/models/chaman/textures/Ti-Pche_Mat_baseColor.png";
+			tex_params.files = { "resources/assets/models/chaman/textures/Ti-Pche_Mat_baseColor.png" };
 			tex_params.flags->async = 1;
 			tex_params.flags->use_cache = 1;
 			auto texture_zombi = assm->loadAsset<vulkan::VulkanTexture*>(tex_params);
 
 			TextureLoadingParams tex_params2;
-			tex_params2.file = "resources/assets/models/warcraft3/textures/Armor_2_baseColor.png";
+			tex_params2.files = { "resources/assets/models/warcraft3/textures/Armor_2_baseColor.png" };
 			tex_params2.flags->async = 1;
 			tex_params2.flags->use_cache = 1;
 			auto texture_v = assm->loadAsset<vulkan::VulkanTexture*>(tex_params2);
-			tex_params2.file = "resources/assets/models/warcraft3/textures/body_baseColor.png";
+			tex_params2.files = { "resources/assets/models/warcraft3/textures/body_baseColor.png" };
 			auto texture_v2 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params2);
-			tex_params2.file = "resources/assets/models/warcraft3/textures/Metal_baseColor.png";
+			tex_params2.files = { "resources/assets/models/warcraft3/textures/Metal_baseColor.png" };
 			auto texture_v3 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params2);
 
 			TextureLoadingParams tex_params3;
 			tex_params3.flags->async = 1;
 			tex_params3.flags->use_cache = 1;
 
-			tex_params3.file = "resources/assets/models/tree1/textures/tree2_baseColor.png";
+			tex_params3.files = { "resources/assets/models/tree1/textures/tree2_baseColor.png" };
 			auto texture_t = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
-			tex_params3.file = "resources/assets/models/tree1/textures/branches_baseColor.png";
+			tex_params3.files = { "resources/assets/models/tree1/textures/branches_baseColor.png" };
 			auto texture_t2 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
-			tex_params3.file = "resources/assets/models/pineTree/textures/Leavs_baseColor.png";
+			tex_params3.files = { "resources/assets/models/pineTree/textures/Leavs_baseColor.png" };
 			auto texture_t3 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
-			tex_params3.file = "resources/assets/models/pineTree/textures/Trank_baseColor.png";
+			tex_params3.files = { "resources/assets/models/pineTree/textures/Trank_baseColor.png" };
 			auto texture_t4 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
-			tex_params3.file = "resources/assets/models/vikingHut/textures/texture1.jpg";
+			tex_params3.files = { "resources/assets/models/vikingHut/textures/texture1.jpg" };
 			auto texture_t5 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
-			tex_params3.file = "resources/assets/models/grass/textures/grass75.png";
+			tex_params3.files = { "resources/assets/models/grass/textures/grass75.png" };
 			auto texture_t6 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
 			meshesGraphicsBuffer = new MeshGraphicsDataBuffer(10 * 1024 * 1024, 10 * 1024 * 1024); // or create with default constructor for unique buffer for mesh
@@ -596,8 +598,9 @@ namespace engine {
 				shadowRenderList.addDescriptor(&asset->getRenderDescriptor());
 				});
 
+
 			assm->loadAsset<Mesh*>(mesh_params_grass, [texture_t6, this](Mesh* asset, const AssetLoadingResult result) {
-				GrassRenderer* grenderer = new GrassRenderer(4900, nullptr, nullptr);
+				GrassRenderer* grenderer = new GrassRenderer(10000, nullptr, nullptr);
 				asset->setProgram(grass_default);
 				asset->setParamByName("u_texture", texture_t6, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
@@ -623,13 +626,13 @@ namespace engine {
 				});
 
 			TextureLoadingParams tex_params_logo;
-			tex_params_logo.file = "resources/assets/textures/vulkan_logo.png";
+			tex_params_logo.files = { "resources/assets/textures/vulkan_logo.png" };
 			tex_params_logo.flags->async = 1;
 			tex_params_logo.flags->use_cache = 1;
 			texture_1 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params_logo);
 
 			TextureLoadingParams tex_params_floor;
-			tex_params_floor.file = "resources/assets/textures/swamp6.jpg";
+			tex_params_floor.files = { "resources/assets/textures/swamp6.jpg" };
 			tex_params_floor.flags->async = 1;
 			tex_params_floor.flags->use_cache = 1;
 			texture_floor = assm->loadAsset<vulkan::VulkanTexture*>(tex_params_floor, [](vulkan::VulkanTexture* asset, const AssetLoadingResult result) {

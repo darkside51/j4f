@@ -732,7 +732,8 @@ namespace vulkan {
 			if (!_tmpBuffers.empty()) {
 
 				std::vector<VulkanBuffer*> tmpBuffers;
-				std::vector<std::pair<VulkanTexture*, VulkanBuffer*>> defferedTextureToGenerate;
+				//std::vector<std::pair<VulkanTexture*, VulkanBuffer*>> defferedTextureToGenerate;
+				std::vector<std::tuple<VulkanTexture*, VulkanBuffer*, uint32_t, uint32_t>> defferedTextureToGenerate;
 				{
 					engine::AtomicLock lock(_lockTmpData);
 					tmpBuffers = std::move(_tmpBuffers[_currentFrame]);
@@ -743,8 +744,9 @@ namespace vulkan {
 
 				for (VulkanBuffer* buffer : tmpBuffers) { delete buffer; }
 				for (auto&& p : defferedTextureToGenerate) { 
-					p.first->fillGpuData(p.second, _mainSupportCommandBuffers[_currentFrame]);
-					addTmpBuffer(p.second);
+					VulkanBuffer* buffer = std::get<1>(p);
+					std::get<0>(p)->fillGpuData(buffer, _mainSupportCommandBuffers[_currentFrame], std::get<2>(p), std::get<3>(p));
+					addTmpBuffer(buffer);
 				}
 			}
 
@@ -1095,7 +1097,7 @@ namespace vulkan {
 
 				// clear tmp frame data
 				std::vector<std::vector<VulkanBuffer*>> tmpBuffers;
-				std::vector<std::pair<VulkanTexture*, VulkanBuffer*>> defferedTextureToGenerate;
+				std::vector<std::tuple<VulkanTexture*, VulkanBuffer*, uint32_t, uint32_t>> defferedTextureToGenerate;
 				{
 					engine::AtomicLock lock(_lockTmpData);
 					tmpBuffers = std::move(_tmpBuffers);
@@ -1111,7 +1113,8 @@ namespace vulkan {
 				}
 
 				for (auto&& p : defferedTextureToGenerate) {
-					delete p.second;
+					//delete p.second;
+					delete std::get<1>(p);
 				}
 
 				tmpBuffers.clear();

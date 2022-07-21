@@ -41,6 +41,7 @@ layout (location = 2) out float out_view_depth;
 layout (location = 3) out vec3 out_position;
 
 layout (location = 4) out float out_st;
+layout (location = 5) out float out_mix;
 
 out gl_PerVertex {
     vec4 gl_Position;   
@@ -60,6 +61,8 @@ void main() {
 
 	float t = u_push_const.model_matrix[0][0];
 	out_st = 0.0025 * sin(t + (world_position.x + world_position.y) * 0.1) * world_position.z;
+
+	out_mix = float(gl_InstanceIndex & 1);
 
 	gl_Position = u_push_const.camera_matrix * world_position;
 }

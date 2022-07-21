@@ -21,6 +21,7 @@
 #include <unordered_map>
 #include <atomic>
 #include <utility>
+#include <tuple>
 
 namespace engine {
 	class IRenderSurfaceInitialiser;
@@ -494,9 +495,9 @@ namespace vulkan {
 			_tmpBuffers[_currentFrame].push_back(buffer);
 		}
 
-		void addDefferedGenerateTexture(VulkanTexture* t, VulkanBuffer* b) {
+		void addDefferedGenerateTexture(VulkanTexture* t, VulkanBuffer* b, const uint32_t baseLayer, const uint32_t layerCount) {
 			engine::AtomicLock lock(_lockTmpData);
-			_defferedTextureToGenerate.emplace_back(t, b);
+			_defferedTextureToGenerate.emplace_back(t, b, baseLayer, layerCount);
 		}
 
 		inline uint32_t getWidth() const { return _width; }
@@ -607,8 +608,7 @@ namespace vulkan {
 		// tmp frame data
 		std::atomic_bool _lockTmpData;
 		std::vector<std::vector<VulkanBuffer*>> _tmpBuffers;
-		std::vector<std::pair<VulkanTexture*, VulkanBuffer*>> _defferedTextureToGenerate;
-
+		std::vector<std::tuple<VulkanTexture*, VulkanBuffer*, uint32_t, uint32_t>> _defferedTextureToGenerate;
 		// empty data
 		VulkanTexture* _emptyTexture;
 	};

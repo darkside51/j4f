@@ -9,6 +9,7 @@ layout (location = 2) in float in_view_depth;
 layout (location = 3) in vec3 in_position;
 
 layout (location = 4) in float in_st;
+layout (location = 5) in float in_mix;
 
 layout (location = 0) out vec4 outColor;
 
@@ -63,6 +64,9 @@ void main() {
 		discard;
 	} else {
 		// get cascade index for the current fragment's view position
+		//color.rgb = mix(color.rgb, color.rgb * vec3(1.0, 0.95, 0.95), in_mix);
+		color.rgb = mix(color.rgb, color.rgb * vec3(1.0, 0.95, 0.95), in_mix);
+
 		uint cascade = 0;
 		for (uint i = 0; i < (SHADOW_MAP_CASCADE_COUNT - 1); ++i) {
 			if (in_view_depth < u_shadow.cascade_splits[i]) {	
