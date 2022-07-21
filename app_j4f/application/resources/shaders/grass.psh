@@ -59,7 +59,7 @@ void main() {
 	uv.x += (1.0 - uv.y) * in_st;
 
 	vec4 color = texture(u_texture, uv, 0.0);
-	if (color.a < 0.9) {
+	if (color.a < 0.75) {
 		discard;
 	} else {
 		// get cascade index for the current fragment's view position
