@@ -8,6 +8,7 @@ layout (location = 1) in vec2 a_uv;
 layout (location = 0) out vec2 uv;
 layout (location = 1) out float viewDepth;
 layout (location = 2) out vec3 position;
+layout (location = 3) out vec2 uv2;
 
 layout (set = 1, binding = 0) uniform shadow_UBO {
 	vec4 cascade_splits;
@@ -24,6 +25,7 @@ void main()  {
 	gl_Position = pushConst.mvp * vec4(a_position, 1.0);
 
 	uv = a_uv;
+	uv2 = step(1.0, uv);
 	viewDepth = viewPos.z;
 	position = a_position; // model * vec4(a_position, 1.0);
 }

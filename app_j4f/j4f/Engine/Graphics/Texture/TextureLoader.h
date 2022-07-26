@@ -39,6 +39,7 @@ namespace engine {
 		uint32_t binding = 0;
 
 		TextureData *texData = nullptr;
+		TextureFormatType formatType = TextureFormatType::UNORM;
 
 		TextureLoadingFlags textureFlags;
 	};

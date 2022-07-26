@@ -24,7 +24,7 @@ namespace engine {
 	}
 	///////////////////////////////////////////////////////////
 
-	TextureData::TextureData(const std::string& path) {
+	TextureData::TextureData(const std::string& path, const TextureFormatType ft) {
 		auto&& engine = Engine::getInstance();
 		FileManager* fm = engine.getModule<engine::FileManager>();
 
@@ -33,15 +33,31 @@ namespace engine {
 		if (const char* imgBuffer = fm->readFile(path, fsize)) {
 			_data = loadImageDataFromBuffer(reinterpret_cast<const unsigned char*>(imgBuffer), fsize, &_width, &_height, &_channels);
 			_bpp = 32; // todo!
-			_format = VK_FORMAT_R8G8B8A8_UNORM; // todo!
+
+			switch (ft) {
+				case TextureFormatType::SRGB:
+					_format = VK_FORMAT_R8G8B8A8_SRGB; // todo!
+					break;
+				default: 
+					_format = VK_FORMAT_R8G8B8A8_UNORM; // todo! check bits
+					break;
+			}
+
 			delete imgBuffer;
 		}
 	}
 
-	TextureData::TextureData(const unsigned char* buffer, const size_t size) {
+	TextureData::TextureData(const unsigned char* buffer, const size_t size, const TextureFormatType ft) {
 		_data = loadImageDataFromBuffer(buffer, size, &_width, &_height, &_channels);
 		_bpp = 32; // todo!
-		_format = VK_FORMAT_R8G8B8A8_UNORM; // todo!
+		switch (ft) {
+			case TextureFormatType::SRGB:
+				_format = VK_FORMAT_R8G8B8A8_SRGB; // todo!
+				break;
+			default:
+				_format = VK_FORMAT_R8G8B8A8_UNORM; // todo! check bits
+				break;
+		}
 	}
 
 	TextureData::~TextureData() {

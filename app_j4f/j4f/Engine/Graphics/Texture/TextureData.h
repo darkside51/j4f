@@ -5,13 +5,24 @@
 
 namespace engine {
 
+	enum class TextureFormatType : uint8_t {
+		UNORM = 0,
+		SNORM = 1,
+		USCALED = 2,
+		SSCALED = 3,
+		UINT = 4,
+		SINT = 5,
+		SFLOAT = 6,
+		SRGB = 7
+	};
+
 	class TextureData {
 	public:
 		static void getInfo(const char* file, int* w, int* h, int* c);
 
 		TextureData() = default;
-		TextureData(const std::string& path);
-		TextureData(const unsigned char* buffer, const size_t size);
+		TextureData(const std::string& path, const TextureFormatType ft = TextureFormatType::UNORM);
+		TextureData(const unsigned char* buffer, const size_t size, const TextureFormatType ft = TextureFormatType::UNORM);
 		~TextureData();
 
 		TextureData(const TextureData&) = delete;

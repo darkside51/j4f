@@ -61,7 +61,7 @@ namespace engine {
 					}
 					texture->create(params.texData->data(), params.texData->format(), params.texData->bpp(), params.textureFlags->useMipMaps, true);
 				} else {
-					TextureData img(params.files[0]);
+					TextureData img(params.files[0], params.formatType);
 
 					if (!img) {
 						executeCallbacks(texture, AssetLoadingResult::LOADING_ERROR);
@@ -88,7 +88,7 @@ namespace engine {
 				}
 				texture->create(params.texData->data(), params.texData->format(), params.texData->bpp(), params.textureFlags->useMipMaps, true);
 			} else {
-				TextureData img(params.files[0]);
+				TextureData img(params.files[0], params.formatType);
 
 				if (!img) {
 					if (callback) { callback(texture, AssetLoadingResult::LOADING_ERROR); }
