@@ -20,10 +20,10 @@ layout (set = 1, binding = 0) uniform shadow_UBO {
 	mat4 view;
 } u_shadow;
 
-layout (set = 2, binding = 0) uniform sampler2D u_texture;
-layout (set = 3, binding = 0) uniform sampler2D u_texture2;
-layout (set = 4, binding = 0) uniform sampler2D u_texture_mask;
-layout (set = 5, binding = 0) uniform sampler2DArray u_shadow_map;
+layout (set = 2, binding = 0) uniform sampler2DArray u_shadow_map;
+layout (set = 3, binding = 0) uniform sampler2D u_texture_mask;
+layout (set = 4, binding = 0) uniform sampler2D u_texture;
+layout (set = 5, binding = 0) uniform sampler2D u_texture2;
 
 float textureProj(vec4 shCoord, vec2 offset, uint cascade) {
 	float dist = texture(u_shadow_map, vec3(shCoord.xy + offset, cascade)).r;

@@ -491,6 +491,10 @@ namespace vulkan {
 		}
 
 		std::sort(m_paramLayoutsVec.begin(), m_paramLayoutsVec.end(), [](const GPUParamLayoutInfo* p1, const GPUParamLayoutInfo* p2) {
+				if ((p1->type == p2->type) && (p1->type == GPUParamLayoutType::COMBINED_IMAGE_SAMPLER)) {
+					return p1->set < p2->set; // упорядочивание текстурных юниформов по set id
+				}
+				
 				return static_cast<uint8_t>(p1->type) < static_cast<uint8_t>(p2->type);
 			}
 		);

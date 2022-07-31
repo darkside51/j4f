@@ -175,6 +175,7 @@ namespace vulkan {
 
 			uint16_t dynamicOffsetsCount = 0;
 			uint16_t constantsCount = 0;
+			uint16_t externalDescriptorsSetsCount = 0;
 
 			for (GPUParamLayoutInfo* l : programParamLayouts) {
 				auto& pair = layouts.emplace_back(l, 0);
@@ -202,6 +203,11 @@ namespace vulkan {
 					{
 					}
 						break;
+					case GPUParamLayoutType::COMBINED_IMAGE_SAMPLER: // texture + sampler
+					{
+						++externalDescriptorsSetsCount;
+					}
+						break;
 					default:
 						break;
 				}
@@ -209,6 +215,7 @@ namespace vulkan {
 
 			dynamicOffsets.resize(dynamicOffsetsCount);
 			constants.resize(constantsCount);
+			externalDescriptorsSets.resize(externalDescriptorsSetsCount);
 		}
 
 		void prepareRender(VulkanCommandBuffer& commandBuffer) {
@@ -304,13 +311,10 @@ namespace vulkan {
 						break;
 					case GPUParamLayoutType::COMBINED_IMAGE_SAMPLER: // image sampler
 					{
-						if (externalDescriptorsSets.size() < externalSetNum + 1) {
-							externalDescriptorsSets.resize(externalSetNum + 1);
-						}
-
 						if (value) { // bind single texture set only if it change previous
 							const VulkanTexture* texture = static_cast<const VulkanTexture*>(value);
 							const VkDescriptorSet set = texture->getSingleDescriptor();
+
 							if (set != VK_NULL_HANDLE) {
 								//commandBuffer.cmdBindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, program->getPipeLineLayout(), l->set, set);
 								externalDescriptorsSets[externalSetNum++] = set;

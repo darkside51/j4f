@@ -350,6 +350,7 @@ namespace engine {
 			clearValues[0].color = { 0.2f, 0.2f, 0.2f, 1.0f };
 			clearValues[1].depthStencil = { 1.0f, 0 };
 
+
 			//////////////////////////////////
 			shadowMap = new CascadeShadowMap(SHADOWMAP_DIM, SHADOW_MAP_CASCADE_COUNT, camera->getNearFar(), 250.0f, 1600.0f);
 			shadowMap->setLamdas(1.0f, 1.0f, 1.0f);
