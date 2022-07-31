@@ -648,7 +648,7 @@ namespace engine {
 				shadowRenderList.addDescriptor(&asset->getRenderDescriptor());
 				});
 
-			TextureData img("resources/assets/textures/t.jpg", engine::TextureFormatType::SRGB);
+			TextureData img("resources/assets/textures/t.jpg");
 			//GrassRenderer* grenderer = new GrassRenderer(4900);
 			GrassRenderer* grenderer = new GrassRenderer(img);
 
