@@ -85,6 +85,7 @@ namespace vulkan {
 
 		VkPipelineBindPoint m_pipelineBindPoint = VK_PIPELINE_BIND_POINT_MAX_ENUM;
 		VkPipeline m_pipeline = VK_NULL_HANDLE;
+		VkPipelineLayout m_pipelineLayout = VK_NULL_HANDLE;
 		VkViewport m_viewport = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 		VkRect2D m_scissor = { {0, 0}, {0, 0} };
 
@@ -161,20 +162,6 @@ namespace vulkan {
 			if (/*m_pipelineBindPoint != pipelineBindPoint ||*/ m_pipeline != pipeline) {
 				m_pipelineBindPoint = pipelineBindPoint;
 				m_pipeline = pipeline;
-
-				switch (m_pipelineBindPoint) {
-					case VK_PIPELINE_BIND_POINT_GRAPHICS:
-						m_bindSets[0].invalidate();
-						break;
-					case VK_PIPELINE_BIND_POINT_COMPUTE:
-						m_bindSets[1].invalidate();
-						break;
-					case VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR:
-						m_bindSets[2].invalidate();
-						break;
-					default:
-						break;
-				}
 				return true;
 			}
 			return false;
@@ -308,10 +295,17 @@ namespace vulkan {
 			auto it = bindSet.layoutDescriptors.find(layout);
 			if (it != bindSet.layoutDescriptors.end()) {
 				descriptors = it->second;
+
+				if (m_pipelineLayout != layout) {
+					bindSet.invalidate(); // если layout для pipeline не совпадает и сет уже есть в bindSet.layoutDescriptors
+				}
+
 			} else {
 				descriptors = new BindingSets::Descriptors();
 				bindSet.layoutDescriptors[layout] = descriptors;
 			}
+
+			m_pipelineLayout = layout;
 
 			uint8_t allProgramSetsCount;
 			const uint8_t gpuSetsCount = pipeline->program->getGPUSetsCount(&allProgramSetsCount);
