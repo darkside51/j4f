@@ -45,6 +45,7 @@ namespace vulkan {
 		imageViewCI.viewType = (viewType == VK_IMAGE_VIEW_TYPE_MAX_ENUM ? static_cast<VkImageViewType>(imageType) : viewType);
 		imageViewCI.image = image;
 		imageViewCI.format = format;
+		imageViewCI.components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
 		imageViewCI.subresourceRange.baseMipLevel = 0;
 		imageViewCI.subresourceRange.levelCount = mipLevels;
 		imageViewCI.subresourceRange.baseArrayLayer = 0;

@@ -26,6 +26,66 @@ namespace vulkan {
 		}
 	}
 
+	void VulkanTexture::create(const void** data, const uint32_t count, const VkFormat format, const uint8_t bpp, const bool createMipMaps, const bool deffered) {
+		_generationState.store(VulkanTextureCreationState::CREATION_STARTED, std::memory_order_release);
+
+		_arrayLayers = count;
+
+		const size_t elementDataSize = _width * _height * (bpp / 8);
+		const size_t allDataSize = elementDataSize * count;
+		const uint8_t mipLevels = (createMipMaps ? (static_cast<uint8_t>(std::floor(std::log2(std::max(_width, _height)))) + 1) : 1);
+
+		_img = new vulkan::VulkanImage(
+			_renderer->getDevice(),
+			VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+			VK_IMAGE_TYPE_2D,
+			format,
+			mipLevels,
+			_width,
+			_height, 
+			1,
+			0,
+			count
+		);
+
+		_img->createImageView(VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_ASPECT_COLOR_BIT);
+
+		VulkanBuffer* staging = new VulkanBuffer();
+		_renderer->getDevice()->createBuffer(
+			VK_SHARING_MODE_EXCLUSIVE,
+			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+			staging,
+			allDataSize
+		);
+
+		size_t offset = 0;
+		for (size_t i = 0; i < count; ++i) {
+			staging->upload(data[i], elementDataSize, offset);
+			offset += elementDataSize;
+		}
+
+		if (_sampler == VK_NULL_HANDLE) { // трилинейная фильтрация + MODE_REPEAT по умолчанию
+			_sampler = _renderer->getSampler(
+				VK_FILTER_LINEAR,
+				VK_FILTER_LINEAR,
+				VK_SAMPLER_MIPMAP_MODE_LINEAR,
+				VK_SAMPLER_ADDRESS_MODE_REPEAT,
+				VK_SAMPLER_ADDRESS_MODE_REPEAT,
+				VK_SAMPLER_ADDRESS_MODE_REPEAT,
+				VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK
+			);
+		}
+
+		if (deffered) {
+			_renderer->addDefferedGenerateTexture(this, staging, 0, count);
+		} else {
+			auto&& cmdBuffer = _renderer->getSupportCommandBuffer();
+			fillGpuData(staging, cmdBuffer, 0, count);
+			_renderer->addTmpBuffer(staging);
+		}
+	}
+
 	VulkanBuffer* VulkanTexture::generateWithData(const void* data, const VkFormat format, const uint8_t bpp, const bool createMipMaps) {
 		const size_t dataSize = _width * _height * (bpp / 8);
 		const uint8_t mipLevels = (createMipMaps ? (static_cast<uint8_t>(std::floor(std::log2(std::max(_width, _height)))) + 1) : 1);
@@ -53,7 +113,7 @@ namespace vulkan {
 
 		_img->createImageView(VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT);
 
-		if (_sampler == VK_NULL_HANDLE) { // трилинейная фильтрация + CLAMP_TO_EDGE по умолчанию
+		if (_sampler == VK_NULL_HANDLE) { // трилинейная фильтрация + MODE_REPEAT по умолчанию
 			/*_sampler = _renderer->getSampler(
 				VK_FILTER_LINEAR,
 				VK_FILTER_LINEAR,
@@ -144,7 +204,7 @@ namespace vulkan {
 		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		barrier.subresourceRange.baseArrayLayer = 0;
-		barrier.subresourceRange.layerCount = 1;
+		barrier.subresourceRange.layerCount = _arrayLayers;
 		barrier.subresourceRange.levelCount = 1;
 
 		int32_t mipWidth = _width;
@@ -172,8 +232,8 @@ namespace vulkan {
 				1, VK_FILTER_LINEAR,
 				{ 0, 0, 0 }, { mipWidth, mipHeight, 1 },
 				{ 0, 0, 0 }, { mipWidth > 1 ? mipWidth >> 1 : 1, mipHeight > 1 ? mipHeight >> 1 : 1, 1 },
-				{ VK_IMAGE_ASPECT_COLOR_BIT, i - 1, 0, 1 },
-				{ VK_IMAGE_ASPECT_COLOR_BIT, i, 0, 1 }
+				{ VK_IMAGE_ASPECT_COLOR_BIT, i - 1, 0, _arrayLayers },
+				{ VK_IMAGE_ASPECT_COLOR_BIT, i, 0, _arrayLayers }
 			);
 
 			barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;

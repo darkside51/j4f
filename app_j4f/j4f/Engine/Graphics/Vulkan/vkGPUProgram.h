@@ -112,6 +112,7 @@ namespace vulkan {
 		uint8_t set = 0;
 		VkDescriptorSetLayoutBinding binding;
 		uint32_t sizeInBytes = 0;
+		uint32_t imageFlags = 0;
 		std::vector<VulkanUniformInfo> childInfos;
 	};
 
@@ -122,6 +123,11 @@ namespace vulkan {
 	};
 
 	struct GPUParamLayoutInfo {
+		enum class ImageType : uint8_t {
+			sampler2D = 0,
+			sampler2D_ARRAY = 1
+		};
+
 		uint8_t id;
 		uint32_t set;
 		uint32_t offset;
@@ -131,6 +137,7 @@ namespace vulkan {
 		GPUParamLayoutType type;
 		uint32_t push_constant_number;
 		uint32_t dynamcBufferIdx; // для смещения в нужном dynamic буффере при установке значения
+		ImageType imageType;
 		void* data;
 		const GPUParamLayoutInfo* parentLayout = nullptr;
 

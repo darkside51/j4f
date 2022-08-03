@@ -166,6 +166,7 @@ namespace vulkan {
 					bindingDescription->binding = layoutBinding;
 					bindingDescription->set = setInfo->set;
 					bindingDescription->name = binding->name;
+					bindingDescription->imageFlags |= binding->image.arrayed ? 1 : 0; // check image is array
 
 					m_descriptorSetLayoutBindings[i].push_back(bindingDescription);
 				}
@@ -462,6 +463,7 @@ namespace vulkan {
 						case SPV_REFLECT_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
 						{
 							info = new GPUParamLayoutInfo{ paramId++, layoutDescription->set, 0, layoutDescription->sizeInBytes, &(layoutDescription->binding), nullptr, GPUParamLayoutType::COMBINED_IMAGE_SAMPLER };
+							info->imageType = (layoutDescription->imageFlags & 1) ? GPUParamLayoutInfo::ImageType::sampler2D_ARRAY : GPUParamLayoutInfo::ImageType::sampler2D;
 						}
 							break;
 						default:

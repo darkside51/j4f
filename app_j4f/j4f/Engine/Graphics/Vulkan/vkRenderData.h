@@ -319,14 +319,44 @@ namespace vulkan {
 								//commandBuffer.cmdBindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, program->getPipeLineLayout(), l->set, set);
 								externalDescriptorsSets[externalSetNum++] = set;
 							} else {
-								const VkDescriptorSet emptySet = engine::Engine::getInstance().getModule<engine::Graphics>()->getRenderer()->getEmptyTexture()->getSingleDescriptor();
-								//commandBuffer.cmdBindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, program->getPipeLineLayout(), l->set, emptySet);
-								externalDescriptorsSets[externalSetNum++] = emptySet;
+								switch (l->imageType) {
+									case GPUParamLayoutInfo::ImageType::sampler2D_ARRAY:
+									{
+										const VkDescriptorSet emptySet = engine::Engine::getInstance().getModule<engine::Graphics>()->getRenderer()->getEmptyTextureArray()->getSingleDescriptor();
+										externalDescriptorsSets[externalSetNum++] = emptySet;
+									}
+										break;
+									case GPUParamLayoutInfo::ImageType::sampler2D:
+									default:
+									{
+										const VkDescriptorSet emptySet = engine::Engine::getInstance().getModule<engine::Graphics>()->getRenderer()->getEmptyTexture()->getSingleDescriptor();
+										externalDescriptorsSets[externalSetNum++] = emptySet;
+									}
+										break;
+								}
+								//const VkDescriptorSet emptySet = engine::Engine::getInstance().getModule<engine::Graphics>()->getRenderer()->getEmptyTexture()->getSingleDescriptor();
+								////commandBuffer.cmdBindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, program->getPipeLineLayout(), l->set, emptySet);
+								//externalDescriptorsSets[externalSetNum++] = emptySet;
 							}
 						} else {
-							const VkDescriptorSet emptySet = engine::Engine::getInstance().getModule<engine::Graphics>()->getRenderer()->getEmptyTexture()->getSingleDescriptor();
-							//commandBuffer.cmdBindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, program->getPipeLineLayout(), l->set, emptySet);
-							externalDescriptorsSets[externalSetNum++] = emptySet;
+							switch (l->imageType) {
+								case GPUParamLayoutInfo::ImageType::sampler2D_ARRAY:
+								{
+									const VkDescriptorSet emptySet = engine::Engine::getInstance().getModule<engine::Graphics>()->getRenderer()->getEmptyTextureArray()->getSingleDescriptor();
+									externalDescriptorsSets[externalSetNum++] = emptySet;
+								}
+									break;
+								case GPUParamLayoutInfo::ImageType::sampler2D:
+								default:
+								{
+									const VkDescriptorSet emptySet = engine::Engine::getInstance().getModule<engine::Graphics>()->getRenderer()->getEmptyTexture()->getSingleDescriptor();
+									externalDescriptorsSets[externalSetNum++] = emptySet;
+								}
+									break;
+							}
+							//const VkDescriptorSet emptySet = engine::Engine::getInstance().getModule<engine::Graphics>()->getRenderer()->getEmptyTexture()->getSingleDescriptor();
+							////commandBuffer.cmdBindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, program->getPipeLineLayout(), l->set, emptySet);
+							//externalDescriptorsSets[externalSetNum++] = emptySet;
 						}
 					}
 						break;

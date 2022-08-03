@@ -252,15 +252,18 @@ namespace vulkan {
 	void VulkanRenderer::createEmtyTexture() {
 #ifdef _DEBUG
 		_emptyTexture = new VulkanTexture(this, 2, 2, 1);
+		_emptyTextureArray = new VulkanTexture(this, 2, 2, 1);
 		const unsigned char emptyImg[16] = { 
 			100, 100, 100, 255, 160, 160, 160, 255,
 			160, 160, 160, 255, 100, 100, 100, 255
 	};
 #else
 		_emptyTexture = new VulkanTexture(this, 1, 1, 1);
+		_emptyTextureArray = new VulkanTexture(this, 1, 1, 1);
 		const unsigned char emptyImg[4] = { 200, 200, 200, 255 };
 
 		/*_emptyTexture = new VulkanTexture(this, 2, 2, 1);
+		  _emptyTextureArray = new VulkanTexture(this, 2, 2, 1);
 		const unsigned char emptyImg[16] = { 
 			100, 100, 100, 255, 160, 160, 160, 255,
 			160, 160, 160, 255, 100, 100, 100, 255
@@ -278,8 +281,22 @@ namespace vulkan {
 			VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK
 		));
 
+		_emptyTextureArray->setSampler(getSampler(
+			VK_FILTER_NEAREST,
+			VK_FILTER_NEAREST,
+			VK_SAMPLER_MIPMAP_MODE_NEAREST,
+			VK_SAMPLER_ADDRESS_MODE_REPEAT,
+			VK_SAMPLER_ADDRESS_MODE_REPEAT,
+			VK_SAMPLER_ADDRESS_MODE_REPEAT,
+			VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK
+		));
+
 		_emptyTexture->create(&emptyImg[0], VK_FORMAT_R8G8B8A8_UNORM, 32, false, false);
 		_emptyTexture->createSingleDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0);
+
+		const void* emtyImageAddr = &emptyImg[0];
+		_emptyTextureArray->create(&emtyImageAddr, 1, VK_FORMAT_R8G8B8A8_UNORM, 32, false, false);
+		_emptyTextureArray->createSingleDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0);
 	}
 
 	VkSampler VulkanRenderer::getSampler(
@@ -1051,6 +1068,7 @@ namespace vulkan {
 				_frameBuffers.clear();
 
 				delete _emptyTexture;
+				delete _emptyTextureArray;
 
 				for (auto it = _dinamicGPUBuffers.begin(); it != _dinamicGPUBuffers.end(); ++it) {
 					it->second->unmap();

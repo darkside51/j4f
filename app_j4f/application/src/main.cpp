@@ -53,17 +53,18 @@ namespace engine {
 	NodeRenderer<Mesh>* mesh4 = nullptr;
 	NodeRenderer<Mesh>* mesh5 = nullptr;
 	NodeRenderer<Mesh>* mesh6 = nullptr;
+	NodeRenderer<Mesh>* mesh7 = nullptr;
 
 	NodeRenderer<Mesh>* grassMesh = nullptr;
 	
 	MeshAnimationTree* animTree = nullptr;
 	MeshAnimationTree* animTree2 = nullptr;
+	MeshAnimationTree* animTreeWindMill = nullptr;
 
 	vulkan::VulkanTexture* texture_1 = nullptr;
 	vulkan::VulkanTexture* texture_text = nullptr;
-	vulkan::VulkanTexture* texture_floor = nullptr;
-	vulkan::VulkanTexture* texture_floor2 = nullptr;
 	vulkan::VulkanTexture* texture_floor_mask = nullptr;
+	vulkan::VulkanTexture* texture_array_test = nullptr;
 
 	vulkan::VulkanGpuProgram* program_mesh_default = nullptr;
 	vulkan::VulkanGpuProgram* program_mesh_shadow = nullptr;
@@ -247,8 +248,10 @@ namespace engine {
 			//delete mesh6;
 			delete animTree;
 			delete animTree2;
+			delete animTreeWindMill;
 
 			delete texture_text;
+			delete texture_array_test;
 
 			delete meshesGraphicsBuffer;
 
@@ -437,6 +440,9 @@ namespace engine {
 			tex_params3.files = { "resources/assets/models/grass/textures/grass77.png" };
 			auto texture_t6 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
+			tex_params3.files = { "resources/assets/models/windmill/textures/standardSurface1_baseColor.png" };
+			auto texture_t7 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
+
 			meshesGraphicsBuffer = new MeshGraphicsDataBuffer(10 * 1024 * 1024, 10 * 1024 * 1024); // or create with default constructor for unique buffer for mesh
 
 			MeshLoadingParams mesh_params;
@@ -456,23 +462,30 @@ namespace engine {
 			MeshLoadingParams mesh_params3;
 			mesh_params3.file = "resources/assets/models/tree1/scene.gltf";
 			mesh_params3.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT, AttributesSemantic::TEXCOORD_0);
-			mesh_params3.latency = 3;
+			mesh_params3.latency = 1;
 			mesh_params3.flags->async = 1;
 			mesh_params3.graphicsBuffer = meshesGraphicsBuffer;
 
 			MeshLoadingParams mesh_params4;
 			mesh_params4.file = "resources/assets/models/pineTree/scene.gltf";
 			mesh_params4.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT, AttributesSemantic::TEXCOORD_0);
-			mesh_params4.latency = 3;
+			mesh_params4.latency = 1;
 			mesh_params4.flags->async = 1;
 			mesh_params4.graphicsBuffer = meshesGraphicsBuffer;
 
 			MeshLoadingParams mesh_params5;
 			mesh_params5.file = "resources/assets/models/vikingHut/scene.gltf";
 			mesh_params5.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT, AttributesSemantic::TEXCOORD_0);
-			mesh_params5.latency = 3;
+			mesh_params5.latency = 1;
 			mesh_params5.flags->async = 1;
 			mesh_params5.graphicsBuffer = meshesGraphicsBuffer;
+
+			MeshLoadingParams mesh_params6;
+			mesh_params6.file = "resources/assets/models/windmill/scene.gltf";
+			mesh_params6.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT, AttributesSemantic::TEXCOORD_0);
+			mesh_params6.latency = 3;
+			mesh_params6.flags->async = 1;
+			mesh_params6.graphicsBuffer = meshesGraphicsBuffer;
 
 			MeshLoadingParams mesh_params_grass;
 			mesh_params_grass.file = "resources/assets/models/grass/scene.gltf";
@@ -487,6 +500,7 @@ namespace engine {
 			mesh4 = new NodeRenderer<Mesh>();
 			mesh5 = new NodeRenderer<Mesh>();
 			mesh6 = new NodeRenderer<Mesh>();
+			mesh7 = new NodeRenderer<Mesh>();
 			//grassMesh = new NodeRenderer<Mesh>();
 			grassMesh2 = new NodeRenderer<GrassRenderer>();
 
@@ -648,6 +662,31 @@ namespace engine {
 				shadowRenderList.addDescriptor(&asset->getRenderDescriptor());
 				});
 
+			assm->loadAsset<Mesh*>(mesh_params6, [program_gltf, texture_t7, texture_t6, this](Mesh* asset, const AssetLoadingResult result) {
+				asset->setProgram(program_gltf);
+				asset->setParamByName("u_texture", texture_t7, false);
+				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
+
+				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
+				asset->onPipelineAttributesChanged();
+
+				animTreeWindMill = new MeshAnimationTree(&asset->getMeshData()->animations[0],1.0f, asset->getSkeleton()->getLatency());
+
+				////////////////////
+				mesh7->setGraphics(asset);
+				glm::mat4 wtr(1.0f);
+				scaleMatrix(wtr, glm::vec3(8000.0f));
+				rotateMatrix_xyz(wtr, glm::vec3(1.57f, -1.15f, 0.0f));
+				translateMatrixTo(wtr, glm::vec3(-150.0f, 375.0f, -10.0f));
+
+				H_Node* node = new H_Node();
+				node->value().setLocalMatrix(wtr);
+				node->value().makeGraphicsLink(mesh7);
+				rootNode->addChild(node);
+
+				shadowRenderList.addDescriptor(&asset->getRenderDescriptor());
+				});
+
 			TextureData img("resources/assets/textures/t.jpg");
 			//GrassRenderer* grenderer = new GrassRenderer(4900);
 			GrassRenderer* grenderer = new GrassRenderer(img);
@@ -690,14 +729,17 @@ namespace engine {
 			tex_params_logo.flags->use_cache = 1;
 			texture_1 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params_logo);
 
-			TextureLoadingParams tex_params_floor;
-			tex_params_floor.files = { "resources/assets/textures/swamp5.jpg" };
-			tex_params_floor.flags->async = 1;
-			tex_params_floor.flags->use_cache = 1;
-			tex_params_floor.formatType = engine::TextureFormatType::SRGB;
-			texture_floor = assm->loadAsset<vulkan::VulkanTexture*>(tex_params_floor, [](vulkan::VulkanTexture* asset, const AssetLoadingResult result) {
+			TextureLoadingParams tex_params_floorArray;
+			tex_params_floorArray.files = { 
+				"resources/assets/textures/swamp5.jpg",
+				"resources/assets/textures/ground133.jpg"
+			};
+			tex_params_floorArray.flags->async = 1;
+			tex_params_floorArray.flags->use_cache = 0;
+			tex_params_floorArray.formatType = engine::TextureFormatType::SRGB;
+			texture_array_test = assm->loadAsset<vulkan::VulkanTexture*>(tex_params_floorArray, [](vulkan::VulkanTexture* asset, const AssetLoadingResult result) {
 				auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
-				texture_floor->setSampler(
+				texture_array_test->setSampler(
 					renderer->getSampler(
 						VK_FILTER_LINEAR,
 						VK_FILTER_LINEAR,
@@ -708,9 +750,6 @@ namespace engine {
 						VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK
 					));
 				});
-
-			tex_params_floor.files = { "resources/assets/textures/ground132.jpg" };
-			texture_floor2 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params_floor);
 
 			/////// freeType test
 			FontLoadingParams font_loading_params("resources/assets/fonts/Roboto/Roboto-Regular.ttf");
@@ -882,6 +921,10 @@ namespace engine {
 				mesh3->graphics()->getSkeleton()->updateAnimation(delta, animTree2);
 			}
 
+			if (animTreeWindMill) {
+				mesh7->graphics()->getSkeleton()->updateAnimation(delta, animTreeWindMill);
+			}
+
 			////////
 			if (auto&& link = grassMesh2->getNodeLink()) {
 				static float t = 0.0f;
@@ -903,6 +946,7 @@ namespace engine {
 			mesh4->updateRenderData();
 			mesh5->updateRenderData();
 			mesh6->updateRenderData();
+			mesh7->updateRenderData();
 			grassMesh2->updateRenderData();
 
 			const uint64_t wh = renderer->getWH();
@@ -919,6 +963,7 @@ namespace engine {
 			mesh4->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
 			mesh5->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
 			mesh6->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
+			mesh7->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
 
 			//if (animTree2) {
 				// у меня лайоуты совпадают у юниформов, для теней => не нужно вызывать переназначение, достаточно одного раза
@@ -952,6 +997,7 @@ namespace engine {
 			mesh4->setProgram(program_mesh_default);
 			mesh5->setProgram(program_mesh_default);
 			mesh6->setProgram(program_mesh_default);
+			mesh7->setProgram(program_mesh_default);
 			grassMesh2->setProgram(grass_default);
 			/////// shadow pass
 
@@ -1046,11 +1092,10 @@ namespace engine {
 				renderDataFloor.setParamForLayout(mvp_layout2, &const_cast<glm::mat4&>(cameraMatrix), false);
 				const glm::mat4& viewTransform = camera->getViewTransform();
 
-				renderDataFloor.setParamByName("u_texture", texture_floor, false);
-				renderDataFloor.setParamByName("u_texture2", texture_floor2, false);
+				renderDataFloor.setParamByName("u_texture_arr", texture_array_test, false);
 				renderDataFloor.setParamByName("u_texture_mask", texture_floor_mask, false);
 				renderDataFloor.setParamByName("u_shadow_map", shadowMap->getTexture(), false);
-
+				
 				GPU_DEBUG_MARKER_INSERT(commandBuffer.m_commandBuffer, "project render shadow plain", 0.5f, 0.5f, 0.5f, 1.0f);
 				autoBatcher->addToDraw(&renderDataFloor, sizeof(TexturedVertex), &floorVtx[0], vertexBufferSize, &idxs[0], indexBufferSize, commandBuffer, currentFrame);
 

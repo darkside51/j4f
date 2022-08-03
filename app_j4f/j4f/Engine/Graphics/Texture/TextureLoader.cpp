@@ -61,15 +61,31 @@ namespace engine {
 					}
 					texture->create(params.texData->data(), params.texData->format(), params.texData->bpp(), params.textureFlags->useMipMaps, true);
 				} else {
-					TextureData img(params.files[0], params.formatType);
 
-					if (!img) {
-						executeCallbacks(texture, AssetLoadingResult::LOADING_ERROR);
-						texture->noGenerate();
-						return;
+					if (params.files.size() > 1) {
+					
+						std::vector<TextureData> imgs;
+						std::vector<const void*> imgsData(params.files.size());
+						imgs.reserve(params.files.size());
+
+						for (size_t i = 0; i < params.files.size(); ++i) {
+							imgs.emplace_back(params.files[i], params.formatType);
+							imgsData[i] = imgs[i].data();
+						}
+
+						texture->create(imgsData.data(), imgs.size(), imgs[0].format(), imgs[0].bpp(), params.textureFlags->useMipMaps, true);
+					} else {
+
+						TextureData img(params.files[0], params.formatType);
+
+						if (!img) {
+							executeCallbacks(texture, AssetLoadingResult::LOADING_ERROR);
+							texture->noGenerate();
+							return;
+						}
+
+						texture->create(img.data(), img.format(), img.bpp(), params.textureFlags->useMipMaps, true);
 					}
-
-					texture->create(img.data(), img.format(), img.bpp(), params.textureFlags->useMipMaps, true);
 				}
 
 				if (params.imageLayout != VK_IMAGE_LAYOUT_MAX_ENUM) {

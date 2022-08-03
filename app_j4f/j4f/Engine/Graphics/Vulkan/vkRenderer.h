@@ -508,6 +508,7 @@ namespace vulkan {
 		}
 
 		inline const VulkanTexture* getEmptyTexture() const { return _emptyTexture; }
+		inline const VulkanTexture* getEmptyTextureArray() const { return _emptyTextureArray; }
 
 	private:
 		void buildDefaultMainRenderCommandBuffer();
@@ -611,6 +612,7 @@ namespace vulkan {
 		std::vector<std::tuple<VulkanTexture*, VulkanBuffer*, uint32_t, uint32_t>> _defferedTextureToGenerate;
 		// empty data
 		VulkanTexture* _emptyTexture;
+		VulkanTexture* _emptyTextureArray;
 	};
 
 }
