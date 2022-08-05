@@ -61,31 +61,24 @@ namespace engine {
 					}
 					texture->create(params.texData->data(), params.texData->format(), params.texData->bpp(), params.textureFlags->useMipMaps, true);
 				} else {
+					const size_t size = params.files.size();
+					std::vector<TextureData> imgs;
+					imgs.reserve(size);
+					std::vector<const void*> imgsData(size);
 
-					if (params.files.size() > 1) {
-					
-						std::vector<TextureData> imgs;
-						std::vector<const void*> imgsData(params.files.size());
-						imgs.reserve(params.files.size());
-
-						for (size_t i = 0; i < params.files.size(); ++i) {
-							imgs.emplace_back(params.files[i], params.formatType);
-							imgsData[i] = imgs[i].data();
-						}
-
-						texture->create(imgsData.data(), imgs.size(), imgs[0].format(), imgs[0].bpp(), params.textureFlags->useMipMaps, true);
-					} else {
-
-						TextureData img(params.files[0], params.formatType);
-
-						if (!img) {
+					for (size_t i = 0; i < size; ++i) {
+						imgs.emplace_back(params.files[i], params.formatType);
+						
+						if (!imgs[i]) {
 							executeCallbacks(texture, AssetLoadingResult::LOADING_ERROR);
 							texture->noGenerate();
 							return;
 						}
 
-						texture->create(img.data(), img.format(), img.bpp(), params.textureFlags->useMipMaps, true);
+						imgsData[i] = imgs[i].data();
 					}
+
+					texture->create(imgsData.data(), imgs.size(), imgs[0].format(), imgs[0].bpp(), params.textureFlags->useMipMaps, true);
 				}
 
 				if (params.imageLayout != VK_IMAGE_LAYOUT_MAX_ENUM) {
@@ -104,15 +97,24 @@ namespace engine {
 				}
 				texture->create(params.texData->data(), params.texData->format(), params.texData->bpp(), params.textureFlags->useMipMaps, true);
 			} else {
-				TextureData img(params.files[0], params.formatType);
+				const size_t size = params.files.size();
+				std::vector<TextureData> imgs;
+				imgs.reserve(size);
+				std::vector<const void*> imgsData(size);
 
-				if (!img) {
-					if (callback) { callback(texture, AssetLoadingResult::LOADING_ERROR); }
-					texture->noGenerate();
-					return texture;
+				for (size_t i = 0; i < size; ++i) {
+					imgs.emplace_back(params.files[i], params.formatType);
+
+					if (!imgs[i]) {
+						if (callback) { callback(texture, AssetLoadingResult::LOADING_ERROR); }
+						texture->noGenerate();
+						return texture;
+					}
+
+					imgsData[i] = imgs[i].data();
 				}
 
-				texture->create(img.data(), img.format(), img.bpp(), params.textureFlags->useMipMaps, params.textureFlags->deffered);
+				texture->create(imgsData.data(), imgs.size(), imgs[0].format(), imgs[0].bpp(), params.textureFlags->useMipMaps, params.textureFlags->deffered);
 			}
 
 			if (params.imageLayout != VK_IMAGE_LAYOUT_MAX_ENUM) {
@@ -131,28 +133,62 @@ namespace engine {
 		auto&& cache = engine.getModule<CacheManager>()->getCache<std::string, vulkan::VulkanTexture*>();
 
 		if (params.flags->use_cache) {
-			if (v = cache->getValue(params.files[0])) {
-				if (callback) {
-					switch (v->generationState()) {
-					case vulkan::VulkanTextureCreationState::NO_CREATED:
-						callback(v, AssetLoadingResult::LOADING_ERROR);
-						break;
-					case vulkan::VulkanTextureCreationState::CREATION_COMPLETE:
-						callback(v, AssetLoadingResult::LOADING_SUCCESS);
-						break;
-					default:
-						addCallback(v, callback);
-						break;
-					}
-				}
-				return;
-			}
-		}
 
-		if (params.flags->use_cache) {
-			v = cache->getOrSetValue(params.files[0], [](const TextureLoadingParams& params, const TextureLoadingCallback& callback) {
-				return createTexture(params, callback);
-			}, params, callback);
+			if (params.files.size() > 1) {
+				size_t length = 0;
+				for (auto&& f : params.files) {
+					length += f.length();
+				}
+
+				std::string cacheKey;
+				cacheKey.reserve(length);
+
+				for (auto&& f : params.files) {
+					cacheKey += f;
+				}
+
+				if (v = cache->getValue(cacheKey)) {
+					if (callback) {
+						switch (v->generationState()) {
+						case vulkan::VulkanTextureCreationState::NO_CREATED:
+							callback(v, AssetLoadingResult::LOADING_ERROR);
+							break;
+						case vulkan::VulkanTextureCreationState::CREATION_COMPLETE:
+							callback(v, AssetLoadingResult::LOADING_SUCCESS);
+							break;
+						default:
+							addCallback(v, callback);
+							break;
+						}
+					}
+					return;
+				}
+
+				v = cache->getOrSetValue(cacheKey, [](const TextureLoadingParams& params, const TextureLoadingCallback& callback) {
+					return createTexture(params, callback);
+					}, params, callback);
+			} else {
+				if (v = cache->getValue(params.files[0])) {
+					if (callback) {
+						switch (v->generationState()) {
+						case vulkan::VulkanTextureCreationState::NO_CREATED:
+							callback(v, AssetLoadingResult::LOADING_ERROR);
+							break;
+						case vulkan::VulkanTextureCreationState::CREATION_COMPLETE:
+							callback(v, AssetLoadingResult::LOADING_SUCCESS);
+							break;
+						default:
+							addCallback(v, callback);
+							break;
+						}
+					}
+					return;
+				}
+
+				v = cache->getOrSetValue(params.files[0], [](const TextureLoadingParams& params, const TextureLoadingCallback& callback) {
+					return createTexture(params, callback);
+					}, params, callback);
+			}
 		} else {
 			v = createTexture(params, callback);
 		}

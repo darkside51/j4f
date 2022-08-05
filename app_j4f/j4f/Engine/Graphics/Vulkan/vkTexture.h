@@ -32,10 +32,10 @@ namespace vulkan {
 		) : _renderer(renderer), _width(w), _height(h), _depth(d), _img(img), _descriptor(readyDescriptorSet), _sampler(sampler), _generationState(VulkanTextureCreationState::CREATION_COMPLETE), _imageLayout(layout), _arrayLayers(1) {}
 		~VulkanTexture();
 
-		VulkanBuffer* generateWithData(const void* data, const VkFormat format, const uint8_t bpp, const bool createMipMaps);
-		void create(const void* data, const VkFormat format, const uint8_t bpp, const bool createMipMaps, const bool deffered = false);
+		VulkanBuffer* generateWithData(const void** data, const uint32_t count, const VkFormat format, const uint8_t bpp, const bool createMipMaps, const VkImageViewType forceType);
 
-		void create(const void** data, const uint32_t count, const VkFormat format, const uint8_t bpp, const bool createMipMaps, const bool deffered = false);
+		void create(const void* data, const VkFormat format, const uint8_t bpp, const bool createMipMaps, const bool deffered = false);
+		void create(const void** data, const uint32_t count, const VkFormat format, const uint8_t bpp, const bool createMipMaps, const bool deffered = false, const VkImageViewType forceType = VK_IMAGE_VIEW_TYPE_MAX_ENUM);
 
 		void createSingleDescriptor(const VkImageLayout imageLayout, const uint32_t binding);
 

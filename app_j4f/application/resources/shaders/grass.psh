@@ -26,7 +26,7 @@ layout (set = 3, binding = 0) uniform shadowUBO {
 } u_shadow;
 
 layout (set = 1, binding = 0) uniform sampler2DArray u_shadow_map;
-layout (set = 4, binding = 0) uniform sampler2D u_texture;
+layout (set = 4, binding = 0) uniform sampler2DArray u_texture;
 
 float textureProj(vec4 shCoord, vec2 offset, uint cascade) {
 	float dist = texture(u_shadow_map, vec3(shCoord.xy + offset, cascade)).r;
@@ -80,13 +80,12 @@ void main() {
 	vec2 uv = in_uv;
 	uv.x += (1.0 - uv.y) * in_st;
 
-	vec4 color = texture(u_texture, uv, 0.0) * vec4(1.0, 0.9, 0.9, 1.0);
+	vec4 color = texture(u_texture, vec3(uv, in_mix));
 	if (color.a < 0.75) {
 		discard;
 	} else {
 		// get cascade index for the current fragment's view position
 		//color.rgb = mix(color.rgb, color.rgb * vec3(1.0, 0.95, 0.95), in_mix);
-		color.rgb = mix(color.rgb, color.rgb * vec3(1.0, 0.9, 0.9), in_mix);
 
 		uint cascade = 0;
 		for (uint i = 0; i < (SHADOW_MAP_CASCADE_COUNT - 1); ++i) {
@@ -102,7 +101,7 @@ void main() {
 		//float shadow = filterPCF(shadowCoord / shadowCoord.w, cascade);
 
 		const float light = shadow;
-		color.rgb *= clamp(u_constants.lightMinMax.y * light, u_constants.lightMinMax.x, u_constants.lightMinMax.y);
+		color.rgb *= clamp(u_constants.lightMinMax.y * light, u_constants.lightMinMax.x, 1.0);
 		outColor = u_constants.lightColor * color;
 
 		float gamma = 2.2;

@@ -291,11 +291,12 @@ namespace vulkan {
 			VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK
 		));
 
-		_emptyTexture->create(&emptyImg[0], VK_FORMAT_R8G8B8A8_UNORM, 32, false, false);
+		const void* emtyImageAddr = &emptyImg[0];
+
+		_emptyTexture->create(&emtyImageAddr, 1, VK_FORMAT_R8G8B8A8_UNORM, 32, false, false, VK_IMAGE_VIEW_TYPE_2D);
 		_emptyTexture->createSingleDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0);
 
-		const void* emtyImageAddr = &emptyImg[0];
-		_emptyTextureArray->create(&emtyImageAddr, 1, VK_FORMAT_R8G8B8A8_UNORM, 32, false, false);
+		_emptyTextureArray->create(&emtyImageAddr, 1, VK_FORMAT_R8G8B8A8_UNORM, 32, false, false, VK_IMAGE_VIEW_TYPE_2D_ARRAY);
 		_emptyTextureArray->createSingleDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0);
 	}
 

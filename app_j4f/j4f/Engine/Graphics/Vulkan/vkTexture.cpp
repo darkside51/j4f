@@ -15,7 +15,7 @@ namespace vulkan {
 
 	void VulkanTexture::create(const void* data, const VkFormat format, const uint8_t bpp, const bool createMipMaps, const bool deffered) {
 		_generationState.store(VulkanTextureCreationState::CREATION_STARTED, std::memory_order_release);
-		VulkanBuffer* staging = generateWithData(data, format, bpp, createMipMaps);
+		VulkanBuffer* staging = generateWithData(&data, 1, format, bpp, createMipMaps, VK_IMAGE_VIEW_TYPE_MAX_ENUM);
 
 		if (deffered) {
 			_renderer->addDefferedGenerateTexture(this, staging, 0, 1);
@@ -26,14 +26,25 @@ namespace vulkan {
 		}
 	}
 
-	void VulkanTexture::create(const void** data, const uint32_t count, const VkFormat format, const uint8_t bpp, const bool createMipMaps, const bool deffered) {
+	void VulkanTexture::create(const void** data, const uint32_t count, const VkFormat format, const uint8_t bpp, const bool createMipMaps, const bool deffered, const VkImageViewType forceType) {
 		_generationState.store(VulkanTextureCreationState::CREATION_STARTED, std::memory_order_release);
+		VulkanBuffer* staging = generateWithData(data, count, format, bpp, createMipMaps, forceType);
 
-		_arrayLayers = count;
+		if (deffered) {
+			_renderer->addDefferedGenerateTexture(this, staging, 0, count);
+		} else {
+			auto&& cmdBuffer = _renderer->getSupportCommandBuffer();
+			fillGpuData(staging, cmdBuffer, 0, count);
+			_renderer->addTmpBuffer(staging);
+		}
+	}
 
+	VulkanBuffer* VulkanTexture::generateWithData(const void** data, const uint32_t count, const VkFormat format, const uint8_t bpp, const bool createMipMaps, const VkImageViewType forceType) {
 		const size_t elementDataSize = _width * _height * (bpp / 8);
 		const size_t allDataSize = elementDataSize * count;
 		const uint8_t mipLevels = (createMipMaps ? (static_cast<uint8_t>(std::floor(std::log2(std::max(_width, _height)))) + 1) : 1);
+
+		_arrayLayers = count;
 
 		_img = new vulkan::VulkanImage(
 			_renderer->getDevice(),
@@ -42,13 +53,29 @@ namespace vulkan {
 			format,
 			mipLevels,
 			_width,
-			_height, 
+			_height,
 			1,
 			0,
 			count
 		);
 
-		_img->createImageView(VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_ASPECT_COLOR_BIT);
+		if (forceType != VK_IMAGE_VIEW_TYPE_MAX_ENUM) {
+			_img->createImageView(forceType, VK_IMAGE_ASPECT_COLOR_BIT);
+		} else {
+			_img->createImageView((count > 1 ? VK_IMAGE_VIEW_TYPE_2D_ARRAY : VK_IMAGE_VIEW_TYPE_2D), VK_IMAGE_ASPECT_COLOR_BIT);
+		}
+		
+		if (_sampler == VK_NULL_HANDLE) { // трилинейная фильтрация + MODE_REPEAT по умолчанию
+			_sampler = _renderer->getSampler(
+				VK_FILTER_LINEAR,
+				VK_FILTER_LINEAR,
+				VK_SAMPLER_MIPMAP_MODE_LINEAR,
+				VK_SAMPLER_ADDRESS_MODE_REPEAT,
+				VK_SAMPLER_ADDRESS_MODE_REPEAT,
+				VK_SAMPLER_ADDRESS_MODE_REPEAT,
+				VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK
+			);
+		}
 
 		VulkanBuffer* staging = new VulkanBuffer();
 		_renderer->getDevice()->createBuffer(
@@ -63,86 +90,6 @@ namespace vulkan {
 		for (size_t i = 0; i < count; ++i) {
 			staging->upload(data[i], elementDataSize, offset);
 			offset += elementDataSize;
-		}
-
-		if (_sampler == VK_NULL_HANDLE) { // трилинейная фильтрация + MODE_REPEAT по умолчанию
-			_sampler = _renderer->getSampler(
-				VK_FILTER_LINEAR,
-				VK_FILTER_LINEAR,
-				VK_SAMPLER_MIPMAP_MODE_LINEAR,
-				VK_SAMPLER_ADDRESS_MODE_REPEAT,
-				VK_SAMPLER_ADDRESS_MODE_REPEAT,
-				VK_SAMPLER_ADDRESS_MODE_REPEAT,
-				VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK
-			);
-		}
-
-		if (deffered) {
-			_renderer->addDefferedGenerateTexture(this, staging, 0, count);
-		} else {
-			auto&& cmdBuffer = _renderer->getSupportCommandBuffer();
-			fillGpuData(staging, cmdBuffer, 0, count);
-			_renderer->addTmpBuffer(staging);
-		}
-	}
-
-	VulkanBuffer* VulkanTexture::generateWithData(const void* data, const VkFormat format, const uint8_t bpp, const bool createMipMaps) {
-		const size_t dataSize = _width * _height * (bpp / 8);
-		const uint8_t mipLevels = (createMipMaps ? (static_cast<uint8_t>(std::floor(std::log2(std::max(_width, _height)))) + 1) : 1);
-
-		VulkanBuffer* staging = new VulkanBuffer();
-		_renderer->getDevice()->createBuffer(
-			VK_SHARING_MODE_EXCLUSIVE,
-			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-			staging,
-			dataSize
-		);
-
-		staging->upload(data, dataSize, 0);
-
-		_img = new vulkan::VulkanImage(
-			_renderer->getDevice(),
-			VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-			VK_IMAGE_TYPE_2D,
-			format,
-			mipLevels,
-			_width,
-			_height
-		);
-
-		_img->createImageView(VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT);
-
-		if (_sampler == VK_NULL_HANDLE) { // трилинейная фильтрация + MODE_REPEAT по умолчанию
-			/*_sampler = _renderer->getSampler(
-				VK_FILTER_LINEAR,
-				VK_FILTER_LINEAR,
-				VK_SAMPLER_MIPMAP_MODE_LINEAR,
-				VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
-				VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
-				VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
-				VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK
-			);*/
-
-			/*_sampler = _renderer->getSampler(
-				VK_FILTER_LINEAR,
-				VK_FILTER_LINEAR,
-				VK_SAMPLER_MIPMAP_MODE_LINEAR,
-				VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-				VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-				VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-				VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK
-			);*/
-
-			_sampler = _renderer->getSampler(
-				VK_FILTER_LINEAR,
-				VK_FILTER_LINEAR,
-				VK_SAMPLER_MIPMAP_MODE_LINEAR,
-				VK_SAMPLER_ADDRESS_MODE_REPEAT,
-				VK_SAMPLER_ADDRESS_MODE_REPEAT,
-				VK_SAMPLER_ADDRESS_MODE_REPEAT,
-				VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK
-			);
 		}
 
 		return staging;

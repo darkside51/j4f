@@ -51,6 +51,8 @@ void main() {
 	out_uv = a_uv;
 
 	mat4 modelMatrix = u_transforms.models[gl_InstanceIndex];
+	out_mix = modelMatrix[3][2];
+	modelMatrix[3][2] = 0.0;
 
 	out_normal = normalize((modelMatrix * vec4(a_normal, 0.0)).xyz);
 	vec4 world_position = modelMatrix * vec4(a_position, 1.0);
@@ -62,7 +64,7 @@ void main() {
 	float t = u_push_const.model_matrix[0][0];
 	out_st = 0.0025 * sin(t + (world_position.x + world_position.y) * 0.1) * world_position.z;
 
-	out_mix = float(gl_InstanceIndex & 1);
+	//out_mix = float(gl_InstanceIndex & 1);
 
 	gl_Position = u_push_const.camera_matrix * world_position;
 }

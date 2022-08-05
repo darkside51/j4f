@@ -85,6 +85,7 @@ namespace engine {
 	/// cascade shadow map
 
 	glm::vec4 lightColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glm::vec2 lightMinMax(0.075f, 3.0f);
 
 	H_Node* rootNode;
 	//
@@ -98,8 +99,7 @@ namespace engine {
 			grass_default = gpuProgramManager->getProgram(psi);
 
 			glm::vec3 lightDir = as_normalized(-lightPos);
-			glm::vec2 lightMinMax(0.1f, 1.75f);
-			
+
 			auto l = grass_default->getGPUParamLayoutByName("lightDirection");
 			grass_default->setValueToLayout(l, &lightDir, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 			auto l2 = grass_default->getGPUParamLayoutByName("lightMinMax");
@@ -128,7 +128,6 @@ namespace engine {
 			grass_default->setValueToLayout(lssbo, grassTransforms.data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, sizeof(glm::mat4) * instanceCount, true);
 		}
 
-
 		GrassRenderer(const TextureData& img) : _mesh(nullptr) {
 			auto&& gpuProgramManager = Engine::getInstance().getModule<Graphics>()->getGpuProgramsManager();
 			std::vector<engine::ProgramStageInfo> psi;
@@ -136,8 +135,7 @@ namespace engine {
 			psi.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/grass.psh.spv");
 			grass_default = gpuProgramManager->getProgram(psi);
 
-			glm::vec3 lightDir = as_normalized(-lightPos);
-			glm::vec2 lightMinMax(0.1f, 1.75f);
+			glm::vec3 lightDir = as_normalized(-lightPos);		
 
 			auto l = grass_default->getGPUParamLayoutByName("lightDirection");
 			grass_default->setValueToLayout(l, &lightDir, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
@@ -155,13 +153,20 @@ namespace engine {
 				for (size_t y = 0; y < img.height(); ++y) {
 					const uint32_t v = data[y * img.width() + x];
 					if ((v & 0x000000f0) >= 240) {
-						const float scale_xy = (engine::random(15, 25) * 1350.0f);
-						const float scale_z = (engine::random(5, 60) * 400.0f);
-
 						glm::mat4 wtr(1.0f);
-						scaleMatrix(wtr, glm::vec3(scale_xy, scale_xy, scale_z));
+
+						const int grassType = engine::random(0, 100) < 5 ? engine::random(2, 4) : engine::random(0, 1);
+						if (grassType > 1) {
+							const float scale_xyz = (engine::random(10.0f, 30.0f) * 400.0f);
+							scaleMatrix(wtr, glm::vec3(scale_xyz, scale_xyz, scale_xyz));
+						} else {
+							const float scale_xyz = (engine::random(25.0f, 60.0f) * 550.0f);
+							const float scale_z = (engine::random(25.0f, 60.0f) * 300.0f);
+							scaleMatrix(wtr, glm::vec3(scale_xyz, scale_xyz, scale_z));
+						}
+
 						rotateMatrix_xyz(wtr, glm::vec3(0.0f, 0.0f, engine::random(-3.1415926, 3.1415926)));
-						translateMatrixTo(wtr, glm::vec3(-1024.0f + x * space, 1024.0f - y * space, 0.0f));
+						translateMatrixTo(wtr, glm::vec3(-1024.0f + x * space, 1024.0f - y * space, grassType));
 						grassTransforms.emplace_back(std::move(wtr));
 					}
 				}
@@ -251,7 +256,6 @@ namespace engine {
 			delete animTreeWindMill;
 
 			delete texture_text;
-			delete texture_array_test;
 
 			delete meshesGraphicsBuffer;
 
@@ -341,16 +345,16 @@ namespace engine {
 
 			camera = new Camera(width, height);
 
-			camera->makeProjection(3.1415926f / 4.0f, static_cast<float>(width) / static_cast<float>(height), 10.0f, 4000.0f);
+			camera->makeProjection(engine::math_constants::pi / 4.0f, static_cast<float>(width) / static_cast<float>(height), 10.0f, 4000.0f);
 			//camera->makeOrtho(-float(width) * 0.5f, float(width) * 0.5f, -float(height) * 0.5f, float(height) * 0.5f, 1.0f, 1000.0f);
-			camera->setRotation(glm::vec3(-3.1415926f / 3.0f, 0.0f, 0.0f));
+			camera->setRotation(glm::vec3(-engine::math_constants::pi / 3.0f, 0.0f, 0.0f));
 			camera->setPosition(glm::vec3(0.0f, -500.0f, 300.0f));
 
 			camera2 = new Camera(width, height);
 			camera2->makeOrtho(-float(width) * 0.5f, float(width) * 0.5f, -float(height) * 0.5f, float(height) * 0.5f, 1.0f, 1000.0f);
 			camera2->setPosition(glm::vec3(0.0f, 0.0f, 200.0f));
 
-			clearValues[0].color = { 0.2f, 0.2f, 0.2f, 1.0f };
+			clearValues[0].color = { 0.2f, 0.7f, 0.9f, 1.0f };
 			clearValues[1].depthStencil = { 1.0f, 0 };
 
 
@@ -380,7 +384,6 @@ namespace engine {
 			VulkanGpuProgram* shadowPlainProgram = const_cast<VulkanGpuProgram*>(CascadeShadowMap::getSpecialPipeline(ShadowMapSpecialPipelines::SH_PIPEINE_PLAIN)->program);
 
 			glm::vec3 lightDir = as_normalized(-lightPos);
-			glm::vec2 lightMinMax(0.1f, 1.75f);
 
 			auto l = program_mesh_default->getGPUParamLayoutByName("lightDirection");
 			program_mesh_default->setValueToLayout(l, &lightDir, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
@@ -437,7 +440,13 @@ namespace engine {
 			tex_params3.files = { "resources/assets/models/vikingHut/textures/texture1.jpg" };
 			auto texture_t5 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
-			tex_params3.files = { "resources/assets/models/grass/textures/grass77.png" };
+			tex_params3.files = { 
+				"resources/assets/models/grass/textures/grass76.png",
+				"resources/assets/models/grass/textures/grass77.png",
+				"resources/assets/models/grass/textures/flowers16.png",
+				"resources/assets/models/grass/textures/flowers2.png",
+				"resources/assets/models/grass/textures/grass2.png",
+			};
 			auto texture_t6 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
 			tex_params3.files = { "resources/assets/models/windmill/textures/standardSurface1_baseColor.png" };
@@ -731,11 +740,11 @@ namespace engine {
 
 			TextureLoadingParams tex_params_floorArray;
 			tex_params_floorArray.files = { 
-				"resources/assets/textures/swamp5.jpg",
+				"resources/assets/textures/swamp2.jpg",
 				"resources/assets/textures/ground133.jpg"
 			};
 			tex_params_floorArray.flags->async = 1;
-			tex_params_floorArray.flags->use_cache = 0;
+			tex_params_floorArray.flags->use_cache = 1;
 			tex_params_floorArray.formatType = engine::TextureFormatType::SRGB;
 			texture_array_test = assm->loadAsset<vulkan::VulkanTexture*>(tex_params_floorArray, [](vulkan::VulkanTexture* asset, const AssetLoadingResult result) {
 				auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
@@ -1074,7 +1083,6 @@ namespace engine {
 				//// floor
 				static auto&& pipeline_shadow_test = CascadeShadowMap::getSpecialPipeline(ShadowMapSpecialPipelines::SH_PIPEINE_PLAIN);
 				static const vulkan::GPUParamLayoutInfo* mvp_layout2 = pipeline_shadow_test->program->getGPUParamLayoutByName("mvp");
-
 
 				const float tc = 8.0f;
 				TexturedVertex floorVtx[4] = {
