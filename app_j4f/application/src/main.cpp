@@ -85,7 +85,8 @@ namespace engine {
 	/// cascade shadow map
 
 	glm::vec4 lightColor(1.0f, 1.0f, 1.0f, 1.0f);
-	glm::vec2 lightMinMax(0.075f, 3.0f);
+	//glm::vec2 lightMinMax(0.075f, 3.0f);
+	glm::vec2 lightMinMax(0.35f, 1.75f);
 
 	H_Node* rootNode;
 	//
@@ -354,9 +355,8 @@ namespace engine {
 			camera2->makeOrtho(-float(width) * 0.5f, float(width) * 0.5f, -float(height) * 0.5f, float(height) * 0.5f, 1.0f, 1000.0f);
 			camera2->setPosition(glm::vec3(0.0f, 0.0f, 200.0f));
 
-			clearValues[0].color = { 0.2f, 0.7f, 0.9f, 1.0f };
+			clearValues[0].color = { 0.5f, 0.78f, 0.99f, 1.0f };
 			clearValues[1].depthStencil = { 1.0f, 0 };
-
 
 			//////////////////////////////////
 			shadowMap = new CascadeShadowMap(SHADOWMAP_DIM, SHADOW_MAP_CASCADE_COUNT, camera->getNearFar(), 250.0f, 1600.0f);
@@ -403,32 +403,54 @@ namespace engine {
 			shadowMap->registerProgramAsReciever(shadowPlainProgram);
 
 			TextureLoadingParams tex_params;
-			tex_params.files = { "resources/assets/models/chaman/textures/Ti-Pche_Mat_baseColor.png" };
+			tex_params.files = { 
+				"resources/assets/models/chaman/textures/Ti-Pche_Mat_baseColor.png",
+				"resources/assets/models/chaman/textures/Ti-Pche_Mat_normal.png",
+			};
 			tex_params.flags->async = 1;
 			tex_params.flags->use_cache = 1;
-			tex_params.formatType = engine::TextureFormatType::SRGB;
+			//tex_params.formatType = engine::TextureFormatType::SRGB;
+			tex_params.imageViewTypeForce = VkImageViewType::VK_IMAGE_VIEW_TYPE_2D_ARRAY;
 			auto texture_zombi = assm->loadAsset<vulkan::VulkanTexture*>(tex_params);
 
 			TextureLoadingParams tex_params2;
-			tex_params2.files = { "resources/assets/models/warcraft3/textures/Armor_2_baseColor.png" };
+			tex_params2.files = { 
+				"resources/assets/models/warcraft3/textures/Armor_2_baseColor.png",
+				"resources/assets/models/warcraft3/textures/Armor_2_normal.png",
+			};
 			tex_params2.flags->async = 1;
 			tex_params2.flags->use_cache = 1;
-			tex_params2.formatType = engine::TextureFormatType::SRGB;
+
+			//tex_params2.formatType = engine::TextureFormatType::SRGB;
+			tex_params2.imageViewTypeForce = VkImageViewType::VK_IMAGE_VIEW_TYPE_2D_ARRAY;
 			auto texture_v = assm->loadAsset<vulkan::VulkanTexture*>(tex_params2);
-			tex_params2.files = { "resources/assets/models/warcraft3/textures/body_baseColor.png" };
+			tex_params2.files = { 
+				"resources/assets/models/warcraft3/textures/body_baseColor.png",
+				"resources/assets/models/warcraft3/textures/body_normal.png"
+			};
 			auto texture_v2 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params2);
-			tex_params2.files = { "resources/assets/models/warcraft3/textures/Metal_baseColor.png" };
+			tex_params2.files = { 
+				"resources/assets/models/warcraft3/textures/Metal_baseColor.png",
+				"resources/assets/models/warcraft3/textures/Metal_normal.png"
+			};
 			auto texture_v3 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params2);
 
 			TextureLoadingParams tex_params3;
 			tex_params3.flags->async = 1;
 			tex_params3.flags->use_cache = 1;
-			tex_params3.formatType = engine::TextureFormatType::SRGB;
+			//tex_params3.formatType = engine::TextureFormatType::SRGB;
+			tex_params3.imageViewTypeForce = VkImageViewType::VK_IMAGE_VIEW_TYPE_2D_ARRAY;
 
-			tex_params3.files = { "resources/assets/models/tree1/textures/tree2_baseColor.png" };
+			tex_params3.files = { 
+				"resources/assets/models/tree1/textures/tree2_baseColor.png",
+				"resources/assets/models/tree1/textures/tree2_normal.png",
+			};
 			auto texture_t = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
-			tex_params3.files = { "resources/assets/models/tree1/textures/branches_baseColor.png" };
+			tex_params3.files = { 
+				"resources/assets/models/tree1/textures/branches_baseColor.png",
+				"resources/assets/models/tree1/textures/branches_normal.png",
+			};
 			auto texture_t2 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
 			tex_params3.files = { "resources/assets/models/pineTree/textures/Leavs_baseColor.png" };
@@ -437,7 +459,11 @@ namespace engine {
 			tex_params3.files = { "resources/assets/models/pineTree/textures/Trank_baseColor.png" };
 			auto texture_t4 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
-			tex_params3.files = { "resources/assets/models/vikingHut/textures/texture1.jpg" };
+			tex_params3.files = { 
+				"resources/assets/models/vikingHut/textures/texture1.jpg",
+				"resources/assets/models/vikingHut/textures/Main_Material2_normal.jpg"
+			};
+
 			auto texture_t5 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
 			tex_params3.files = { 
@@ -449,56 +475,59 @@ namespace engine {
 			};
 			auto texture_t6 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
-			tex_params3.files = { "resources/assets/models/windmill/textures/standardSurface1_baseColor.png" };
+			tex_params3.files = { 
+				"resources/assets/models/windmill/textures/standardSurface1_baseColor.png",
+				"resources/assets/models/windmill/textures/standardSurface1_normal.png"
+			};
 			auto texture_t7 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
 			meshesGraphicsBuffer = new MeshGraphicsDataBuffer(10 * 1024 * 1024, 10 * 1024 * 1024); // or create with default constructor for unique buffer for mesh
 
 			MeshLoadingParams mesh_params;
 			mesh_params.file = "resources/assets/models/chaman/scene.gltf";
-			mesh_params.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT, AttributesSemantic::TEXCOORD_0);
+			mesh_params.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::TANGENT, AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT, AttributesSemantic::TEXCOORD_0);
 			mesh_params.latency = 3;
 			mesh_params.flags->async = 1;
 			mesh_params.graphicsBuffer = meshesGraphicsBuffer;
 
 			MeshLoadingParams mesh_params2;
 			mesh_params2.file = "resources/assets/models/warcraft3/scene.gltf";
-			mesh_params2.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT, AttributesSemantic::TEXCOORD_0);
+			mesh_params2.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::TANGENT, AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT, AttributesSemantic::TEXCOORD_0);
 			mesh_params2.latency = 3;
 			mesh_params2.flags->async = 1;
 			mesh_params2.graphicsBuffer = meshesGraphicsBuffer;
 
 			MeshLoadingParams mesh_params3;
 			mesh_params3.file = "resources/assets/models/tree1/scene.gltf";
-			mesh_params3.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT, AttributesSemantic::TEXCOORD_0);
+			mesh_params3.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::TANGENT, AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT, AttributesSemantic::TEXCOORD_0);
 			mesh_params3.latency = 1;
 			mesh_params3.flags->async = 1;
 			mesh_params3.graphicsBuffer = meshesGraphicsBuffer;
 
 			MeshLoadingParams mesh_params4;
 			mesh_params4.file = "resources/assets/models/pineTree/scene.gltf";
-			mesh_params4.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT, AttributesSemantic::TEXCOORD_0);
+			mesh_params4.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::TANGENT, AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT, AttributesSemantic::TEXCOORD_0);
 			mesh_params4.latency = 1;
 			mesh_params4.flags->async = 1;
 			mesh_params4.graphicsBuffer = meshesGraphicsBuffer;
 
 			MeshLoadingParams mesh_params5;
 			mesh_params5.file = "resources/assets/models/vikingHut/scene.gltf";
-			mesh_params5.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT, AttributesSemantic::TEXCOORD_0);
+			mesh_params5.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::TANGENT, AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT, AttributesSemantic::TEXCOORD_0);
 			mesh_params5.latency = 1;
 			mesh_params5.flags->async = 1;
 			mesh_params5.graphicsBuffer = meshesGraphicsBuffer;
 
 			MeshLoadingParams mesh_params6;
 			mesh_params6.file = "resources/assets/models/windmill/scene.gltf";
-			mesh_params6.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT, AttributesSemantic::TEXCOORD_0);
+			mesh_params6.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::TANGENT, AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT, AttributesSemantic::TEXCOORD_0);
 			mesh_params6.latency = 3;
 			mesh_params6.flags->async = 1;
 			mesh_params6.graphicsBuffer = meshesGraphicsBuffer;
 
 			MeshLoadingParams mesh_params_grass;
 			mesh_params_grass.file = "resources/assets/models/grass/scene.gltf";
-			mesh_params_grass.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT, AttributesSemantic::TEXCOORD_0);
+			mesh_params_grass.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::TANGENT, AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT, AttributesSemantic::TEXCOORD_0);
 			mesh_params_grass.latency = 3;
 			mesh_params_grass.flags->async = 1;
 			mesh_params_grass.graphicsBuffer = meshesGraphicsBuffer;
@@ -745,7 +774,7 @@ namespace engine {
 			};
 			tex_params_floorArray.flags->async = 1;
 			tex_params_floorArray.flags->use_cache = 1;
-			tex_params_floorArray.formatType = engine::TextureFormatType::SRGB;
+			//tex_params_floorArray.formatType = engine::TextureFormatType::SRGB;
 			texture_array_test = assm->loadAsset<vulkan::VulkanTexture*>(tex_params_floorArray, [](vulkan::VulkanTexture* asset, const AssetLoadingResult result) {
 				auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
 				texture_array_test->setSampler(
@@ -923,15 +952,18 @@ namespace engine {
 
 			////
 			if (animTree) {
-				mesh->graphics()->getSkeleton()->updateAnimation(delta, animTree);
+				animTree->updateAnimation(delta, mesh->graphics()->getSkeleton());
+				//mesh->graphics()->getSkeleton()->updateAnimation(delta, animTree);
 			}
 
 			if (animTree2) {
-				mesh3->graphics()->getSkeleton()->updateAnimation(delta, animTree2);
+				animTree2->updateAnimation(delta, mesh3->graphics()->getSkeleton());
+				//mesh3->graphics()->getSkeleton()->updateAnimation(delta, animTree2);
 			}
 
 			if (animTreeWindMill) {
-				mesh7->graphics()->getSkeleton()->updateAnimation(delta, animTreeWindMill);
+				animTreeWindMill->updateAnimation(delta, mesh7->graphics()->getSkeleton());
+				//mesh7->graphics()->getSkeleton()->updateAnimation(delta, animTreeWindMill);
 			}
 
 			////////

@@ -4,9 +4,10 @@
 
 layout (location = 0) in vec3 a_position;
 layout (location = 1) in vec3 a_normal;
-layout (location = 2) in vec4 a_joints;
-layout (location = 3) in vec4 a_weights;
-layout (location = 4) in vec2 a_uv;
+layout (location = 2) in vec4 a_tangent;
+layout (location = 3) in vec4 a_joints;
+layout (location = 4) in vec4 a_weights;
+layout (location = 5) in vec2 a_uv;
 
 layout (set = 0, binding = 0) uniform static_lightUBO {
 	vec3 lightDirection;

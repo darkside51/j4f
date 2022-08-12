@@ -104,8 +104,8 @@ void main() {
 		color.rgb *= clamp(u_constants.lightMinMax.y * light, u_constants.lightMinMax.x, 1.0);
 		outColor = u_constants.lightColor * color;
 
-		float gamma = 2.2;
-    	outColor.rgb = pow(outColor.rgb, vec3(1.0 / gamma));
+		//float gamma = 2.2;
+    	//outColor.rgb = pow(outColor.rgb, vec3(1.0 / gamma));
 
 		outColor.rgb = saturate(outColor.rgb, 1.5);
 

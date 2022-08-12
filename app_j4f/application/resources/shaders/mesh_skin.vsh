@@ -4,9 +4,10 @@
 
 layout (location = 0) in vec3 a_position;
 layout (location = 1) in vec3 a_normal;
-layout (location = 2) in vec4 a_joints;
-layout (location = 3) in vec4 a_weights;
-layout (location = 4) in vec2 a_uv;
+layout (location = 2) in vec4 a_tangent;
+layout (location = 3) in vec4 a_joints;
+layout (location = 4) in vec4 a_weights;
+layout (location = 5) in vec2 a_uv;
 
 layout (set = 0, binding = 0) uniform static_lightUBO {
 	vec3 lightDirection;
@@ -35,6 +36,7 @@ layout (location = 1) out vec2 out_uv;
 
 layout (location = 2) out float out_view_depth;
 layout (location = 3) out vec3 out_position;
+layout (location = 4) out vec4 out_tangent;
 
 out gl_PerVertex {
     vec4 gl_Position;   
@@ -49,8 +51,10 @@ void main() {
 			  	  + u_ubo.skin_matrixes[int(a_joints.z)] * a_weights.z
 			  	  + u_ubo.skin_matrixes[int(a_joints.w)] * a_weights.w;
 
-		out_normal = normalize((u_push_const.model_matrix * skin * vec4(a_normal, 0.0)).xyz);
-		vec4 world_position = u_push_const.model_matrix * skin * vec4(a_position, 1.0);
+		out_normal = normalize((u_push_const.model_matrix * (skin * vec4(a_normal, 0.0))).xyz);
+		out_tangent = vec4(mat3(u_push_const.model_matrix) * (mat3(skin) * a_tangent.xyz), a_tangent.w);
+
+		vec4 world_position = u_push_const.model_matrix * (skin * vec4(a_position, 1.0));
 		vec3 view_position = (u_shadow.view * world_position).xyz;
 
 		out_view_depth = view_position.z;
@@ -59,6 +63,8 @@ void main() {
 
 	} else {
 		out_normal = normalize((u_push_const.model_matrix * vec4(a_normal, 0.0)).xyz);
+		out_tangent = vec4(mat3(u_push_const.model_matrix) * a_tangent.xyz, a_tangent.w);
+
 		vec4 world_position = u_push_const.model_matrix * vec4(a_position, 1.0);
 		vec3 view_position = (u_shadow.view * world_position).xyz;
 
