@@ -329,7 +329,6 @@ namespace engine {
 				switch (static_cast<gltf::AttributesSemantic>(i)) {
 					case gltf::AttributesSemantic::POSITION:
 					case gltf::AttributesSemantic::NORMAL:
-					case gltf::AttributesSemantic::TANGENT:
 					{
 						vertexInputAttributes.emplace_back(
 							VkVertexInputAttributeDescription{
@@ -342,6 +341,7 @@ namespace engine {
 						attribute_offset += 12;
 					}
 						break;
+					case gltf::AttributesSemantic::TANGENT:
 					case gltf::AttributesSemantic::COLOR:
 					case gltf::AttributesSemantic::JOINTS:
 					case gltf::AttributesSemantic::WEIGHT:

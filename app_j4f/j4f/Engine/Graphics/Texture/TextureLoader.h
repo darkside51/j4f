@@ -40,6 +40,7 @@ namespace engine {
 
 		TextureData *texData = nullptr;
 		TextureFormatType formatType = TextureFormatType::UNORM;
+		VkImageViewType imageViewTypeForce = VkImageViewType::VK_IMAGE_VIEW_TYPE_MAX_ENUM;
 
 		TextureLoadingFlags textureFlags;
 	};

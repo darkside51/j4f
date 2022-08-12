@@ -34,7 +34,7 @@ namespace vulkan {
 
 		VulkanBuffer* generateWithData(const void** data, const uint32_t count, const VkFormat format, const uint8_t bpp, const bool createMipMaps, const VkImageViewType forceType);
 
-		void create(const void* data, const VkFormat format, const uint8_t bpp, const bool createMipMaps, const bool deffered = false);
+		void create(const void* data, const VkFormat format, const uint8_t bpp, const bool createMipMaps, const bool deffered = false, const VkImageViewType forceType = VK_IMAGE_VIEW_TYPE_MAX_ENUM);
 		void create(const void** data, const uint32_t count, const VkFormat format, const uint8_t bpp, const bool createMipMaps, const bool deffered = false, const VkImageViewType forceType = VK_IMAGE_VIEW_TYPE_MAX_ENUM);
 
 		void createSingleDescriptor(const VkImageLayout imageLayout, const uint32_t binding);

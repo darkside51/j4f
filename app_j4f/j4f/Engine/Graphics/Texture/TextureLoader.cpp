@@ -59,7 +59,7 @@ namespace engine {
 						texture->noGenerate();
 						return;
 					}
-					texture->create(params.texData->data(), params.texData->format(), params.texData->bpp(), params.textureFlags->useMipMaps, true);
+					texture->create(params.texData->data(), params.texData->format(), params.texData->bpp(), params.textureFlags->useMipMaps, true, params.imageViewTypeForce);
 				} else {
 					const size_t size = params.files.size();
 					std::vector<TextureData> imgs;
@@ -78,7 +78,7 @@ namespace engine {
 						imgsData[i] = imgs[i].data();
 					}
 
-					texture->create(imgsData.data(), imgs.size(), imgs[0].format(), imgs[0].bpp(), params.textureFlags->useMipMaps, true);
+					texture->create(imgsData.data(), imgs.size(), imgs[0].format(), imgs[0].bpp(), params.textureFlags->useMipMaps, true, params.imageViewTypeForce);
 				}
 
 				if (params.imageLayout != VK_IMAGE_LAYOUT_MAX_ENUM) {
@@ -95,7 +95,7 @@ namespace engine {
 					texture->noGenerate();
 					return texture;
 				}
-				texture->create(params.texData->data(), params.texData->format(), params.texData->bpp(), params.textureFlags->useMipMaps, true);
+				texture->create(params.texData->data(), params.texData->format(), params.texData->bpp(), params.textureFlags->useMipMaps, true, params.imageViewTypeForce);
 			} else {
 				const size_t size = params.files.size();
 				std::vector<TextureData> imgs;
@@ -114,7 +114,7 @@ namespace engine {
 					imgsData[i] = imgs[i].data();
 				}
 
-				texture->create(imgsData.data(), imgs.size(), imgs[0].format(), imgs[0].bpp(), params.textureFlags->useMipMaps, params.textureFlags->deffered);
+				texture->create(imgsData.data(), imgs.size(), imgs[0].format(), imgs[0].bpp(), params.textureFlags->useMipMaps, params.textureFlags->deffered, params.imageViewTypeForce);
 			}
 
 			if (params.imageLayout != VK_IMAGE_LAYOUT_MAX_ENUM) {

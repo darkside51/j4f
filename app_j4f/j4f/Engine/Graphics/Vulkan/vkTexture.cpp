@@ -13,9 +13,9 @@ namespace vulkan {
 		}
 	}
 
-	void VulkanTexture::create(const void* data, const VkFormat format, const uint8_t bpp, const bool createMipMaps, const bool deffered) {
+	void VulkanTexture::create(const void* data, const VkFormat format, const uint8_t bpp, const bool createMipMaps, const bool deffered, const VkImageViewType forceType) {
 		_generationState.store(VulkanTextureCreationState::CREATION_STARTED, std::memory_order_release);
-		VulkanBuffer* staging = generateWithData(&data, 1, format, bpp, createMipMaps, VK_IMAGE_VIEW_TYPE_MAX_ENUM);
+		VulkanBuffer* staging = generateWithData(&data, 1, format, bpp, createMipMaps, forceType);
 
 		if (deffered) {
 			_renderer->addDefferedGenerateTexture(this, staging, 0, 1);

@@ -266,6 +266,7 @@ namespace engine {
 
 	class MeshAnimationTree {
 		using TreeAnimator = MeshAnimator;
+		using TargetType = const std::shared_ptr<Skeleton>&;
 	public:
 		using AnimatorType = HierarchyRaw<TreeAnimator>;
 	private:
@@ -296,6 +297,10 @@ namespace engine {
 				//_animator->r_execute(calculateAnimators, skipAnimator, i);
 				_animator->r_execute_with<AnimatorCalculator, AnimatorSkipper>(i);
 			}
+		}
+
+		inline void updateAnimation(const float delta, TargetType skeleton) const {
+			skeleton->updateAnimation(delta, const_cast<MeshAnimationTree*>(this));
 		}
 
 		inline void applyToSkeleton(Skeleton* skeleton, const uint8_t updateFrame) const {
