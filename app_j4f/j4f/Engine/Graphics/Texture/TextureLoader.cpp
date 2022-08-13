@@ -133,42 +133,64 @@ namespace engine {
 		auto&& cache = engine.getModule<CacheManager>()->getCache<std::string, vulkan::VulkanTexture*>();
 
 		if (params.flags->use_cache) {
-
-			if (params.files.size() > 1) {
-				size_t length = 0;
-				for (auto&& f : params.files) {
-					length += f.length();
-				}
-
-				std::string cacheKey;
-				cacheKey.reserve(length);
-
-				for (auto&& f : params.files) {
-					cacheKey += f;
-				}
-
-				if (v = cache->getValue(cacheKey)) {
-					if (callback) {
-						switch (v->generationState()) {
-						case vulkan::VulkanTextureCreationState::NO_CREATED:
-							callback(v, AssetLoadingResult::LOADING_ERROR);
-							break;
-						case vulkan::VulkanTextureCreationState::CREATION_COMPLETE:
-							callback(v, AssetLoadingResult::LOADING_SUCCESS);
-							break;
-						default:
-							addCallback(v, callback);
-							break;
-						}
+			if (params.cacheName.empty()) {
+				if (params.files.size() > 1) {
+					size_t length = 0;
+					for (auto&& f : params.files) {
+						length += f.length();
 					}
-					return;
-				}
 
-				v = cache->getOrSetValue(cacheKey, [](const TextureLoadingParams& params, const TextureLoadingCallback& callback) {
-					return createTexture(params, callback);
-					}, params, callback);
+					std::string cacheKey;
+					cacheKey.reserve(length);
+
+					for (auto&& f : params.files) {
+						cacheKey += f;
+					}
+
+					if (v = cache->getValue(cacheKey)) {
+						if (callback) {
+							switch (v->generationState()) {
+							case vulkan::VulkanTextureCreationState::NO_CREATED:
+								callback(v, AssetLoadingResult::LOADING_ERROR);
+								break;
+							case vulkan::VulkanTextureCreationState::CREATION_COMPLETE:
+								callback(v, AssetLoadingResult::LOADING_SUCCESS);
+								break;
+							default:
+								addCallback(v, callback);
+								break;
+							}
+						}
+						return;
+					}
+
+					v = cache->getOrSetValue(cacheKey, [](const TextureLoadingParams& params, const TextureLoadingCallback& callback) {
+						return createTexture(params, callback);
+						}, params, callback);
+				} else {
+					if (v = cache->getValue(params.files[0])) {
+						if (callback) {
+							switch (v->generationState()) {
+							case vulkan::VulkanTextureCreationState::NO_CREATED:
+								callback(v, AssetLoadingResult::LOADING_ERROR);
+								break;
+							case vulkan::VulkanTextureCreationState::CREATION_COMPLETE:
+								callback(v, AssetLoadingResult::LOADING_SUCCESS);
+								break;
+							default:
+								addCallback(v, callback);
+								break;
+							}
+						}
+						return;
+					}
+
+					v = cache->getOrSetValue(params.files[0], [](const TextureLoadingParams& params, const TextureLoadingCallback& callback) {
+						return createTexture(params, callback);
+						}, params, callback);
+				}
 			} else {
-				if (v = cache->getValue(params.files[0])) {
+				if (v = cache->getValue(params.cacheName)) {
 					if (callback) {
 						switch (v->generationState()) {
 						case vulkan::VulkanTextureCreationState::NO_CREATED:
@@ -185,7 +207,7 @@ namespace engine {
 					return;
 				}
 
-				v = cache->getOrSetValue(params.files[0], [](const TextureLoadingParams& params, const TextureLoadingCallback& callback) {
+				v = cache->getOrSetValue(params.cacheName, [](const TextureLoadingParams& params, const TextureLoadingCallback& callback) {
 					return createTexture(params, callback);
 					}, params, callback);
 			}

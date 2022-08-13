@@ -43,6 +43,8 @@ namespace engine {
 		VkImageViewType imageViewTypeForce = VkImageViewType::VK_IMAGE_VIEW_TYPE_MAX_ENUM;
 
 		TextureLoadingFlags textureFlags;
+
+		std::string cacheName = "";
 	};
 
 	using TextureLoadingParams = AssetLoadingParams<vulkan::VulkanTexture>;

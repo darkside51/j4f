@@ -41,6 +41,7 @@ namespace engine {
 	vulkan::VulkanGpuProgram* grass_default = nullptr;
 
 	MeshGraphicsDataBuffer* meshesGraphicsBuffer;
+	MeshGraphicsDataBuffer* staticMeshesGraphicsBuffer;
 
 	Camera* camera = nullptr;
 	Camera* camera2 = nullptr;
@@ -259,6 +260,7 @@ namespace engine {
 			delete texture_text;
 
 			delete meshesGraphicsBuffer;
+			delete staticMeshesGraphicsBuffer;
 
 			delete shadowMap;
 
@@ -346,7 +348,7 @@ namespace engine {
 
 			camera = new Camera(width, height);
 
-			camera->makeProjection(engine::math_constants::pi / 4.0f, static_cast<float>(width) / static_cast<float>(height), 10.0f, 4000.0f);
+			camera->makeProjection(engine::math_constants::pi / 4.0f, static_cast<float>(width) / static_cast<float>(height), 1.0f, 4000.0f);
 			//camera->makeOrtho(-float(width) * 0.5f, float(width) * 0.5f, -float(height) * 0.5f, float(height) * 0.5f, 1.0f, 1000.0f);
 			camera->setRotation(glm::vec3(-engine::math_constants::pi / 3.0f, 0.0f, 0.0f));
 			camera->setPosition(glm::vec3(0.0f, -500.0f, 300.0f));
@@ -482,6 +484,7 @@ namespace engine {
 			auto texture_t7 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
 			meshesGraphicsBuffer = new MeshGraphicsDataBuffer(10 * 1024 * 1024, 10 * 1024 * 1024); // or create with default constructor for unique buffer for mesh
+			staticMeshesGraphicsBuffer = new MeshGraphicsDataBuffer(10 * 1024 * 1024, 10 * 1024 * 1024);
 
 			MeshLoadingParams mesh_params;
 			mesh_params.file = "resources/assets/models/chaman/scene.gltf";
@@ -527,10 +530,10 @@ namespace engine {
 
 			MeshLoadingParams mesh_params_grass;
 			mesh_params_grass.file = "resources/assets/models/grass/scene.gltf";
-			mesh_params_grass.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::TANGENT, AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT, AttributesSemantic::TEXCOORD_0);
-			mesh_params_grass.latency = 3;
+			mesh_params_grass.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::TEXCOORD_0);
+			mesh_params_grass.latency = 1;
 			mesh_params_grass.flags->async = 1;
-			mesh_params_grass.graphicsBuffer = meshesGraphicsBuffer;
+			mesh_params_grass.graphicsBuffer = staticMeshesGraphicsBuffer;
 
 			mesh = new NodeRenderer<Mesh>();
 			mesh2 = new NodeRenderer<Mesh>();
