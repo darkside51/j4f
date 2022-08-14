@@ -23,8 +23,10 @@ namespace engine {
 		}
 	};
 
-	void Mesh_Data::loadMeshes(const gltf::Layout& layout, const std::vector<gltf::AttributesSemantic>& allowedAttributes,
-		const size_t vbOffset, const size_t ibOffset, const bool useOffsetsInRenderData) {
+	size_t Mesh_Data::loadMeshes(const gltf::Layout& layout, const std::vector<gltf::AttributesSemantic>& allowedAttributes,
+		size_t& vbOffset, const size_t ibOffset, const bool useOffsetsInRenderData) {
+
+		size_t vertex_offset = 0;
 
 		auto&& gltf_meshes = layout.meshes;
 		if (!gltf_meshes.empty()) {
@@ -188,6 +190,14 @@ namespace engine {
 
 					indexBuffer.resize(firstIndex + mesh_indexCount);
 
+					const auto vertex_size_change = vbOffset % (mesh_vertexSize * sizeof(float)); // изменение в размерности вершин, используемых в буфере, если размерность не кратная - нужно сделать дополнительное смещение
+					vertex_offset = vertex_size_change ? mesh_vertexSize * sizeof(float) - vertex_size_change : 0; // расчитываем смещение так, чтобы index вершины был правлиным
+
+					if (vertexSize == 0) {
+						vbOffset += vertex_offset;
+						vertexSize = mesh_vertexSize;
+					}
+
 					const uint32_t startVertex = (useOffsetsInRenderData ? 0 : (vbOffset / (mesh_vertexSize * sizeof(float))));
 					const uint32_t startIndex = (useOffsetsInRenderData ? 0 : (ibOffset / (sizeof(uint32_t))));
 
@@ -223,10 +233,6 @@ namespace engine {
 
 					commonVertexCount += mesh_vertexCount;
 
-					if (vertexSize == 0) {
-						vertexSize = mesh_vertexSize;
-					}
-
 					render_data.layouts.emplace_back(Mesh_Data::MeshRenderParams::Layout{
 							firstIndex + startIndex,					// firstIndex
 							mesh_indexCount,							// indexCount
@@ -243,6 +249,8 @@ namespace engine {
 			indexCount = static_cast<uint32_t>(indexBuffer.size());
 			vertexCount = commonVertexCount;
 		}
+
+		return vertex_offset;
 	}
 
 	void Mesh_Data::initMeshNodeId(const gltf::Layout& layout, const uint16_t nodeId) {

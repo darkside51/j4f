@@ -82,8 +82,10 @@ namespace engine {
 			AtomicLock lock(_graphicsBuffersOffsetsLock);
 			vbOffset = params.graphicsBuffer->vbOffset;
 			ibOffset = params.graphicsBuffer->ibOffset;
-			mData->loadMeshes(layout, allowedAttributes, vbOffset, ibOffset, useOffsetsInRenderData);
-			params.graphicsBuffer->vbOffset += mData->vertexSize * mData->vertexCount * sizeof(float);
+
+			const auto vertex_offset = mData->loadMeshes(layout, allowedAttributes, vbOffset, ibOffset, useOffsetsInRenderData);
+
+			params.graphicsBuffer->vbOffset += mData->vertexSize * mData->vertexCount * sizeof(float) + vertex_offset;
 			params.graphicsBuffer->ibOffset += mData->indexCount * sizeof(uint32_t);
 		}
 

@@ -111,8 +111,8 @@ namespace engine {
 
 		void loadNodes(const gltf::Layout& layout);
 
-		void loadMeshes(const gltf::Layout& layout, const std::vector<gltf::AttributesSemantic>& allowedAttributes,
-			const size_t vbOffset, const size_t ibOffset, const bool useOffsetsInRenderData);
+		size_t loadMeshes(const gltf::Layout& layout, const std::vector<gltf::AttributesSemantic>& allowedAttributes,
+			size_t& vbOffset, const size_t ibOffset, const bool useOffsetsInRenderData);
 
 		void loadAnimations(const gltf::Layout& layout);
 

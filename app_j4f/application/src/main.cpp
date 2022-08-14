@@ -41,7 +41,6 @@ namespace engine {
 	vulkan::VulkanGpuProgram* grass_default = nullptr;
 
 	MeshGraphicsDataBuffer* meshesGraphicsBuffer;
-	MeshGraphicsDataBuffer* staticMeshesGraphicsBuffer;
 
 	Camera* camera = nullptr;
 	Camera* camera2 = nullptr;
@@ -260,7 +259,6 @@ namespace engine {
 			delete texture_text;
 
 			delete meshesGraphicsBuffer;
-			delete staticMeshesGraphicsBuffer;
 
 			delete shadowMap;
 
@@ -484,7 +482,6 @@ namespace engine {
 			auto texture_t7 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
 			meshesGraphicsBuffer = new MeshGraphicsDataBuffer(10 * 1024 * 1024, 10 * 1024 * 1024); // or create with default constructor for unique buffer for mesh
-			staticMeshesGraphicsBuffer = new MeshGraphicsDataBuffer(10 * 1024 * 1024, 10 * 1024 * 1024);
 
 			MeshLoadingParams mesh_params;
 			mesh_params.file = "resources/assets/models/chaman/scene.gltf";
@@ -533,7 +530,7 @@ namespace engine {
 			mesh_params_grass.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::TEXCOORD_0);
 			mesh_params_grass.latency = 1;
 			mesh_params_grass.flags->async = 1;
-			mesh_params_grass.graphicsBuffer = staticMeshesGraphicsBuffer;
+			mesh_params_grass.graphicsBuffer = meshesGraphicsBuffer;
 
 			mesh = new NodeRenderer<Mesh>();
 			mesh2 = new NodeRenderer<Mesh>();
