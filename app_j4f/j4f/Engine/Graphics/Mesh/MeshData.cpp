@@ -190,8 +190,10 @@ namespace engine {
 
 					indexBuffer.resize(firstIndex + mesh_indexCount);
 
-					const auto vertex_size_change = vbOffset % (mesh_vertexSize * sizeof(float)); // изменение в размерности вершин, используемых в буфере, если размерность не кратная - нужно сделать дополнительное смещение
-					vertex_offset = vertex_size_change ? mesh_vertexSize * sizeof(float) - vertex_size_change : 0; // расчитываем смещение так, чтобы index вершины был правлиным
+					if (!useOffsetsInRenderData) {
+						const auto vertex_size_change = vbOffset % (mesh_vertexSize * sizeof(float)); // изменение в размерности вершин, используемых в буфере, если размерность не кратная - нужно сделать дополнительное смещение
+						vertex_offset = vertex_size_change ? mesh_vertexSize * sizeof(float) - vertex_size_change : 0; // расчитываем смещение так, чтобы index вершины был правлиным
+					}
 
 					if (vertexSize == 0) {
 						vbOffset += vertex_offset;

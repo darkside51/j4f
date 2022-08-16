@@ -64,6 +64,7 @@ namespace engine {
 	vulkan::VulkanTexture* texture_1 = nullptr;
 	vulkan::VulkanTexture* texture_text = nullptr;
 	vulkan::VulkanTexture* texture_floor_mask = nullptr;
+	vulkan::VulkanTexture* texture_floor_normal = nullptr;
 	vulkan::VulkanTexture* texture_array_test = nullptr;
 
 	vulkan::VulkanGpuProgram* program_mesh_default = nullptr;
@@ -392,7 +393,9 @@ namespace engine {
 			program_mesh_default->setValueToLayout(l2, &lightMinMax, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 
 			auto l3 = shadowPlainProgram->getGPUParamLayoutByName("lightMin");
+			auto l31 = shadowPlainProgram->getGPUParamLayoutByName("lightDirection");
 			shadowPlainProgram->setValueToLayout(l3, &lightMinMax.x, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			shadowPlainProgram->setValueToLayout(l31, &lightDir, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 
 			auto l4 = program_mesh_default->getGPUParamLayoutByName("lightColor");
 			auto l5 = shadowPlainProgram->getGPUParamLayoutByName("lightColor");
@@ -470,7 +473,7 @@ namespace engine {
 				"resources/assets/models/grass/textures/grass76.png",
 				"resources/assets/models/grass/textures/grass77.png",
 				"resources/assets/models/grass/textures/flowers16.png",
-				"resources/assets/models/grass/textures/flowers2.png",
+				"resources/assets/models/grass/textures/flowers26.png",
 				"resources/assets/models/grass/textures/grass2.png",
 			};
 			auto texture_t6 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
@@ -736,6 +739,15 @@ namespace engine {
 			tex_params_floor_mask.files = { "grass_mask" };
 			texture_floor_mask = assm->loadAsset<vulkan::VulkanTexture*>(tex_params_floor_mask);
 
+			TextureLoadingParams tex_params_floor_normal;
+			tex_params_floor_normal.flags->async = 1;
+			tex_params_floor_normal.flags->use_cache = 1;
+			tex_params_floor_normal.files = {
+				"resources/assets/textures/normal1.jpg"
+			};
+
+			texture_floor_normal = assm->loadAsset<vulkan::VulkanTexture*>(tex_params_floor_normal);
+
 			assm->loadAsset<Mesh*>(mesh_params_grass, [texture_t6, grenderer, this](Mesh* asset, const AssetLoadingResult result) {
 				asset->setProgram(grass_default);
 				asset->setParamByName("u_texture", texture_t6, false);
@@ -769,7 +781,7 @@ namespace engine {
 
 			TextureLoadingParams tex_params_floorArray;
 			tex_params_floorArray.files = { 
-				"resources/assets/textures/swamp2.jpg",
+				"resources/assets/textures/swamp.jpg",
 				"resources/assets/textures/ground133.jpg"
 			};
 			tex_params_floorArray.flags->async = 1;
@@ -1134,6 +1146,7 @@ namespace engine {
 
 				renderDataFloor.setParamByName("u_texture_arr", texture_array_test, false);
 				renderDataFloor.setParamByName("u_texture_mask", texture_floor_mask, false);
+				renderDataFloor.setParamByName("u_texture_normal", texture_floor_normal, false);
 				renderDataFloor.setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 				
 				GPU_DEBUG_MARKER_INSERT(commandBuffer.m_commandBuffer, "project render shadow plain", 0.5f, 0.5f, 0.5f, 1.0f);

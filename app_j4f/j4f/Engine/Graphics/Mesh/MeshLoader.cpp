@@ -73,8 +73,6 @@ namespace engine {
 			}
 		}
 
-		const bool useOffsetsInRenderData = false; // parameter used with none zero vbOffset or ibOffset for fill correct renderData values
-
 		VkDeviceSize vbOffset = 0;
 		VkDeviceSize ibOffset = 0;
 
@@ -83,7 +81,7 @@ namespace engine {
 			vbOffset = params.graphicsBuffer->vbOffset;
 			ibOffset = params.graphicsBuffer->ibOffset;
 
-			const auto vertex_offset = mData->loadMeshes(layout, allowedAttributes, vbOffset, ibOffset, useOffsetsInRenderData);
+			const auto vertex_offset = mData->loadMeshes(layout, allowedAttributes, vbOffset, ibOffset, params.useOffsetsInRenderData);
 
 			params.graphicsBuffer->vbOffset += mData->vertexSize * mData->vertexCount * sizeof(float) + vertex_offset;
 			params.graphicsBuffer->ibOffset += mData->indexCount * sizeof(uint32_t);

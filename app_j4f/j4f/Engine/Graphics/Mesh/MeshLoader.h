@@ -63,6 +63,7 @@ namespace engine {
 		uint16_t semanticMask = 0;
 		uint8_t latency = 1;
 		MeshGraphicsDataBuffer* graphicsBuffer = nullptr;
+		bool useOffsetsInRenderData = false; // parameter used with none zero vbOffset or ibOffset for fill correct renderData values
 	};
 
 	using MeshLoadingParams = AssetLoadingParams<Mesh>;
