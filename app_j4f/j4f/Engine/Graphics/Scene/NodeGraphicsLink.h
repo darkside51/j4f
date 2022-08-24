@@ -37,19 +37,24 @@ namespace engine {
 				delete _graphics;
 				_graphics = nullptr;
 			}
-			_link = nullptr;
+			_node = nullptr;
 		}
 
 		NodeRenderer() = default;
 		NodeRenderer(type g) : NodeGraphics(&g->getRenderDescriptor()), _graphics(g) {}
 
-		inline GraphicsLink* getNodeLink() { return _link; }
-		inline const GraphicsLink* getNodeLink() const { return _link; }
-
-		inline void setNodeLink(const GraphicsLink* l) {
-			_link = const_cast<GraphicsLink*>(l);
-			_link->setGraphics(this);
+		inline void setNode(const Node* n) {
+			_node = const_cast<Node*>(n);
+			_node->setRenderObject(this);
 		}
+
+		inline void setNode(const Node& n) {
+			_node = &const_cast<Node&>(n);
+			_node->setRenderObject(this);
+		}
+
+		inline Node* getNode() { return _node; }
+		inline const Node* getNode() const { return _node; }
 
 		inline void setGraphics(type g) {
 			if (_graphics) {
@@ -62,8 +67,8 @@ namespace engine {
 		}
 
 		inline void updateRenderData() {
-			if (_graphics && _link) {
-				_graphics->updateRenderData(_link->transform());
+			if (_graphics && _node) {
+				_graphics->updateRenderData(_node->model());
 			}
 		}
 
@@ -81,52 +86,6 @@ namespace engine {
 
 	private:
 		type _graphics = nullptr;
-		GraphicsLink* _link = nullptr;
-	};
-
-	class GraphicsLink {
-	public:
-		GraphicsLink(Node* n, RenderObject* g = nullptr) : _node(n), _graphics(g) {}
-
-		~GraphicsLink() {
-			if (_customTransform) {
-				delete _customTransform;
-				delete _completeTransform;
-
-				_customTransform = nullptr;
-				_completeTransform = nullptr;
-			}
-
-			if (_graphics) {
-				delete _graphics;
-				_graphics = nullptr;
-			}
-		}
-
-		inline bool hasCustomTransform() const { return _customTransform != nullptr; }
-		const glm::mat4& transform() const;
-
-		void updateCustomTransform(const glm::mat4& tr);
-		void updateNodeTransform();
-
-		inline const RenderObject* getGraphics() const { return _graphics; }
-
-		inline void setGraphics(RenderObject* g) {
-			if (_graphics) {
-				delete _graphics;
-				_graphics = nullptr;
-			}
-			_graphics = g;
-		}
-
-		inline Node* getNode() { return _node; }
-		inline const Node* getNode() const { return _node; }
-
-	private:
 		Node* _node = nullptr;
-		RenderObject* _graphics = nullptr;
-		glm::mat4* _customTransform = nullptr;
-		glm::mat4* _completeTransform = nullptr;
 	};
-
 }

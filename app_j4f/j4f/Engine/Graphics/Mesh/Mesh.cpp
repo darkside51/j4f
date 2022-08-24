@@ -13,7 +13,7 @@
 
 namespace engine {
 
-	void updateSkeletonAnimation(const CancellationToken& token, Skeleton* skeleton, const float time, const Mesh_Animation* animation, const uint8_t updateFrame) {
+	void updateSkeletonAnimation(const CancellationToken& token, MeshSkeleton* skeleton, const float time, const Mesh_Animation* animation, const uint8_t updateFrame) {
 		for (const auto& channel : animation->channels) {
 			if (channel.sampler == 0xffff || channel.target_node == 0xffff) continue;
 
@@ -108,7 +108,7 @@ namespace engine {
 		}
 	}
 
-	void updateSkeletonAnimationTree(const CancellationToken& token, Skeleton* skeleton, MeshAnimationTree* animTree, const uint8_t updateFrame) {
+	void updateSkeletonAnimationTree(const CancellationToken& token, MeshSkeleton* skeleton, MeshAnimationTree* animTree, const uint8_t updateFrame) {
 		animTree->calculate(updateFrame);
 		if (token) return;
 
@@ -123,7 +123,7 @@ namespace engine {
 		}
 	}
 
-	Skeleton::Skeleton(Mesh_Data* mData, const uint8_t latency) : 
+	MeshSkeleton::MeshSkeleton(Mesh_Data* mData, const uint8_t latency) :
 		_skins(mData->skins), 
 		_hierarchyes(latency),
 		_nodes(latency),
@@ -160,7 +160,7 @@ namespace engine {
 		}
 	}
 
-	Skeleton::~Skeleton() {
+	MeshSkeleton::~MeshSkeleton() {
 		for (size_t i = 0; i < _latency; ++i) {
 			_animCalculationResult[i].cancel();
 
@@ -171,7 +171,7 @@ namespace engine {
 		}
 	}
 
-	void Skeleton::loadNode(const Mesh_Data* mData, const uint16_t nodeId, HierarchyRaw<Mesh_Node>* parent, const uint8_t h) {
+	void MeshSkeleton::loadNode(const Mesh_Data* mData, const uint16_t nodeId, HierarchyRaw<Mesh_Node>* parent, const uint8_t h) {
 		const gltf::Node& node = mData->nodes[nodeId];
 
 		// parse node values
@@ -196,7 +196,7 @@ namespace engine {
 		}
 	}
 
-	void Skeleton::updateAnimation(const float time, const Mesh_Animation* animation, float& currentAnimTime) {
+	void MeshSkeleton::updateAnimation(const float time, const Mesh_Animation* animation, float& currentAnimTime) {
 		_updateFrameNum = (_updateFrameNum + 1) % _latency;
 
 		if (time == 0.0f) return;
@@ -212,7 +212,7 @@ namespace engine {
 		_animCalculationResult[_updateFrameNum] = Engine::getInstance().getModule<ThreadPool>()->enqueue(TaskType::COMMON, 0, updateSkeletonAnimation, this, atime, animation, _updateFrameNum);
 	}
 
-	void Skeleton::updateAnimation(const float time, MeshAnimationTree* animTree) {
+	void MeshSkeleton::updateAnimation(const float time, MeshAnimationTree* animTree) {
 		_updateFrameNum = (_updateFrameNum + 1) % _latency;
 
 		if (time == 0.0f) return;
@@ -223,7 +223,7 @@ namespace engine {
 	}
 
 	
-	void Skeleton::updateSkins(const uint8_t updateFrame) {
+	void MeshSkeleton::updateSkins(const uint8_t updateFrame) {
 		size_t skinId = 0;
 		for (const Mesh_Skin& s : _skins) {
 			const Mesh_Node& h = _nodes[updateFrame][s.skeletonRoot]->value();
@@ -251,7 +251,7 @@ namespace engine {
 		}
 	}
 
-	void Skeleton::updateTransforms(const uint8_t updateFrame) {
+	void MeshSkeleton::updateTransforms(const uint8_t updateFrame) {
 		for (HierarchyRaw<Mesh_Node>* h : _hierarchyes[updateFrame]) {
 			//h->execute(updateHierarchyMatrix);
 			h->execute_with<HierarchyMatrixUpdater>();
@@ -503,7 +503,7 @@ namespace engine {
 		_maxCorner = glm::vec3(std::numeric_limits<float>::min());
 
 		if (_skeleton == nullptr) {
-			_skeleton = std::make_shared<Skeleton>(mData, latency);
+			_skeleton = std::make_shared<MeshSkeleton>(mData, latency);
 		}
 
 		// create render data

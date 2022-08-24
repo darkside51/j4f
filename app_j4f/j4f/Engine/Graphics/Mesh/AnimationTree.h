@@ -173,7 +173,7 @@ namespace engine {
 
 		inline const Mesh_Animation* getAnimation() const { return _animation; }
 
-		inline void applyToSkeleton(Skeleton* skeleton, const uint8_t updateFrame) {
+		inline void applyToSkeleton(MeshSkeleton* skeleton, const uint8_t updateFrame) {
 			auto& transforms = _transforms[updateFrame];
 
 			for (size_t i = 0, trs = transforms.size(); i < trs; ++i) {
@@ -266,7 +266,7 @@ namespace engine {
 
 	class MeshAnimationTree {
 		using TreeAnimator = MeshAnimator;
-		using TargetType = const std::shared_ptr<Skeleton>&;
+		using TargetType = const std::shared_ptr<MeshSkeleton>&;
 	public:
 		using AnimatorType = HierarchyRaw<TreeAnimator>;
 	private:
@@ -303,7 +303,7 @@ namespace engine {
 			skeleton->updateAnimation(delta, const_cast<MeshAnimationTree*>(this));
 		}
 
-		inline void applyToSkeleton(Skeleton* skeleton, const uint8_t updateFrame) const {
+		inline void applyToSkeleton(MeshSkeleton* skeleton, const uint8_t updateFrame) const {
 			_animator->value().applyToSkeleton(skeleton, updateFrame);
 		}
 

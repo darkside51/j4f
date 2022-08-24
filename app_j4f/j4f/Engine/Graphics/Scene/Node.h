@@ -11,9 +11,9 @@ namespace engine {
 		friend struct NodeMatrixUpdater;
 	public:
 		virtual ~Node() {
-			if (_graphicsLink) {
-				delete _graphicsLink;
-				_graphicsLink = nullptr;
+			if (_graphics) {
+				delete _graphics;
+				_graphics = nullptr;
 			}
 		}
 
@@ -29,23 +29,14 @@ namespace engine {
 		}
 
 		inline const glm::mat4& model() const { return _model; }
-		inline const GraphicsLink* getGraphicsLink() const { return _graphicsLink; }
 
-		inline void setGraphicsLink(GraphicsLink* g) {
-			if (_graphicsLink) {
-				delete _graphicsLink;
+		inline const RenderObject* getRenderObject() const { return _graphics; }
+
+		inline void setRenderObject(const RenderObject* r) {
+			if (_graphics) {
+				delete _graphics;
 			}
-			_graphicsLink = g;
-		}
-
-		template <typename T>
-		inline void makeGraphicsLink(NodeRenderer<T>* r) {
-			if (_graphicsLink) {
-				delete _graphicsLink;
-			}
-
-			_graphicsLink = new GraphicsLink(this);
-			r->setNodeLink(_graphicsLink);
+			_graphics = r;
 		}
 
 	private:
@@ -53,7 +44,7 @@ namespace engine {
 		bool _modelChanged = false;
 		glm::mat4 _local = glm::mat4(1.0f);
 		glm::mat4 _model = glm::mat4(1.0f);
-		GraphicsLink* _graphicsLink = nullptr;
+		const RenderObject* _graphics = nullptr;
 	};
 
 	using H_Node = HierarchyRaw<Node>;
@@ -81,10 +72,6 @@ namespace engine {
 					mNode._dirtyModel = false;
 					mNode._modelChanged = true;
 				}
-
-				if (mNode._graphicsLink) {
-					mNode._graphicsLink->updateNodeTransform();
-				}
 			}
 
 			return true;
@@ -93,9 +80,9 @@ namespace engine {
 
 	struct RenderListEmplacer {
 		inline static bool _(H_Node* node, RenderList& list, Camera* camera = nullptr) {
-			if (auto&& link = node->value().getGraphicsLink()) {
+			if (const RenderObject* renderObject = node->value().getRenderObject()) {
 				if (NodeMatrixUpdater::_(node, camera)) {
-					list.addDescriptor(link->getGraphics()->getRenderDescriptor());
+					list.addDescriptor(renderObject->getRenderDescriptor());
 				}
 			}
 			return true;

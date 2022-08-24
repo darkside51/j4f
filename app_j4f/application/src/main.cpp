@@ -558,7 +558,6 @@ namespace engine {
 				asset->onPipelineAttributesChanged();
 
 				////////////////////
-				mesh->setGraphics(asset);
 				glm::mat4 wtr(1.0f);
 				scaleMatrix(wtr, glm::vec3(20.0f));
 				rotateMatrix_xyz(wtr, glm::vec3(1.57f, 0.45f, 0.0f));
@@ -566,8 +565,10 @@ namespace engine {
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
-				node->value().makeGraphicsLink(mesh);
 				rootNode->addChild(node);
+
+				mesh->setGraphics(asset);
+				mesh->setNode(node->value());
 
 				shadowRenderList.addDescriptor(&asset->getRenderDescriptor());
 				});
@@ -583,7 +584,6 @@ namespace engine {
 				asset->onPipelineAttributesChanged();
 
 				////////////////////
-				mesh2->setGraphics(asset);
 				glm::mat4 wtr(1.0f);
 				scaleMatrix(wtr, glm::vec3(20.0f));
 				rotateMatrix_xyz(wtr, glm::vec3(1.57f, -0.45f, 0.0f));
@@ -591,8 +591,10 @@ namespace engine {
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
-				node->value().makeGraphicsLink(mesh2);
 				rootNode->addChild(node);
+
+				mesh2->setGraphics(asset);
+				mesh2->setNode(node->value());
 
 				shadowRenderList.addDescriptor(&asset->getRenderDescriptor());
 				});
@@ -618,7 +620,6 @@ namespace engine {
 				animTree2->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[0], 0.0f, asset->getSkeleton()->getLatency(), 1.4f));
 
 				////////////////////
-				mesh3->setGraphics(asset);
 				glm::mat4 wtr(1.0f);
 				scaleMatrix(wtr, glm::vec3(30.0f));
 				directMatrix_yz(wtr, 0.0f, 1.0f);
@@ -626,8 +627,10 @@ namespace engine {
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
-				node->value().makeGraphicsLink(mesh3);
 				rootNode->addChild(node);
+
+				mesh3->setGraphics(asset);
+				mesh3->setNode(node->value());
 
 				shadowRenderList.addDescriptor(&asset->getRenderDescriptor());
 				});
@@ -642,7 +645,6 @@ namespace engine {
 				asset->onPipelineAttributesChanged();
 
 				////////////////////
-				mesh4->setGraphics(asset);
 				glm::mat4 wtr(1.0f);
 				scaleMatrix(wtr, glm::vec3(0.65f));
 				rotateMatrix_xyz(wtr, glm::vec3(1.57f, 0.0f, 0.0f));
@@ -650,8 +652,11 @@ namespace engine {
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
-				node->value().makeGraphicsLink(mesh4);
+				//node->value().makeGraphicsLink(mesh4);
 				rootNode->addChild(node);
+
+				mesh4->setGraphics(asset);
+				mesh4->setNode(node->value());
 
 				shadowRenderList.addDescriptor(&asset->getRenderDescriptor());
 				});
@@ -666,7 +671,6 @@ namespace engine {
 				asset->onPipelineAttributesChanged();
 
 				////////////////////
-				mesh5->setGraphics(asset);
 				glm::mat4 wtr(1.0f);
 				scaleMatrix(wtr, glm::vec3(0.5f));
 				rotateMatrix_xyz(wtr, glm::vec3(1.57f, 0.0f, 0.0f));
@@ -674,8 +678,10 @@ namespace engine {
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
-				node->value().makeGraphicsLink(mesh5);
 				rootNode->addChild(node);
+
+				mesh5->setGraphics(asset);
+				mesh5->setNode(node->value());
 
 				shadowRenderList.addDescriptor(&asset->getRenderDescriptor());
 				});
@@ -689,7 +695,6 @@ namespace engine {
 				asset->onPipelineAttributesChanged();
 
 				////////////////////
-				mesh6->setGraphics(asset);
 				glm::mat4 wtr(1.0f);
 				scaleMatrix(wtr, glm::vec3(35.0f));
 				rotateMatrix_xyz(wtr, glm::vec3(1.57f, 1.25f, 0.0f));
@@ -697,8 +702,10 @@ namespace engine {
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
-				node->value().makeGraphicsLink(mesh6);
 				rootNode->addChild(node);
+
+				mesh6->setGraphics(asset);
+				mesh6->setNode(node->value());
 
 				shadowRenderList.addDescriptor(&asset->getRenderDescriptor());
 				});
@@ -714,7 +721,6 @@ namespace engine {
 				animTreeWindMill = new MeshAnimationTree(&asset->getMeshData()->animations[0],1.0f, asset->getSkeleton()->getLatency());
 
 				////////////////////
-				mesh7->setGraphics(asset);
 				glm::mat4 wtr(1.0f);
 				scaleMatrix(wtr, glm::vec3(8000.0f));
 				rotateMatrix_xyz(wtr, glm::vec3(1.57f, -1.15f, 0.0f));
@@ -722,8 +728,10 @@ namespace engine {
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
-				node->value().makeGraphicsLink(mesh7);
 				rootNode->addChild(node);
+
+				mesh7->setGraphics(asset);
+				mesh7->setNode(node->value());
 
 				shadowRenderList.addDescriptor(&asset->getRenderDescriptor());
 				});
@@ -757,9 +765,6 @@ namespace engine {
 				asset->onPipelineAttributesChanged();
 
 				/////////////////////
-				grenderer->setMesh(asset);
-				grassMesh2->setGraphics(grenderer);
-
 				//grassMesh->setGraphics(asset);
 				glm::mat4 wtr(1.0f);
 				//scaleMatrix(wtr, glm::vec3(10000.0f));
@@ -768,9 +773,11 @@ namespace engine {
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
-				//node->value().makeGraphicsLink(grassMesh);
-				node->value().makeGraphicsLink(grassMesh2);
 				rootNode->addChild(node);
+
+				grenderer->setMesh(asset);
+				grassMesh2->setGraphics(grenderer);
+				grassMesh2->setNode(node->value());
 				});
 
 			TextureLoadingParams tex_params_logo;
@@ -979,7 +986,7 @@ namespace engine {
 			}
 
 			////////
-			if (auto&& link = grassMesh2->getNodeLink()) {
+			if (auto&& grassNode = grassMesh2->getNode()) {
 				static float t = 0.0f;
 				t += 3.0f * delta;
 
@@ -987,7 +994,7 @@ namespace engine {
 					t -= math_constants::pi2;
 				}
 
-				link->getNode()->setLocalMatrix(glm::mat4(t));
+				grassNode->setLocalMatrix(glm::mat4(t));
 			}
 
 			//rootNode->execute_with<NodeMatrixUpdater>();

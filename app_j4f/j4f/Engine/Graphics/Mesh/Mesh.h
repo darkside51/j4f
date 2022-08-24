@@ -95,14 +95,14 @@ namespace engine {
 	struct Mesh_Animation;
 	struct Mesh_Skin;
 
-	class Skeleton {
+	class MeshSkeleton {
 		friend class Mesh;
-		friend void updateSkeletonAnimation(const CancellationToken& token, Skeleton* skeleton, const float time, const Mesh_Animation* animation, const uint8_t updateFrame);
-		friend void updateSkeletonAnimationTree(const CancellationToken& token, Skeleton* skeleton, MeshAnimationTree* animTree, const uint8_t updateFrame);
+		friend void updateSkeletonAnimation(const CancellationToken& token, MeshSkeleton* skeleton, const float time, const Mesh_Animation* animation, const uint8_t updateFrame);
+		friend void updateSkeletonAnimationTree(const CancellationToken& token, MeshSkeleton* skeleton, MeshAnimationTree* animTree, const uint8_t updateFrame);
 
 	public:
-		Skeleton(Mesh_Data* mData, const uint8_t latency);
-		~Skeleton();
+		MeshSkeleton(Mesh_Data* mData, const uint8_t latency);
+		~MeshSkeleton();
 
 		void loadNode(const Mesh_Data* mData, const uint16_t nodeId, HierarchyRaw<Mesh_Node>* parent, const uint8_t h);
 
@@ -206,10 +206,10 @@ namespace engine {
 		inline const glm::vec3& getMinCorner() const { return _minCorner; }
 		inline const glm::vec3& getMaxCorner() const { return _maxCorner; }
 
-		inline std::shared_ptr<Skeleton>& getSkeleton() { return _skeleton; }
-		inline const std::shared_ptr<Skeleton>& getSkeleton() const { return _skeleton; }
+		inline std::shared_ptr<MeshSkeleton>& getSkeleton() { return _skeleton; }
+		inline const std::shared_ptr<MeshSkeleton>& getSkeleton() const { return _skeleton; }
 
-		inline void setSkeleton(const std::shared_ptr<Skeleton>& s) {
+		inline void setSkeleton(const std::shared_ptr<MeshSkeleton>& s) {
 			if (_skeleton && _skeleton != s) {
 				_skeleton = s;
 			}
@@ -261,7 +261,7 @@ namespace engine {
 
 		uint16_t _semanticMask = 0;
 
-		std::shared_ptr<Skeleton> _skeleton;
+		std::shared_ptr<MeshSkeleton> _skeleton;
 
 		glm::vec3 _minCorner = glm::vec3(0.0f);
 		glm::vec3 _maxCorner = glm::vec3(0.0f);
