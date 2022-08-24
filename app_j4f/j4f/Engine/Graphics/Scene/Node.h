@@ -28,10 +28,10 @@ namespace engine {
 			_dirtyModel = true;
 		}
 
+		inline const glm::mat4& localMatrix() const { return _local; }
 		inline const glm::mat4& model() const { return _model; }
 
 		inline const RenderObject* getRenderObject() const { return _graphics; }
-
 		inline void setRenderObject(const RenderObject* r) {
 			if (_graphics) {
 				delete _graphics;
@@ -53,13 +53,11 @@ namespace engine {
 	class Camera;
 
 	struct NodeMatrixUpdater {
-		inline static bool _(H_Node* node, Camera* camera = nullptr) {
-			// todo: check visible with camera
-
+		inline static bool _(H_Node* node, Camera* camera = nullptr, const bool checkVisible = false) {
 			Node& mNode = node->value();
 			mNode._modelChanged = false;
 
-			auto&& parent = node->getParent();
+			const auto&& parent = node->getParent();
 			if (parent) {
 				mNode._dirtyModel |= parent->value()._modelChanged;
 			}
@@ -74,24 +72,30 @@ namespace engine {
 				}
 			}
 
+			if (checkVisible || mNode._modelChanged) {
+				// todo: check visible with camera
+			}
+
 			return true;
 		}
 	};
 
 	struct RenderListEmplacer {
-		inline static bool _(H_Node* node, RenderList& list, Camera* camera = nullptr) {
-			if (const RenderObject* renderObject = node->value().getRenderObject()) {
-				if (NodeMatrixUpdater::_(node, camera)) {
+		inline static bool _(H_Node* node, RenderList& list, Camera* camera = nullptr, const bool checkVisible = false) {
+			if (NodeMatrixUpdater::_(node, camera, checkVisible)) {
+				if (const RenderObject* renderObject = node->value().getRenderObject()) {
 					list.addDescriptor(renderObject->getRenderDescriptor());
 				}
+				return true;
 			}
-			return true;
+
+			return false;
 		}
 	};
 
-	inline void reloadRenderList(RenderList& list, H_Node* node, Camera* camera = nullptr) {
+	inline void reloadRenderList(RenderList& list, H_Node* node, Camera* camera = nullptr, const bool checkVisible = false) {
 		list.clear();
-		node->execute_with<RenderListEmplacer>(list, camera);
+		node->execute_with<RenderListEmplacer>(list, camera, checkVisible);
 		list.sort();
 	}
 }
