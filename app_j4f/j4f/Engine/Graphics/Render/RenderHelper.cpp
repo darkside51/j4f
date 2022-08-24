@@ -177,11 +177,11 @@ namespace engine {
 				{ {vtxCoords[0].x, vtxCoords[0].y, vtxCoords[0].z}, {0.0f, 0.0f, 0.0f}},
 				{ {vtxCoords[1].x, vtxCoords[1].y, vtxCoords[1].z}, {0.0f, 1.0f, 0.0f} },
 				{ {vtxCoords[2].x, vtxCoords[2].y, vtxCoords[2].z}, {1.0f, 0.0f, 0.0f} },
-				{ {vtxCoords[3].x, vtxCoords[3].y, vtxCoords[3].z}, {0.0f, 0.0f, 0.0f} },
+				{ {vtxCoords[3].x, vtxCoords[3].y, vtxCoords[3].z}, {1.0f, 1.0f, 0.0f} },
 
 				{ {vtxCoords[4].x, vtxCoords[4].y, vtxCoords[4].z}, {0.0f, 0.0f, 1.0f} },
-				{ {vtxCoords[5].x, vtxCoords[5].y, vtxCoords[5].z}, {0.0f, 0.0f, 0.0f} },
-				{ {vtxCoords[6].x, vtxCoords[6].y, vtxCoords[6].z}, {0.0f, 0.0f, 0.0f} },
+				{ {vtxCoords[5].x, vtxCoords[5].y, vtxCoords[5].z}, {0.0f, 1.0f, 1.0f} },
+				{ {vtxCoords[6].x, vtxCoords[6].y, vtxCoords[6].z}, {1.0f, 0.0f, 1.0f} },
 				{ {vtxCoords[7].x, vtxCoords[7].y, vtxCoords[7].z}, {1.0f, 1.0f, 1.0f} }
 			};
 

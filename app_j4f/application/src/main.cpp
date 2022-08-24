@@ -457,10 +457,16 @@ namespace engine {
 			};
 			auto texture_t2 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
-			tex_params3.files = { "resources/assets/models/pineTree/textures/Leavs_baseColor.png" };
+			tex_params3.files = { 
+				"resources/assets/models/pineTree/textures/Leavs_baseColor.png",
+				"resources/assets/models/pineTree/textures/Trank_normal.png"
+			};
 			auto texture_t3 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
-			tex_params3.files = { "resources/assets/models/pineTree/textures/Trank_baseColor.png" };
+			tex_params3.files = { 
+				"resources/assets/models/pineTree/textures/Trank_baseColor.png",
+				"resources/assets/models/pineTree/textures/Trank_normal.png"
+			};
 			auto texture_t4 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
 			tex_params3.files = { 
@@ -560,7 +566,7 @@ namespace engine {
 
 				////////////////////
 				glm::mat4 wtr(1.0f);
-				scaleMatrix(wtr, glm::vec3(20.0f));
+				scaleMatrix(wtr, glm::vec3(25.0f));
 				rotateMatrix_xyz(wtr, glm::vec3(1.57f, 0.45f, 0.0f));
 				translateMatrixTo(wtr, glm::vec3(-100.0f, -0.0f, 0.0f));
 
@@ -989,7 +995,7 @@ namespace engine {
 			////////
 			if (auto&& grassNode = grassMesh2->getNode()) {
 				static float t = 0.0f;
-				t += 3.0f * delta;
+				t += 2.0f * delta;
 
 				if (t > math_constants::pi2) {
 					t -= math_constants::pi2;
@@ -1086,21 +1092,34 @@ namespace engine {
 
 			////////
 
-			{
-				//mesh->drawBoundingBox(cameraMatrix, wtr, commandBuffer, currentFrame);
-				//mesh2->drawBoundingBox(cameraMatrix, wtr2, commandBuffer, currentFrame);
+			if (0) {
+				if (auto&& g = mesh->graphics()) {
+					g->drawBoundingBox(cameraMatrix, mesh->getNode()->model(), commandBuffer, currentFrame);
+				}
 
-				//if (auto&& g = mesh2->graphics()) {
-				//	g->drawBoundingBox(cameraMatrix, mesh2->getNode()->model(), commandBuffer, currentFrame);
-				//}
+				if (auto&& g = mesh2->graphics()) {
+					g->drawBoundingBox(cameraMatrix, mesh2->getNode()->model(), commandBuffer, currentFrame);
+				}
 
-				//if (auto&& g = mesh3->graphics()) {
-				//	g->drawBoundingBox(cameraMatrix, mesh3->getNode()->model(), commandBuffer, currentFrame);
-				//}
+				if (auto&& g = mesh3->graphics()) {
+					g->drawBoundingBox(cameraMatrix, mesh3->getNode()->model(), commandBuffer, currentFrame);
+				}
 				
-				//mesh4->drawBoundingBox(cameraMatrix, wtrTree, commandBuffer, currentFrame);
-				//mesh5->drawBoundingBox(cameraMatrix, wtrTree2, commandBuffer, currentFrame);
-				//mesh6->drawBoundingBox(cameraMatrix, wtrVikingHut, commandBuffer, currentFrame);
+				if (auto&& g = mesh4->graphics()) {
+					g->drawBoundingBox(cameraMatrix, mesh4->getNode()->model(), commandBuffer, currentFrame);
+				}
+
+				if (auto&& g = mesh5->graphics()) {
+					g->drawBoundingBox(cameraMatrix, mesh5->getNode()->model(), commandBuffer, currentFrame);
+				}
+
+				if (auto&& g = mesh6->graphics()) {
+					g->drawBoundingBox(cameraMatrix, mesh6->getNode()->model(), commandBuffer, currentFrame);
+				}
+
+				if (auto&& g = mesh7->graphics()) {
+					g->drawBoundingBox(cameraMatrix, mesh7->getNode()->model(), commandBuffer, currentFrame);
+				}
 			}
 
 			{ // ortho matrix draw

@@ -285,16 +285,21 @@ namespace engine {
 				// min & max corners calculation
 				const Mesh_Node& node = _skeleton->_nodes[0][_meshData->meshes[i].nodeIndex]->value();
 
-				//glm::vec3 s;
-				//glm::vec3 t;
-				//glm::quat r;
+				/*
+				glm::vec3 s;
+				glm::vec3 t;
+				glm::quat r;
 
-				//decomposeMatrix(node.globalMatrix, s, r, t);
-				//glm::vec3 corner1 = s * layout.minCorner;
-				//glm::vec3 corner2 = s * layout.maxCorner;
+				decomposeMatrix(node.modelMatrix, s, r, t);
+				const glm::vec3 corner1 = s * layout.minCorner;
+				const glm::vec3 corner2 = s * layout.maxCorner;
+				*/
 
 				const glm::vec3 corner1 = node.modelMatrix * glm::vec4(layout.minCorner, 1.0f);
 				const glm::vec3 corner2 = node.modelMatrix * glm::vec4(layout.maxCorner, 1.0f);
+
+				//const glm::vec3 corner1 = layout.minCorner;
+				//const glm::vec3 corner2 = layout.maxCorner;
 
 				_minCorner.x = std::min(std::min(_minCorner.x, corner1.x), corner2.x);
 				_minCorner.y = std::min(std::min(_minCorner.y, corner1.y), corner2.y);
