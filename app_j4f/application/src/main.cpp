@@ -346,6 +346,7 @@ namespace engine {
 			const uint32_t height = static_cast<uint32_t>(wh >> 32);
 
 			camera = new Camera(width, height);
+			camera->enableFrustum();
 
 			camera->makeProjection(engine::math_constants::pi / 4.0f, static_cast<float>(width) / static_cast<float>(height), 1.0f, 4000.0f);
 			//camera->makeOrtho(-float(width) * 0.5f, float(width) * 0.5f, -float(height) * 0.5f, float(height) * 0.5f, 1.0f, 1000.0f);
@@ -994,7 +995,8 @@ namespace engine {
 					t -= math_constants::pi2;
 				}
 
-				grassNode->setLocalMatrix(glm::mat4(t));
+				const_cast<glm::mat4&>(grassNode->model())[0][0] = t;
+				//grassNode->setLocalMatrix(glm::mat4(t));
 			}
 
 			//rootNode->execute_with<NodeMatrixUpdater>();
@@ -1087,7 +1089,15 @@ namespace engine {
 			{
 				//mesh->drawBoundingBox(cameraMatrix, wtr, commandBuffer, currentFrame);
 				//mesh2->drawBoundingBox(cameraMatrix, wtr2, commandBuffer, currentFrame);
-				//mesh3->drawBoundingBox(cameraMatrix, wtr3, commandBuffer, currentFrame);
+
+				//if (auto&& g = mesh2->graphics()) {
+				//	g->drawBoundingBox(cameraMatrix, mesh2->getNode()->model(), commandBuffer, currentFrame);
+				//}
+
+				//if (auto&& g = mesh3->graphics()) {
+				//	g->drawBoundingBox(cameraMatrix, mesh3->getNode()->model(), commandBuffer, currentFrame);
+				//}
+				
 				//mesh4->drawBoundingBox(cameraMatrix, wtrTree, commandBuffer, currentFrame);
 				//mesh5->drawBoundingBox(cameraMatrix, wtrTree2, commandBuffer, currentFrame);
 				//mesh6->drawBoundingBox(cameraMatrix, wtrVikingHut, commandBuffer, currentFrame);

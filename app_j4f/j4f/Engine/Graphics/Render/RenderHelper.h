@@ -4,6 +4,8 @@
 #include "../Vulkan/vkPipeline.h"
 #include "../Vulkan/vkCommandBuffer.h"
 
+#include "../../Core/Math/math.h"
+
 #include "CommonVertexTypes.h"
 
 #include <vector>
@@ -116,6 +118,9 @@ namespace engine {
 
 		void initCommonPipelines();
 
+		///////
+		void drawBoundingBox(const glm::vec3& c1, const glm::vec3& c2, const glm::mat4& cameraMatrix, const glm::mat4& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const bool batch = true);
+		void drawSphere(const glm::vec3& c, const float r, const glm::mat4& cameraMatrix, const glm::mat4& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const bool batch = true);
 	private:
 		
 		vulkan::VulkanRenderer* _renderer;

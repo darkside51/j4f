@@ -133,4 +133,91 @@ namespace engine {
 		const uint32_t currentFrame = _renderer->getCurrentFrame();
 		return _dynamic_indices[currentFrame].addData(data, sz, out_offset);
 	}
+
+	/////
+	void RenderHelper::drawBoundingBox(const glm::vec3& c1, const glm::vec3& c2, const glm::mat4& cameraMatrix, const glm::mat4& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const bool batch) {
+		
+		constexpr uint32_t vertexBufferSize = 8 * sizeof(ColoredVertex);
+		constexpr uint32_t indexBufferSize = 24 * sizeof(uint32_t);
+		
+		constexpr uint32_t idxs[24] = {
+				0, 1,
+				0, 2,
+				2, 3,
+				3, 1,
+
+				4, 5,
+				4, 6,
+				6, 7,
+				7, 5,
+
+				0, 4,
+				1, 5,
+				2, 6,
+				3, 7
+		};
+	
+		if (batch) {
+			static vulkan::RenderData renderData(const_cast<vulkan::VulkanPipeline*>(getPipeline(CommonPipelines::COMMON_PIPELINE_LINES)));
+			renderData.setParamByName("mvp", &const_cast<glm::mat4&>(cameraMatrix), true);
+
+			const glm::vec4 vtxCoords[8] = {
+				worldMatrix * glm::vec4(c1.x, c1.y, c1.z, 1.0f),
+				worldMatrix * glm::vec4(c1.x, c2.y, c1.z, 1.0f),
+				worldMatrix * glm::vec4(c2.x, c1.y, c1.z, 1.0f),
+				worldMatrix * glm::vec4(c2.x, c2.y, c1.z, 1.0f),
+
+				worldMatrix * glm::vec4(c1.x, c1.y, c2.z, 1.0f),
+				worldMatrix * glm::vec4(c1.x, c2.y, c2.z, 1.0f),
+				worldMatrix * glm::vec4(c2.x, c1.y, c2.z, 1.0f),
+				worldMatrix * glm::vec4(c2.x, c2.y, c2.z, 1.0f),
+			};
+
+			const ColoredVertex vtx[8] = {
+				{ {vtxCoords[0].x, vtxCoords[0].y, vtxCoords[0].z}, {0.0f, 0.0f, 0.0f}},
+				{ {vtxCoords[1].x, vtxCoords[1].y, vtxCoords[1].z}, {0.0f, 1.0f, 0.0f} },
+				{ {vtxCoords[2].x, vtxCoords[2].y, vtxCoords[2].z}, {1.0f, 0.0f, 0.0f} },
+				{ {vtxCoords[3].x, vtxCoords[3].y, vtxCoords[3].z}, {0.0f, 0.0f, 0.0f} },
+
+				{ {vtxCoords[4].x, vtxCoords[4].y, vtxCoords[4].z}, {0.0f, 0.0f, 1.0f} },
+				{ {vtxCoords[5].x, vtxCoords[5].y, vtxCoords[5].z}, {0.0f, 0.0f, 0.0f} },
+				{ {vtxCoords[6].x, vtxCoords[6].y, vtxCoords[6].z}, {0.0f, 0.0f, 0.0f} },
+				{ {vtxCoords[7].x, vtxCoords[7].y, vtxCoords[7].z}, {1.0f, 1.0f, 1.0f} }
+			};
+
+			_autoBatchRenderer->addToDraw(&renderData, sizeof(ColoredVertex), &vtx[0], vertexBufferSize, &idxs[0], indexBufferSize, commandBuffer, currentFrame);
+		} else {
+			const ColoredVertex vtx[8] = {
+				{ {c1.x, c1.y, c1.z}, {0.0f, 0.0f, 0.0f} },
+				{ {c1.x, c2.y, c1.z}, {0.0f, 1.0f, 0.0f} },
+				{ {c2.x, c1.y, c1.z}, {1.0f, 0.0f, 0.0f} },
+				{ {c2.x, c2.y, c1.z}, {0.0f, 0.0f, 0.0f} },
+
+				{ {c1.x, c1.y, c2.z}, {0.0f, 0.0f, 1.0f} },
+				{ {c1.x, c2.y, c2.z}, {0.0f, 0.0f, 0.0f} },
+				{ {c2.x, c1.y, c2.z}, {0.0f, 0.0f, 0.0f} },
+				{ {c2.x, c2.y, c2.z}, {1.0f, 1.0f, 1.0f} }
+			};
+
+			const glm::mat4 transform = cameraMatrix * worldMatrix;
+
+			size_t vOffset;
+			size_t iOffset;
+
+			auto&& vBuffer = addDynamicVerteces(&vtx[0], vertexBufferSize, vOffset);
+			auto&& iBuffer = addDynamicIndices(&idxs[0], indexBufferSize, iOffset);
+
+			static auto&& pipeline = getPipeline(CommonPipelines::COMMON_PIPELINE_LINES);
+			static const vulkan::GPUParamLayoutInfo* mvp_layout = pipeline->program->getGPUParamLayoutByName("mvp");
+
+			vulkan::VulkanPushConstant pushConstats;
+			const_cast<vulkan::VulkanGpuProgram*>(pipeline->program)->setValueToLayout(mvp_layout, &transform, &pushConstats);
+			//commandBuffer.renderIndexed(pipeline, currentFrame, &pushConstats, 0, 0, nullptr, 0, nullptr, vBuffer, iBuffer, 0, 24, 0, 1, 0, vOffset, iOffset);
+			commandBuffer.renderIndexed(pipeline, currentFrame, &pushConstats, 0, 0, nullptr, 0, nullptr, vBuffer, iBuffer, iOffset / sizeof(uint32_t), 24, 0, 1, 0, vOffset, 0); // не будет переключения индексного буффера
+		}
+	}
+
+	void RenderHelper::drawSphere(const glm::vec3& c, const float r, const glm::mat4& cameraMatrix, const glm::mat4& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const bool batch) {
+	// !todo
+	}
 }

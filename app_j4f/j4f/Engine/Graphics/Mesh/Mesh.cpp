@@ -523,55 +523,7 @@ namespace engine {
 
 	void Mesh::drawBoundingBox(const glm::mat4& cameraMatrix, const glm::mat4& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame) {
 		if (!_skeleton) return;
-
-		const ColoredVertex vtx[8] = {
-			{ {_minCorner.x, _minCorner.y, _minCorner.z}, {0.0f, 0.0f, 0.0f} },
-			{ {_minCorner.x, _maxCorner.y, _minCorner.z}, {0.0f, 1.0f, 0.0f} },
-			{ {_maxCorner.x, _minCorner.y, _minCorner.z}, {1.0f, 0.0f, 0.0f} },
-			{ {_maxCorner.x, _maxCorner.y, _minCorner.z}, {0.0f, 0.0f, 0.0f} },
-
-			{ {_minCorner.x, _minCorner.y, _maxCorner.z}, {0.0f, 0.0f, 1.0f} },
-			{ {_minCorner.x, _maxCorner.y, _maxCorner.z}, {0.0f, 0.0f, 0.0f} },
-			{ {_maxCorner.x, _minCorner.y, _maxCorner.z}, {0.0f, 0.0f, 0.0f} },
-			{ {_maxCorner.x, _maxCorner.y, _maxCorner.z}, {1.0f, 1.0f, 1.0f} }
-		};
-
-		static const uint32_t idxs[24] = {
-			0, 1,
-			0, 2,
-			2, 3,
-			3, 1,
-
-			4, 5,
-			4, 6,
-			6, 7,
-			7, 5,
-
-			0, 4,
-			1, 5,
-			2, 6,
-			3, 7
-		};
-
-		constexpr uint32_t vertexBufferSize = 8 * sizeof(ColoredVertex);
-		constexpr uint32_t indexBufferSize = 24 * sizeof(uint32_t);
-
-		size_t vOffset;
-		size_t iOffset;
-
-		auto&& renderHelper = Engine::getInstance().getModule<Graphics>()->getRenderHelper();
-
-		auto&& vBuffer = renderHelper->addDynamicVerteces(&vtx[0], vertexBufferSize, vOffset);
-		auto&& iBuffer = renderHelper->addDynamicIndices(&idxs[0], indexBufferSize, iOffset);
-
-		static auto&& pipeline = renderHelper->getPipeline(CommonPipelines::COMMON_PIPELINE_LINES);
-		static const vulkan::GPUParamLayoutInfo* mvp_layout = pipeline->program->getGPUParamLayoutByName("mvp");
-
-		vulkan::VulkanPushConstant pushConstats;
-		const glm::mat4 transform = cameraMatrix * worldMatrix;
-		const_cast<vulkan::VulkanGpuProgram*>(pipeline->program)->setValueToLayout(mvp_layout, &transform, &pushConstats);
-		//commandBuffer.renderIndexed(pipeline, currentFrame, &pushConstats, 0, 0, nullptr, 0, nullptr, vBuffer, iBuffer, 0, 24, 0, 1, 0, vOffset, iOffset);
-		commandBuffer.renderIndexed(pipeline, currentFrame, &pushConstats, 0, 0, nullptr, 0, nullptr, vBuffer, iBuffer, iOffset / sizeof(uint32_t), 24, 0, 1, 0, vOffset, 0); // не будет переключения индексного буффера
+		Engine::getInstance().getModule<Graphics>()->getRenderHelper()->drawBoundingBox(_minCorner, _maxCorner, cameraMatrix, worldMatrix, commandBuffer, currentFrame, true);
 	}
 
 }

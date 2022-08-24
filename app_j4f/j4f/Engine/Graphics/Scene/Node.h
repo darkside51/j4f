@@ -2,8 +2,11 @@
 
 #include "../../Core/Hierarchy.h"
 #include "../../Core/Math/math.h"
-#include "NodeGraphicsLink.h"
 #include "../Render/RenderList.h"
+
+#include "Camera.h"
+#include "NodeGraphicsLink.h"
+#include "BoundingVolume.h"
 
 namespace engine {
 	
@@ -14,6 +17,11 @@ namespace engine {
 			if (_graphics) {
 				delete _graphics;
 				_graphics = nullptr;
+			}
+
+			if (_boundingVolume) {
+				delete _boundingVolume;
+				_boundingVolume = nullptr;
 			}
 		}
 
@@ -39,21 +47,28 @@ namespace engine {
 			_graphics = r;
 		}
 
+		inline const BoundingVolume* getBoundingVolume() const { return _boundingVolume; }
+		inline void setBoundingVolume(const BoundingVolume* v) {
+			if (_boundingVolume) {
+				delete _boundingVolume;
+			}
+			_boundingVolume = v;
+		}
+
 	private:
 		bool _dirtyModel = false;
 		bool _modelChanged = false;
 		glm::mat4 _local = glm::mat4(1.0f);
 		glm::mat4 _model = glm::mat4(1.0f);
 		const RenderObject* _graphics = nullptr;
+		const BoundingVolume* _boundingVolume = nullptr;
 	};
 
 	using H_Node = HierarchyRaw<Node>;
 	using Hs_Node = HierarchyShared<Node>;
 
-	class Camera;
-
 	struct NodeMatrixUpdater {
-		inline static bool _(H_Node* node, Camera* camera = nullptr, const bool checkVisible = false) {
+		inline static bool _(H_Node* node, Camera* camera = nullptr, const bool dirtyVisible = false) {
 			Node& mNode = node->value();
 			mNode._modelChanged = false;
 
@@ -72,8 +87,14 @@ namespace engine {
 				}
 			}
 
-			if (checkVisible || mNode._modelChanged) {
-				// todo: check visible with camera
+			if (const Frustum* frustum = (camera ? camera->getFrustum() : nullptr); frustum && (dirtyVisible || mNode._modelChanged)) {
+				if (const BoundingVolume* volume = mNode._boundingVolume) {
+					return volume->checkFrustum(frustum);
+				} else {
+					return true;
+				}
+			} else {
+				return true;
 			}
 
 			return true;
@@ -81,8 +102,8 @@ namespace engine {
 	};
 
 	struct RenderListEmplacer {
-		inline static bool _(H_Node* node, RenderList& list, Camera* camera = nullptr, const bool checkVisible = false) {
-			if (NodeMatrixUpdater::_(node, camera, checkVisible)) {
+		inline static bool _(H_Node* node, RenderList& list, Camera* camera = nullptr, const bool dirtyVisible = false) {
+			if (NodeMatrixUpdater::_(node, camera, dirtyVisible)) {
 				if (const RenderObject* renderObject = node->value().getRenderObject()) {
 					list.addDescriptor(renderObject->getRenderDescriptor());
 				}
@@ -93,9 +114,9 @@ namespace engine {
 		}
 	};
 
-	inline void reloadRenderList(RenderList& list, H_Node* node, Camera* camera = nullptr, const bool checkVisible = false) {
+	inline void reloadRenderList(RenderList& list, H_Node* node, Camera* camera = nullptr, const bool dirtyVisible = false) {
 		list.clear();
-		node->execute_with<RenderListEmplacer>(list, camera, checkVisible);
+		node->execute_with<RenderListEmplacer>(list, camera, dirtyVisible);
 		list.sort();
 	}
 }
