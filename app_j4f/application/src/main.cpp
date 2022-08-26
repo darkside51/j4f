@@ -1091,7 +1091,6 @@ namespace engine {
 			sceneRenderList.render(commandBuffer, currentFrame, &cameraMatrix);
 
 			////////
-
 			if (0) {
 				if (auto&& g = mesh->graphics()) {
 					g->drawBoundingBox(cameraMatrix, mesh->getNode()->model(), commandBuffer, currentFrame);

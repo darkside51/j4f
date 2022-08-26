@@ -218,6 +218,72 @@ namespace engine {
 	}
 
 	void RenderHelper::drawSphere(const glm::vec3& c, const float r, const glm::mat4& cameraMatrix, const glm::mat4& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const bool batch) {
-	// !todo
+		constexpr uint8_t segments = 64;
+		constexpr float a = math_constants::pi2 / segments;
+		
+		ColoredVertex vtx[3 * segments];
+		uint32_t idxs[3 * segments * 2];
+
+		const glm::vec4 center = worldMatrix * glm::vec4(c.x, c.y, c.z, 1.0f);
+		const float radius = glm::length(worldMatrix[0]) * r;
+
+		uint8_t vtxCount = 0;
+		float angle = 0.0f;
+		for (uint8_t i = 0; i < segments; ++i) {
+			const float x = center.x + r * cosf(angle);
+			const float y = center.y + r * sinf(angle);
+			const float z = center.z;
+
+			const uint8_t j = vtxCount + i;
+
+			vtx[j] = { {x, y, z}, {0.0f, 0.0f, 1.0f} };
+
+			idxs[2 * j] = j;
+			idxs[2 * j + 1] = i == (segments - 1) ? vtxCount : j + 1;
+
+			angle += a;
+		}
+
+		vtxCount += segments;
+		angle = 0.0f;
+		for (uint8_t i = 0; i < segments; ++i) {
+			const float x = center.x + r * cosf(angle);
+			const float y = center.y;
+			const float z = center.z + r * sinf(angle);
+
+			const uint8_t j = vtxCount + i;
+
+			vtx[j] = { {x, y, z}, {0.0f, 1.0f, 0.0f} };
+
+			idxs[2 * j] = j;
+			idxs[2 * j + 1] = i == (segments - 1) ? vtxCount : j + 1;
+
+			angle += a;
+		}
+
+		vtxCount += segments;
+		angle = 0.0f;
+		for (uint8_t i = 0; i < segments; ++i) {
+			const float x = center.x;
+			const float y = center.y + r * sinf(angle);
+			const float z = center.z + r * cosf(angle);
+
+			const uint8_t j = vtxCount + i;
+
+			vtx[j] = { {x, y, z}, {1.0f, 0.0f, 0.0f} };
+
+			idxs[2 * j] = j;
+			idxs[2 * j + 1] = i == (segments - 1) ? vtxCount : j + 1;
+
+			angle += a;
+		}
+
+		static vulkan::RenderData renderData(const_cast<vulkan::VulkanPipeline*>(getPipeline(CommonPipelines::COMMON_PIPELINE_LINES)));
+		renderData.setParamByName("mvp", &const_cast<glm::mat4&>(cameraMatrix), true);
+
+		constexpr uint32_t vertexBufferSize = 3 * segments * sizeof(ColoredVertex);
+		constexpr uint32_t indexBufferSize = 3 * 2 * segments * sizeof(uint32_t);
+
+		_autoBatchRenderer->addToDraw(&renderData, sizeof(ColoredVertex), &vtx[0], vertexBufferSize, &idxs[0], indexBufferSize, commandBuffer, currentFrame);
 	}
 }
