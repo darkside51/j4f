@@ -37,6 +37,11 @@ namespace engine {
 		_dynamic_vertices.clear();
 		_dynamic_indices.clear();
 		delete _autoBatchRenderer;
+
+		if (_debugDrawRenderData) {
+			delete _debugDrawRenderData;
+			_debugDrawRenderData = nullptr;
+		}
 	}
 
 	void RenderHelper::initCommonPipelines() {
@@ -113,6 +118,8 @@ namespace engine {
 			stencilState,
 			programTextured
 		);
+
+		_debugDrawRenderData = new vulkan::RenderData(const_cast<vulkan::VulkanPipeline*>(getPipeline(CommonPipelines::COMMON_PIPELINE_LINES)));
 	}
 
 	void RenderHelper::updateFrame() {
@@ -158,8 +165,7 @@ namespace engine {
 		};
 	
 		if (batch) {
-			static vulkan::RenderData renderData(const_cast<vulkan::VulkanPipeline*>(getPipeline(CommonPipelines::COMMON_PIPELINE_LINES)));
-			renderData.setParamByName("mvp", &const_cast<glm::mat4&>(cameraMatrix), true);
+			_debugDrawRenderData->setParamByName("mvp", &const_cast<glm::mat4&>(cameraMatrix), true);
 
 			const glm::vec4 vtxCoords[8] = {
 				worldMatrix * glm::vec4(c1.x, c1.y, c1.z, 1.0f),
@@ -185,7 +191,7 @@ namespace engine {
 				{ {vtxCoords[7].x, vtxCoords[7].y, vtxCoords[7].z}, {1.0f, 1.0f, 1.0f} }
 			};
 
-			_autoBatchRenderer->addToDraw(&renderData, sizeof(ColoredVertex), &vtx[0], vertexBufferSize, &idxs[0], indexBufferSize, commandBuffer, currentFrame);
+			_autoBatchRenderer->addToDraw(_debugDrawRenderData, sizeof(ColoredVertex), &vtx[0], vertexBufferSize, &idxs[0], indexBufferSize, commandBuffer, currentFrame);
 		} else {
 			const ColoredVertex vtx[8] = {
 				{ {c1.x, c1.y, c1.z}, {0.0f, 0.0f, 0.0f} },
@@ -230,8 +236,8 @@ namespace engine {
 		uint8_t vtxCount = 0;
 		float angle = 0.0f;
 		for (uint8_t i = 0; i < segments; ++i) {
-			const float x = center.x + r * cosf(angle);
-			const float y = center.y + r * sinf(angle);
+			const float x = center.x + radius * cosf(angle);
+			const float y = center.y + radius * sinf(angle);
 			const float z = center.z;
 
 			const uint8_t j = vtxCount + i;
@@ -247,9 +253,9 @@ namespace engine {
 		vtxCount += segments;
 		angle = 0.0f;
 		for (uint8_t i = 0; i < segments; ++i) {
-			const float x = center.x + r * cosf(angle);
+			const float x = center.x + radius * cosf(angle);
 			const float y = center.y;
-			const float z = center.z + r * sinf(angle);
+			const float z = center.z + radius * sinf(angle);
 
 			const uint8_t j = vtxCount + i;
 
@@ -265,8 +271,8 @@ namespace engine {
 		angle = 0.0f;
 		for (uint8_t i = 0; i < segments; ++i) {
 			const float x = center.x;
-			const float y = center.y + r * sinf(angle);
-			const float z = center.z + r * cosf(angle);
+			const float y = center.y + radius * sinf(angle);
+			const float z = center.z + radius * cosf(angle);
 
 			const uint8_t j = vtxCount + i;
 
@@ -278,12 +284,11 @@ namespace engine {
 			angle += a;
 		}
 
-		static vulkan::RenderData renderData(const_cast<vulkan::VulkanPipeline*>(getPipeline(CommonPipelines::COMMON_PIPELINE_LINES)));
-		renderData.setParamByName("mvp", &const_cast<glm::mat4&>(cameraMatrix), true);
+		_debugDrawRenderData->setParamByName("mvp", &const_cast<glm::mat4&>(cameraMatrix), true);
 
 		constexpr uint32_t vertexBufferSize = 3 * segments * sizeof(ColoredVertex);
 		constexpr uint32_t indexBufferSize = 3 * 2 * segments * sizeof(uint32_t);
 
-		_autoBatchRenderer->addToDraw(&renderData, sizeof(ColoredVertex), &vtx[0], vertexBufferSize, &idxs[0], indexBufferSize, commandBuffer, currentFrame);
+		_autoBatchRenderer->addToDraw(_debugDrawRenderData, sizeof(ColoredVertex), &vtx[0], vertexBufferSize, &idxs[0], indexBufferSize, commandBuffer, currentFrame);
 	}
 }

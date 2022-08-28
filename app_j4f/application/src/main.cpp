@@ -29,12 +29,13 @@
 #include  <Engine/Core/Threads/Looper.h>
 
 #include <Engine/ECS/Component.h>
-#include <Engine/ECS/BitMask.h>
+#include <Engine/Core/BitMask.h>
 
 #include <Engine/Graphics/Scene/Shadows/CascadeShadowMap.h>
 
 #include <Engine/Graphics/Scene/Node.h>
 #include <Engine/Graphics/Scene/NodeGraphicsLink.h>
+#include <Engine/Graphics/Scene/BoundingVolume.h>
 
 namespace engine {
 
@@ -90,6 +91,7 @@ namespace engine {
 	glm::vec2 lightMinMax(0.35f, 1.75f);
 
 	H_Node* rootNode;
+	bool cameraMatrixChanged = true;
 	//
 	class GrassRenderer {
 	public:
@@ -221,6 +223,7 @@ namespace engine {
 
 		void onCameraTransformChanged(const Camera* camera) override {
 			shadowMap->updateCascades(camera);
+			cameraMatrixChanged = true;
 		}
 
 		ApplicationCustomData() {
@@ -634,6 +637,8 @@ namespace engine {
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
+				node->value().setBoundingVolume(BoundingVolume::make<SphereVolume>((asset->getMinCorner() + asset->getMaxCorner()) * 0.5f, 1.0f));
+				//node->value().setBoundingVolume(BoundingVolume::make<CubeVolume>(asset->getMinCorner(), asset->getMaxCorner()));
 				rootNode->addChild(node);
 
 				mesh3->setGraphics(asset);
@@ -1006,7 +1011,8 @@ namespace engine {
 			}
 
 			//rootNode->execute_with<NodeMatrixUpdater>();
-			reloadRenderList(sceneRenderList, rootNode, camera);
+			reloadRenderList(sceneRenderList, rootNode, camera->getFrustum(), cameraMatrixChanged, 0);
+			cameraMatrixChanged = false;
 
 			mesh->updateRenderData();
 			mesh2->updateRenderData();
@@ -1091,7 +1097,7 @@ namespace engine {
 			sceneRenderList.render(commandBuffer, currentFrame, &cameraMatrix);
 
 			////////
-			if (0) {
+			if (1) {
 				if (auto&& g = mesh->graphics()) {
 					g->drawBoundingBox(cameraMatrix, mesh->getNode()->model(), commandBuffer, currentFrame);
 				}

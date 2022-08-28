@@ -127,6 +127,8 @@ namespace engine {
 		GpuProgramsManager* _gpuProgramManager;
 		AutoBatchRenderer* _autoBatchRenderer;
 
+		vulkan::RenderData* _debugDrawRenderData = nullptr;
+
 		std::vector<VulkanStreamBuffer> _dynamic_vertices;
 		std::vector<VulkanStreamBuffer> _dynamic_indices;
 		vulkan::VulkanPipeline* _commonPipelines[static_cast<uint8_t>(CommonPipelines::COMMON_PIPELINES_COUNT)];

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "BitMask.h"
+#include "../Core/BitMask.h"
 #include <cstdint>
 
 namespace engine {

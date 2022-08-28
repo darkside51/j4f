@@ -3,6 +3,7 @@
 #include "../../Core/Hierarchy.h"
 #include "../../Core/Math/math.h"
 #include "../Render/RenderList.h"
+#include "../../Core/BitMask.h"
 
 #include "Camera.h"
 #include "NodeGraphicsLink.h"
@@ -55,6 +56,9 @@ namespace engine {
 			_boundingVolume = v;
 		}
 
+		inline BitMask64& visible() { return _visibleMask; }
+		inline const BitMask64& visible() const { return _visibleMask; }
+
 	private:
 		bool _dirtyModel = false;
 		bool _modelChanged = false;
@@ -62,13 +66,14 @@ namespace engine {
 		glm::mat4 _model = glm::mat4(1.0f);
 		const RenderObject* _graphics = nullptr;
 		const BoundingVolume* _boundingVolume = nullptr;
+		BitMask64 _visibleMask; // маска видимости (предполагается, что объект может быть видимым или нет с нескольких источников, для сохранения видимости с каждого можно использовать BitMask64)
 	};
 
 	using H_Node = HierarchyRaw<Node>;
 	using Hs_Node = HierarchyShared<Node>;
 
 	struct NodeMatrixUpdater {
-		inline static bool _(H_Node* node, Camera* camera = nullptr, const bool dirtyVisible = false) {
+		inline static bool _(H_Node* node, const Frustum* frustum = nullptr, const bool dirtyVisible = false, const uint8_t visibleId = 0) {
 			Node& mNode = node->value();
 			mNode._modelChanged = false;
 
@@ -87,25 +92,34 @@ namespace engine {
 				}
 			}
 
-			if (const Frustum* frustum = (camera ? camera->getFrustum() : nullptr); frustum && (dirtyVisible || mNode._modelChanged)) {
+			if (frustum && (dirtyVisible || mNode._modelChanged)) {
 				if (const BoundingVolume* volume = mNode._boundingVolume) {
-					return volume->checkFrustum(frustum);
+					const bool visible = volume->checkFrustum(frustum, mNode._model);
+					mNode.visible().setBit(visibleId, visible);
+					return visible;
 				} else {
 					return true;
 				}
 			} else {
-				return true;
+				return mNode._boundingVolume ? mNode.visible().checkBit(visibleId) : true;
 			}
-
-			return true;
 		}
 	};
 
 	struct RenderListEmplacer {
-		inline static bool _(H_Node* node, RenderList& list, Camera* camera = nullptr, const bool dirtyVisible = false) {
-			if (NodeMatrixUpdater::_(node, camera, dirtyVisible)) {
+		inline static bool _(H_Node* node, RenderList& list, const Frustum* frustum = nullptr, const bool dirtyVisible = false, const uint8_t visibleId = 0) {
+			if (NodeMatrixUpdater::_(node, frustum, dirtyVisible, visibleId)) {
 				if (const RenderObject* renderObject = node->value().getRenderObject()) {
 					list.addDescriptor(renderObject->getRenderDescriptor());
+
+#ifdef ENABLE_DRAW_BOUNDING_VOLUMES
+					if (const BoundingVolume* volume = node->value().getBoundingVolume()) {
+						if (auto&& volumeRd = volume->getRenderDescriptor()) {
+							list.addDescriptor(volumeRd);
+						}
+					}
+#endif // ENABLE_DRAW_BOUNDING_VOLUMES
+
 				}
 				return true;
 			}
@@ -114,9 +128,9 @@ namespace engine {
 		}
 	};
 
-	inline void reloadRenderList(RenderList& list, H_Node* node, Camera* camera = nullptr, const bool dirtyVisible = false) {
+	inline void reloadRenderList(RenderList& list, H_Node* node, const Frustum* frustum = nullptr, const bool dirtyVisible = false, const uint8_t visibleId = 0) {
 		list.clear();
-		node->execute_with<RenderListEmplacer>(list, camera, dirtyVisible);
+		node->execute_with<RenderListEmplacer>(list, frustum, dirtyVisible, visibleId);
 		list.sort();
 	}
 }

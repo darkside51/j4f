@@ -13,7 +13,7 @@ namespace engine {
 		auto&& autoBatcher = renderHelper->getAutoBatchRenderer();
 
 		switch (mode) {
-			case engine::RenderDescritorMode::RDM_SINGLE_DRAW:
+			case RenderDescritorMode::RDM_SINGLE_DRAW:
 			{
 				autoBatcher->draw(commandBuffer, currentFrame);
 
@@ -30,7 +30,7 @@ namespace engine {
 				}
 			}
 				break;
-			case engine::RenderDescritorMode::RDM_AUTOBATCHING:
+			case RenderDescritorMode::RDM_AUTOBATCHING:
 			{
 				for (uint32_t i = 0; i < renderDataCount; ++i) {
 					vulkan::RenderData* r_data = renderData[i];
