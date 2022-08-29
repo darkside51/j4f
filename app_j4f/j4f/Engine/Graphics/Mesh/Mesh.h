@@ -4,12 +4,8 @@
 #include "../../Core/Hierarchy.h"
 #include "../../Core/Threads/ThreadPool.h"
 #include "../Vulkan/vkRenderData.h"
+#include "../Render/RenderedEntity.h"
 
-#include "../Render/RenderDescriptor.h"
-
-#include "../Scene/NodeGraphicsLink.h"
-
-#include <string>
 #include <vector>
 #include <cmath>
 #include <memory>
@@ -180,20 +176,13 @@ namespace engine {
 		uint8_t _updateFrameNum = 0;
 	};
 
-	class Mesh {
+	class Mesh : public RenderedEntity {
 	public:
 		~Mesh();
 
-		void loadNode(const uint16_t nodeId, HierarchyRaw<Mesh_Node>* parent, const uint8_t h);
 		void createWithData(Mesh_Data* mData, const uint16_t semantic_mask, const uint8_t latency);
 
 		void createRenderData();
-
-		std::vector<VkVertexInputAttributeDescription> getVertexInputAttributes() const;
-		uint32_t sizeOfVertex() const;
-
-		void setPipeline(vulkan::VulkanPipeline* p);
-		void setProgram(vulkan::VulkanGpuProgram* program, VkRenderPass renderPass = nullptr);
 
 		inline uint16_t getNodesCount() const { return _skeleton->_nodes[0].size(); }
 
@@ -209,25 +198,7 @@ namespace engine {
 		inline std::shared_ptr<MeshSkeleton>& getSkeleton() { return _skeleton; }
 		inline const std::shared_ptr<MeshSkeleton>& getSkeleton() const { return _skeleton; }
 
-		inline void setSkeleton(const std::shared_ptr<MeshSkeleton>& s) {
-			if (_skeleton && _skeleton != s) {
-				_skeleton = s;
-			}
-		}
-
-		template <typename T>
-		inline void setParamByName(const std::string& name, T* value, bool copyData, const uint32_t count = 1) {
-			for (uint32_t i = 0; i < _renderDescriptor.renderDataCount; ++i) {
-				_renderDescriptor.renderData[i]->setParamByName(name, value, copyData, count);
-			}
-		}
-
-		template <typename T>
-		inline void setParamForLayout(const vulkan::GPUParamLayoutInfo* info, T* value, const bool copyData, const uint32_t count = 1) {
-			for (uint32_t i = 0; i < _renderDescriptor.renderDataCount; ++i) {
-				_renderDescriptor.renderData[i]->setParamForLayout(info, value, copyData, count);
-			}
-		}
+		inline void setSkeleton(const std::shared_ptr<MeshSkeleton>& s) { _skeleton = s; }
 
 		void draw(const glm::mat4& cameraMatrix, const glm::mat4& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame);
 		void drawBoundingBox(const glm::mat4& cameraMatrix, const glm::mat4& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame);
@@ -235,29 +206,15 @@ namespace engine {
 		void updateRenderData(const glm::mat4& worldMatrix);
 
 		inline void setCameraMatrix(const glm::mat4& cameraMatrix, const bool copy = false) {
-			_renderDescriptor.setRawDataForLayout(_camera_matrix, &const_cast<glm::mat4&>(cameraMatrix), copy, sizeof(glm::mat4));
+			_renderDescriptor.setRawDataForLayout(_fixedGpuLayouts[0].first, &const_cast<glm::mat4&>(cameraMatrix), copy, sizeof(glm::mat4));
 		}
-
-		inline void render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const glm::mat4* cameraMatrix) {
-			_renderDescriptor.render(commandBuffer, currentFrame, cameraMatrix);
-		}
-
-		inline vulkan::RenderData* getRenderDataAt(const uint16_t n) const {
-			if (_renderDescriptor.renderDataCount <= n) return nullptr;
-			return _renderDescriptor.renderData[n];
-		}
-
-		inline vulkan::VulkanRenderState& renderState() { return _renderState; }
-		inline const vulkan::VulkanRenderState& renderState() const { return _renderState; }
-
-		void onPipelineAttributesChanged();
-
-		inline const RenderDescriptor& getRenderDescriptor() const { return _renderDescriptor; }
-		inline RenderDescriptor& getRenderDescriptor() { return _renderDescriptor; }
 
 	private:
+
+		std::vector<VkVertexInputAttributeDescription> getVertexInputAttributes() const;
+		uint32_t sizeOfVertex() const;
+
 		Mesh_Data* _meshData = nullptr;
-		RenderDescriptor _renderDescriptor;
 
 		uint16_t _semanticMask = 0;
 
@@ -265,12 +222,5 @@ namespace engine {
 
 		glm::vec3 _minCorner = glm::vec3(0.0f);
 		glm::vec3 _maxCorner = glm::vec3(0.0f);
-
-		vulkan::VulkanRenderState _renderState;
-
-		const vulkan::GPUParamLayoutInfo* _camera_matrix = nullptr;
-		const vulkan::GPUParamLayoutInfo* _model_matrix = nullptr;
-		const vulkan::GPUParamLayoutInfo* _skin_matrices = nullptr;
-		const vulkan::GPUParamLayoutInfo* _use_skin = nullptr;
 	};
 }

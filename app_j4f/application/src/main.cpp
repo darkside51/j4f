@@ -88,7 +88,7 @@ namespace engine {
 
 	glm::vec4 lightColor(1.0f, 1.0f, 1.0f, 1.0f);
 	//glm::vec2 lightMinMax(0.075f, 3.0f);
-	glm::vec2 lightMinMax(0.35f, 1.75f);
+	glm::vec2 lightMinMax(0.5f, 1.6f);
 
 	H_Node* rootNode;
 	bool cameraMatrixChanged = true;
@@ -360,7 +360,8 @@ namespace engine {
 			camera2->makeOrtho(-float(width) * 0.5f, float(width) * 0.5f, -float(height) * 0.5f, float(height) * 0.5f, 1.0f, 1000.0f);
 			camera2->setPosition(glm::vec3(0.0f, 0.0f, 200.0f));
 
-			clearValues[0].color = { 0.5f, 0.78f, 0.99f, 1.0f };
+			//clearValues[0].color = { 0.5f, 0.78f, 0.99f, 1.0f };
+			clearValues[0].color = { 0.25f, 0.25f, 0.25f, 1.0f };
 			clearValues[1].depthStencil = { 1.0f, 0 };
 
 			//////////////////////////////////
@@ -565,7 +566,7 @@ namespace engine {
 				animTree->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[1], 0.0f, asset->getSkeleton()->getLatency()));
 
 				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
-				asset->onPipelineAttributesChanged();
+				asset->pipelineAttributesChanged();
 
 				////////////////////
 				glm::mat4 wtr(1.0f);
@@ -591,7 +592,7 @@ namespace engine {
 				asset->setSkeleton(mesh->graphics()->getSkeleton());
 
 				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
-				asset->onPipelineAttributesChanged();
+				asset->pipelineAttributesChanged();
 
 				////////////////////
 				glm::mat4 wtr(1.0f);
@@ -654,7 +655,7 @@ namespace engine {
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 
 				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
-				asset->onPipelineAttributesChanged();
+				asset->pipelineAttributesChanged();
 
 				////////////////////
 				glm::mat4 wtr(1.0f);
@@ -680,7 +681,7 @@ namespace engine {
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 
 				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
-				asset->onPipelineAttributesChanged();
+				asset->pipelineAttributesChanged();
 
 				////////////////////
 				glm::mat4 wtr(1.0f);
@@ -704,7 +705,7 @@ namespace engine {
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 
 				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
-				asset->onPipelineAttributesChanged();
+				asset->pipelineAttributesChanged();
 
 				////////////////////
 				glm::mat4 wtr(1.0f);
@@ -728,7 +729,7 @@ namespace engine {
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 
 				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
-				asset->onPipelineAttributesChanged();
+				asset->pipelineAttributesChanged();
 
 				animTreeWindMill = new MeshAnimationTree(&asset->getMeshData()->animations[0],1.0f, asset->getSkeleton()->getLatency());
 
@@ -774,7 +775,7 @@ namespace engine {
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 
 				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
-				asset->onPipelineAttributesChanged();
+				asset->pipelineAttributesChanged();
 
 				/////////////////////
 				//grassMesh->setGraphics(asset);
@@ -1073,7 +1074,7 @@ namespace engine {
 			mesh6->setProgram(program_mesh_default);
 			mesh7->setProgram(program_mesh_default);
 			grassMesh2->setProgram(grass_default);
-			/////// shadow pass
+			//////// shadow pass
 
 			commandBuffer.cmdBeginRenderPass(renderer->getMainRenderPass(), { {0, 0}, {width, height} }, &clearValues[0], 2, renderer->getFrameBuffer().m_framebuffer, VK_SUBPASS_CONTENTS_INLINE);
 

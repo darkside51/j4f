@@ -101,7 +101,7 @@ void main() {
 		//float shadow = filterPCF(shadowCoord / shadowCoord.w, cascade);
 
 		const float light = shadow;
-		color.rgb *= clamp(u_constants.lightMinMax.y * light, u_constants.lightMinMax.x, 1.0);
+		color.rgb *= light * clamp(u_constants.lightMinMax.y, u_constants.lightMinMax.x, 1.0);
 		//color.rgb *= clamp(u_constants.lightMinMax.y * light, u_constants.lightMinMax.x, u_constants.lightMinMax.y);
 		outColor = u_constants.lightColor * color;
 

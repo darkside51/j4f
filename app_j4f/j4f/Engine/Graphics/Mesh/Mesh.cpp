@@ -322,6 +322,19 @@ namespace engine {
 		_renderState.blendMode = vulkan::CommonBlendModes::blend_none;
 		_renderState.depthState = vulkan::VulkanDepthState(true, true, VK_COMPARE_OP_LESS);
 		_renderState.stencilState = vulkan::VulkanStencilState(false);
+
+		_vertexInputAttributes = getVertexInputAttributes();
+		if (!_vertexInputAttributes.empty()) {
+			_renderState.vertexDescription.attributesCount = static_cast<uint32_t>(_vertexInputAttributes.size());
+			_renderState.vertexDescription.attributes = _vertexInputAttributes.data();
+		}
+
+		// fixed gpu layout works
+		_fixedGpuLayouts.resize(4);
+		_fixedGpuLayouts[0].second = "camera_matrix";
+		_fixedGpuLayouts[1].second = "model_matrix";
+		_fixedGpuLayouts[2].second = "skin_matrixes";
+		_fixedGpuLayouts[3].second = "use_skin";
 	}
 
 	std::vector<VkVertexInputAttributeDescription> Mesh::getVertexInputAttributes() const {
@@ -391,57 +404,6 @@ namespace engine {
 
 	uint32_t Mesh::sizeOfVertex() const { return _meshData ? (sizeof(float) * _meshData->vertexSize) : 0; }
 
-	void Mesh::setPipeline(vulkan::VulkanPipeline* p) {
-
-		if (_renderDescriptor.renderData[0]->pipeline == nullptr || _renderDescriptor.renderData[0]->pipeline->program != p->program) {
-			_camera_matrix = p->program->getGPUParamLayoutByName("camera_matrix");
-			_model_matrix = p->program->getGPUParamLayoutByName("model_matrix");
-			_skin_matrices = p->program->getGPUParamLayoutByName("skin_matrixes");
-			_use_skin = p->program->getGPUParamLayoutByName("use_skin");
-		}
-
-		_renderDescriptor.setCameraMatrix(_camera_matrix);
-		for (uint32_t i = 0; i < _renderDescriptor.renderDataCount; ++i) {
-			_renderDescriptor.renderData[i]->setPipeline(p);
-		}
-	}
-
-	void Mesh::setProgram(vulkan::VulkanGpuProgram* program, VkRenderPass renderPass) {
-
-		if (_renderDescriptor.renderDataCount == 0) return;
-
-		std::vector<VkVertexInputAttributeDescription> vertexInputAttributes = getVertexInputAttributes();
-		
-		if (vertexInputAttributes.empty()) return;
-
-		_renderState.vertexDescription.attributesCount = static_cast<uint32_t>(vertexInputAttributes.size());
-		_renderState.vertexDescription.attributes = vertexInputAttributes.data();
-
-		auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
-		vulkan::VulkanPipeline* pipeline = renderer->getGraphicsPipeline(_renderState, program, renderPass);
-
-		_renderState.vertexDescription.attributesCount = 0;
-		_renderState.vertexDescription.attributes = nullptr;
-
-		if (_renderDescriptor.renderData[0]->pipeline == pipeline) return;
-
-		setPipeline(pipeline);
-	}
-
-	void Mesh::onPipelineAttributesChanged() {
-		std::vector<VkVertexInputAttributeDescription> vertexInputAttributes = getVertexInputAttributes();
-
-		_renderState.vertexDescription.attributesCount = static_cast<uint32_t>(vertexInputAttributes.size());
-		_renderState.vertexDescription.attributes = vertexInputAttributes.data();
-
-		vulkan::VulkanPipeline* pipeline = Engine::getInstance().getModule<Graphics>()->getRenderer()->getGraphicsPipeline(_renderState, _renderDescriptor.renderData[0]->pipeline->program);
-		
-		_renderState.vertexDescription.attributesCount = 0;
-		_renderState.vertexDescription.attributes = nullptr;
-
-		setPipeline(pipeline);
-	}
-
 	void Mesh::draw(const glm::mat4& cameraMatrix, const glm::mat4& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame) {
 		if (!_skeleton) return;
 
@@ -456,17 +418,17 @@ namespace engine {
 			const Mesh_Node& node = _skeleton->_nodes[renderFrameNum][_meshData->meshes[i].nodeIndex]->value();
 			glm::mat4 model = worldMatrix * node.modelMatrix;
 
-			if (_use_skin) {
+			if (_fixedGpuLayouts[3].first) {
 				int useSkin = node.skinIndex != 0xffff ? 1 : 0;
-				r_data->setParamForLayout(_use_skin, &useSkin, false, 1);
+				r_data->setParamForLayout(_fixedGpuLayouts[3].first, &useSkin, false, 1);
 			}
 
-			if (node.skinIndex != 0xffff && _skin_matrices) {
-				r_data->setParamForLayout(_skin_matrices, &(_skeleton->_skinsMatrices[renderFrameNum][node.skinIndex][0]), false, _skeleton->_skinsMatrices[renderFrameNum][node.skinIndex].size());
+			if (node.skinIndex != 0xffff && _fixedGpuLayouts[2].first) {
+				r_data->setParamForLayout(_fixedGpuLayouts[2].first, &(_skeleton->_skinsMatrices[renderFrameNum][node.skinIndex][0]), false, _skeleton->_skinsMatrices[renderFrameNum][node.skinIndex].size());
 			}
 
-			r_data->setParamForLayout(_camera_matrix, &const_cast<glm::mat4&>(cameraMatrix), false, 1);
-			r_data->setParamForLayout(_model_matrix, &model, true, 1);
+			r_data->setParamForLayout(_fixedGpuLayouts[0].first, &const_cast<glm::mat4&>(cameraMatrix), false, 1);
+			r_data->setParamForLayout(_fixedGpuLayouts[1].first, &model, true, 1);
 
 			r_data->prepareRender(commandBuffer);
 			r_data->render(commandBuffer, currentFrame);
@@ -487,16 +449,16 @@ namespace engine {
 			const Mesh_Node& node = _skeleton->_nodes[renderFrameNum][_meshData->meshes[i].nodeIndex]->value();
 			glm::mat4 model = worldMatrix * node.modelMatrix;
 
-			if (_use_skin) {
+			if (_fixedGpuLayouts[3].first) {
 				int32_t useSkin = node.skinIndex != 0xffff ? 1 : 0;
-				r_data->setParamForLayout(_use_skin, &useSkin, true, 1);
+				r_data->setParamForLayout(_fixedGpuLayouts[3].first, &useSkin, true, 1);
 			}
 
-			if (node.skinIndex != 0xffff && _skin_matrices) {
-				r_data->setParamForLayout(_skin_matrices, &(_skeleton->_skinsMatrices[renderFrameNum][node.skinIndex][0]), false, _skeleton->_skinsMatrices[renderFrameNum][node.skinIndex].size());
+			if (node.skinIndex != 0xffff && _fixedGpuLayouts[2].first) {
+				r_data->setParamForLayout(_fixedGpuLayouts[2].first, &(_skeleton->_skinsMatrices[renderFrameNum][node.skinIndex][0]), false, _skeleton->_skinsMatrices[renderFrameNum][node.skinIndex].size());
 			}
 
-			r_data->setParamForLayout(_model_matrix, &model, true, 1);
+			r_data->setParamForLayout(_fixedGpuLayouts[1].first, &model, true, 1);
 		}
 	}
 
@@ -517,13 +479,6 @@ namespace engine {
 
 	Mesh::~Mesh() {
 		_skeleton = nullptr;
-
-		_renderDescriptor.destroy();
-
-		_camera_matrix = nullptr;
-		_model_matrix = nullptr;
-		_skin_matrices = nullptr;
-		_use_skin = nullptr;
 	}
 
 	void Mesh::drawBoundingBox(const glm::mat4& cameraMatrix, const glm::mat4& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame) {
