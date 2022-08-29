@@ -201,7 +201,7 @@ namespace engine {
 		void draw(const glm::mat4& cameraMatrix, const glm::mat4& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame);
 		void drawBoundingBox(const glm::mat4& cameraMatrix, const glm::mat4& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame);
 
-		void updateRenderData(const glm::mat4& worldMatrix);
+		void updateRenderData(const glm::mat4& worldMatrix, const bool worldMatrixChanged);
 
 		inline void setCameraMatrix(const glm::mat4& cameraMatrix, const bool copy = false) {
 			_renderDescriptor.setRawDataForLayout(_fixedGpuLayouts[0].first, &const_cast<glm::mat4&>(cameraMatrix), copy, sizeof(glm::mat4));

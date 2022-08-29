@@ -435,7 +435,7 @@ namespace engine {
 		}
 	}
 
-	void Mesh::updateRenderData(const glm::mat4& worldMatrix) {
+	void Mesh::updateRenderData(const glm::mat4& worldMatrix, const bool /*worldMatrixChanged*/) {
 		if (!_skeleton) return;
 
 		const uint8_t renderFrameNum = (_skeleton->_updateFrameNum + 1) % _skeleton->_latency;

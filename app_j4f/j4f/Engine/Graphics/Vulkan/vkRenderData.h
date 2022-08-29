@@ -60,6 +60,9 @@ namespace vulkan {
 			prepareLayouts();
 		}
 
+		RenderData(const RenderDataGpuParamsType& gpu_params) : pipeline(nullptr), renderParts(nullptr), params(gpu_params) {
+		}
+
 		RenderData(VulkanPipeline* p, const RenderDataGpuParamsType& gpu_params) : pipeline(p), renderParts(nullptr), params(gpu_params) {
 			prepareLayouts();
 		}
@@ -89,7 +92,7 @@ namespace vulkan {
 			constants.clear();
 		}
 
-		inline void replaceParams(RenderDataGpuParamsType& p) { params = p; }
+		inline void replaceParams(const RenderDataGpuParamsType& p) { params = p; }
 
 		inline void createRenderParts(const uint8_t size) {
 			renderPartsCount = size;

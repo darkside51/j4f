@@ -12,11 +12,11 @@ namespace engine {
 	};
 
 	struct BatchingParams {
-		const size_t vertexSize;
-		const uint32_t vtxDataSize;
-		const uint32_t idxDataSize;
-		const void* vtxData;
-		const uint32_t* idxData;
+		size_t vertexSize;
+		uint32_t vtxDataSize;
+		uint32_t idxDataSize;
+		void* vtxData;
+		uint32_t* idxData;
 	};
 
 	struct RenderDescriptor {
@@ -41,6 +41,11 @@ namespace engine {
 
 				delete[] renderData;
 				renderDataCount = 0;
+			}
+
+			if (batchingParams) {
+				delete batchingParams;
+				batchingParams = nullptr;
 			}
 		}
 

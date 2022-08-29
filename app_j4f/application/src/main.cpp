@@ -12,6 +12,7 @@
 #include <Engine/Graphics/Mesh/Mesh.h>
 #include <Engine/Graphics/Mesh/MeshLoader.h>
 #include <Engine/Graphics/Mesh/AnimationTree.h>
+#include <Engine/Graphics/Plain/Plain.h>
 #include <Engine/Core/Math/math.h>
 #include <Engine/Graphics/Vulkan/vkHelper.h>
 #include <Engine/Graphics/Scene/Camera.h>
@@ -57,6 +58,7 @@ namespace engine {
 	NodeRenderer<Mesh>* mesh7 = nullptr;
 
 	NodeRenderer<Mesh>* grassMesh = nullptr;
+	NodeRenderer<Plain>* plainTest = nullptr;
 	
 	MeshAnimationTree* animTree = nullptr;
 	MeshAnimationTree* animTree2 = nullptr;
@@ -200,8 +202,8 @@ namespace engine {
 			}
 		}
 
-		inline void updateRenderData(const glm::mat4& worldMatrix) {
-			_mesh->updateRenderData(worldMatrix);
+		inline void updateRenderData(const glm::mat4& worldMatrix, const bool worldMatrixChanged) {
+			_mesh->updateRenderData(worldMatrix, worldMatrixChanged);
 		}
 
 		inline void setProgram(vulkan::VulkanGpuProgram* program, VkRenderPass renderPass = nullptr) {
@@ -495,6 +497,12 @@ namespace engine {
 			};
 			auto texture_t7 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
+			TextureLoadingParams tex_params_logo;
+			tex_params_logo.files = { "resources/assets/textures/vulkan_logo.png" };
+			tex_params_logo.flags->async = 1;
+			tex_params_logo.flags->use_cache = 1;
+			texture_1 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params_logo);
+
 			meshesGraphicsBuffer = new MeshGraphicsDataBuffer(10 * 1024 * 1024, 10 * 1024 * 1024); // or create with default constructor for unique buffer for mesh
 
 			MeshLoadingParams mesh_params;
@@ -555,7 +563,7 @@ namespace engine {
 			mesh7 = new NodeRenderer<Mesh>();
 			//grassMesh = new NodeRenderer<Mesh>();
 			grassMesh2 = new NodeRenderer<GrassRenderer>();
-
+			
 			assm->loadAsset<Mesh*>(mesh_params, [program_gltf, texture_zombi, this](Mesh* asset, const AssetLoadingResult result) {
 				asset->setProgram(program_gltf);
 				asset->setParamByName("u_texture", texture_zombi, false);
@@ -793,11 +801,25 @@ namespace engine {
 				grassMesh2->setNode(node->value());
 				});
 
-			TextureLoadingParams tex_params_logo;
-			tex_params_logo.files = { "resources/assets/textures/vulkan_logo.png" };
-			tex_params_logo.flags->async = 1;
-			tex_params_logo.flags->use_cache = 1;
-			texture_1 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params_logo);
+			plainTest = new NodeRenderer<Plain>();
+			{
+				glm::mat4 wtr(1.0f);
+				//scaleMatrix(wtr, glm::vec3(1.0f));
+				rotateMatrix_xyz(wtr, glm::vec3(0.0f, 0.0f, 0.0f));
+				translateMatrixTo(wtr, glm::vec3(200.0f, -300.0f, 50.0f));
+
+				H_Node* node = new H_Node();
+				node->value().setLocalMatrix(wtr);
+				rootNode->addChild(node);
+
+				plainTest->setGraphics(new Plain(glm::vec2(100.0f, 100.0f)));
+				plainTest->graphics()->pipelineAttributesChanged();
+
+				plainTest->setNode(node->value());
+
+				plainTest->graphics()->setParamByName("u_texture", texture_floor_normal, false);
+				plainTest->getRenderDescriptor()->order = 10;
+			}
 
 			TextureLoadingParams tex_params_floorArray;
 			tex_params_floorArray.files = { 
@@ -1023,6 +1045,8 @@ namespace engine {
 			mesh6->updateRenderData();
 			mesh7->updateRenderData();
 			grassMesh2->updateRenderData();
+
+			plainTest->updateRenderData();
 
 			const uint64_t wh = renderer->getWH();
 			const uint32_t width = static_cast<uint32_t>(wh >> 0);

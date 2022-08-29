@@ -39,6 +39,7 @@ namespace engine {
 
 		inline const glm::mat4& localMatrix() const { return _local; }
 		inline const glm::mat4& model() const { return _model; }
+		inline bool modelChanged() const { return _modelChanged; }
 
 		inline const RenderObject* getRenderObject() const { return _graphics; }
 		inline void setRenderObject(const RenderObject* r) {

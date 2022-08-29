@@ -68,7 +68,7 @@ namespace engine {
 
 		inline void updateRenderData() {
 			if (_graphics && _node) {
-				_graphics->updateRenderData(_node->model());
+				_graphics->updateRenderData(_node->model(), _node->modelChanged());
 			}
 		}
 
