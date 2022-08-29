@@ -62,6 +62,7 @@ set(
 	Graphics/Render
 	Graphics/Mesh
 	Graphics/Text
+	Graphics/Plain
 
 	Events
 	File

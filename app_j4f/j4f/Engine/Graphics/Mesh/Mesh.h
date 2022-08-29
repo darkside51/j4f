@@ -3,12 +3,10 @@
 #include "../../Core/Math/math.h"
 #include "../../Core/Hierarchy.h"
 #include "../../Core/Threads/ThreadPool.h"
-#include "../Vulkan/vkRenderData.h"
 #include "../Render/RenderedEntity.h"
 
-#include <vector>
-#include <cmath>
 #include <memory>
+#include <vector>
 
 namespace engine {
 

@@ -88,7 +88,7 @@ namespace engine {
 
 	glm::vec4 lightColor(1.0f, 1.0f, 1.0f, 1.0f);
 	//glm::vec2 lightMinMax(0.075f, 3.0f);
-	glm::vec2 lightMinMax(0.5f, 1.6f);
+	glm::vec2 lightMinMax(0.4f, 1.65f);
 
 	H_Node* rootNode;
 	bool cameraMatrixChanged = true;
@@ -1210,8 +1210,10 @@ namespace engine {
 					tv.position[0] += 350.0f;
 				}
 
+				vulkan::RenderData renderData2(const_cast<vulkan::VulkanPipeline*>(pipeline), renderData.params);
+
 				GPU_DEBUG_MARKER_INSERT(commandBuffer.m_commandBuffer, "project render vulkan sprite", 0.5f, 0.5f, 0.5f, 1.0f);
-				autoBatcher->addToDraw(renderData.pipeline, sizeof(TexturedVertex), &vtx[0], vertexBufferSize, &idxs[0], indexBufferSize, renderData.params, commandBuffer, currentFrame);
+				autoBatcher->addToDraw(renderData2.pipeline, sizeof(TexturedVertex), &vtx[0], vertexBufferSize, &idxs[0], indexBufferSize, renderData2.params, commandBuffer, currentFrame);
 
 				/*TexturedVertex vtx2[4] = {
 					{ {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f} },
