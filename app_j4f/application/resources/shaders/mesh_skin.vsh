@@ -31,12 +31,10 @@ layout(push_constant) uniform PUSH_CONST {
 	mat4 model_matrix;
 } u_push_const;
 
-layout (location = 0) out vec3 out_normal;
-layout (location = 1) out vec2 out_uv;
-
-layout (location = 2) out float out_view_depth;
-layout (location = 3) out vec3 out_position;
-layout (location = 4) out vec4 out_tangent;
+layout (location = 0) out vec2 out_uv;
+layout (location = 1) out float out_view_depth;
+layout (location = 2) out vec3 out_position;
+layout (location = 3) out mat3 out_tbn;
 
 out gl_PerVertex {
     vec4 gl_Position;   
@@ -51,8 +49,10 @@ void main() {
 			  	  + u_ubo.skin_matrixes[int(a_joints.z)] * a_weights.z
 			  	  + u_ubo.skin_matrixes[int(a_joints.w)] * a_weights.w;
 
-		out_normal = normalize((u_push_const.model_matrix * (skin * vec4(a_normal, 0.0))).xyz);
-		out_tangent = vec4(mat3(u_push_const.model_matrix) * (mat3(skin) * a_tangent.xyz), a_tangent.w);
+		vec3 normal = normalize((u_push_const.model_matrix * (skin * vec4(a_normal, 0.0))).xyz);
+		vec3 tangent = normalize((u_push_const.model_matrix * (skin * vec4(a_tangent.xyz, 0.0))).xyz);
+		vec3 binormal = cross(normal, tangent) * a_tangent.w;
+		out_tbn = mat3(tangent, binormal, normal);
 
 		vec4 world_position = u_push_const.model_matrix * (skin * vec4(a_position, 1.0));
 		vec3 view_position = (u_shadow.view * world_position).xyz;
@@ -62,8 +62,10 @@ void main() {
 		gl_Position = u_push_const.camera_matrix * world_position;
 
 	} else {
-		out_normal = normalize((u_push_const.model_matrix * vec4(a_normal, 0.0)).xyz);
-		out_tangent = vec4(mat3(u_push_const.model_matrix) * a_tangent.xyz, a_tangent.w);
+		vec3 normal = normalize((u_push_const.model_matrix * vec4(a_normal, 0.0)).xyz);
+		vec3 tangent = normalize((u_push_const.model_matrix * vec4(a_tangent.xyz, 0.0)).xyz);
+		vec3 binormal = cross(normal, tangent) * a_tangent.w;
+		out_tbn = mat3(tangent, binormal, normal);
 
 		vec4 world_position = u_push_const.model_matrix * vec4(a_position, 1.0);
 		vec3 view_position = (u_shadow.view * world_position).xyz;

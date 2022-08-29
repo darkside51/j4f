@@ -1226,11 +1226,9 @@ namespace engine {
 					tv.position[1] -= 320.0f;
 				}*/
 
-
 				//vulkan::RenderData renderData2(const_cast<vulkan::VulkanPipeline*>(pipeline));
 				//renderData2.setParamForLayout(mvp_layout, &transform, false);
 				//renderData2.setParamByName("u_texture", texture_text, false);
-
 
 				/*static auto&& pipeline_shadow_test2 = renderHelper->getPipeline(CommonPipelines::TEST2);
 				static const vulkan::GPUParamLayoutInfo* mvp_layout3 = pipeline_shadow_test2->program->getGPUParamLayoutByName("mvp");

@@ -49,14 +49,12 @@ namespace vulkan {
 
 	uint32_t VulkanDevice::getMemoryType(uint32_t typeBits, VkMemoryPropertyFlags properties, VkBool32* memTypeFound) const {
 		for (uint32_t i = 0; i < gpuMemoryProperties.memoryTypeCount; ++i) {
-			if ((typeBits & 1) == 1) {
+			if (typeBits & (1 << i)) {
 				if ((gpuMemoryProperties.memoryTypes[i].propertyFlags & properties) == properties) {
 					if (memTypeFound) { *memTypeFound = true; }
 					return i;
 				}
 			}
-
-			typeBits >>= 1;
 		}
 
 		if (memTypeFound) {
