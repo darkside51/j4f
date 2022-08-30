@@ -758,7 +758,6 @@ namespace engine {
 				});
 
 			TextureData img("resources/assets/textures/t.jpg");
-			//GrassRenderer* grenderer = new GrassRenderer(4900);
 			GrassRenderer* grenderer = new GrassRenderer(img);
 
 			TextureLoadingParams tex_params_floor_mask;
@@ -812,8 +811,26 @@ namespace engine {
 				node->value().setLocalMatrix(wtr);
 				rootNode->addChild(node);
 
-				plainTest->setGraphics(new Plain(glm::vec2(100.0f, 100.0f)));
-				plainTest->graphics()->pipelineAttributesChanged();
+				//plainTest->setGraphics(new Plain(glm::vec2(100.0f, 100.0f)));
+
+				plainTest->setGraphics(new Plain(
+				std::shared_ptr<TextureFrame>(new TextureFrame(
+					{
+						0.0f, 0.0f,
+						100.0f, 0.0f,
+						0.0f, 100.0f,
+						100.0f, 100.0f
+					},
+					{
+						0.0f, 1.0f,
+						1.0f, 1.0f,
+						0.0f, 0.0f,
+						1.0f, 0.0f
+					},
+					{
+						0, 1, 2, 2, 1, 3
+					}
+				)), nullptr));
 
 				plainTest->setNode(node->value());
 

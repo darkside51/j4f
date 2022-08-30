@@ -23,13 +23,13 @@ namespace vulkan {
 		VulkanTexture(
 			VulkanRenderer* renderer,
 			VkImageLayout layout,
-			VkDescriptorSet readyDescriptorSet,
+			const std::pair<VkDescriptorSet, uint32_t>& readyDescriptorSet,
 			VulkanImage* img,
 			VkSampler sampler,
 			const uint32_t w,
 			const uint32_t h,
 			const uint32_t d = 1
-		) : _renderer(renderer), _width(w), _height(h), _depth(d), _img(img), _descriptor(readyDescriptorSet), _sampler(sampler), _generationState(VulkanTextureCreationState::CREATION_COMPLETE), _imageLayout(layout), _arrayLayers(1) {}
+		) : _renderer(renderer), _width(w), _height(h), _depth(d), _img(img), _descriptor(readyDescriptorSet.first), _descriptorPoolId(readyDescriptorSet.second), _sampler(sampler), _generationState(VulkanTextureCreationState::CREATION_COMPLETE), _imageLayout(layout), _arrayLayers(1) {}
 		~VulkanTexture();
 
 		VulkanBuffer* generateWithData(const void** data, const uint32_t count, const VkFormat format, const uint8_t bpp, const bool createMipMaps, const VkImageViewType forceType);
@@ -65,6 +65,7 @@ namespace vulkan {
 		VkSampler _sampler;
 
 		VkDescriptorSet _descriptor;
+		uint32_t _descriptorPoolId = 0;
 
 		std::atomic<VulkanTextureCreationState> _generationState;
 		VkImageLayout _imageLayout;

@@ -4,7 +4,51 @@
 
 namespace engine {
 
-	Plain::Plain(const glm::vec2& sz, const vulkan::RenderDataGpuParamsType params) : _size(sz) {
+	Plain::Plain(const glm::vec2& sz, const vulkan::RenderDataGpuParamsType& params) {
+		_aabb[0] = glm::vec2(0.0f);
+		_aabb[1] = glm::vec2(sz);
+		
+		_vtx = {
+			{ {_aabb[0].x, _aabb[0].y, 0.0f}, {0.0f, 1.0f} },
+			{ {_aabb[1].x, _aabb[0].y, 0.0f}, {1.0f, 1.0f} },
+			{ {_aabb[0].x, _aabb[1].y, 0.0f}, {0.0f, 0.0f} },
+			{ {_aabb[1].x, _aabb[1].y, 0.0f}, {1.0f, 0.0f} }
+		};
+
+		_idx = { 0, 1, 2, 2, 1, 3 };
+
+		_renderDescriptor.batchingParams = new BatchingParams();
+		_renderDescriptor.batchingParams->vertexSize = sizeof(TexturedVertex);
+		_renderDescriptor.batchingParams->vtxDataSize = _vtx.size() * sizeof(TexturedVertex);
+		_renderDescriptor.batchingParams->idxDataSize = _idx.size() * sizeof(uint32_t);
+		_renderDescriptor.batchingParams->vtxData = _vtx.data();
+		_renderDescriptor.batchingParams->idxData = _idx.data();
+
+		createRenderData(params);
+	}
+
+	Plain::Plain(const std::shared_ptr<TextureFrame>& f, const vulkan::RenderDataGpuParamsType& params) : _frame(f) {
+		_vtx.resize(_frame->_vtx.size() / 2);
+		_idx = _frame->_idx;
+
+		size_t j = 0;
+		for (size_t i = 0, sz = _frame->_vtx.size(); i < sz; i += 2) {
+			_vtx[j].uv[0] = _frame->_uv[i]; 
+			_vtx[j].uv[1] = _frame->_uv[i + 1];
+			++j;
+		}
+
+		_renderDescriptor.batchingParams = new BatchingParams();
+		_renderDescriptor.batchingParams->vertexSize = sizeof(TexturedVertex);
+		_renderDescriptor.batchingParams->vtxDataSize = _vtx.size() * sizeof(TexturedVertex);
+		_renderDescriptor.batchingParams->idxDataSize = _idx.size() * sizeof(uint32_t);
+		_renderDescriptor.batchingParams->vtxData = _vtx.data();
+		_renderDescriptor.batchingParams->idxData = _idx.data();
+
+		createRenderData(params);
+	}
+
+	void Plain::createRenderData(const vulkan::RenderDataGpuParamsType& params) {
 		auto&& renderHelper = Engine::getInstance().getModule<Graphics>()->getRenderHelper();
 		auto&& pipeline = renderHelper->getPipeline(CommonPipelines::COMMON_PIPELINE_TEXTURED);
 
@@ -12,7 +56,7 @@ namespace engine {
 
 		_renderDescriptor.mode = RenderDescritorMode::RDM_AUTOBATCHING;
 
-		_renderDescriptor.renderData = new vulkan::RenderData*[1];
+		_renderDescriptor.renderData = new vulkan::RenderData * [1];
 		_renderDescriptor.renderData[0] = new vulkan::RenderData(gpu_params);
 
 		_renderDescriptor.renderDataCount = 1;
@@ -31,36 +75,30 @@ namespace engine {
 		_fixedGpuLayouts.resize(1);
 		_fixedGpuLayouts[0].second = "mvp";
 
-		//
-		_vtx[0] = { {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f} };
-		_vtx[1] = { {_size.x, 0.0f, 0.0f}, {1.0f, 1.0f} };
-		_vtx[2] = { {0.0f, _size.y, 0.0f}, {0.0f, 0.0f} };
-		_vtx[3] = { {_size.x, _size.y, 0.0f}, {1.0f, 0.0f} };
-
-		_idxs[0] = 0; _idxs[1] = 1; _idxs[2] = 2;
-		_idxs[3] = 2; _idxs[4] = 1; _idxs[5] = 3;
-
-		_renderDescriptor.batchingParams = new BatchingParams();
-		_renderDescriptor.batchingParams->vertexSize = sizeof(TexturedVertex);
-		_renderDescriptor.batchingParams->vtxDataSize = 4 * sizeof(TexturedVertex);
-		_renderDescriptor.batchingParams->idxDataSize = 6 * sizeof(uint32_t);
-		_renderDescriptor.batchingParams->vtxData = &_vtx[0];
-		_renderDescriptor.batchingParams->idxData = &_idxs[0];
-
-		setPipeline(const_cast<vulkan::VulkanPipeline*>(pipeline));
+		setPipeline(Engine::getInstance().getModule<Graphics>()->getRenderer()->getGraphicsPipeline(_renderState, pipeline->program));
 	}
 
 	void Plain::updateRenderData(const glm::mat4& worldMatrix, const bool worldMatrixChanged) {
-		if (worldMatrixChanged) {
-			const glm::vec4 p0 = worldMatrix * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-			const glm::vec4 p1 = worldMatrix * glm::vec4(_size.x, 0.0f, 0.0f, 1.0f);
-			const glm::vec4 p2 = worldMatrix * glm::vec4(0.0f, _size.y, 0.0f, 1.0f);
-			const glm::vec4 p3 = worldMatrix * glm::vec4(_size.x, _size.y, 0.0f, 1.0f);
+		if (worldMatrixChanged || _frameChanged) {
+			_frameChanged = false;
+			if (_frame) {
+				size_t j = 0;
+				for (size_t i = 0, sz = _frame->_vtx.size(); i < sz; i += 2) {
+					const glm::vec4 p = worldMatrix * glm::vec4(_frame->_vtx[i], _frame->_vtx[i + 1], 0.0f, 1.0f);
+					_vtx[j].position[0] = p.x; _vtx[j].position[1] = p.y; _vtx[j].position[2] = p.z;
+					++j;
+				}
+			} else {
+				const glm::vec4 p0 = worldMatrix * glm::vec4(_aabb[0].x, _aabb[0].y, 0.0f, 1.0f);
+				const glm::vec4 p1 = worldMatrix * glm::vec4(_aabb[1].x, _aabb[0].y, 0.0f, 1.0f);
+				const glm::vec4 p2 = worldMatrix * glm::vec4(_aabb[0].x, _aabb[1].y, 0.0f, 1.0f);
+				const glm::vec4 p3 = worldMatrix * glm::vec4(_aabb[1].x, _aabb[1].y, 0.0f, 1.0f);
 
-			_vtx[0].position[0] = p0.x; _vtx[0].position[1] = p0.y; _vtx[0].position[2] = p0.z;
-			_vtx[1].position[0] = p1.x; _vtx[1].position[1] = p1.y; _vtx[1].position[2] = p1.z;
-			_vtx[2].position[0] = p2.x; _vtx[2].position[1] = p2.y; _vtx[2].position[2] = p2.z;
-			_vtx[3].position[0] = p3.x; _vtx[3].position[1] = p3.y; _vtx[3].position[2] = p3.z;
+				_vtx[0].position[0] = p0.x; _vtx[0].position[1] = p0.y; _vtx[0].position[2] = p0.z;
+				_vtx[1].position[0] = p1.x; _vtx[1].position[1] = p1.y; _vtx[1].position[2] = p1.z;
+				_vtx[2].position[0] = p2.x; _vtx[2].position[1] = p2.y; _vtx[2].position[2] = p2.z;
+				_vtx[3].position[0] = p3.x; _vtx[3].position[1] = p3.y; _vtx[3].position[2] = p3.z;
+			}
 		}
 	}
 }

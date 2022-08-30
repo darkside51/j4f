@@ -5,11 +5,14 @@
 namespace vulkan {
 
 	VulkanTexture::~VulkanTexture() {
-		if (_img) { delete _img; }
-		_img = nullptr;
-
+		if (_img) { 
+			delete _img;
+			_img = nullptr;
+		}
+		
 		if (_descriptor) {
-			_renderer->freeDescriptorSetsFromGlobalPool(&_descriptor, 1);
+			_renderer->freeDescriptorSetsFromGlobalPool(&_descriptor, 1, _descriptorPoolId);
+			_descriptor = nullptr;
 		}
 	}
 
@@ -223,7 +226,13 @@ namespace vulkan {
 		if (_generationState.load(std::memory_order_consume) == VulkanTextureCreationState::CREATION_COMPLETE) {
 			VkDescriptorSetLayoutBinding bindingLayout = { binding, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr };
 			VkDescriptorSetLayout descriptorSetLayout = _renderer->getDevice()->createDescriptorSetLayout({ bindingLayout }, nullptr);
-			_descriptor = _renderer->allocateSingleDescriptorSetFromGlobalPool(descriptorSetLayout);
+			const auto p = _renderer->allocateSingleDescriptorSetFromGlobalPool(descriptorSetLayout);
+			_descriptor = p.first;
+			_descriptorPoolId = p.second;
+			//_descriptor = _renderer->allocateSingleDescriptorSetFromGlobalPool(descriptorSetLayout);
+			//_descriptorSet = _renderer->allocateDescriptorSetFromGlobalPool(descriptorSetLayout, 1);
+			//_descriptor = _descriptorSet->at(0);
+			
 			_renderer->bindImageToSingleDescriptorSet(_descriptor, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, _sampler, _img->view, imageLayout, binding);
 
 			_renderer->getDevice()->destroyDescriptorSetLayout(descriptorSetLayout, nullptr); // destroy there or store it????

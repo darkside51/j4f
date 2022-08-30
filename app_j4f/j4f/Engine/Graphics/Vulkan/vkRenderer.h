@@ -366,10 +366,10 @@ namespace vulkan {
 		PipelineDescriptorLayout& getDescriptorLayout(const std::vector<std::vector<VkDescriptorSetLayoutBinding*>>& setLayoutBindings, const std::vector<VkPushConstantRange*>& pushConstantsRanges);
 
 		VulkanDescriptorSet* allocateDescriptorSetFromGlobalPool(const VkDescriptorSetLayout descriptorLayout, const uint32_t count = 0);
-		VkDescriptorSet allocateSingleDescriptorSetFromGlobalPool(const VkDescriptorSetLayout descriptorSetLayout);
+		std::pair<VkDescriptorSet, uint32_t> allocateSingleDescriptorSetFromGlobalPool(const VkDescriptorSetLayout descriptorSetLayout);
 
-		void freeDescriptorSetsFromGlobalPool(const VkDescriptorSet* sets, const uint32_t count) const {
-			vkFreeDescriptorSets(_vulkanDevice->device, _globalDescriptorPool, count, sets);
+		void freeDescriptorSetsFromGlobalPool(const VkDescriptorSet* sets, const uint32_t count, const uint32_t poolId) const {
+			vkFreeDescriptorSets(_vulkanDevice->device, _globalDescriptorPools[poolId], count, sets);
 		}
 
 		void freeDescriptorSets(const VulkanDescriptorSet* set) const {
@@ -465,7 +465,7 @@ namespace vulkan {
 		inline uint32_t getCurrentFrame() const { return _currentFrame; }
 		inline VkRenderPass getMainRenderPass() const { return _mainRenderPass; }
 
-		VkDescriptorPool getGlobalDescriptorPool() const { return _globalDescriptorPool; }
+		//VkDescriptorPool getGlobalDescriptorPool() const { return _globalDescriptorPool; }
 
 		// dynamic uniform buffers
 		VulkanDynamicBuffer* getDynamicGPUBufferForSize(const uint32_t size, const VkBufferUsageFlags usageFlags, const uint32_t maxCount = 2048);
@@ -535,7 +535,11 @@ namespace vulkan {
 		VulkanDevice* _vulkanDevice = nullptr;
 		VulkanSwapChain _swapChain;
 		VkPipelineCache _pipelineCache;
-		VkDescriptorPool _globalDescriptorPool = VK_NULL_HANDLE;
+
+		std::vector<VkDescriptorPool> _globalDescriptorPools;
+		uint32_t _currentDescriptorPool = 0xffffffff;
+		std::vector<VkDescriptorPoolSize> _descriptorPoolCustomConfig;
+
 		VkCommandPool _commandPool;
 		VkRenderPass _mainRenderPass;
 		std::vector<VulkanFrameBuffer> _frameBuffers;

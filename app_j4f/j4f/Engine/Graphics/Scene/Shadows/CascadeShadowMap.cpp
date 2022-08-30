@@ -163,8 +163,8 @@ namespace engine {
 		uint32_t binding = 0;
 		VkDescriptorSetLayoutBinding bindingLayout = { binding, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr };
 		VkDescriptorSetLayout descriptorSetLayout = renderer->getDevice()->createDescriptorSetLayout({ bindingLayout }, nullptr);
-		VkDescriptorSet depthImageDescriptorSet = renderer->allocateSingleDescriptorSetFromGlobalPool(descriptorSetLayout);
-		renderer->bindImageToSingleDescriptorSet(depthImageDescriptorSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, depthSampler, depthImage->view, VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, binding);
+		const auto depthImageDescriptorSet = renderer->allocateSingleDescriptorSetFromGlobalPool(descriptorSetLayout);
+		renderer->bindImageToSingleDescriptorSet(depthImageDescriptorSet.first, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, depthSampler, depthImage->view, VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, binding);
 		renderer->getDevice()->destroyDescriptorSetLayout(descriptorSetLayout, nullptr); // destroy there or store it????
 
 		// texture
