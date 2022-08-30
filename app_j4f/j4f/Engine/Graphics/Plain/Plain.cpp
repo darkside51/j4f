@@ -37,6 +37,7 @@ namespace engine {
 			_vtx[j].uv[1] = _frame->_uv[i + 1];
 			++j;
 		}
+		_frameChanged = true;
 
 		_renderDescriptor.batchingParams = new BatchingParams();
 		_renderDescriptor.batchingParams->vertexSize = sizeof(TexturedVertex);
@@ -46,6 +47,23 @@ namespace engine {
 		_renderDescriptor.batchingParams->idxData = _idx.data();
 
 		createRenderData(params);
+	}
+
+	void Plain::setFrame(const std::shared_ptr<TextureFrame>& f) {
+		if (_frame == f) { return; }
+
+		_frame = f;
+		_vtx.resize(_frame->_vtx.size() / 2);
+		_idx = _frame->_idx;
+
+		size_t j = 0;
+		for (size_t i = 0, sz = _frame->_vtx.size(); i < sz; i += 2) {
+			_vtx[j].uv[0] = _frame->_uv[i];
+			_vtx[j].uv[1] = _frame->_uv[i + 1];
+			++j;
+		}
+
+		_frameChanged = true;
 	}
 
 	void Plain::createRenderData(const vulkan::RenderDataGpuParamsType& params) {

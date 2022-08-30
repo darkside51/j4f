@@ -15,12 +15,23 @@ namespace engine {
 		const uint8_t sy_offset
 	) {
 		_fontRenderer->render(_font, _fontSize, text, x, y, color, sx_offset, sy_offset, [this](const char s, const uint16_t x, const uint16_t y, const uint16_t w, const uint16_t h) {
-			TextureFrame f({ 
-				float(x) / _fontRenderer->imgWidth, float(y) / _fontRenderer->imgHeight, 
-				float(w) / _fontRenderer->imgWidth, float(y) / _fontRenderer->imgHeight,
-				float(x) / _fontRenderer->imgWidth, float(h) / _fontRenderer->imgHeight,
-				float(w) / _fontRenderer->imgWidth, float(h) / _fontRenderer->imgHeight 
-			});
+			TextureFrame f(
+				{
+					0.0f, 0.0f,
+					float(w), 0.0f,
+					0.0f, float(h),
+					float(w), float(h)
+				},
+				{ 
+					float(x) / _fontRenderer->imgWidth, float(y) / _fontRenderer->imgHeight, 
+					float(w) / _fontRenderer->imgWidth, float(y) / _fontRenderer->imgHeight,
+					float(x) / _fontRenderer->imgWidth, float(h) / _fontRenderer->imgHeight,
+					float(w) / _fontRenderer->imgWidth, float(h) / _fontRenderer->imgHeight 
+				},
+				{
+					0, 1, 2, 2, 1, 3
+				}
+			);
 			
 			_glyphs[s] = f;
 		});

@@ -804,7 +804,7 @@ namespace engine {
 			{
 				glm::mat4 wtr(1.0f);
 				//scaleMatrix(wtr, glm::vec3(1.0f));
-				rotateMatrix_xyz(wtr, glm::vec3(0.0f, 0.0f, 0.0f));
+				rotateMatrix_xyz(wtr, glm::vec3(1.57f, 0.0f, 0.0f));
 				translateMatrixTo(wtr, glm::vec3(200.0f, -300.0f, 50.0f));
 
 				H_Node* node = new H_Node();
@@ -873,6 +873,29 @@ namespace engine {
 
 			texture_text = fr.createFontTexture();
 			texture_text->createSingleDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0);
+
+			auto texFrame = std::shared_ptr<TextureFrame>(new TextureFrame(
+				{
+					0.0f, 0.0f,
+					100.0f, 0.0f,
+					0.0f, 50.0f,
+					100.0f, 50.0f
+				},
+				{
+					0.0f, 0.5f,
+					1.0f, 0.5f,
+					0.0f, 0.0f,
+					1.0f, 0.0f
+				},
+				{
+					0, 1, 2, 2, 1, 3
+				}
+			));
+
+			plainTest->graphics()->setFrame(texFrame);
+			plainTest->graphics()->setParamByName("u_texture", texture_text, false);
+			plainTest->graphics()->renderState().blendMode = vulkan::CommonBlendModes::blend_alpha;
+			plainTest->graphics()->pipelineAttributesChanged();
 
 			/*FontLibrary lib;
 			Font font("resources/assets/fonts/Roboto/Roboto-Regular.ttf");

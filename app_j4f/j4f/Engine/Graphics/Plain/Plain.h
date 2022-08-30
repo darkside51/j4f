@@ -15,6 +15,8 @@ namespace engine {
 		Plain(const std::shared_ptr<TextureFrame>& f, const vulkan::RenderDataGpuParamsType& params = nullptr);
 		void updateRenderData(const glm::mat4& worldMatrix, const bool worldMatrixChanged);
 
+		void setFrame(const std::shared_ptr<TextureFrame>& f);
+
 	private:
 		void createRenderData(const vulkan::RenderDataGpuParamsType& params);
 
