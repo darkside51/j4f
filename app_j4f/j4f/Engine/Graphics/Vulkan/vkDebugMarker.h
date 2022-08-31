@@ -33,12 +33,12 @@ namespace vulkan::debugMarker {
 
 			if (vkDebugMarkerSetObjectName != VK_NULL_HANDLE) {
 				vkDevice = device->device;
-				LOG_TAG(VULKAN_DEBUG_MARKER, "is ON");
+				LOG_TAG_LEVEL(engine::LogLevel::L_CUSTOM, VULKAN_DEBUG_MARKER, "is ON");
 			} else {
-				LOG_TAG(VULKAN_DEBUG_MARKER, "is NO get functions");
+				LOG_TAG_LEVEL(engine::LogLevel::L_CUSTOM, VULKAN_DEBUG_MARKER, "is NO get functions");
 			}
 		} else {
-			LOG_TAG(VULKAN_DEBUG_MARKER, "is NO awailable");
+			LOG_TAG_LEVEL(engine::LogLevel::L_CUSTOM, VULKAN_DEBUG_MARKER, "is NO awailable");
 		}
 	}
 

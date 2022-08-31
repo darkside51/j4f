@@ -6,6 +6,8 @@
 
 #include "vkDebugMarker.h"
 
+#include "../../Engine/Log/Log.h"
+
 #include <unordered_map>
 #include <unordered_set>
 #include <cassert>
@@ -439,7 +441,7 @@ namespace vulkan {
 			typeCounts[0].descriptorCount = 128;
 
 			typeCounts[1].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-			typeCounts[1].descriptorCount = 1024;
+			typeCounts[1].descriptorCount = 512;
 
 			typeCounts[2].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 			typeCounts[2].descriptorCount = 16;
@@ -448,7 +450,7 @@ namespace vulkan {
 			typeCounts[3].descriptorCount = 128;
 
 			typeCounts[4].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			typeCounts[4].descriptorCount = 2048;
+			typeCounts[4].descriptorCount = 1024;
 
 			// set the max. number of descriptor sets that can be requested from this pool (requesting beyond this limit will result in an error)
 			descriptorPoolInfo.maxSets =
@@ -474,6 +476,7 @@ namespace vulkan {
 			vkCreateDescriptorPool(_vulkanDevice->device, &descriptorPoolInfo, nullptr, &_globalDescriptorPools[_currentDescriptorPool]);
 		}
 
+		LOG_TAG_LEVEL(engine::LogLevel::L_CUSTOM, GRAPHICS, "VulkanRenderer allocate descriptorPool(maxSets = %d), descriptorPools size = %d", descriptorPoolInfo.maxSets, _globalDescriptorPools.size());
 	}
 
 	PipelineDescriptorLayout& VulkanRenderer::getDescriptorLayout(const std::vector<std::vector<VkDescriptorSetLayoutBinding*>>& setLayoutBindings, const std::vector<VkPushConstantRange*>& pushConstantsRanges) {
