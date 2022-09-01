@@ -484,7 +484,7 @@ namespace engine {
 	void Mesh::drawBoundingBox(const glm::mat4& cameraMatrix, const glm::mat4& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame) {
 		if (!_skeleton) return;
 		Engine::getInstance().getModule<Graphics>()->getRenderHelper()->drawBoundingBox(_minCorner, _maxCorner, cameraMatrix, worldMatrix, commandBuffer, currentFrame, true);
-		Engine::getInstance().getModule<Graphics>()->getRenderHelper()->drawSphere((_minCorner + _maxCorner) * 0.5f, 1.0f, cameraMatrix, worldMatrix, commandBuffer, currentFrame, true);
+		//Engine::getInstance().getModule<Graphics>()->getRenderHelper()->drawSphere((_minCorner + _maxCorner) * 0.5f, 1.0f, cameraMatrix, worldMatrix, commandBuffer, currentFrame, true);
 	}
 
 }

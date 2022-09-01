@@ -584,6 +584,7 @@ namespace engine {
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
+				node->value().setBoundingVolume(BoundingVolume::make<SphereVolume>(glm::vec3(0.0f, 1.45f, 0.0f), 1.8f));
 				rootNode->addChild(node);
 
 				mesh->setGraphics(asset);
@@ -610,6 +611,7 @@ namespace engine {
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
+				node->value().setBoundingVolume(BoundingVolume::make<SphereVolume>(glm::vec3(0.0f, 1.45f, 0.0f), 1.8f));
 				rootNode->addChild(node);
 
 				mesh2->setGraphics(asset);
@@ -673,7 +675,7 @@ namespace engine {
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
-				//node->value().makeGraphicsLink(mesh4);
+				node->value().setBoundingVolume(BoundingVolume::make<CubeVolume>(asset->getMinCorner(), asset->getMaxCorner()));
 				rootNode->addChild(node);
 
 				mesh4->setGraphics(asset);
@@ -699,6 +701,7 @@ namespace engine {
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
+				node->value().setBoundingVolume(BoundingVolume::make<CubeVolume>(asset->getMinCorner(), asset->getMaxCorner()));
 				rootNode->addChild(node);
 
 				mesh5->setGraphics(asset);
@@ -723,6 +726,7 @@ namespace engine {
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
+				node->value().setBoundingVolume(BoundingVolume::make<CubeVolume>(asset->getMinCorner(), asset->getMaxCorner()));
 				rootNode->addChild(node);
 
 				mesh6->setGraphics(asset);
@@ -749,6 +753,7 @@ namespace engine {
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
+				node->value().setBoundingVolume(BoundingVolume::make<CubeVolume>(asset->getMinCorner(), asset->getMaxCorner() + glm::vec3(0.0f, 0.01f, 0.0f)));
 				rootNode->addChild(node);
 
 				mesh7->setGraphics(asset);
@@ -896,6 +901,7 @@ namespace engine {
 			plainTest->graphics()->setParamByName("u_texture", texture_text, false);
 			plainTest->graphics()->renderState().blendMode = vulkan::CommonBlendModes::blend_alpha;
 			plainTest->graphics()->pipelineAttributesChanged();
+			plainTest->getNode()->setBoundingVolume(BoundingVolume::make<CubeVolume>(glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(100.0f, 50.0f, 1.0f)));
 
 			/*FontLibrary lib;
 			Font font("resources/assets/fonts/Roboto/Roboto-Regular.ttf");
@@ -1159,10 +1165,12 @@ namespace engine {
 			//mesh2->render(commandBuffer, currentFrame, &cameraMatrix);
 			//mesh3->render(commandBuffer, currentFrame, &cameraMatrix);
 
-			sceneRenderList.render(commandBuffer, currentFrame, &cameraMatrix);
+			renderNodesBounds(rootNode, cameraMatrix, commandBuffer, currentFrame, 0); // draw bounding boxes
 
+			sceneRenderList.render(commandBuffer, currentFrame, &cameraMatrix);
+			
 			////////
-			if (1) {
+			if (0) {
 				if (auto&& g = mesh->graphics()) {
 					g->drawBoundingBox(cameraMatrix, mesh->getNode()->model(), commandBuffer, currentFrame);
 				}

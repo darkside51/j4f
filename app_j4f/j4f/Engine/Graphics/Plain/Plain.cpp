@@ -74,7 +74,7 @@ namespace engine {
 
 		_renderDescriptor.mode = RenderDescritorMode::RDM_AUTOBATCHING;
 
-		_renderDescriptor.renderData = new vulkan::RenderData * [1];
+		_renderDescriptor.renderData = new vulkan::RenderData *[1];
 		_renderDescriptor.renderData[0] = new vulkan::RenderData(gpu_params);
 
 		_renderDescriptor.renderDataCount = 1;

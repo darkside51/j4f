@@ -594,20 +594,20 @@ namespace vulkan {
 
 		VkResult result = vkAllocateDescriptorSets(_vulkanDevice->device, &allocInfo, &descriptorSet->set[0]);
 
-		if (result == VK_ERROR_OUT_OF_POOL_MEMORY) {
+		if (result == VK_ERROR_OUT_OF_POOL_MEMORY || result == VK_ERROR_FRAGMENTED_POOL) {
 			for (uint32_t i = 0, sz = _globalDescriptorPools.size(); i < sz; ++i) {
 				if (i == _currentDescriptorPool) { continue; }
 
 				allocInfo.descriptorPool = _globalDescriptorPools[i];
-				result = vkAllocateDescriptorSets(_vulkanDevice->device, &allocInfo, &descriptorSet->set[0]);
-				if (result != VK_ERROR_OUT_OF_POOL_MEMORY) {
+				result = vkAllocateDescriptorSets(_vulkanDevice->device, &allocInfo, &descriptorSet->set[0]); // try allocate from existing pools
+				if (result != VK_ERROR_OUT_OF_POOL_MEMORY && result != VK_ERROR_FRAGMENTED_POOL) {
 					_currentDescriptorPool = i;
 					break;
 				}
 			}
 
-			if (result == VK_ERROR_OUT_OF_POOL_MEMORY) {
-				setupDescriptorPool(_descriptorPoolCustomConfig);
+			if (result == VK_ERROR_OUT_OF_POOL_MEMORY || result == VK_ERROR_FRAGMENTED_POOL) {
+				setupDescriptorPool(_descriptorPoolCustomConfig); // allocate new pool
 
 				allocInfo.descriptorPool = _globalDescriptorPools[_currentDescriptorPool];
 				result = vkAllocateDescriptorSets(_vulkanDevice->device, &allocInfo, &descriptorSet->set[0]);

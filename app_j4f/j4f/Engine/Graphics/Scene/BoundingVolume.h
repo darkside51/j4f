@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../Core/Math/math.h"
+#include "../Vulkan/vkRenderData.h"
 #include "Camera.h"
 
 namespace engine {
@@ -17,7 +18,7 @@ namespace engine {
 		BVolume(const BVolumeType t) : _type(t) {}
 		virtual ~BVolume() = default;
 		virtual bool checkFrustum(const Frustum* f, const glm::mat4& wtr) const = 0;
-		virtual RenderDescriptor* getRenderDescriptor() const { return nullptr; }
+		virtual void render(const glm::mat4& cameraMatrix, const glm::mat4& wtr, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame) const { }
 
 		inline BVolumeType type() const { return _type; }
 
@@ -36,6 +37,8 @@ namespace engine {
 			return f->cubeInFrustum(m1, m2);
 		}
 
+		void render(const glm::mat4& cameraMatrix, const glm::mat4& wtr, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame) const override;
+
 	private:
 		glm::vec3 _min;
 		glm::vec3 _max;
@@ -43,26 +46,8 @@ namespace engine {
 
 	class SphereVolume : public BVolume {
 	public:
-		SphereVolume(const glm::vec3& c, const float r) : BVolume(BVolumeType::SPHERE), _center(c), _radius(r) {
-#ifdef ENABLE_DRAW_BOUNDING_VOLUMES
-			createDebugRenderDescriptor();
-#endif
-		}
-
-		SphereVolume(glm::vec3&& c, const float r) : BVolume(BVolumeType::SPHERE), _center(std::move(c)), _radius(r) {
-#ifdef ENABLE_DRAW_BOUNDING_VOLUMES
-			createDebugRenderDescriptor();
-#endif		
-		}
-
-		~SphereVolume() {
-#ifdef ENABLE_DRAW_BOUNDING_VOLUMES
-			if (_debugRenderDescriptor) {
-				delete _debugRenderDescriptor;
-				_debugRenderDescriptor = nullptr;
-			}
-#endif
-		}
+		SphereVolume(const glm::vec3& c, const float r) : BVolume(BVolumeType::SPHERE), _center(c), _radius(r) {}
+		SphereVolume(glm::vec3&& c, const float r) : BVolume(BVolumeType::SPHERE), _center(std::move(c)), _radius(r) {}
 
 		inline bool checkFrustum(const Frustum* f, const glm::mat4& wtr) const override {
 			const glm::vec4 center = wtr * glm::vec4(_center.x, _center.y, _center.z, 1.0f);
@@ -70,18 +55,11 @@ namespace engine {
 			return (const_cast<Frustum*>(f))->sphereInFrustum(center, radius);
 		}
 
-#ifdef ENABLE_DRAW_BOUNDING_VOLUMES
-		void createDebugRenderDescriptor();
-		RenderDescriptor* getRenderDescriptor() const override { return _debugRenderDescriptor; }
-#endif // ENABLE_DRAW_BOUNDING_VOLUMES
+		void render(const glm::mat4& cameraMatrix, const glm::mat4& wtr, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame) const override;
 
 	private:
 		glm::vec3 _center;
 		float _radius;
-
-#ifdef ENABLE_DRAW_BOUNDING_VOLUMES
-		RenderDescriptor* _debugRenderDescriptor = nullptr;
-#endif // ENABLE_DRAW_BOUNDING_VOLUMES
 	};
 
 	class BoundingVolume {
@@ -119,7 +97,9 @@ namespace engine {
 		}
 
 		// debug draw
-		inline RenderDescriptor* getRenderDescriptor() const { return _impl->getRenderDescriptor(); /*virtual call*/ }
+		inline void render(const glm::mat4& cameraMatrix, const glm::mat4& wtr, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame) const {
+			_impl->render(cameraMatrix, wtr, commandBuffer, currentFrame);
+		}
 
 	private:
 		BVolume* _impl = nullptr;

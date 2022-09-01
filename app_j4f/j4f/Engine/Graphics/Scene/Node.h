@@ -112,15 +112,6 @@ namespace engine {
 			if (NodeMatrixUpdater::_(node, frustum, dirtyVisible, visibleId)) {
 				if (const RenderObject* renderObject = node->value().getRenderObject()) {
 					list.addDescriptor(renderObject->getRenderDescriptor());
-
-#ifdef ENABLE_DRAW_BOUNDING_VOLUMES
-					if (const BoundingVolume* volume = node->value().getBoundingVolume()) {
-						if (auto&& volumeRd = volume->getRenderDescriptor()) {
-							list.addDescriptor(volumeRd);
-						}
-					}
-#endif // ENABLE_DRAW_BOUNDING_VOLUMES
-
 				}
 				return true;
 			}
@@ -133,5 +124,22 @@ namespace engine {
 		list.clear();
 		node->execute_with<RenderListEmplacer>(list, frustum, dirtyVisible, visibleId);
 		list.sort();
+	}
+
+	// render bounding volumes for hierarchy
+	inline void renderNodesBounds(H_Node* node, const glm::mat4& cameraMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const uint8_t visibleId = 0) {
+		node->execute([](H_Node* node, const glm::mat4& cameraMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const uint8_t visibleId) -> bool {
+			Node& mNode = node->value();
+			if (auto&& volume = mNode.getBoundingVolume()) {
+				if (mNode.visible().checkBit(visibleId)) {
+					volume->render(cameraMatrix, mNode.model(), commandBuffer, currentFrame);
+					return true;
+				}
+				return false;
+			} else {
+				return true;
+			}
+		},
+		cameraMatrix, commandBuffer, currentFrame, visibleId);
 	}
 }
