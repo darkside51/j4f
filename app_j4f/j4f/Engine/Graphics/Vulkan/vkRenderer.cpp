@@ -421,7 +421,7 @@ namespace vulkan {
 		}
 	}
 
-	void VulkanRenderer::setupDescriptorPool(const std::vector<VkDescriptorPoolSize>& descriptorPoolCfg) {
+	VkResult VulkanRenderer::setupDescriptorPool(const std::vector<VkDescriptorPoolSize>& descriptorPoolCfg) {
 		//https://habr.com/ru/post/584554/
 
 		// create the global descriptor pool
@@ -431,14 +431,14 @@ namespace vulkan {
 		descriptorPoolInfo.pNext = nullptr;
 		descriptorPoolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
 		
-		_currentDescriptorPool = _globalDescriptorPools.size();
-		_globalDescriptorPools.resize(_currentDescriptorPool + 1);
+		VkResult result;
+		VkDescriptorPool pool;
 
 		if (descriptorPoolCfg.empty()) { // default variant
 			// we need to tell the API the number of max. requested descriptors per type
 			VkDescriptorPoolSize typeCounts[5];
 			typeCounts[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			typeCounts[0].descriptorCount = 128;
+			typeCounts[0].descriptorCount = 64;
 
 			typeCounts[1].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
 			typeCounts[1].descriptorCount = 512;
@@ -447,7 +447,7 @@ namespace vulkan {
 			typeCounts[2].descriptorCount = 16;
 
 			typeCounts[3].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
-			typeCounts[3].descriptorCount = 128;
+			typeCounts[3].descriptorCount = 64;
 
 			typeCounts[4].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 			typeCounts[4].descriptorCount = 1024;
@@ -462,7 +462,7 @@ namespace vulkan {
 
 			descriptorPoolInfo.poolSizeCount = 5;
 			descriptorPoolInfo.pPoolSizes = &typeCounts[0];
-			vkCreateDescriptorPool(_vulkanDevice->device, &descriptorPoolInfo, nullptr, &_globalDescriptorPools[_currentDescriptorPool]);
+			result = vkCreateDescriptorPool(_vulkanDevice->device, &descriptorPoolInfo, nullptr, &pool);
 		} else {
 			if (_descriptorPoolCustomConfig.empty()) { _descriptorPoolCustomConfig = descriptorPoolCfg; }
 
@@ -473,10 +473,19 @@ namespace vulkan {
 
 			descriptorPoolInfo.poolSizeCount = descriptorPoolCfg.size();
 			descriptorPoolInfo.pPoolSizes = &descriptorPoolCfg[0];
-			vkCreateDescriptorPool(_vulkanDevice->device, &descriptorPoolInfo, nullptr, &_globalDescriptorPools[_currentDescriptorPool]);
+			result = vkCreateDescriptorPool(_vulkanDevice->device, &descriptorPoolInfo, nullptr, &pool);
 		}
 
-		LOG_TAG_LEVEL(engine::LogLevel::L_CUSTOM, GRAPHICS, "VulkanRenderer allocate descriptorPool(maxSets = %d), descriptorPools size = %d", descriptorPoolInfo.maxSets, _globalDescriptorPools.size());
+		if (result == VK_SUCCESS) {
+			_currentDescriptorPool = _globalDescriptorPools.size();
+			_globalDescriptorPools.push_back(pool);
+
+			LOG_TAG_LEVEL(engine::LogLevel::L_CUSTOM, GRAPHICS, "VulkanRenderer allocate descriptorPool(maxSets = %d), descriptorPools size = %d", descriptorPoolInfo.maxSets, _globalDescriptorPools.size());
+		} else {
+			LOG_TAG_LEVEL(engine::LogLevel::L_ERROR, GRAPHICS, "VulkanRenderer allocate descriptorPool(maxSets = %d), descriptorPools size = %d error: %d", descriptorPoolInfo.maxSets, _globalDescriptorPools.size(), result);
+		}
+
+		return result;
 	}
 
 	PipelineDescriptorLayout& VulkanRenderer::getDescriptorLayout(const std::vector<std::vector<VkDescriptorSetLayoutBinding*>>& setLayoutBindings, const std::vector<VkPushConstantRange*>& pushConstantsRanges) {
@@ -578,6 +587,45 @@ namespace vulkan {
 		return layout->layout;
 	}
 
+	VkResult VulkanRenderer::allocateDescriptorSetsFromGlobalPool(VkDescriptorSetAllocateInfo& allocInfo, VkDescriptorSet* set) {
+		VkResult result = vkAllocateDescriptorSets(_vulkanDevice->device, &allocInfo, set);
+
+		switch (result) {
+			case VK_ERROR_INITIALIZATION_FAILED:
+			case VK_ERROR_FRAGMENTED_POOL:
+			case VK_ERROR_OUT_OF_POOL_MEMORY:
+			{
+				bool allocateFromExistingPool = false;
+				for (uint32_t i = 0, sz = _globalDescriptorPools.size(); i < sz; ++i) {
+					if (i == _currentDescriptorPool) { continue; }
+
+					allocInfo.descriptorPool = _globalDescriptorPools[i];
+					result = vkAllocateDescriptorSets(_vulkanDevice->device, &allocInfo, set); // try allocate from existing pools
+					if (result == VK_SUCCESS) {
+						_currentDescriptorPool = i;
+						allocateFromExistingPool = true;
+						break;
+					}
+				}
+
+				if (allocateFromExistingPool == false) {
+					if (setupDescriptorPool(_descriptorPoolCustomConfig) == VK_SUCCESS) { // allocate new pool
+						allocInfo.descriptorPool = _globalDescriptorPools[_currentDescriptorPool];
+						result = vkAllocateDescriptorSets(_vulkanDevice->device, &allocInfo, set);
+					}
+				}
+			}
+				break;
+			default:
+				break;
+		}
+
+		if (result != VK_SUCCESS) {
+			LOG_TAG_LEVEL(engine::LogLevel::L_ERROR, GRAPHICS, "allocate descriptor set error: %d", result);
+		}
+
+		return result;
+	}
 
 	VulkanDescriptorSet* VulkanRenderer::allocateDescriptorSetFromGlobalPool(const VkDescriptorSetLayout descriptorSetLayout, const uint32_t count) {
 		const uint32_t setsCount = count == 0 ? _swapchainImagesCount : count;
@@ -592,30 +640,13 @@ namespace vulkan {
 		allocInfo.descriptorSetCount = static_cast<uint32_t>(layouts.size());
 		allocInfo.pSetLayouts = &layouts[0];
 
-		VkResult result = vkAllocateDescriptorSets(_vulkanDevice->device, &allocInfo, &descriptorSet->set[0]);
+		VkResult result = allocateDescriptorSetsFromGlobalPool(allocInfo, &descriptorSet->set[0]);
 
-		if (result == VK_ERROR_OUT_OF_POOL_MEMORY || result == VK_ERROR_FRAGMENTED_POOL) {
-			for (uint32_t i = 0, sz = _globalDescriptorPools.size(); i < sz; ++i) {
-				if (i == _currentDescriptorPool) { continue; }
-
-				allocInfo.descriptorPool = _globalDescriptorPools[i];
-				result = vkAllocateDescriptorSets(_vulkanDevice->device, &allocInfo, &descriptorSet->set[0]); // try allocate from existing pools
-				if (result != VK_ERROR_OUT_OF_POOL_MEMORY && result != VK_ERROR_FRAGMENTED_POOL) {
-					_currentDescriptorPool = i;
-					break;
-				}
-			}
-
-			if (result == VK_ERROR_OUT_OF_POOL_MEMORY || result == VK_ERROR_FRAGMENTED_POOL) {
-				setupDescriptorPool(_descriptorPoolCustomConfig); // allocate new pool
-
-				allocInfo.descriptorPool = _globalDescriptorPools[_currentDescriptorPool];
-				result = vkAllocateDescriptorSets(_vulkanDevice->device, &allocInfo, &descriptorSet->set[0]);
-			}
+		if (result != VK_SUCCESS) {
+			return nullptr;
 		}
 
 		descriptorSet->parentPool = _globalDescriptorPools[_currentDescriptorPool];
-
 		return descriptorSet;
 	}
 
@@ -629,28 +660,7 @@ namespace vulkan {
 		allocInfo.descriptorSetCount = 1;
 		allocInfo.pSetLayouts = &descriptorSetLayout;
 
-		VkResult result = vkAllocateDescriptorSets(_vulkanDevice->device, &allocInfo, &descriptorSet);
-		
-		if (result == VK_ERROR_OUT_OF_POOL_MEMORY) {
-			for (uint32_t i = 0, sz = _globalDescriptorPools.size(); i < sz; ++i) {
-				if (i == _currentDescriptorPool) { continue; }
-
-				allocInfo.descriptorPool = _globalDescriptorPools[i];
-				result = vkAllocateDescriptorSets(_vulkanDevice->device, &allocInfo, &descriptorSet);
-				if (result != VK_ERROR_OUT_OF_POOL_MEMORY) {
-					_currentDescriptorPool = i;
-					break;
-				}
-			}
-
-			if (result == VK_ERROR_OUT_OF_POOL_MEMORY) {
-				setupDescriptorPool(_descriptorPoolCustomConfig);
-
-				allocInfo.descriptorPool = _globalDescriptorPools[_currentDescriptorPool];
-				result = vkAllocateDescriptorSets(_vulkanDevice->device, &allocInfo, &descriptorSet);
-			}
-		}
-
+		allocateDescriptorSetsFromGlobalPool(allocInfo, &descriptorSet);
 		return std::pair<VkDescriptorSet, uint32_t>(descriptorSet, _currentDescriptorPool);
 	}
 

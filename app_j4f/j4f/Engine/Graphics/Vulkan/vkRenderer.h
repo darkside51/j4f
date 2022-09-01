@@ -436,7 +436,7 @@ namespace vulkan {
 		void init();
 
 		void setupRenderPass(const std::vector<VkAttachmentDescription>& configuredAttachments, const std::vector<VkSubpassDependency>& configuredDependencies);
-		void setupDescriptorPool(const std::vector<VkDescriptorPoolSize>& descriptorPoolCfg);
+		VkResult setupDescriptorPool(const std::vector<VkDescriptorPoolSize>& descriptorPoolCfg);
 
 		void waitWorkComplete() const;
 		void destroy();
@@ -511,6 +511,7 @@ namespace vulkan {
 		inline const VulkanTexture* getEmptyTextureArray() const { return _emptyTextureArray; }
 
 	private:
+		VkResult allocateDescriptorSetsFromGlobalPool(VkDescriptorSetAllocateInfo& allocInfo, VkDescriptorSet* set);
 		void buildDefaultMainRenderCommandBuffer();
 		void createEmtyTexture();
 

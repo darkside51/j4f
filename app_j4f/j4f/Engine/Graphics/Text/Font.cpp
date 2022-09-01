@@ -137,7 +137,6 @@ namespace engine {
         }
 	}
 
-
     void FontRenderer::render(
         const Font* font,
         const uint8_t fontSize,

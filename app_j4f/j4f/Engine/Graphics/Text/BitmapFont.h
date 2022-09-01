@@ -19,11 +19,13 @@ namespace engine {
 
 	class BitmapFont {
 	public:
-		BitmapFont(Font* font, const uint8_t fsz, const uint16_t w, const uint16_t h);
+		BitmapFont(Font* font, const uint8_t fsz, const uint16_t w, const uint16_t h, const uint8_t fillValue = 0);
 
 		~BitmapFont() {
 			_font = nullptr;
-			delete _texture;
+			if (_texture) {
+				delete _texture;
+			}
 			delete _fontRenderer;
 		}
 
@@ -36,12 +38,30 @@ namespace engine {
 			const uint8_t sy_offset = 0
 		);
 
+		void complete();
+
+		vulkan::VulkanTexture* getTexture() const { return _texture; }
+		vulkan::VulkanTexture* grabTexture() {
+			vulkan::VulkanTexture* result = _texture;
+			_texture = nullptr;
+			return result;
+		}
+
+		inline std::shared_ptr<TextureFrame> getFrame(const char s) const {
+			auto it = _glyphs.find(s);
+			if (it != _glyphs.end()) {
+				return it->second;
+			}
+
+			return nullptr;
+		}
+
 	private:
 		Font* _font;
 		uint8_t _fontSize;
 		FontRenderer* _fontRenderer;
-		vulkan::VulkanTexture* _texture;
-		std::unordered_map<char, TextureFrame> _glyphs;
+		vulkan::VulkanTexture* _texture = nullptr;
+		std::unordered_map<char, std::shared_ptr<TextureFrame>> _glyphs;
 	};
 
 }

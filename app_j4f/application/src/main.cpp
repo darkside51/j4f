@@ -25,9 +25,11 @@
 #include <Engine/Utils/Debug/Profiler.h>
 //#include <Engine/Graphics/Text/TextImage.h>
 #include <Engine/Graphics/Text/FontLoader.h>
+#include <Engine/Graphics/Text/BitmapFont.h>
+
 #include <Engine/Core/Math/random.h>
 #include <Engine/Core/Threads/FlowTask.h>
-#include  <Engine/Core/Threads/Looper.h>
+#include <Engine/Core/Threads/Looper.h>
 
 #include <Engine/ECS/Component.h>
 #include <Engine/Core/BitMask.h>
@@ -869,14 +871,27 @@ namespace engine {
 			FontLoadingParams font_loading_params("resources/assets/fonts/Roboto/Roboto-Regular.ttf");
 			Font* f = assm->loadAsset<Font*>(font_loading_params);
 
-			FontRenderer fr(256, 256, 100);
-			fr.render(f, 18, "abcdefghijklmnopqrstuv", 1, 0, 0xffffffff, 2, 0);
-			fr.render(f, 18, "wxyzABCDEFGHIJKLMN", 1, 20, 0xffffffff, 2, 0);
-			fr.render(f, 18, "OPQRSTUVWXYZ", 1, 40, 0xffffffff, 2, 0);
-			fr.render(f, 18, "0123456789-+*/=", 1, 60, 0xffffffff, 2, 0);
-			fr.render(f, 18, "&%#@!?<>,.()[];:@$^~", 1, 80, 0xffffffff, 2, 0);
 
-			texture_text = fr.createFontTexture();
+			//FontRenderer fr(256, 256, 100);
+			//fr.render(f, 18, "abcdefghijklmnopqrstuv", 1, 0, 0xffffffff, 2, 0);
+			//fr.render(f, 18, "wxyzABCDEFGHIJKLMN", 1, 20, 0xffffffff, 2, 0);
+			//fr.render(f, 18, "OPQRSTUVWXYZ", 1, 40, 0xffffffff, 2, 0);
+			//fr.render(f, 18, "0123456789-+*/=", 1, 60, 0xffffffff, 2, 0);
+			//fr.render(f, 18, "&%#@!?<>,.()[];:@$^~", 1, 80, 0xffffffff, 2, 0);
+			//
+			//texture_text = fr.createFontTexture();
+			//texture_text->createSingleDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0);
+
+			BitmapFont bitmapFont(f, 18, 256, 256, 100);
+			bitmapFont.addSymbols("abcdefghijklmnopqrstuv", 1, 0, 0xffffffff, 2, 0);
+			bitmapFont.addSymbols("wxyzABCDEFGHIJKLMN", 1, 20, 0xffffffff, 2, 0);
+			bitmapFont.addSymbols("OPQRSTUVWXYZ", 1, 40, 0xffffffff, 2, 0);
+			bitmapFont.addSymbols("0123456789-+*/=", 1, 60, 0xffffffff, 2, 0);
+			bitmapFont.addSymbols("&%#@!?<>,.()[];:@$^~", 1, 80, 0xffffffff, 2, 0);
+
+			bitmapFont.complete();
+
+			texture_text = bitmapFont.grabTexture();
 			texture_text->createSingleDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0);
 
 			auto texFrame = std::shared_ptr<TextureFrame>(new TextureFrame(
@@ -902,6 +917,12 @@ namespace engine {
 			plainTest->graphics()->renderState().blendMode = vulkan::CommonBlendModes::blend_alpha;
 			plainTest->graphics()->pipelineAttributesChanged();
 			plainTest->getNode()->setBoundingVolume(BoundingVolume::make<CubeVolume>(glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(100.0f, 50.0f, 1.0f)));
+
+			//auto frame = bitmapFont.getFrame('+');
+			//plainTest->graphics()->setFrame(frame);
+			//const float wf = frame->_vtx[2] - frame->_vtx[0];
+			//const float hf = frame->_vtx[5] - frame->_vtx[1];
+			//plainTest->getNode()->setBoundingVolume(BoundingVolume::make<CubeVolume>(glm::vec3(0.0f, 0.0f, -0.1f), glm::vec3(wf, hf, 0.1f)));
 
 			/*FontLibrary lib;
 			Font font("resources/assets/fonts/Roboto/Roboto-Regular.ttf");
