@@ -34,6 +34,8 @@ namespace engine {
 			int16_t x,
 			int16_t y,
 			const uint32_t color = 0xffffffff,
+			const uint32_t outlineColor = 0xffffffff,
+			const float outlineSize = 0.0f,
 			const uint8_t sx_offset = 0,
 			const uint8_t sy_offset = 0
 		);
@@ -50,18 +52,20 @@ namespace engine {
 		inline std::shared_ptr<TextureFrame> getFrame(const char s) const {
 			auto it = _glyphs.find(s);
 			if (it != _glyphs.end()) {
-				return it->second;
+				return it->second.first;
 			}
 
 			return nullptr;
 		}
+
+		std::shared_ptr<TextureFrame> createFrame(const char* text);
 
 	private:
 		Font* _font;
 		uint8_t _fontSize;
 		FontRenderer* _fontRenderer;
 		vulkan::VulkanTexture* _texture = nullptr;
-		std::unordered_map<char, std::shared_ptr<TextureFrame>> _glyphs;
+		std::unordered_map<char, std::pair<std::shared_ptr<TextureFrame>, int8_t>> _glyphs;
 	};
 
 }

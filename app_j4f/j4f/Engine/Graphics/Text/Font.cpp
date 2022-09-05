@@ -6,6 +6,9 @@
 #include "../Vulkan/vkRenderer.h"
 #include "../Vulkan/vkTexture.h"
 
+#include <freetype/ftimage.h>
+#include <freetype/ftstroke.h>
+
 namespace engine {
 
     FontData::FontData(char* data, const size_t size) : fdata(data), fileSize(size) { }
@@ -19,21 +22,23 @@ namespace engine {
         return FT_New_Memory_Face(lib, reinterpret_cast<FT_Byte*>(f->fontData->fdata), f->fontData->fileSize, 0, face);
     }
 
-    Font::Font(FT_Library library, FontData* data) : fontData(data) {
+    Font::Font(FT_Library library, FontData* data) : fontData(data), ftcLibrary(library) {
         FTC_Manager_New(library, 0, 0, 0, ftc_face_requester, this, &ftcManager);
         FTC_CMapCache_New(ftcManager, &ftcCMapCache);
         FTC_SBitCache_New(ftcManager, &ftcSBitCache);
+        FTC_ImageCache_New(ftcManager, &ftcImageCache);
     }
 
-    Font::Font(FT_Library library, const std::string& path) : fontData(new FontData(path)) {
+    Font::Font(FT_Library library, const std::string& path) : fontData(new FontData(path)), ftcLibrary(library) {
         FTC_Manager_New(library, 0, 0, 0, ftc_face_requester, this, &ftcManager);
         FTC_CMapCache_New(ftcManager, &ftcCMapCache);
         FTC_SBitCache_New(ftcManager, &ftcSBitCache);
+        FTC_ImageCache_New(ftcManager, &ftcImageCache);
     }
 
     ////// fontRenderer
 
-    void fill_image(
+    bool fill_image(
         unsigned char* img,
         const uint16_t imgW,
         const uint16_t imgH,
@@ -44,12 +49,15 @@ namespace engine {
         const FT_Int y,
         const uint32_t color
     ) {
+        if (
+            x < 0               ||
+            y < 0               ||
+            (x + width) >= imgW ||
+            (y)         >= imgH
+            ) return false;
+
         for (uint32_t j = y, q = 0; q < height; ++j, ++q) {
             for (uint32_t i = x, p = 0; p < width; ++i, ++p) {
-                if (i < 0 || j < 0 || (i + width) >= imgW || j >= imgH) {
-                    continue;
-                }
-
                 if (buffer[q * width + p]) {
 
                     const uint32_t r = (color >> 24) & 0xff;
@@ -65,6 +73,8 @@ namespace engine {
                 }
             }
         }
+
+        return true;
     }
 
     FontRenderer::FontRenderer(const uint16_t w, const uint16_t h, const uint8_t defaultFillValue) {
@@ -118,6 +128,7 @@ namespace engine {
             //FTC_SBitCache_Lookup(ftcSBitCache, &ftcImageType, glyphIndex, &ftcSBit, &ftcNode);
             //FTC_Node_Unref(ftcNode, ftcManager);
 
+            FTC_SBit ftcSBit;
             FTC_SBitCache_Lookup(font->ftcSBitCache, &ftcImageType, glyphIndex, &ftcSBit, nullptr);
 
             fill_image(
@@ -131,7 +142,7 @@ namespace engine {
                 y + fontSize - ftcSBit->top,
                 color);
 
-            /* increment pen position */
+            // increment pen position
             x += (ftcSBit->xadvance) + sx_offset;
             y += (ftcSBit->yadvance) + sy_offset;
         }
@@ -144,43 +155,97 @@ namespace engine {
         int16_t x,
         int16_t y,
         const uint32_t color,
+        const uint32_t outlineColor,
+        const float outlineSize,
         const uint8_t sx_offset,
         const uint8_t sy_offset,
-        std::function<void(const char s, const uint16_t x, const uint16_t y, const uint16_t w, const uint16_t h)> addGlyphCallback
+        std::function<void(const char s, const uint16_t x, const uint16_t y, const uint16_t w, const uint16_t h, const int8_t dy)> addGlyphCallback
     ) {
         FTC_ImageTypeRec_ ftcImageType;
         ftcImageType.face_id = 0;
         ftcImageType.width = fontSize;
         ftcImageType.height = fontSize;
-        ftcImageType.flags = FT_LOAD_DEFAULT | FT_LOAD_RENDER;
+        ftcImageType.flags = FT_LOAD_DEFAULT;
+
+        const int16_t x0 = x;
+        FT_Stroker stroker;
+        FT_Error err;
+        if (outlineSize != 0.0f) {
+            err = FT_Stroker_New(font->ftcLibrary, &stroker);
+            //outlineSize px outline
+            FT_Stroker_Set(stroker, static_cast<FT_Fixed>(outlineSize * (1 << 6)), FT_STROKER_LINECAP_ROUND, FT_STROKER_LINEJOIN_ROUND, 0);
+        }
 
         for (size_t i = 0, sz = strlen(text); i < sz; ++i) {
-            const auto glyphIndex = FTC_CMapCache_Lookup(font->ftcCMapCache, 0, 0, text[i]);
-
-            //FTC_Node ftcNode;
-            //FTC_SBitCache_Lookup(ftcSBitCache, &ftcImageType, glyphIndex, &ftcSBit, &ftcNode);
-            //FTC_Node_Unref(ftcNode, ftcManager);
-
-            FTC_SBitCache_Lookup(font->ftcSBitCache, &ftcImageType, glyphIndex, &ftcSBit, nullptr);
-
-            fill_image(
-                image,
-                imgWidth,
-                imgHeight,
-                ftcSBit->buffer,
-                ftcSBit->width,
-                ftcSBit->height,
-                x + ftcSBit->left,
-                y + fontSize - ftcSBit->top,
-                color);
-
-            if (addGlyphCallback) {
-                addGlyphCallback(text[i], x + ftcSBit->left, y + fontSize - ftcSBit->top, ftcSBit->width, ftcSBit->height);
+            if (text[i] == '\n') {
+                x = x0;
+                y += (fontSize) + sy_offset;
+                continue;
             }
 
-            /* increment pen position */
-            x += (ftcSBit->xadvance) + sx_offset;
-            y += (ftcSBit->yadvance) + sy_offset;
+            const auto glyphIndex = FTC_CMapCache_Lookup(font->ftcCMapCache, 0, 0, text[i]);
+ 
+            FT_Glyph glyph;
+            FT_BitmapGlyph bitmapGlyph;
+            bool renderGlyph = true;
+
+            if (outlineSize != 0.0f) {
+                FTC_ImageCache_Lookup(font->ftcImageCache, &ftcImageType, glyphIndex, &glyph, nullptr);
+                err = FT_Glyph_StrokeBorder(&glyph, stroker, false, false);
+                err = FT_Glyph_To_Bitmap(&glyph, FT_RENDER_MODE_NORMAL, nullptr, true);
+                bitmapGlyph = reinterpret_cast<FT_BitmapGlyph>(glyph);
+
+                renderGlyph = fill_image(
+                    image,
+                    imgWidth,
+                    imgHeight,
+                    bitmapGlyph->bitmap.buffer,
+                    bitmapGlyph->bitmap.width,
+                    bitmapGlyph->bitmap.rows,
+                    x + bitmapGlyph->left,
+                    y + fontSize - bitmapGlyph->top,
+                    outlineColor);
+
+                if (addGlyphCallback) {
+                    const int8_t dy = bitmapGlyph->top - bitmapGlyph->bitmap.rows + static_cast<int8_t>(outlineSize);
+                    addGlyphCallback(text[i], x + bitmapGlyph->left, y + fontSize - bitmapGlyph->top, bitmapGlyph->bitmap.width, bitmapGlyph->bitmap.rows, dy);
+                }
+            }
+
+            if (renderGlyph) {
+                FTC_ImageCache_Lookup(font->ftcImageCache, &ftcImageType, glyphIndex, &glyph, nullptr);
+                FT_Glyph_To_Bitmap(&glyph, FT_RENDER_MODE_NORMAL, nullptr, false);
+                bitmapGlyph = reinterpret_cast<FT_BitmapGlyph>(glyph);
+
+                fill_image(
+                    image,
+                    imgWidth,
+                    imgHeight,
+                    bitmapGlyph->bitmap.buffer,
+                    bitmapGlyph->bitmap.width,
+                    bitmapGlyph->bitmap.rows,
+                    x + bitmapGlyph->left,
+                    y + fontSize - bitmapGlyph->top,
+                    color);
+
+                if (outlineSize == 0.0f) {
+                    if (addGlyphCallback) {
+                        addGlyphCallback(text[i], x + bitmapGlyph->left, y + fontSize - bitmapGlyph->top, bitmapGlyph->bitmap.width, bitmapGlyph->bitmap.rows, bitmapGlyph->top - bitmapGlyph->bitmap.rows);
+                    }
+                }
+            }
+
+            x += (bitmapGlyph->bitmap.width) + sx_offset;
+
+            if (x >= imgWidth) {
+                if (x > imgWidth) --i;
+                x = x0;
+                y += (fontSize) + sy_offset;
+            }
+        }
+
+        if (outlineSize != 0.0f) {
+            FT_Stroker_Done(stroker);
         }
     }
 }

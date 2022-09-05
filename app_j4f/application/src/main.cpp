@@ -50,6 +50,7 @@ namespace engine {
 	Camera* camera2 = nullptr;
 
 	CascadeShadowMap* shadowMap = nullptr;
+	BitmapFont *bitmapFont = nullptr;
 
 	NodeRenderer<Mesh>* mesh = nullptr;
 	NodeRenderer<Mesh>* mesh2 = nullptr;
@@ -249,6 +250,8 @@ namespace engine {
 		~ApplicationCustomData() {
 			log("~ApplicationCustomData");
 
+			delete bitmapFont;
+
 			camera->removeObserver(this);
 
 			delete camera;
@@ -428,7 +431,8 @@ namespace engine {
 			TextureLoadingParams tex_params2;
 			tex_params2.files = { 
 				"resources/assets/models/warcraft3/textures/Armor_2_baseColor.png",
-				"resources/assets/models/warcraft3/textures/Armor_2_normal.png",
+				"resources/assets/models/warcraft3/textures/Armor_2.001_normal.png"
+				//"resources/assets/models/warcraft3/textures/Armor_2_normal.png"
 			};
 			tex_params2.flags->async = 1;
 			tex_params2.flags->use_cache = 1;
@@ -882,28 +886,28 @@ namespace engine {
 			//texture_text = fr.createFontTexture();
 			//texture_text->createSingleDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0);
 
-			BitmapFont bitmapFont(f, 18, 256, 256, 100);
-			bitmapFont.addSymbols("abcdefghijklmnopqrstuv", 1, 0, 0xffffffff, 2, 0);
-			bitmapFont.addSymbols("wxyzABCDEFGHIJKLMN", 1, 20, 0xffffffff, 2, 0);
-			bitmapFont.addSymbols("OPQRSTUVWXYZ", 1, 40, 0xffffffff, 2, 0);
-			bitmapFont.addSymbols("0123456789-+*/=", 1, 60, 0xffffffff, 2, 0);
-			bitmapFont.addSymbols("&%#@!?<>,.()[];:@$^~", 1, 80, 0xffffffff, 2, 0);
+			bitmapFont = new BitmapFont(f, 32, 256, 256, 0);
+			bitmapFont->addSymbols("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+*/=&%#@!?<>,.()[];:@$^~", 2, 0, 0xffffffff, 0x000000ff, 1.0f, 2, 2);
+			//bitmapFont.addSymbols("wxyzABCDEFGHIJKLMN", 2, 20, 0xffffffff, 0x000000ff, 1.0f, 2, 0);
+			//bitmapFont.addSymbols("OPQRSTUVWXYZ", 2, 40, 0xffffffff, 0x000000ff, 1.0f, 2, 0);
+			//bitmapFont.addSymbols("0123456789-+*/=", 2, 60, 0xffffffff, 0x000000ff, 1.0f, 2, 0);
+			//bitmapFont.addSymbols("&%#@!?<>,.()[];:@$^~", 2, 80, 0xffffffff, 0x000000ff, 1.0f, 2, 0);
 
-			bitmapFont.complete();
+			bitmapFont->complete();
 
-			texture_text = bitmapFont.grabTexture();
+			texture_text = bitmapFont->grabTexture();
 			texture_text->createSingleDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0);
 
 			auto texFrame = std::shared_ptr<TextureFrame>(new TextureFrame(
 				{
 					0.0f, 0.0f,
-					100.0f, 0.0f,
-					0.0f, 50.0f,
-					100.0f, 50.0f
+					256, 0.0f,
+					0.0f, 256,
+					256, 256
 				},
 				{
-					0.0f, 0.5f,
-					1.0f, 0.5f,
+					0.0f, 1.0f,
+					1.0f, 1.0f,
 					0.0f, 0.0f,
 					1.0f, 0.0f
 				},
@@ -916,10 +920,10 @@ namespace engine {
 			plainTest->graphics()->setParamByName("u_texture", texture_text, false);
 			plainTest->graphics()->renderState().blendMode = vulkan::CommonBlendModes::blend_alpha;
 			plainTest->graphics()->pipelineAttributesChanged();
-			plainTest->getNode()->setBoundingVolume(BoundingVolume::make<CubeVolume>(glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(100.0f, 50.0f, 1.0f)));
+			plainTest->getNode()->setBoundingVolume(BoundingVolume::make<CubeVolume>(glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(256, 256, 1.0f)));
 
-			//auto frame = bitmapFont.getFrame('+');
-			//plainTest->graphics()->setFrame(frame);
+			plainTest->graphics()->setFrame(bitmapFont->createFrame("hello world!"));
+			plainTest->getNode()->setBoundingVolume(nullptr);
 			//const float wf = frame->_vtx[2] - frame->_vtx[0];
 			//const float hf = frame->_vtx[5] - frame->_vtx[1];
 			//plainTest->getNode()->setBoundingVolume(BoundingVolume::make<CubeVolume>(glm::vec3(0.0f, 0.0f, -0.1f), glm::vec3(wf, hf, 0.1f)));
@@ -1086,6 +1090,9 @@ namespace engine {
 				animTreeWindMill->updateAnimation(delta, mesh7->graphics()->getSkeleton());
 				//mesh7->graphics()->getSkeleton()->updateAnimation(delta, animTreeWindMill);
 			}
+
+			auto statistic = Engine::getInstance().getModule<Statistic>();
+			plainTest->graphics()->setFrame(bitmapFont->createFrame(fmt_string("fps: %d, draw calls: %d", statistic->fps(), statistic->drawCalls())));
 
 			////////
 			if (auto&& grassNode = grassMesh2->getNode()) {

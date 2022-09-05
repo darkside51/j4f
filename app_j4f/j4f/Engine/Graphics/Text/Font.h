@@ -31,17 +31,19 @@ namespace engine {
 		FTC_Manager ftcManager;
 		FTC_CMapCache ftcCMapCache;
 		FTC_SBitCache ftcSBitCache;
+		FTC_ImageCache ftcImageCache;
+		FT_Library ftcLibrary;
 		
 		Font(FT_Library library, FontData* data);
 		Font(FT_Library library, const std::string& path);
 		~Font() { 
+			ftcLibrary = nullptr;
 			FTC_Manager_Done(ftcManager);
 			delete fontData;
 		}
 	};
 
 	struct FontRenderer {
-		FTC_SBit ftcSBit;
 		unsigned char* image = nullptr;
 		uint16_t imgWidth = 0;
 		uint16_t imgHeight = 0;
@@ -77,9 +79,11 @@ namespace engine {
 			int16_t x,
 			int16_t y,
 			const uint32_t color = 0xffffffff,
+			const uint32_t outlineColor = 0xffffffff,
+			const float outlineSize = 0.0f,
 			const uint8_t sx_offset = 0,
 			const uint8_t sy_offset = 0,
-			std::function<void(const char s, const uint16_t x, const uint16_t y, const uint16_t w, const uint16_t h)> addGlyphCallback = nullptr
+			std::function<void(const char s, const uint16_t x, const uint16_t y, const uint16_t w, const uint16_t h, const int8_t dy)> addGlyphCallback = nullptr
 		);
 	};
 

@@ -17,6 +17,7 @@ namespace engine {
 #ifdef USE_NOSTD_CONSOLE_OUTPUT
 		OutputDebugString(fmt_string(fmt, std::forward<Args>(args)...)); // USE_MSVC_CONSOLE_OUTPUT
 #else
+		//system("Color 0A");
 		printf(fmt, std::forward<Args>(args)...);
 #endif // USE_NOSTD_CONSOLE_OUTPUT
 	}

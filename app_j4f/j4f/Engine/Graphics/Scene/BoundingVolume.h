@@ -32,8 +32,28 @@ namespace engine {
 		CubeVolume(glm::vec3&& m1, glm::vec3&& m2) : BVolume(BVolumeType::CUBE), _min(std::move(m1)), _max(std::move(m2)) { }
 
 		inline bool checkFrustum(const Frustum* f, const glm::mat4& wtr) const override {
-			const glm::vec4 m1 = wtr * glm::vec4(_min.x, _min.y, _min.z, 1.0f);
-			const glm::vec4 m2 = wtr * glm::vec4(_max.x, _max.y, _max.z, 1.0f);
+			//const glm::vec4 m1 = wtr * glm::vec4(_min.x, _min.y, _min.z, 1.0f);
+			//const glm::vec4 m2 = wtr * glm::vec4(_max.x, _max.y, _max.z, 1.0f);
+
+			glm::vec4 m1(FLT_MAX);
+			glm::vec4 m2(-FLT_MAX);
+			glm::vec4 m[8];
+
+			m[0] = wtr * glm::vec4(_min.x, _min.y, _min.z, 1.0f);
+			m[1] = wtr * glm::vec4(_min.x, _min.y, _max.z, 1.0f);
+			m[2] = wtr * glm::vec4(_min.x, _max.y, _min.z, 1.0f);
+			m[3] = wtr * glm::vec4(_max.x, _min.y, _min.z, 1.0f);
+
+			m[4] = wtr * glm::vec4(_min.x, _max.y, _max.z, 1.0f);
+			m[5] = wtr * glm::vec4(_max.x, _min.y, _max.z, 1.0f);
+			m[6] = wtr * glm::vec4(_max.x, _max.y, _min.z, 1.0f);
+			m[7] = wtr * glm::vec4(_max.x, _max.y, _max.z, 1.0f);
+
+			for (uint8_t i = 0; i < 8; ++i) {
+				m1.x = std::min(m1.x, m[i].x); m1.y = std::min(m1.y, m[i].y); m1.z = std::min(m1.z, m[i].z);
+				m2.x = std::max(m2.x, m[i].x); m2.y = std::max(m2.y, m[i].y); m2.z = std::max(m2.z, m[i].z);
+			}
+
 			return f->cubeInFrustum(m1, m2);
 		}
 

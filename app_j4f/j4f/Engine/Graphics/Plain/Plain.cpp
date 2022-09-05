@@ -64,6 +64,12 @@ namespace engine {
 		}
 
 		_frameChanged = true;
+
+		_renderDescriptor.batchingParams->vtxDataSize = _vtx.size() * sizeof(TexturedVertex);
+		_renderDescriptor.batchingParams->idxDataSize = _idx.size() * sizeof(uint32_t);
+		_renderDescriptor.batchingParams->vtxData = _vtx.data();
+		_renderDescriptor.batchingParams->idxData = _idx.data();
+
 	}
 
 	void Plain::createRenderData(const vulkan::RenderDataGpuParamsType& params) {
