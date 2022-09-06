@@ -30,11 +30,11 @@ namespace engine {
 			if (_tmpTime >= 1.0f) {
 				_fps = _tmpFrameCount;
 				_drawCalls = std::roundf(float(_tmpDrawCalls.exchange(0, std::memory_order_release)) / _fps);
-				_framePrepareTime /= _fps;
+				_cpuFrameTime = _tmpCpuTime / _fps;
 				updateValues();
 				_tmpFrameCount = 0;
 				_tmpTime = 0;
-				_framePrepareTime = 0.0f;
+				_tmpCpuTime = 0.0f;
 			}
 		}
 
@@ -54,24 +54,25 @@ namespace engine {
 
 		inline uint16_t fps() const { return _fps; }
 		inline uint16_t drawCalls() const { return _drawCalls; }
-		inline float framePrepareTime() const { return _framePrepareTime; }
+		inline float cpuFrameTime() const { return _cpuFrameTime; }
 
 		inline void addDrawCall() { 
 			_tmpDrawCalls.fetch_add(1, std::memory_order_release);
 		}
 
 		inline void addFramePrepareTime(const float t) {
-			_framePrepareTime += t;
+			_tmpCpuTime += t;
 		}
 
 	private:
 		uint16_t _fps = 0;
 		uint16_t _drawCalls = 0;
-		float _framePrepareTime = 0.0f;
+		float _cpuFrameTime = 0.0f;
 
 		uint16_t _tmpFrameCount = 0;
 		std::atomic<uint32_t> _tmpDrawCalls = 0;
-		float _tmpTime = 0.0f;	
+		float _tmpTime = 0.0f;
+		float _tmpCpuTime = 0.0f;
 		std::vector<IStatisticObserver*> _observers;
 	};
 }

@@ -21,10 +21,10 @@ namespace engine {
 		_fontRenderer->render(_font, _fontSize, text, x, y, color, outlineColor, outlineSize, sx_offset + outlineSize, sy_offset + outlineSize, [this](const char s, const uint16_t x, const uint16_t y, const uint16_t w, const uint16_t h, const int8_t dy) {
 			std::shared_ptr<TextureFrame> f(new TextureFrame(
 				{
-					0.0f, 0.0f,
-					float(w), 0.0f,
-					0.0f, float(h),
-					float(w), float(h)
+					0.0f, float(dy),
+					float(w), float(dy),
+					0.0f, float(h + dy),
+					float(w), float(h + dy)
 				},
 				{ 
 					float(x) / _fontRenderer->imgWidth,		float(h + y) / _fontRenderer->imgHeight, 
@@ -37,7 +37,7 @@ namespace engine {
 				}
 			));
 			
-			_glyphs[s] = std::pair<std::shared_ptr<TextureFrame>, int8_t>(f, dy);
+			_glyphs[s] = f;
 		});
 	}
 
@@ -50,14 +50,20 @@ namespace engine {
 		result->_idx.resize(6 * len);
 
 		uint16_t x = 0;
+		uint16_t y = 0;
 		for (uint16_t i = 0; i < len; ++i) {
+			if (text[i] == '\n') {
+				x = 0;
+				y += _fontSize + 2;
+				continue;
+			}
+
 			auto it = _glyphs.find(text[i]);
 
 			if (it != _glyphs.end()) {
-				const auto& f = it->second.first;
-				const int8_t y = it->second.second;
+				const std::shared_ptr<TextureFrame>& f = it->second;
 				for (uint8_t j = 0; j < 8; ++j) {
-					result->_vtx[i * 8 + j] = f->_vtx[j] + (x * (1 - (j & 1))) + (y * (j & 1)); // (x * (1 - j & 1)) - offset by ox only; (y * (j & 1)) - offset by oy only
+					result->_vtx[i * 8 + j] = f->_vtx[j] + (x * (1 - (j & 1))) - (y * (j & 1)); // (x * (1 - j & 1)) - offset by ox only, (y * (j & 1)) - offset by oy only;
 					result->_uv[i * 8 + j] = f->_uv[j];
 					if (j < 6) {
 						result->_idx[i * 6 + j] = i * 4 + f->_idx[j];

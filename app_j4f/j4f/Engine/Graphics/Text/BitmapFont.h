@@ -52,7 +52,7 @@ namespace engine {
 		inline std::shared_ptr<TextureFrame> getFrame(const char s) const {
 			auto it = _glyphs.find(s);
 			if (it != _glyphs.end()) {
-				return it->second.first;
+				return it->second;
 			}
 
 			return nullptr;
@@ -65,7 +65,7 @@ namespace engine {
 		uint8_t _fontSize;
 		FontRenderer* _fontRenderer;
 		vulkan::VulkanTexture* _texture = nullptr;
-		std::unordered_map<char, std::pair<std::shared_ptr<TextureFrame>, int8_t>> _glyphs;
+		std::unordered_map<char, std::shared_ptr<TextureFrame>> _glyphs;
 	};
 
 }

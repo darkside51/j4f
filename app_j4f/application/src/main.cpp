@@ -80,6 +80,7 @@ namespace engine {
 
 	RenderList sceneRenderList;
 	RenderList shadowRenderList;
+	RenderList uiRenderList;
 
 	glm::vec3 wasd(0.0f);
 
@@ -96,6 +97,7 @@ namespace engine {
 	glm::vec2 lightMinMax(0.4f, 1.65f);
 
 	H_Node* rootNode;
+	H_Node* uiNode;
 	bool cameraMatrixChanged = true;
 	//
 	class GrassRenderer {
@@ -274,6 +276,7 @@ namespace engine {
 			delete shadowMap;
 
 			delete rootNode;
+			delete uiNode;
 		}
 
 		bool onInputPointerEvent(const PointerEvent& event) override {
@@ -382,6 +385,7 @@ namespace engine {
 			using namespace gltf;
 
 			rootNode = new H_Node();
+			uiNode = new H_Node();
 
 			auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
 			auto&& gpuProgramManager = Engine::getInstance().getModule<Graphics>()->getGpuProgramsManager();
@@ -815,12 +819,13 @@ namespace engine {
 			{
 				glm::mat4 wtr(1.0f);
 				//scaleMatrix(wtr, glm::vec3(1.0f));
-				rotateMatrix_xyz(wtr, glm::vec3(1.57f, 0.0f, 0.0f));
-				translateMatrixTo(wtr, glm::vec3(200.0f, -300.0f, 50.0f));
+				//rotateMatrix_xyz(wtr, glm::vec3(1.57f, 0.0f, 0.0f));
+				//translateMatrixTo(wtr, glm::vec3(200.0f, -300.0f, 50.0f));
+				translateMatrixTo(wtr, glm::vec3(0.0f, 0.0f, -1.0f));
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
-				rootNode->addChild(node);
+				uiNode->addChild(node);
 
 				//plainTest->setGraphics(new Plain(glm::vec2(100.0f, 100.0f)));
 
@@ -875,7 +880,6 @@ namespace engine {
 			FontLoadingParams font_loading_params("resources/assets/fonts/Roboto/Roboto-Regular.ttf");
 			Font* f = assm->loadAsset<Font*>(font_loading_params);
 
-
 			//FontRenderer fr(256, 256, 100);
 			//fr.render(f, 18, "abcdefghijklmnopqrstuv", 1, 0, 0xffffffff, 2, 0);
 			//fr.render(f, 18, "wxyzABCDEFGHIJKLMN", 1, 20, 0xffffffff, 2, 0);
@@ -886,8 +890,8 @@ namespace engine {
 			//texture_text = fr.createFontTexture();
 			//texture_text->createSingleDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0);
 
-			bitmapFont = new BitmapFont(f, 32, 256, 256, 0);
-			bitmapFont->addSymbols("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+*/=&%#@!?<>,.()[];:@$^~", 2, 0, 0xffffffff, 0x000000ff, 1.0f, 2, 2);
+			bitmapFont = new BitmapFont(f, 16, 256, 256, 0);
+			bitmapFont->addSymbols("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+*/=&%#@!?<>,.()[];:@$^~_", 2, 0, 0xffffffff, 0x000000ff, 1.0f, 2, 2);
 			//bitmapFont.addSymbols("wxyzABCDEFGHIJKLMN", 2, 20, 0xffffffff, 0x000000ff, 1.0f, 2, 0);
 			//bitmapFont.addSymbols("OPQRSTUVWXYZ", 2, 40, 0xffffffff, 0x000000ff, 1.0f, 2, 0);
 			//bitmapFont.addSymbols("0123456789-+*/=", 2, 60, 0xffffffff, 0x000000ff, 1.0f, 2, 0);
@@ -1090,9 +1094,6 @@ namespace engine {
 				animTreeWindMill->updateAnimation(delta, mesh7->graphics()->getSkeleton());
 				//mesh7->graphics()->getSkeleton()->updateAnimation(delta, animTreeWindMill);
 			}
-
-			auto statistic = Engine::getInstance().getModule<Statistic>();
-			plainTest->graphics()->setFrame(bitmapFont->createFrame(fmt_string("fps: %d, draw calls: %d", statistic->fps(), statistic->drawCalls())));
 
 			////////
 			if (auto&& grassNode = grassMesh2->getNode()) {
@@ -1388,6 +1389,18 @@ namespace engine {
 				autoBatcher->draw(commandBuffer, currentFrame);
 				*/ // cascades debug
 				///////
+
+				auto statistic = Engine::getInstance().getModule<Statistic>();
+				const bool vsync = Engine::getInstance().getModule<Graphics>()->config().v_sync;
+				plainTest->graphics()->setFrame(bitmapFont->createFrame(fmt_string("resolution: %dx%d\nv_sync: %s\ndraw calls: %d\nfps: %d\ncpu frame time: %f", width, height, vsync ? "on" : "off", statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime())));
+
+				glm::mat4 wtr(1.0f);
+				translateMatrixTo(wtr, glm::vec3(width * 0.5f - 250.0f, height * 0.5f - 30.0f, -1.0f));
+
+				plainTest->getNode()->setLocalMatrix(wtr);
+
+				reloadRenderList(uiRenderList, uiNode, camera2->getFrustum(), false, 0);
+				uiRenderList.render(commandBuffer, currentFrame, &camera2->getMatrix());
 
 				autoBatcher->draw(commandBuffer, currentFrame);
 

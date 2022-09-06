@@ -47,6 +47,8 @@ namespace engine {
 
 		void onEngineInitComplete();
 
+		inline const GraphicConfig& config() const { return _config; }
+
 	private:
 		void createLoaders();
 

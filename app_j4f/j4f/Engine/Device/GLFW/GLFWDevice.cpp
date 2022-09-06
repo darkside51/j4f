@@ -27,7 +27,7 @@ namespace engine {
 
 		void statisticUpdate(const Statistic* s) override {
 			static char buffer[256];
-			snprintf(buffer, 255, "j4f (vulkan) fps: %d, framePrepareTime : %f, dc: %d", s->fps(), s->framePrepareTime(), s->drawCalls());
+			snprintf(buffer, 255, "j4f (vulkan) fps: %d, framePrepareTime : %f, dc: %d", s->fps(), s->cpuFrameTime(), s->drawCalls());
 
 			glfwSetWindowTitle(_window, buffer);
 		}
