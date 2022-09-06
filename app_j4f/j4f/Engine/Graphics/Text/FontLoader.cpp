@@ -4,7 +4,7 @@
 #include "../Graphics.h"
 #include "../../Core/Threads/ThreadPool.h"
 #include "../../Core/Threads/Synchronisations.h"
-
+#include "../../Utils/Debug/Profiler.h"
 #include <string>
 
 namespace engine {
@@ -31,6 +31,7 @@ namespace engine {
 	}
 
 	void FontLoader::loadAsset(Font*& v, const FontLoadingParams& params, const FontLoadingCallback& callback) {
+		PROFILE_TIME_SCOPED_M(fontLoading, params.file)
 		auto&& engine = Engine::getInstance();
 		auto&& cache = engine.getModule<CacheManager>()->getCache<std::string, Font*>();
 

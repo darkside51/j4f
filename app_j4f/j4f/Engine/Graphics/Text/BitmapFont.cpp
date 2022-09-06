@@ -41,7 +41,6 @@ namespace engine {
 		});
 	}
 
-
 	std::shared_ptr<TextureFrame> BitmapFont::createFrame(const char* text) {
 		std::shared_ptr<TextureFrame> result(new TextureFrame());
 		const uint16_t len = strlen(text);

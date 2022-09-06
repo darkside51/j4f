@@ -367,6 +367,7 @@ namespace engine {
 			camera->setPosition(glm::vec3(0.0f, -500.0f, 300.0f));
 
 			camera2 = new Camera(width, height);
+			camera2->enableFrustum();
 			camera2->makeOrtho(-float(width) * 0.5f, float(width) * 0.5f, -float(height) * 0.5f, float(height) * 0.5f, 1.0f, 1000.0f);
 			camera2->setPosition(glm::vec3(0.0f, 0.0f, 200.0f));
 
@@ -1392,15 +1393,21 @@ namespace engine {
 
 				auto statistic = Engine::getInstance().getModule<Statistic>();
 				const bool vsync = Engine::getInstance().getModule<Graphics>()->config().v_sync;
-				plainTest->graphics()->setFrame(bitmapFont->createFrame(fmt_string("resolution: %dx%d\nv_sync: %s\ndraw calls: %d\nfps: %d\ncpu frame time: %f", width, height, vsync ? "on" : "off", statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime())));
+				std::shared_ptr<TextureFrame> frame = bitmapFont->createFrame(fmt_string("resolution: %dx%d\nv_sync: %s\ndraw calls: %d\nfps: %d\ncpu frame time: %f", width, height, vsync ? "on" : "off", statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime()));
+				TextureFrameBounds frameBounds(frame.get());
+
+				plainTest->graphics()->setFrame(frame);
+				plainTest->getNode()->setBoundingVolume(BoundingVolume::make<CubeVolume>(glm::vec3(frameBounds.minx, frameBounds.miny, -0.1f), glm::vec3(frameBounds.maxx, frameBounds.maxy, 0.1f)));
 
 				glm::mat4 wtr(1.0f);
 				translateMatrixTo(wtr, glm::vec3(width * 0.5f - 250.0f, height * 0.5f - 30.0f, -1.0f));
-
 				plainTest->getNode()->setLocalMatrix(wtr);
 
+				const glm::mat4& camera2Matrix = camera2->getMatrix();
+
 				reloadRenderList(uiRenderList, uiNode, camera2->getFrustum(), false, 0);
-				uiRenderList.render(commandBuffer, currentFrame, &camera2->getMatrix());
+				renderNodesBounds(uiNode, camera2Matrix, commandBuffer, currentFrame, 0); // draw bounding boxes
+				uiRenderList.render(commandBuffer, currentFrame, &camera2Matrix);
 
 				autoBatcher->draw(commandBuffer, currentFrame);
 
