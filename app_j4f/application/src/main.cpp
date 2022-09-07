@@ -84,7 +84,7 @@ namespace engine {
 
 	glm::vec3 wasd(0.0f);
 
-	//////////
+	////////////////////
 	/// cascade shadow map
 	constexpr uint8_t SHADOW_MAP_CASCADE_COUNT = 4;
 	constexpr uint16_t SHADOWMAP_DIM = 4096; // VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
@@ -99,6 +99,9 @@ namespace engine {
 	H_Node* rootNode;
 	H_Node* uiNode;
 	bool cameraMatrixChanged = true;
+
+	constexpr bool renderBounds = false;
+
 	//
 	class GrassRenderer {
 	public:
@@ -168,11 +171,11 @@ namespace engine {
 
 						const int grassType = engine::random(0, 100) < 5 ? engine::random(2, 4) : engine::random(0, 1);
 						if (grassType > 1) {
-							const float scale_xyz = (engine::random(10.0f, 30.0f) * 400.0f);
+							const float scale_xyz = (engine::random(25.0f, 35.0f) * 400.0f);
 							scaleMatrix(wtr, glm::vec3(scale_xyz, scale_xyz, scale_xyz));
 						} else {
-							const float scale_xyz = (engine::random(25.0f, 60.0f) * 550.0f);
-							const float scale_z = (engine::random(25.0f, 60.0f) * 300.0f);
+							const float scale_xyz = (engine::random(25.0f, 60.0f) * 500.0f);
+							const float scale_z = (engine::random(25.0f, 60.0f) * 350.0f);
 							scaleMatrix(wtr, glm::vec3(scale_xyz, scale_xyz, scale_z));
 						}
 
@@ -857,8 +860,8 @@ namespace engine {
 
 			TextureLoadingParams tex_params_floorArray;
 			tex_params_floorArray.files = { 
-				"resources/assets/textures/swamp.jpg",
-				"resources/assets/textures/ground133.jpg"
+				"resources/assets/textures/swamp5.jpg",
+				"resources/assets/textures/sand4.jpg"
 			};
 			tex_params_floorArray.flags->async = 1;
 			tex_params_floorArray.flags->use_cache = 1;
@@ -1195,7 +1198,9 @@ namespace engine {
 			//mesh2->render(commandBuffer, currentFrame, &cameraMatrix);
 			//mesh3->render(commandBuffer, currentFrame, &cameraMatrix);
 
-			renderNodesBounds(rootNode, cameraMatrix, commandBuffer, currentFrame, 0); // draw bounding boxes
+			if constexpr (renderBounds) {
+				renderNodesBounds(rootNode, cameraMatrix, commandBuffer, currentFrame, 0); // draw bounding boxes
+			}
 
 			sceneRenderList.render(commandBuffer, currentFrame, &cameraMatrix);
 			
@@ -1406,7 +1411,11 @@ namespace engine {
 				const glm::mat4& camera2Matrix = camera2->getMatrix();
 
 				reloadRenderList(uiRenderList, uiNode, camera2->getFrustum(), false, 0);
-				renderNodesBounds(uiNode, camera2Matrix, commandBuffer, currentFrame, 0); // draw bounding boxes
+				
+				if constexpr (renderBounds) {
+					renderNodesBounds(uiNode, camera2Matrix, commandBuffer, currentFrame, 0); // draw bounding boxes
+				}
+
 				uiRenderList.render(commandBuffer, currentFrame, &camera2Matrix);
 
 				autoBatcher->draw(commandBuffer, currentFrame);
