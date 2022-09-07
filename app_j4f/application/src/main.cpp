@@ -861,7 +861,7 @@ namespace engine {
 			TextureLoadingParams tex_params_floorArray;
 			tex_params_floorArray.files = { 
 				"resources/assets/textures/swamp5.jpg",
-				"resources/assets/textures/sand4.jpg"
+				"resources/assets/textures/sand5.jpg"
 			};
 			tex_params_floorArray.flags->async = 1;
 			tex_params_floorArray.flags->use_cache = 1;
@@ -1134,7 +1134,7 @@ namespace engine {
 			vulkan::VulkanCommandBuffer& commandBuffer = renderer->getRenderCommandBuffer();
 			commandBuffer.begin();
 
-			/////// shadow pass
+			//////// shadow pass
 			mesh->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
 			mesh2->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
 			mesh3->setProgram(program_mesh_shadow, shadowMap->getRenderPass());

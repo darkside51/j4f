@@ -18,6 +18,11 @@ for %%f in (*.psh) do (
 	%VULKAN_SDK%/Bin/glslc.exe %~dp0tmp\tmp.frag -o ../spirv/%%f.spv
 	)
 
+for %%f in (*.gsh) do (
+	copy %%f %~dp0tmp\tmp.geom
+	%VULKAN_SDK%/Bin/glslc.exe %~dp0tmp\tmp.geom -o ../spirv/%%f.spv
+	)
+
 cd ..
 del tmp /q
 pause
