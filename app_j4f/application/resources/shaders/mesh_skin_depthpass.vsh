@@ -36,8 +36,6 @@ out gl_PerVertex {
 };
 
 layout (location = 0) out vec2 out_uv;
-// for geometry shader
-//layout (location = 1) out int out_instance_index;
 
 void main() {
 	out_uv = a_uv;
@@ -48,12 +46,12 @@ void main() {
 			  	  + u_ubo.skin_matrixes[int(a_joints.z)] * a_weights.z
 			  	  + u_ubo.skin_matrixes[int(a_joints.w)] * a_weights.w;
 
-		gl_Position = u_push_const.camera_matrix * u_push_const.model_matrix * skin * vec4(a_position, 1.0);
-		//for geometry shader
-		//gl_Position = u_push_const.model_matrix * skin * vec4(a_position, 1.0);
+		//gl_Position = u_push_const.camera_matrix * u_push_const.model_matrix * skin * vec4(a_position, 1.0);
+		//for geometry shader if use it
+		gl_Position = u_push_const.model_matrix * skin * vec4(a_position, 1.0);
 	} else {
-		gl_Position = u_push_const.camera_matrix * u_push_const.model_matrix * vec4(a_position, 1.0);
-		//for geometry shader
-		//gl_Position = u_push_const.model_matrix * vec4(a_position, 1.0);
+		//gl_Position = u_push_const.camera_matrix * u_push_const.model_matrix * vec4(a_position, 1.0);
+		//for geometry shader if use it
+		gl_Position = u_push_const.model_matrix * vec4(a_position, 1.0);
 	}
 }

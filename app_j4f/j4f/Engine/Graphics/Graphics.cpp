@@ -35,6 +35,7 @@ namespace engine {
 			VulkanRenderer* renderer = new VulkanRenderer();
 			renderer->createInstance({}, {});
 
+			enabledFeatures.geometryShader = VK_TRUE; // todo: configure it
 			//enabledFeatures.fillModeNonSolid = 1; // example to enable POLYGON_MODE_LINE or POLYGON_MODE_POINT
 
 			renderer->createDevice(enabledFeatures, enabledDeviceExtensions, static_cast<VkPhysicalDeviceType>(_config.gpu_type));

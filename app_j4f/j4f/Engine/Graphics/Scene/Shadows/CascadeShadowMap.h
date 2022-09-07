@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../Core/Common.h"
+#include "../../../Core/Common.h"
 #include "../../../Core/Math/math.h"
 #include "../../Vulkan/vkCommandBuffer.h"
 #include "../../Vulkan/vkFrameBuffer.h"
@@ -70,17 +70,7 @@ namespace engine {
 			return _specialPipelines[static_cast<uint8_t>(p)];
 		}
 
-		CascadeShadowMap(const uint16_t dim, const uint8_t count, const glm::vec2& nearFar, const float minZ, const float maxZ) :
-			_dimension(dim),
-			_cascadesCount(count),
-			_cascades(count),
-			_cascadeSplits(count),
-			_splitDepths(count),
-			_cascadeViewProjects(count)
-		{
-			initVariables();
-			initCascadeSplits(nearFar, minZ, maxZ);
-		}
+		CascadeShadowMap(const uint16_t dim, const uint8_t count, const glm::vec2& nearFar, const float minZ, const float maxZ);
 
 		~CascadeShadowMap();
 
@@ -146,6 +136,8 @@ namespace engine {
 		void registerProgramAsReciever(vulkan::VulkanGpuProgram* program);
 		void unregisterProgramAsReciever(vulkan::VulkanGpuProgram* program);
 
+		inline bool useGeometryShaderTechnique() const { return _useGeometryShaderTechnique; }
+
 	private:
 		static void initPipelines();
 		static void registerCommonShadowPrograms();
@@ -160,6 +152,7 @@ namespace engine {
 
 		void initVariables();
 
+		bool _useGeometryShaderTechnique;
 		uint8_t _cascadesCount;
 		uint16_t _dimension;
 		float _cascadeSplitLambda = 1.0f;
