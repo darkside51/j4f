@@ -290,28 +290,28 @@ namespace engine {
 			static float y = event.y;
 
 			switch (event.state) {
-			case InputEventState::IES_PRESS:
-				m1 |= event.button == PointerButton::PBUTTON_0;
-				x = event.x;
-				y = event.y;
-				break;
-			case InputEventState::IES_RELEASE:
-				m1 &= ~(event.button == PointerButton::PBUTTON_0);
-				x = event.x;
-				y = event.y;
-				break;
-			case InputEventState::IES_NONE:
-			{
-				if (m1) {
-					constexpr float k = 0.005f;
-					camera->setRotation(camera->getRotation() + glm::vec3(-k * (event.y - y), 0.0f, k * (event.x - x)));
+				case InputEventState::IES_PRESS:
+					m1 |= event.button == PointerButton::PBUTTON_0;
 					x = event.x;
 					y = event.y;
+					break;
+				case InputEventState::IES_RELEASE:
+					m1 &= ~(event.button == PointerButton::PBUTTON_0);
+					x = event.x;
+					y = event.y;
+					break;
+				case InputEventState::IES_NONE:
+				{
+					if (m1) {
+						constexpr float k = 0.005f;
+						camera->setRotation(camera->getRotation() + glm::vec3(-k * (event.y - y), 0.0f, k * (event.x - x)));
+						x = event.x;
+						y = event.y;
+					}
 				}
-			}
-			break;
-			default:
-				break;
+					break;
+				default:
+					break;
 			}
 
 			return false;
@@ -325,30 +325,30 @@ namespace engine {
 		bool onInpuKeyEvent(const KeyEvent& event) override {
 
 			switch (event.key) {
-			case KeyBoardKey::K_E:
-				event.state == InputEventState::IES_RELEASE ? wasd.y -= 0.5f : wasd.y += 0.5f;
-				break;
-			case KeyBoardKey::K_Q:
-				event.state == InputEventState::IES_RELEASE ? wasd.y += 0.5f : wasd.y -= 0.5f;
-				break;
-			case KeyBoardKey::K_W:
-				event.state == InputEventState::IES_RELEASE ? wasd.z -= 1.0f : wasd.z += 1.0f;
-				break;
-			case KeyBoardKey::K_S:
-				event.state == InputEventState::IES_RELEASE ? wasd.z += 1.0f : wasd.z -= 1.0f;
-				break;
-			case KeyBoardKey::K_A:
-				event.state == InputEventState::IES_RELEASE ? wasd.x += 1.0f : wasd.x -= 1.0f;
-				break;
-			case KeyBoardKey::K_D:
-				event.state == InputEventState::IES_RELEASE ? wasd.x -= 1.0f : wasd.x += 1.0f;
-				break;
-			case KeyBoardKey::K_ESCAPE:
-				if (event.state != InputEventState::IES_RELEASE) break;
-				Engine::getInstance().getModule<Device>()->leaveMainLoop();
-				break;
-			default:
-				break;
+				case KeyBoardKey::K_E:
+					event.state == InputEventState::IES_RELEASE ? wasd.y -= 0.5f : wasd.y += 0.5f;
+					break;
+				case KeyBoardKey::K_Q:
+					event.state == InputEventState::IES_RELEASE ? wasd.y += 0.5f : wasd.y -= 0.5f;
+					break;
+				case KeyBoardKey::K_W:
+					event.state == InputEventState::IES_RELEASE ? wasd.z -= 1.0f : wasd.z += 1.0f;
+					break;
+				case KeyBoardKey::K_S:
+					event.state == InputEventState::IES_RELEASE ? wasd.z += 1.0f : wasd.z -= 1.0f;
+					break;
+				case KeyBoardKey::K_A:
+					event.state == InputEventState::IES_RELEASE ? wasd.x += 1.0f : wasd.x -= 1.0f;
+					break;
+				case KeyBoardKey::K_D:
+					event.state == InputEventState::IES_RELEASE ? wasd.x -= 1.0f : wasd.x += 1.0f;
+					break;
+				case KeyBoardKey::K_ESCAPE:
+					if (event.state != InputEventState::IES_RELEASE) break;
+					Engine::getInstance().getModule<Device>()->leaveMainLoop();
+					break;
+				default:
+					break;
 			}
 
 			return false;
@@ -709,7 +709,7 @@ namespace engine {
 
 				////////////////////
 				glm::mat4 wtr(1.0f);
-				scaleMatrix(wtr, glm::vec3(0.5f));
+				scaleMatrix(wtr, glm::vec3(0.75f));
 				rotateMatrix_xyz(wtr, glm::vec3(1.57f, 0.0f, 0.0f));
 				translateMatrixTo(wtr, glm::vec3(570.0f, -250.0f, 0.0f));
 
@@ -735,8 +735,8 @@ namespace engine {
 				////////////////////
 				glm::mat4 wtr(1.0f);
 				scaleMatrix(wtr, glm::vec3(35.0f));
-				rotateMatrix_xyz(wtr, glm::vec3(1.57f, 1.25f, 0.0f));
-				translateMatrixTo(wtr, glm::vec3(200.0f, 225.0f, 0.0f));
+				rotateMatrix_xyz(wtr, glm::vec3(1.57f, 1.1f, 0.0f));
+				translateMatrixTo(wtr, glm::vec3(225.0f, 285.0f, 0.0f));
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
@@ -1151,28 +1151,35 @@ namespace engine {
 			//}
 
 			shadowMap->prepareToRender(commandBuffer);
-			if (shadowMap->useGeometryShaderTechnique()) {
-				shadowMap->beginRenderPass(commandBuffer, 0);
-				shadowRenderList.render(commandBuffer, currentFrame, nullptr);
-				shadowMap->endRenderPass(commandBuffer);
-			} else {
-				for (uint32_t i = 0; i < shadowMap->getCascadesCount(); ++i) {
-					shadowMap->beginRenderPass(commandBuffer, i);
-
-					//todo: проверять в какой каскад меш попадает и только там его и рисовать
-					//mesh->setCameraMatrix(cascadesViewProjMatrixes[i]);
-					//mesh2->setCameraMatrix(cascadesViewProjMatrixes[i]);
-					//mesh3->setCameraMatrix(cascadesViewProjMatrixes[i]);
-
-					//mesh->render(commandBuffer, currentFrame, &shadowMap->getVPMatrix(i));
-					//mesh2->render(commandBuffer, currentFrame, &shadowMap->getVPMatrix(i));
-					//mesh3->render(commandBuffer, currentFrame, &shadowMap->getVPMatrix(i));
-					//sceneRenderList.render(commandBuffer, currentFrame, &shadowMap->getVPMatrix(i));
-
-					shadowRenderList.render(commandBuffer, currentFrame, &shadowMap->getVPMatrix(i));
-
+			switch (shadowMap->techique()) {
+				case ShadowMapTechnique::SMT_GEOMETRY_SH:
+				{
+					shadowMap->beginRenderPass(commandBuffer, 0);
+					shadowRenderList.render(commandBuffer, currentFrame, nullptr);
 					shadowMap->endRenderPass(commandBuffer);
 				}
+					break;
+				default:
+				{
+					for (uint32_t i = 0; i < shadowMap->getCascadesCount(); ++i) {
+						shadowMap->beginRenderPass(commandBuffer, i);
+
+						//todo: проверять в какой каскад меш попадает и только там его и рисовать
+						//mesh->setCameraMatrix(cascadesViewProjMatrixes[i]);
+						//mesh2->setCameraMatrix(cascadesViewProjMatrixes[i]);
+						//mesh3->setCameraMatrix(cascadesViewProjMatrixes[i]);
+
+						//mesh->render(commandBuffer, currentFrame, &shadowMap->getVPMatrix(i));
+						//mesh2->render(commandBuffer, currentFrame, &shadowMap->getVPMatrix(i));
+						//mesh3->render(commandBuffer, currentFrame, &shadowMap->getVPMatrix(i));
+						//sceneRenderList.render(commandBuffer, currentFrame, &shadowMap->getVPMatrix(i));
+
+						shadowRenderList.render(commandBuffer, currentFrame, &shadowMap->getVPMatrix(i));
+
+						shadowMap->endRenderPass(commandBuffer);
+					}
+				}
+					break;
 			}
 
 			mesh->setProgram(program_mesh_default);
@@ -1211,7 +1218,7 @@ namespace engine {
 			sceneRenderList.render(commandBuffer, currentFrame, &cameraMatrix);
 			
 			////////
-			if (0) {
+			if constexpr (0) {
 				if (auto&& g = mesh->graphics()) {
 					g->drawBoundingBox(cameraMatrix, mesh->getNode()->model(), commandBuffer, currentFrame);
 				}
@@ -1241,7 +1248,69 @@ namespace engine {
 				}
 			}
 
-			{ // ortho matrix draw
+			{
+				auto&& renderHelper = Engine::getInstance().getModule<Graphics>()->getRenderHelper();
+				auto&& autoBatcher = renderHelper->getAutoBatchRenderer();
+
+				const uint32_t idxs[6] = {
+					0, 1, 2,
+					2, 1, 3
+				};
+
+				constexpr uint32_t vertexBufferSize = 4 * sizeof(TexturedVertex);
+				constexpr uint32_t indexBufferSize = 6 * sizeof(uint32_t);
+
+				//// floor
+				static auto&& pipeline_shadow_test = CascadeShadowMap::getSpecialPipeline(ShadowMapSpecialPipelines::SH_PIPEINE_PLAIN);
+				static const vulkan::GPUParamLayoutInfo* mvp_layout2 = pipeline_shadow_test->program->getGPUParamLayoutByName("mvp");
+
+				const float tc = 8.0f;
+				TexturedVertex floorVtx[4] = {
+					{ {-1024.0f, -1024.0f, 0.0f},	{0.0f, tc} },
+					{ {1024.0f, -1024.0f, 0.0f},	{tc, tc} },
+					{ {-1024.0f, 1024.0f, 0.0f},	{0.0f, 0.0f} },
+					{ {1024.0f, 1024.0f, 0.0f},		{tc, 0.0f} }
+				};
+
+				vulkan::RenderData renderDataFloor(const_cast<vulkan::VulkanPipeline*>(pipeline_shadow_test));
+				renderDataFloor.setParamForLayout(mvp_layout2, &const_cast<glm::mat4&>(cameraMatrix), false);
+				const glm::mat4& viewTransform = camera->getViewTransform();
+
+				renderDataFloor.setParamByName("u_texture_arr", texture_array_test, false);
+				renderDataFloor.setParamByName("u_texture_mask", texture_floor_mask, false);
+				renderDataFloor.setParamByName("u_texture_normal", texture_floor_normal, false);
+				renderDataFloor.setParamByName("u_shadow_map", shadowMap->getTexture(), false);
+
+				GPU_DEBUG_MARKER_INSERT(commandBuffer.m_commandBuffer, "project render shadow plain", 0.5f, 0.5f, 0.5f, 1.0f);
+				autoBatcher->addToDraw(&renderDataFloor, sizeof(TexturedVertex), &floorVtx[0], vertexBufferSize, &idxs[0], indexBufferSize, commandBuffer, currentFrame);
+
+				//// statl label
+				auto statistic = Engine::getInstance().getModule<Statistic>();
+				const bool vsync = Engine::getInstance().getModule<Graphics>()->config().v_sync;
+				std::shared_ptr<TextureFrame> frame = bitmapFont->createFrame(fmt_string("resolution: %dx%d\nv_sync: %s\ndraw calls: %d\nfps: %d\ncpu frame time: %f", width, height, vsync ? "on" : "off", statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime()));
+				TextureFrameBounds frameBounds(frame.get());
+
+				plainTest->graphics()->setFrame(frame);
+				plainTest->getNode()->setBoundingVolume(BoundingVolume::make<CubeVolume>(glm::vec3(frameBounds.minx, frameBounds.miny, -0.1f), glm::vec3(frameBounds.maxx, frameBounds.maxy, 0.1f)));
+
+				glm::mat4 wtr(1.0f);
+				translateMatrixTo(wtr, glm::vec3(width * 0.5f - 250.0f, height * 0.5f - 30.0f, -1.0f));
+				plainTest->getNode()->setLocalMatrix(wtr);
+
+				const glm::mat4& camera2Matrix = camera2->getMatrix();
+
+				reloadRenderList(uiRenderList, uiNode, camera2->getFrustum(), false, 0);
+
+				if constexpr (renderBounds) {
+					renderNodesBounds(uiNode, camera2Matrix, commandBuffer, currentFrame, 0); // draw bounding boxes
+				}
+
+				uiRenderList.render(commandBuffer, currentFrame, &camera2Matrix);
+
+				autoBatcher->draw(commandBuffer, currentFrame);
+			}
+
+			if constexpr (0) { // ortho matrix draw
 				const glm::mat4& cameraMatrix2 = camera2->getMatrix();
 
 				if (animTree2) {
@@ -1258,6 +1327,13 @@ namespace engine {
 				}
 
 				///////////
+
+				auto&& renderHelper = Engine::getInstance().getModule<Graphics>()->getRenderHelper();
+				auto&& autoBatcher = renderHelper->getAutoBatchRenderer();
+
+				static auto&& pipeline = renderHelper->getPipeline(CommonPipelines::COMMON_PIPELINE_TEXTURED);
+				static const vulkan::GPUParamLayoutInfo* mvp_layout = pipeline->program->getGPUParamLayoutByName("mvp");
+
 				TexturedVertex vtx[4] = {
 					{ {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f} },
 					{ {252.0f, 0.0f, 0.0f}, {1.0f, 1.0f} },
@@ -1273,40 +1349,7 @@ namespace engine {
 				constexpr uint32_t vertexBufferSize = 4 * sizeof(TexturedVertex);
 				constexpr uint32_t indexBufferSize = 6 * sizeof(uint32_t);
 
-				auto&& renderHelper = Engine::getInstance().getModule<Graphics>()->getRenderHelper();
-				auto&& autoBatcher = renderHelper->getAutoBatchRenderer();
-
-				static auto&& pipeline = renderHelper->getPipeline(CommonPipelines::COMMON_PIPELINE_TEXTURED);
-				static const vulkan::GPUParamLayoutInfo* mvp_layout = pipeline->program->getGPUParamLayoutByName("mvp");
-
-				//// floor
-				static auto&& pipeline_shadow_test = CascadeShadowMap::getSpecialPipeline(ShadowMapSpecialPipelines::SH_PIPEINE_PLAIN);
-				static const vulkan::GPUParamLayoutInfo* mvp_layout2 = pipeline_shadow_test->program->getGPUParamLayoutByName("mvp");
-
-				const float tc = 8.0f;
-				TexturedVertex floorVtx[4] = {
-					{ {-1024.0f, -1024.0f, 0.0f},	{0.0f, tc} },
-					{ {1024.0f, -1024.0f, 0.0f},	{tc, tc} },
-					{ {-1024.0f, 1024.0f, 0.0f},	{0.0f, 0.0f} },
-					{ {1024.0f, 1024.0f, 0.0f},		{tc, 0.0f} }
-				};
-
-				//vulkan::RenderData renderDataFloor(const_cast<vulkan::VulkanPipeline*>(renderHelper->getPipeline(CommonPipelines::COMMON_PIPELINE_TEXTURED_DEPTH_RW)));
-				//renderDataFloor.setParamForLayout(mvp_layout, &const_cast<glm::mat4&>(cameraMatrix), false);
-				//renderDataFloor.setParamByName("u_texture", texture_floor, false);
-
-				vulkan::RenderData renderDataFloor(const_cast<vulkan::VulkanPipeline*>(pipeline_shadow_test));
-				renderDataFloor.setParamForLayout(mvp_layout2, &const_cast<glm::mat4&>(cameraMatrix), false);
-				const glm::mat4& viewTransform = camera->getViewTransform();
-
-				renderDataFloor.setParamByName("u_texture_arr", texture_array_test, false);
-				renderDataFloor.setParamByName("u_texture_mask", texture_floor_mask, false);
-				renderDataFloor.setParamByName("u_texture_normal", texture_floor_normal, false);
-				renderDataFloor.setParamByName("u_shadow_map", shadowMap->getTexture(), false);
-				
-				GPU_DEBUG_MARKER_INSERT(commandBuffer.m_commandBuffer, "project render shadow plain", 0.5f, 0.5f, 0.5f, 1.0f);
-				autoBatcher->addToDraw(&renderDataFloor, sizeof(TexturedVertex), &floorVtx[0], vertexBufferSize, &idxs[0], indexBufferSize, commandBuffer, currentFrame);
-
+				//////////////////////////////
 				vulkan::RenderData renderData(const_cast<vulkan::VulkanPipeline*>(pipeline));
 
 				glm::mat4 wtr5(1.0f);
@@ -1401,28 +1444,6 @@ namespace engine {
 				autoBatcher->draw(commandBuffer, currentFrame);
 				*/ // cascades debug
 				///////
-
-				auto statistic = Engine::getInstance().getModule<Statistic>();
-				const bool vsync = Engine::getInstance().getModule<Graphics>()->config().v_sync;
-				std::shared_ptr<TextureFrame> frame = bitmapFont->createFrame(fmt_string("resolution: %dx%d\nv_sync: %s\ndraw calls: %d\nfps: %d\ncpu frame time: %f", width, height, vsync ? "on" : "off", statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime()));
-				TextureFrameBounds frameBounds(frame.get());
-
-				plainTest->graphics()->setFrame(frame);
-				plainTest->getNode()->setBoundingVolume(BoundingVolume::make<CubeVolume>(glm::vec3(frameBounds.minx, frameBounds.miny, -0.1f), glm::vec3(frameBounds.maxx, frameBounds.maxy, 0.1f)));
-
-				glm::mat4 wtr(1.0f);
-				translateMatrixTo(wtr, glm::vec3(width * 0.5f - 250.0f, height * 0.5f - 30.0f, -1.0f));
-				plainTest->getNode()->setLocalMatrix(wtr);
-
-				const glm::mat4& camera2Matrix = camera2->getMatrix();
-
-				reloadRenderList(uiRenderList, uiNode, camera2->getFrustum(), false, 0);
-				
-				if constexpr (renderBounds) {
-					renderNodesBounds(uiNode, camera2Matrix, commandBuffer, currentFrame, 0); // draw bounding boxes
-				}
-
-				uiRenderList.render(commandBuffer, currentFrame, &camera2Matrix);
 
 				autoBatcher->draw(commandBuffer, currentFrame);
 

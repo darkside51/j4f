@@ -26,6 +26,11 @@ namespace engine {
 		SH_PIPELINES_COUNT = 2
 	};
 
+	enum class ShadowMapTechnique : uint8_t {
+		SMT_DEFAULT = 0,
+		SMT_GEOMETRY_SH = 1
+	};
+
 	class CascadeShadowMap {
 		friend class Graphics;
 
@@ -136,7 +141,7 @@ namespace engine {
 		void registerProgramAsReciever(vulkan::VulkanGpuProgram* program);
 		void unregisterProgramAsReciever(vulkan::VulkanGpuProgram* program);
 
-		inline bool useGeometryShaderTechnique() const { return _useGeometryShaderTechnique; }
+		inline ShadowMapTechnique techique() const { return _technique; }
 
 	private:
 		static void initPipelines();
@@ -152,7 +157,7 @@ namespace engine {
 
 		void initVariables();
 
-		bool _useGeometryShaderTechnique;
+		ShadowMapTechnique _technique;
 		uint8_t _cascadesCount;
 		uint16_t _dimension;
 		float _cascadeSplitLambda = 1.0f;

@@ -90,13 +90,19 @@ namespace engine {
 
 	CascadeShadowMap::CascadeShadowMap(const uint16_t dim, const uint8_t count, const glm::vec2& nearFar, const float minZ, const float maxZ) :
 		_dimension(dim),
-		_useGeometryShaderTechnique(Engine::getInstance().getModule<Graphics>()->getRenderer()->getDevice()->enabledFeatures.geometryShader),
 		_cascadesCount(count),
-		_cascades(Engine::getInstance().getModule<Graphics>()->getRenderer()->getDevice()->enabledFeatures.geometryShader ? 1 : 4),
 		_cascadeSplits(count),
 		_splitDepths(count),
 		_cascadeViewProjects(count)
 	{
+		if (Engine::getInstance().getModule<Graphics>()->getRenderer()->getDevice()->enabledFeatures.geometryShader) {
+			_technique = ShadowMapTechnique::SMT_GEOMETRY_SH;
+			_cascades.resize(1);
+		} else {
+			_technique = ShadowMapTechnique::SMT_DEFAULT;
+			_cascades.resize(count);
+		}
+
 		initVariables();
 		initCascadeSplits(nearFar, minZ, maxZ);
 	}
@@ -186,35 +192,9 @@ namespace engine {
 		// texture
 		_shadowMapTexture = new vulkan::VulkanTexture(renderer, VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, depthImageDescriptorSet, depthImage, depthSampler, _dimension, _dimension, 1);
 
-		if (_useGeometryShaderTechnique) {
-			VkImageViewCreateInfo imageViewCI = {};
-			imageViewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-
-			imageViewCI.viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
-			imageViewCI.format = depthFormat;
-			imageViewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-			imageViewCI.subresourceRange.baseMipLevel = 0;
-			imageViewCI.subresourceRange.levelCount = 1;
-			imageViewCI.subresourceRange.baseArrayLayer = 0;
-			imageViewCI.subresourceRange.layerCount = _cascadesCount;
-			imageViewCI.image = depthImage->image;
-
-			vkCreateImageView(renderer->getDevice()->device, &imageViewCI, nullptr, &_cascades[0].view);
-
-			_cascades[0].frameBuffer = new vulkan::VulkanFrameBuffer(
-				renderer->getDevice(),
-				_dimension,
-				_dimension,
-				_cascadesCount,
-				_depthRenderPass,
-				&_cascades[0].view,
-				1
-			);
-		} else {
-			// one image and framebuffer per cascade
-			for (uint8_t i = 0; i < _cascadesCount; ++i) {
-				// image view for this cascade's layer (inside the depth map)
-				// this view is used to render to that specific depth image layer
+		switch (_technique) {
+			case ShadowMapTechnique::SMT_GEOMETRY_SH:
+			{
 				VkImageViewCreateInfo imageViewCI = {};
 				imageViewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 
@@ -223,22 +203,55 @@ namespace engine {
 				imageViewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
 				imageViewCI.subresourceRange.baseMipLevel = 0;
 				imageViewCI.subresourceRange.levelCount = 1;
-				imageViewCI.subresourceRange.baseArrayLayer = i;
-				imageViewCI.subresourceRange.layerCount = 1;
+				imageViewCI.subresourceRange.baseArrayLayer = 0;
+				imageViewCI.subresourceRange.layerCount = _cascadesCount;
 				imageViewCI.image = depthImage->image;
 
-				vkCreateImageView(renderer->getDevice()->device, &imageViewCI, nullptr, &_cascades[i].view);
+				vkCreateImageView(renderer->getDevice()->device, &imageViewCI, nullptr, &_cascades[0].view);
 
-				_cascades[i].frameBuffer = new vulkan::VulkanFrameBuffer(
+				_cascades[0].frameBuffer = new vulkan::VulkanFrameBuffer(
 					renderer->getDevice(),
 					_dimension,
 					_dimension,
-					1,
+					_cascadesCount,
 					_depthRenderPass,
-					&_cascades[i].view,
+					&_cascades[0].view,
 					1
 				);
 			}
+				break;
+			default:
+			{
+				// one image and framebuffer per cascade
+				for (uint8_t i = 0; i < _cascadesCount; ++i) {
+					// image view for this cascade's layer (inside the depth map)
+					// this view is used to render to that specific depth image layer
+					VkImageViewCreateInfo imageViewCI = {};
+					imageViewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+
+					imageViewCI.viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
+					imageViewCI.format = depthFormat;
+					imageViewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+					imageViewCI.subresourceRange.baseMipLevel = 0;
+					imageViewCI.subresourceRange.levelCount = 1;
+					imageViewCI.subresourceRange.baseArrayLayer = i;
+					imageViewCI.subresourceRange.layerCount = 1;
+					imageViewCI.image = depthImage->image;
+
+					vkCreateImageView(renderer->getDevice()->device, &imageViewCI, nullptr, &_cascades[i].view);
+
+					_cascades[i].frameBuffer = new vulkan::VulkanFrameBuffer(
+						renderer->getDevice(),
+						_dimension,
+						_dimension,
+						1,
+						_depthRenderPass,
+						&_cascades[i].view,
+						1
+					);
+				}
+			}
+				break;
 		}
 	}
 
