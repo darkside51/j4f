@@ -1,7 +1,7 @@
 mkdir %~dp0tmp
 cd %2
 
-for %%f in (*.frag, *.vert, *.geom*) do (
+for %%f in (*.frag, *.vert, *.geom) do (
 	%VULKAN_SDK%/Bin/glslc.exe %%f -o %1/%%f.spv
 	)
 
@@ -21,5 +21,5 @@ for %%f in (*.gsh) do (
 	)
 
 cd ..
-del tmp /q
+del %~dp0tmp /q
 pause
