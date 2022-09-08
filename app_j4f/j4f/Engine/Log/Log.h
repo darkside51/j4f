@@ -18,7 +18,8 @@ namespace engine {
 		OutputDebugString(fmt_string(fmt, std::forward<Args>(args)...)); // USE_MSVC_CONSOLE_OUTPUT
 #else
 		//system("Color 0A");
-		printf(fmt, std::forward<Args>(args)...);
+		//printf(fmt, std::forward<Args>(args)...);
+		fmt::print(fmt, std::forward<Args>(args)...);
 #endif // USE_NOSTD_CONSOLE_OUTPUT
 	}
 }
@@ -45,7 +46,7 @@ namespace engine {
 
 	template <typename...Args>
 	inline void log(const char* fmt, Args&&...args) {
-		const char* f1 = fmt_string("(%" PRIu64 ") %s \n", unixUTCTime(), fmt); // good variant?
+		const char* f1 = fmt_string("({}) {} \n", unixUTCTime(), fmt); // good variant?
 		printLog(f1, std::forward<Args>(args)...);
 	}
 
@@ -56,7 +57,7 @@ namespace engine {
 		const char* f1 = fmt_string("(%" PRIu64 ") (%s) %s \n", unixUTCTime(), tag, fmt);
 #else
 		const char* blackColor = "\033[0m";
-		const char* f1 = fmt_string("(%" PRIu64 ") (%s%s%s) %s \n", unixUTCTime(), tagColor, tag, blackColor, fmt);
+		const char* f1 = fmt_string("({}) ({}{}{}) {} \n", unixUTCTime(), tagColor, tag, blackColor, fmt);
 #endif
 		
 		printLog(f1, std::forward<Args>(args)...);
@@ -90,8 +91,8 @@ namespace engine {
 #define STR(x) #x
 #define LOG_TAG(tag, fmt, ...) engine::log_tag_color(engine::LogLevel::L_MESSAGE, STR(::tag::), fmt, __VA_ARGS__)
 #define LOG_FILE(fmt, ...) engine::log_tag_color(engine::LogLevel::L_MESSAGE, __FILENAME__, fmt, __VA_ARGS__)
-#define LOG_LINE(fmt, ...) engine::log_tag_color(engine::LogLevel::L_MESSAGE, fmt_string("%s::%d", __FILENAME__, __LINE__), fmt, __VA_ARGS__)
+#define LOG_LINE(fmt, ...) engine::log_tag_color(engine::LogLevel::L_MESSAGE, fmt_string("{}::{}", __FILENAME__, __LINE__), fmt, __VA_ARGS__)
 
 #define LOG_TAG_LEVEL(level, tag, fmt, ...) engine::log_tag_color(level, STR(::tag::), fmt, __VA_ARGS__)
 #define LOG_FILE_LEVEL(level, fmt, ...) engine::log_tag_color(level, __FILENAME__, fmt, __VA_ARGS__)
-#define LOG_LINE_LEVEL(level, fmt, ...) engine::log_tag_color(level, fmt_string("%s::%d", __FILENAME__, __LINE__), fmt, __VA_ARGS__)
+#define LOG_LINE_LEVEL(level, fmt, ...) engine::log_tag_color(level, fmt_string("{}::{}", __FILENAME__, __LINE__), fmt, __VA_ARGS__)

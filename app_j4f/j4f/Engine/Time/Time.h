@@ -5,22 +5,25 @@
 
 namespace engine {
 
+	template <typename T = std::chrono::milliseconds>
 	inline uint64_t steadyTime() {
 		const auto now = std::chrono::steady_clock::now();
-		auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
-		return static_cast<uint64_t>(now_ms.time_since_epoch().count());
+		auto now_time = std::chrono::time_point_cast<T>(now);
+		return static_cast<uint64_t>(now_time.time_since_epoch().count());
 	}
 
+	template <typename T = std::chrono::milliseconds>
 	inline uint64_t systemTime() {
 		const auto now = std::chrono::system_clock::now();
-		auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
-		return static_cast<uint64_t>(now_ms.time_since_epoch().count());
+		auto now_time = std::chrono::time_point_cast<T>(now);
+		return static_cast<uint64_t>(now_time.time_since_epoch().count());
 	}
 
+	template <typename T = std::chrono::milliseconds>
 	inline uint64_t highResoutionTime() {
 		const auto now = std::chrono::high_resolution_clock::now();
-		auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
-		return static_cast<uint64_t>(now_ms.time_since_epoch().count());
+		auto now_time = std::chrono::time_point_cast<T>(now);
+		return static_cast<uint64_t>(now_time.time_since_epoch().count());
 	}
 
 	inline uint64_t unixUTCTime() {

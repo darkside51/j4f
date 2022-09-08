@@ -480,9 +480,9 @@ namespace vulkan {
 			_currentDescriptorPool = _globalDescriptorPools.size();
 			_globalDescriptorPools.push_back(pool);
 
-			LOG_TAG_LEVEL(engine::LogLevel::L_CUSTOM, GRAPHICS, "VulkanRenderer allocate descriptorPool(maxSets = %d), descriptorPools size = %d", descriptorPoolInfo.maxSets, _globalDescriptorPools.size());
+			LOG_TAG_LEVEL(engine::LogLevel::L_CUSTOM, GRAPHICS, "VulkanRenderer allocate descriptorPool(maxSets = {}), descriptorPools size = {}", descriptorPoolInfo.maxSets, _globalDescriptorPools.size());
 		} else {
-			LOG_TAG_LEVEL(engine::LogLevel::L_ERROR, GRAPHICS, "VulkanRenderer allocate descriptorPool(maxSets = %d), descriptorPools size = %d error: %d", descriptorPoolInfo.maxSets, _globalDescriptorPools.size(), result);
+			LOG_TAG_LEVEL(engine::LogLevel::L_ERROR, GRAPHICS, "VulkanRenderer allocate descriptorPool(maxSets = {}), descriptorPools size = {} error: {}", descriptorPoolInfo.maxSets, _globalDescriptorPools.size(), result);
 		}
 
 		return result;

@@ -12,16 +12,16 @@ namespace engine {
 
 	class ExecutionTime {
 	public:
-		explicit ExecutionTime(const char* name, uint64_t* t = nullptr) : _startTime(steadyTime()), _outTime(t), _name(name) { }
-		explicit ExecutionTime(std::string&& name, uint64_t* t = nullptr) : _startTime(steadyTime()), _outTime(t), _name(name) { }
-		explicit ExecutionTime(const std::string& name, uint64_t* t = nullptr) : _startTime(steadyTime()), _outTime(t), _name(name) { }
+		explicit ExecutionTime(const char* name, uint64_t* t = nullptr) : _startTime(steadyTime<std::chrono::microseconds>()), _outTime(t), _name(name) { }
+		explicit ExecutionTime(std::string&& name, uint64_t* t = nullptr) : _startTime(steadyTime<std::chrono::microseconds>()), _outTime(t), _name(name) { }
+		explicit ExecutionTime(const std::string& name, uint64_t* t = nullptr) : _startTime(steadyTime<std::chrono::microseconds>()), _outTime(t), _name(name) { }
 
 		~ExecutionTime() {
-			const uint64_t time = steadyTime() - _startTime;
+			const uint64_t time = steadyTime<std::chrono::microseconds>() - _startTime;
 			if (_outTime) {
 				*_outTime = time;
 			} else {
-				LOG_TAG_LEVEL(engine::LogLevel::L_DEBUG, TIME_PROFILER, "[%d(ms)] \t %s", time, _name.c_str());
+				LOG_TAG_LEVEL(engine::LogLevel::L_DEBUG, TIME_PROFILER, "[{}(mcs)]\t {}", time, _name.c_str());
 			}
 		}
 

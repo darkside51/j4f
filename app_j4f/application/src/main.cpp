@@ -1287,7 +1287,8 @@ namespace engine {
 				//// statl label
 				auto statistic = Engine::getInstance().getModule<Statistic>();
 				const bool vsync = Engine::getInstance().getModule<Graphics>()->config().v_sync;
-				std::shared_ptr<TextureFrame> frame = bitmapFont->createFrame(fmt_string("resolution: %dx%d\nv_sync: %s\ndraw calls: %d\nfps: %d\ncpu frame time: %f", width, height, vsync ? "on" : "off", statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime()));
+				//std::shared_ptr<TextureFrame> frame = bitmapFont->createFrame(fmt_string("resolution: %dx%d\nv_sync: %s\ndraw calls: %d\nfps: %d\ncpu frame time: %f", width, height, vsync ? "on" : "off", statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime()));
+				std::shared_ptr<TextureFrame> frame = bitmapFont->createFrame(fmt_string("resolution: {}x{}\nv_sync: {}\ndraw calls: {}\nfps: {}\ncpu frame time: {:.3}", width, height, vsync ? "on" : "off", statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime()));
 				TextureFrameBounds frameBounds(frame.get());
 
 				plainTest->graphics()->setFrame(frame);
@@ -1572,6 +1573,30 @@ int main() {
 
 	auto ri = engine::random(0, 10);
 	auto rf = engine::random(-10.0f, 20.0f);
+
+	{
+		engine::ExecutionTime t("fmt_string2");
+		for (size_t i = 0; i < 1000; ++i) {
+			const char* s = engine::fmt_string("{}, {}, {}", "some text", 10 + i, i * 0.1f);
+		}
+	}
+
+	{
+		engine::ExecutionTime t("fmt_string");
+		for (size_t i = 0; i < 1000; ++i) {
+			const std::string s = engine::fmtString("{}, {}, {}", "some text", 10 + i, i * 0.1f);
+		}
+	}
+
+	{
+		engine::ExecutionTime t("fmt::format");
+		for (size_t i = 0; i < 1000; ++i) {
+			const std::string s = fmt::format("{}, {}, {}", "some text", 10 + i, i * 0.1f);
+		}
+	}
+
+	char buffer[1024];
+	fmt::format_to(buffer, "{}", 42);
 
 	////////////////////////////////////////
 	engine::EngineConfig cfg;

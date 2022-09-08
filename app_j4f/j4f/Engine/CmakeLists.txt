@@ -4,6 +4,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+include (${CMAKE_CURRENT_SOURCE_DIR}/../Tools/cmake/utils.cmake)
+
 project(j4f_engine)
 
 set(ENGINE_SRC_DIRS)
@@ -122,6 +124,13 @@ foreach(source IN LISTS ENGINE_HEADERS)
 endforeach()
 #######
 
+#fmt library
+	message("fmt library")
+	add_3rdparty_project (${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/fmt ${CMAKE_BINARY_DIR}/3rd_party/fmt)
+	include_directories (SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/../3rdparty/fmt/include)
+	set (FMT_LIB fmt)
+#fmt library
+
 set(
 	USED_FRAMEWORKS
 	general ${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/glfw/3.3.6_win64/lib-vc2019/glfw3_mt.lib
@@ -139,6 +148,7 @@ add_library(
 target_link_libraries (
 	j4f_engine
 	${USED_FRAMEWORKS}
+	${FMT_LIB}
 )
 
 target_include_directories(j4f_engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Platform/GLFW)

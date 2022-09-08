@@ -52,7 +52,7 @@ namespace engine {
 				};
 
 				const auto& gpuProperties = renderer->getDevice()->gpuProperties;
-				LOG_TAG(GRAPHICS, "gpu: %s(%s, driver: %d)", gpuProperties.deviceName, gpuTypes[static_cast<uint8_t>(gpuProperties.deviceType)].c_str(), gpuProperties.driverVersion);
+				LOG_TAG(GRAPHICS, "gpu: {}({}, driver: {})", gpuProperties.deviceName, gpuTypes[static_cast<uint8_t>(gpuProperties.deviceType)].c_str(), gpuProperties.driverVersion);
 			}
 
 			//render_type = Render_Type::VULKAN;
