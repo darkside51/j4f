@@ -68,6 +68,16 @@ namespace engine {
 			}
 		}
 
+		template <typename T>
+		inline void setParamByName(const std::string& name, T* value, bool copyData, const uint32_t count = 1) {
+			for (uint32_t i = 0; i < renderDataCount; ++i) {
+				vulkan::RenderData* r_data = renderData[i];
+				if (r_data == nullptr || r_data->pipeline == nullptr) continue;
+
+				r_data->setParamByName(name, value, copyData, count);
+			}
+		}
+
 		void render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const glm::mat4* cameraMatrix);
 	};
 }

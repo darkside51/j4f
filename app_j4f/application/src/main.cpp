@@ -170,7 +170,7 @@ namespace engine {
 						glm::mat4 wtr(1.0f);
 
 						const int grassType = engine::random(0, 100) < 5 ? engine::random(2, 4) : engine::random(0, 1);
-						if (grassType > 1) {
+						if (grassType > 2) {
 							const float scale_xyz = (engine::random(25.0f, 35.0f) * 400.0f);
 							scaleMatrix(wtr, glm::vec3(scale_xyz, scale_xyz, scale_xyz));
 						} else {
@@ -180,7 +180,8 @@ namespace engine {
 						}
 
 						rotateMatrix_xyz(wtr, glm::vec3(0.0f, 0.0f, engine::random(-3.1415926, 3.1415926)));
-						translateMatrixTo(wtr, glm::vec3(-1024.0f + x * space, 1024.0f - y * space, grassType));
+						translateMatrixTo(wtr, glm::vec3(-1024.0f + x * space, 1024.0f - y * space, -8.5f));
+						wtr[0][3] = grassType;
 						grassTransforms.emplace_back(std::move(wtr));
 					}
 				}
@@ -499,9 +500,9 @@ namespace engine {
 			tex_params3.files = { 
 				"resources/assets/models/grass/textures/grass76.png",
 				"resources/assets/models/grass/textures/grass77.png",
+				"resources/assets/models/grass/textures/grass.png",
 				"resources/assets/models/grass/textures/flowers16.png",
-				"resources/assets/models/grass/textures/flowers26.png",
-				"resources/assets/models/grass/textures/grass2.png",
+				"resources/assets/models/grass/textures/flowers26.png"
 			};
 			auto texture_t6 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
@@ -776,7 +777,7 @@ namespace engine {
 				shadowRenderList.addDescriptor(&asset->getRenderDescriptor());
 				});
 
-			TextureData img("resources/assets/textures/t.jpg");
+			TextureData img("resources/assets/textures/t3.jpg");
 			GrassRenderer* grenderer = new GrassRenderer(img);
 
 			TextureLoadingParams tex_params_floor_mask;
@@ -812,6 +813,7 @@ namespace engine {
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
+				node->value().setBoundingVolume(BoundingVolume::make<CubeVolume>(glm::vec3(-1024.0f, -1024.0f, 0.0f), glm::vec3(1024.0f, 1024.0f, 40.0f)));
 				rootNode->addChild(node);
 
 				grenderer->setMesh(asset);
@@ -1108,7 +1110,8 @@ namespace engine {
 					t -= math_constants::pi2;
 				}
 
-				const_cast<glm::mat4&>(grassNode->model())[0][0] = t;
+				grassNode->getRenderObject()->getRenderDescriptor()->setParamByName("u_time", &t, false);
+				//const_cast<glm::mat4&>(grassNode->model())[0][0] = t;
 				//grassNode->setLocalMatrix(glm::mat4(t));
 			}
 
@@ -1287,8 +1290,13 @@ namespace engine {
 				//// statl label
 				auto statistic = Engine::getInstance().getModule<Statistic>();
 				const bool vsync = Engine::getInstance().getModule<Graphics>()->config().v_sync;
+#ifdef _DEBUG
+				const char* buildType = "debug";
+#else
+				const char* buildType = "release";
+#endif
 				//std::shared_ptr<TextureFrame> frame = bitmapFont->createFrame(fmt_string("resolution: %dx%d\nv_sync: %s\ndraw calls: %d\nfps: %d\ncpu frame time: %f", width, height, vsync ? "on" : "off", statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime()));
-				std::shared_ptr<TextureFrame> frame = bitmapFont->createFrame(fmt_string("resolution: {}x{}\nv_sync: {}\ndraw calls: {}\nfps: {}\ncpu frame time: {:.3}", width, height, vsync ? "on" : "off", statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime()));
+				std::shared_ptr<TextureFrame> frame = bitmapFont->createFrame(fmt_string("build type: {}\nresolution: {}x{}\nv_sync: {}\ndraw calls: {}\nfps: {}\ncpu frame time: {:.3}", buildType, width, height, vsync ? "on" : "off", statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime()));
 				TextureFrameBounds frameBounds(frame.get());
 
 				plainTest->graphics()->setFrame(frame);

@@ -23,8 +23,7 @@ layout (set = 3, binding = 0) uniform shadowUBO {
 } u_shadow;
 
 layout (set = 5, binding = 0) uniform UBO {
-	int use_skin;
-	mat4 skin_matrixes[192];
+	float u_time;
 } u_ubo;
 
 layout(push_constant) uniform PUSH_CONST {
@@ -49,8 +48,8 @@ void main() {
 	out_uv = a_uv;
 
 	mat4 modelMatrix = u_transforms.models[gl_InstanceIndex];
-	out_mix = modelMatrix[3][2];
-	modelMatrix[3][2] = 0.0;
+	out_mix = modelMatrix[0][3];
+	modelMatrix[0][3] = 0.0;
 
 	out_normal = normalize((modelMatrix * vec4(a_normal, 0.0)).xyz);
 	vec4 world_position = modelMatrix * vec4(a_position, 1.0);
@@ -59,7 +58,7 @@ void main() {
 	out_view_depth = view_position.z;
 	out_position = world_position.xyz;
 
-	float t = u_push_const.model_matrix[0][0];
+	float t = u_ubo.u_time;
 	out_st = 0.0025 * sin(t + (world_position.x + world_position.y) * 0.1) * world_position.z;
 
 	//out_mix = float(gl_InstanceIndex & 1);
