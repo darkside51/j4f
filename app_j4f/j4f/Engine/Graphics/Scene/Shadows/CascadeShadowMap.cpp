@@ -92,7 +92,7 @@ namespace engine {
 		_dimension(dim),
 		_cascadesCount(count),
 		_cascadeSplits(count),
-		_splitDepths(count),
+		_splitDepths(4),
 		_cascadeViewProjects(count)
 	{
 		if (Engine::getInstance().getModule<Graphics>()->getRenderer()->getDevice()->enabledFeatures.geometryShader) {

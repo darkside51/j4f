@@ -86,8 +86,8 @@ namespace engine {
 
 	////////////////////
 	/// cascade shadow map
-	constexpr uint8_t SHADOW_MAP_CASCADE_COUNT = 4;
-	constexpr uint16_t SHADOWMAP_DIM = 4096; // VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
+	constexpr uint8_t SHADOW_MAP_CASCADE_COUNT = 3;
+	constexpr uint16_t SHADOWMAP_DIM = 2048; // VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
 	//constexpr uint16_t SHADOWMAP_DIM = 1024; // VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU
 	glm::vec3 lightPos = glm::vec3(-460.0f, -600.0f, 1000.0f);
 	/// cascade shadow map
@@ -380,7 +380,8 @@ namespace engine {
 			clearValues[1].depthStencil = { 1.0f, 0 };
 
 			//////////////////////////////////
-			shadowMap = new CascadeShadowMap(SHADOWMAP_DIM, SHADOW_MAP_CASCADE_COUNT, camera->getNearFar(), 250.0f, 1600.0f);
+			const glm::vec2 nearFar(1.0f, 5500.0f);
+			shadowMap = new CascadeShadowMap(SHADOWMAP_DIM, SHADOW_MAP_CASCADE_COUNT, nearFar, 250.0f, 2500.0f);
 			shadowMap->setLamdas(1.0f, 1.0f, 1.0f);
 			shadowMap->setLightPosition(lightPos);
 		}
@@ -1608,6 +1609,8 @@ int main() {
 
 	////////////////////////////////////////
 	engine::EngineConfig cfg;
+	cfg.fpsLimit = 120;
+	cfg.graphicsCfg = { true, 2 }; // 1 - VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU, 2 - VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
 	engine::Engine::getInstance().init(cfg);
 	return 123;
 }

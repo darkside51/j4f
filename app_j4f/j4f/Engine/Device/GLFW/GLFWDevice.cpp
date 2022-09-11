@@ -225,7 +225,7 @@ namespace engine {
 		while (!glfwWindowShouldClose(_window)) {
 			if (_width != 0 && _height != 0) {
 				Engine::getInstance().nextFrame();
-			}
+			} 
 
 			glfwPollEvents();
 		}

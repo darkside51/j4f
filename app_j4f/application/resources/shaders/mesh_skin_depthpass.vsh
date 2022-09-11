@@ -1,6 +1,6 @@
 #version 450
 
-#define SHADOW_MAP_CASCADE_COUNT 4
+#define SHADOW_MAP_CASCADE_COUNT 3
 
 layout (location = 0) in vec3 a_position;
 layout (location = 1) in vec3 a_normal;

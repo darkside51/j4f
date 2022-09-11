@@ -1,9 +1,11 @@
 #pragma once
 
 #include "Common.h"
+#include "Configs.h"
 
 #include <vector>
 #include <cstdint>
+#include <chrono>
 
 namespace engine {
 	class IEngineModule;
@@ -11,9 +13,6 @@ namespace engine {
 	class Statistic;
 	class Application;
 	class Looper;
-
-	struct EngineConfig {
-	};
 
 	class Engine {
 	public:
@@ -93,5 +92,8 @@ namespace engine {
 		Graphics* _graphics = nullptr;
 		Application* _application = nullptr;
 		Looper* _looper = nullptr;
+
+		std::chrono::steady_clock::time_point _time;
+		double _minframeLimit = std::numeric_limits<double>::max();
 	};
 }

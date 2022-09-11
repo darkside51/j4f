@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../Core/EngineModule.h"
+#include "../Core/Configs.h"
 #include <cstdint>
 
 namespace vulkan {
@@ -16,11 +17,6 @@ namespace engine {
 
 	enum class Render_Type : uint8_t {
 		VULKAN = 0
-	};
-
-	struct GraphicConfig {
-		bool v_sync;
-		uint8_t gpu_type;
 	};
 
 	class Graphics : public IEngineModule {

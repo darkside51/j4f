@@ -43,7 +43,7 @@ namespace engine {
 		setModule<AssetManager>(2);
 		setModule<Input>();
 		setModule<Device>();
-		setModule<Graphics>(GraphicConfig{true, 2}); // 1 - VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU, 2 - VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
+		setModule<Graphics>(cfg.graphicsCfg);
 		setModule<Bus>();
 		
 		_statistic = getModule<Statistic>();
@@ -52,6 +52,9 @@ namespace engine {
 
 		getModule<FileManager>()->createFileSystem<DefaultFileSystem>();
 		getModule<AssetManager>()->setLoader<JsonLoader>();
+
+		_minframeLimit = 1.0 / cfg.fpsLimit;
+		_time = std::chrono::steady_clock::now();
 
 		initComplete(); // after all
 
@@ -93,12 +96,15 @@ namespace engine {
 	}
 
 	void Engine::nextFrame() {
-		static auto time = std::chrono::steady_clock::now();
 		const auto currentTime = std::chrono::steady_clock::now();
-		const std::chrono::duration<double> diff = currentTime - time;
-		time = currentTime;
+		const std::chrono::duration<double> duration = currentTime - _time;
+		_time = currentTime;
+		const double durationTime = duration.count();
+		if (durationTime < _minframeLimit) { 
+			std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(1000.0 * (_minframeLimit - durationTime)));
+		}
 
-		const float delta = static_cast<float>(diff.count());
+		const float delta = static_cast<float>(durationTime);
 
 		_graphics->beginFrame();
 		_application->nextFrame(delta);

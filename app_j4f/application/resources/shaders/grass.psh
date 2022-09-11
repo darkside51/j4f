@@ -1,6 +1,6 @@
 #version 450
 
-#define SHADOW_MAP_CASCADE_COUNT 4
+#define SHADOW_MAP_CASCADE_COUNT 3
 
 layout (location = 0) in vec3 in_normal;
 layout (location = 1) in vec2 in_uv;
@@ -97,8 +97,8 @@ void main() {
 		vec4 shadowCoord = u_shadow.cascade_matrix[cascade] * vec4(in_position, 1.0);
 		shadowCoord.xy = (shadowCoord.xy + 1.0) * 0.5;
 
-		float shadow = textureProj(shadowCoord / shadowCoord.w, vec2(0.0, 0.0), cascade);
-		//float shadow = filterPCF(shadowCoord / shadowCoord.w, cascade);
+		//float shadow = textureProj(shadowCoord / shadowCoord.w, vec2(0.0, 0.0), cascade);
+		float shadow = filterPCF(shadowCoord / shadowCoord.w, cascade);
 
 		const float light = shadow * clamp(((35.0 + in_position.z) / 50.0), 0.0, 1.0);
 		color.rgb *= light * clamp(u_constants.lightMinMax.y, u_constants.lightMinMax.x, 1.0);

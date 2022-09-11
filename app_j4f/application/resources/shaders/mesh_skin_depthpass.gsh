@@ -1,6 +1,6 @@
 #version 450
 
-#define SHADOW_MAP_CASCADE_COUNT 4
+#define SHADOW_MAP_CASCADE_COUNT 3
 
 layout (triangles, invocations = SHADOW_MAP_CASCADE_COUNT) in;
 layout (triangle_strip, max_vertices = 3) out;
