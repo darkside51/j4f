@@ -90,54 +90,54 @@ namespace engine {
 
 	void glfwOnKeyboard(GLFWwindow* window, int key, int scancode, int action, int mods) {
 
-		KeyBoardKey k = KeyBoardKey::K_UNKNOWN;
+		KeyboardKey k = KeyboardKey::K_UNKNOWN;
 
 		if (key >= GLFW_KEY_0 && key <= GLFW_KEY_9) {
-			k = static_cast<KeyBoardKey>((key - GLFW_KEY_0) + static_cast<int>(KeyBoardKey::K_0));
+			k = static_cast<KeyboardKey>((key - GLFW_KEY_0) + static_cast<int>(KeyboardKey::K_0));
 		} else if (key >= GLFW_KEY_A && key <= GLFW_KEY_Z) {
-			k = static_cast<KeyBoardKey>((key - GLFW_KEY_A) + static_cast<int>(KeyBoardKey::K_A));
+			k = static_cast<KeyboardKey>((key - GLFW_KEY_A) + static_cast<int>(KeyboardKey::K_A));
 		} else if (key >= GLFW_KEY_ESCAPE && key <= GLFW_KEY_F25) {
-			k = static_cast<KeyBoardKey>((key - GLFW_KEY_ESCAPE) + static_cast<int>(KeyBoardKey::K_ESCAPE));
+			k = static_cast<KeyboardKey>((key - GLFW_KEY_ESCAPE) + static_cast<int>(KeyboardKey::K_ESCAPE));
 		} else if (key >= GLFW_KEY_KP_0 && key <= GLFW_KEY_MENU) {
-			k = static_cast<KeyBoardKey>((key - GLFW_KEY_KP_0) + static_cast<int>(KeyBoardKey::K_KP_0));
+			k = static_cast<KeyboardKey>((key - GLFW_KEY_KP_0) + static_cast<int>(KeyboardKey::K_KP_0));
 		} else {
 
 		switch (key) {
 			case GLFW_KEY_SPACE:
-				k = KeyBoardKey::K_SPACE;
+				k = KeyboardKey::K_SPACE;
 				break;
 			case GLFW_KEY_APOSTROPHE:
-				k = KeyBoardKey::K_APOSTROPHE;
+				k = KeyboardKey::K_APOSTROPHE;
 				break;
 			case GLFW_KEY_COMMA:
-				k = KeyBoardKey::K_COMMA;
+				k = KeyboardKey::K_COMMA;
 				break;
 			case GLFW_KEY_MINUS:
-				k = KeyBoardKey::K_MINUS;
+				k = KeyboardKey::K_MINUS;
 				break;
 			case GLFW_KEY_PERIOD:
-				k = KeyBoardKey::K_PERIOD;
+				k = KeyboardKey::K_PERIOD;
 				break;
 			case GLFW_KEY_SLASH:
-				k = KeyBoardKey::K_SLASH;
+				k = KeyboardKey::K_SLASH;
 				break;
 			case GLFW_KEY_SEMICOLON:
-				k = KeyBoardKey::K_SEMICOLON;
+				k = KeyboardKey::K_SEMICOLON;
 				break;
 			case GLFW_KEY_EQUAL:
-				k = KeyBoardKey::K_EQUAL;
+				k = KeyboardKey::K_EQUAL;
 				break;
 			case GLFW_KEY_LEFT_BRACKET:
-				k = KeyBoardKey::K_LEFT_BRACKET;
+				k = KeyboardKey::K_LEFT_BRACKET;
 				break;
 			case GLFW_KEY_BACKSLASH:
-				k = KeyBoardKey::K_BACKSLASH;
+				k = KeyboardKey::K_BACKSLASH;
 				break;
 			case GLFW_KEY_RIGHT_BRACKET:
-				k = KeyBoardKey::K_SPACE;
+				k = KeyboardKey::K_SPACE;
 				break;
 			case GLFW_KEY_GRAVE_ACCENT:
-				k = KeyBoardKey::K_GRAVE_ACCENT;
+				k = KeyboardKey::K_GRAVE_ACCENT;
 				break;
 			default:
 				action = 255; // for no call onKeyEvent
@@ -199,7 +199,9 @@ namespace engine {
 		delete _surfaceInitialiser;
 	}
 
-	void GLFWDevice::swicthFullscreen(const bool fullscreen) {
+	void GLFWDevice::setFullscreen(const bool fullscreen) {
+		if (_fullscreen == fullscreen) return;
+		_fullscreen = fullscreen;
 		if (fullscreen) {
 			GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 			const GLFWvidmode* mode = glfwGetVideoMode(monitor);
@@ -207,8 +209,15 @@ namespace engine {
 			_height = mode->height;
 			glfwSetWindowMonitor(_window, glfwGetPrimaryMonitor(), 0, 0, _width, _height, GLFW_DONT_CARE);
 		} else {
+			_width = 1024;
+			_height = 768;
 			glfwSetWindowMonitor(_window, nullptr, 0, 0, _width, _height, GLFW_DONT_CARE);
+			glfwSetWindowPos(_window, 100, 100);
 		}
+	}
+
+	bool GLFWDevice::isFullscreen() const {
+		return _fullscreen;
 	}
 
 	void GLFWDevice::setSize(const uint16_t w, const uint16_t h) {

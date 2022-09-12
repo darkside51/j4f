@@ -4,6 +4,7 @@
 #include "vkCommandBuffer.h"
 #include "vkGPUProgram.h"
 #include <vulkan/vulkan.h>
+#include <array>
 #include <vector>
 #include <string>
 #include <cstdint>
@@ -60,9 +61,24 @@ namespace vulkan {
 			return (formatProperties.optimalTilingFeatures & dstFeatures) == dstFeatures;
 		}
 
-		VkFormat getSupportedDepthFormat(bool samplingSupport = false) const {
-			std::vector<VkFormat> depthFormats = {VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D32_SFLOAT, VK_FORMAT_D24_UNORM_S8_UINT, VK_FORMAT_D16_UNORM_S8_UINT, VK_FORMAT_D16_UNORM};
-			for (auto&& format : depthFormats) {
+		VkFormat getSupportedDepthFormat(const uint8_t minBits, bool samplingSupport = false) const {
+			constexpr uint8_t formatsCount = 5;
+			std::array<VkFormat, formatsCount> depthFormats = { VK_FORMAT_D16_UNORM, VK_FORMAT_D16_UNORM_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT, VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT };
+			uint8_t i = 0;
+			switch (minBits) {
+				case 16:
+					break;
+				case 24:
+					i = 2;
+					break;
+				case 32: 
+					i = 3;
+					break;
+				default:
+					return VK_FORMAT_UNDEFINED;
+			}
+			for (; i < formatsCount; ++i) {
+				auto&& format = depthFormats[i];
 				VkFormatProperties formatProperties;
 				vkGetPhysicalDeviceFormatProperties(gpu, format, &formatProperties);
 				// format must support depth stencil attachment for optimal tiling

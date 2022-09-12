@@ -21,7 +21,8 @@ namespace engine {
 		void setSize(const uint16_t w, const uint16_t h);
 		GLFWwindow* getWindow() { return _window; }
 
-		void swicthFullscreen(const bool fullscreen);
+		void setFullscreen(const bool fullscreen);
+		bool isFullscreen() const;
 
 	private:
 		GLFWwindow* _window;
@@ -29,5 +30,6 @@ namespace engine {
 
 		uint16_t _width;
 		uint16_t _height;
+		bool _fullscreen = false;
 	};
 }

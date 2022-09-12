@@ -98,6 +98,7 @@ namespace engine {
 
 	H_Node* rootNode;
 	H_Node* uiNode;
+	std::vector<H_Node*> shadowCastNodes;
 	bool cameraMatrixChanged = true;
 
 	constexpr bool renderBounds = false;
@@ -326,27 +327,31 @@ namespace engine {
 		bool onInpuKeyEvent(const KeyEvent& event) override {
 
 			switch (event.key) {
-				case KeyBoardKey::K_E:
+				case KeyboardKey::K_E:
 					event.state == InputEventState::IES_RELEASE ? wasd.y -= 0.5f : wasd.y += 0.5f;
 					break;
-				case KeyBoardKey::K_Q:
+				case KeyboardKey::K_Q:
 					event.state == InputEventState::IES_RELEASE ? wasd.y += 0.5f : wasd.y -= 0.5f;
 					break;
-				case KeyBoardKey::K_W:
+				case KeyboardKey::K_W:
 					event.state == InputEventState::IES_RELEASE ? wasd.z -= 1.0f : wasd.z += 1.0f;
 					break;
-				case KeyBoardKey::K_S:
+				case KeyboardKey::K_S:
 					event.state == InputEventState::IES_RELEASE ? wasd.z += 1.0f : wasd.z -= 1.0f;
 					break;
-				case KeyBoardKey::K_A:
+				case KeyboardKey::K_A:
 					event.state == InputEventState::IES_RELEASE ? wasd.x += 1.0f : wasd.x -= 1.0f;
 					break;
-				case KeyBoardKey::K_D:
+				case KeyboardKey::K_D:
 					event.state == InputEventState::IES_RELEASE ? wasd.x -= 1.0f : wasd.x += 1.0f;
 					break;
-				case KeyBoardKey::K_ESCAPE:
+				case KeyboardKey::K_ESCAPE:
 					if (event.state != InputEventState::IES_RELEASE) break;
 					Engine::getInstance().getModule<Device>()->leaveMainLoop();
+					break;
+				case KeyboardKey::K_ENTER:
+					if (event.state != InputEventState::IES_RELEASE) break;
+					Engine::getInstance().getModule<Device>()->setFullscreen(!Engine::getInstance().getModule<Device>()->isFullscreen());
 					break;
 				default:
 					break;
@@ -606,7 +611,7 @@ namespace engine {
 				mesh->setGraphics(asset);
 				mesh->setNode(node->value());
 
-				shadowRenderList.addDescriptor(&asset->getRenderDescriptor());
+				shadowCastNodes.push_back(node);
 				});
 
 			assm->loadAsset<Mesh*>(mesh_params, [program_gltf, texture_zombi](Mesh* asset, const AssetLoadingResult result) {
@@ -623,7 +628,7 @@ namespace engine {
 				glm::mat4 wtr(1.0f);
 				scaleMatrix(wtr, glm::vec3(20.0f));
 				rotateMatrix_xyz(wtr, glm::vec3(1.57f, -0.45f, 0.0f));
-				translateMatrixTo(wtr, glm::vec3(100.0f, -0.0f, 0.0f));
+				translateMatrixTo(wtr, glm::vec3(100.0f, 190.0f, 0.0f));
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
@@ -633,7 +638,7 @@ namespace engine {
 				mesh2->setGraphics(asset);
 				mesh2->setNode(node->value());
 
-				shadowRenderList.addDescriptor(&asset->getRenderDescriptor());
+				shadowCastNodes.push_back(node);
 				});
 
 			assm->loadAsset<Mesh*>(mesh_params2, [program_gltf, texture_v, texture_v2, texture_v3](Mesh* asset, const AssetLoadingResult result) {
@@ -660,7 +665,7 @@ namespace engine {
 				glm::mat4 wtr(1.0f);
 				scaleMatrix(wtr, glm::vec3(30.0f));
 				directMatrix_yz(wtr, 0.0f, 1.0f);
-				translateMatrixTo(wtr, glm::vec3(0.0f, 0.0f, 0.0f));
+				translateMatrixTo(wtr, glm::vec3(-100.0f, 210.0f, 0.0f));
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
@@ -671,7 +676,7 @@ namespace engine {
 				mesh3->setGraphics(asset);
 				mesh3->setNode(node->value());
 
-				shadowRenderList.addDescriptor(&asset->getRenderDescriptor());
+				shadowCastNodes.push_back(node);
 				});
 
 			assm->loadAsset<Mesh*>(mesh_params3, [program_gltf, texture_t, texture_t2, this](Mesh* asset, const AssetLoadingResult result) {
@@ -697,7 +702,7 @@ namespace engine {
 				mesh4->setGraphics(asset);
 				mesh4->setNode(node->value());
 
-				shadowRenderList.addDescriptor(&asset->getRenderDescriptor());
+				shadowCastNodes.push_back(node);
 				});
 
 			assm->loadAsset<Mesh*>(mesh_params4, [program_gltf, texture_t3, texture_t4, this](Mesh* asset, const AssetLoadingResult result) {
@@ -723,7 +728,7 @@ namespace engine {
 				mesh5->setGraphics(asset);
 				mesh5->setNode(node->value());
 
-				shadowRenderList.addDescriptor(&asset->getRenderDescriptor());
+				shadowCastNodes.push_back(node);
 				});
 
 			assm->loadAsset<Mesh*>(mesh_params5, [program_gltf, texture_t5, texture_t6, this](Mesh* asset, const AssetLoadingResult result) {
@@ -748,7 +753,7 @@ namespace engine {
 				mesh6->setGraphics(asset);
 				mesh6->setNode(node->value());
 
-				shadowRenderList.addDescriptor(&asset->getRenderDescriptor());
+				shadowCastNodes.push_back(node);
 				});
 
 			assm->loadAsset<Mesh*>(mesh_params6, [program_gltf, texture_t7, texture_t6, this](Mesh* asset, const AssetLoadingResult result) {
@@ -775,7 +780,7 @@ namespace engine {
 				mesh7->setGraphics(asset);
 				mesh7->setNode(node->value());
 
-				shadowRenderList.addDescriptor(&asset->getRenderDescriptor());
+				shadowCastNodes.push_back(node);
 				});
 
 			TextureData img("resources/assets/textures/t3.jpg");
@@ -1116,8 +1121,8 @@ namespace engine {
 				//grassNode->setLocalMatrix(glm::mat4(t));
 			}
 
-			//rootNode->execute_with<NodeMatrixUpdater>();
-			reloadRenderList(sceneRenderList, rootNode, camera->getFrustum(), cameraMatrixChanged, 0);
+			reloadRenderList(sceneRenderList, rootNode, cameraMatrixChanged, 0, engine::FrustumVisibleChecker(camera->getFrustum()));
+			reloadRenderList(shadowRenderList, shadowCastNodes.data(), shadowCastNodes.size(), false, 0, engine::FrustumVisibleChecker(camera->getFrustum()));
 			cameraMatrixChanged = false;
 
 			mesh->updateRenderData();
@@ -1296,20 +1301,21 @@ namespace engine {
 #else
 				const char* buildType = "release";
 #endif
+				
 				//std::shared_ptr<TextureFrame> frame = bitmapFont->createFrame(fmt_string("resolution: %dx%d\nv_sync: %s\ndraw calls: %d\nfps: %d\ncpu frame time: %f", width, height, vsync ? "on" : "off", statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime()));
-				std::shared_ptr<TextureFrame> frame = bitmapFont->createFrame(fmt_string("build type: {}\nresolution: {}x{}\nv_sync: {}\ndraw calls: {}\nfps: {}\ncpu frame time: {:.3}", buildType, width, height, vsync ? "on" : "off", statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime()));
+				std::shared_ptr<TextureFrame> frame = bitmapFont->createFrame(fmt_string("build type: {}\ngpu: {}\nresolution: {}x{}\nv_sync: {}\ndraw calls: {}\nfps: {}\ncpu frame time: {:.3}", buildType, renderer->getDevice()->gpuProperties.deviceName, width, height, vsync ? "on" : "off", statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime()));
 				TextureFrameBounds frameBounds(frame.get());
 
 				plainTest->graphics()->setFrame(frame);
 				plainTest->getNode()->setBoundingVolume(BoundingVolume::make<CubeVolume>(glm::vec3(frameBounds.minx, frameBounds.miny, -0.1f), glm::vec3(frameBounds.maxx, frameBounds.maxy, 0.1f)));
 
 				glm::mat4 wtr(1.0f);
-				translateMatrixTo(wtr, glm::vec3(width * 0.5f - 250.0f, height * 0.5f - 30.0f, -1.0f));
+				translateMatrixTo(wtr, glm::vec3(-(width * 0.5f) + 16.0f, height * 0.5f - 30.0f, -1.0f));
 				plainTest->getNode()->setLocalMatrix(wtr);
 
 				const glm::mat4& camera2Matrix = camera2->getMatrix();
 
-				reloadRenderList(uiRenderList, uiNode, camera2->getFrustum(), false, 0);
+				reloadRenderList(uiRenderList, uiNode, false, 0, engine::FrustumVisibleChecker(camera2->getFrustum()));
 
 				if constexpr (renderBounds) {
 					renderNodesBounds(uiNode, camera2Matrix, commandBuffer, currentFrame, 0); // draw bounding boxes
@@ -1607,9 +1613,10 @@ int main() {
 	char buffer[1024];
 	fmt::format_to(buffer, "{}", 42);
 
-	////////////////////////////////////////
+	//////////////////////////////////////
 	engine::EngineConfig cfg;
 	cfg.fpsLimit = 120;
+	cfg.fpsLimitType = engine::FpsLimitType::F_CPU_SLEEP;
 	cfg.graphicsCfg = { true, 2 }; // 1 - VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU, 2 - VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
 	engine::Engine::getInstance().init(cfg);
 	return 123;

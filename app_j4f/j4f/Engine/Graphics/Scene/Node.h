@@ -73,8 +73,24 @@ namespace engine {
 	using H_Node = HierarchyRaw<Node>;
 	using Hs_Node = HierarchyShared<Node>;
 
+	class EmptyVisibleChecker {};
+
+	class FrustumVisibleChecker {
+	public:
+		FrustumVisibleChecker() = default;
+		FrustumVisibleChecker(const Frustum* f) : _frustum(f) {}
+		~FrustumVisibleChecker() = default;
+
+		inline bool checkVisible(const BoundingVolume* volume, const glm::mat4& wtr) const {
+			return volume->checkFrustum(_frustum, wtr);
+		}
+	private:
+		const Frustum* _frustum = nullptr;
+	};
+
 	struct NodeMatrixUpdater {
-		inline static bool _(H_Node* node, const Frustum* frustum = nullptr, const bool dirtyVisible = false, const uint8_t visibleId = 0) {
+		template<typename V>
+		inline static bool _(H_Node* node, const bool dirtyVisible, const uint8_t visibleId, V&& visibleChecker) {
 			Node& mNode = node->value();
 			mNode._modelChanged = false;
 
@@ -93,23 +109,28 @@ namespace engine {
 				}
 			}
 
-			if (frustum && (dirtyVisible || mNode._modelChanged)) {
-				if (const BoundingVolume* volume = mNode._boundingVolume) {
-					const bool visible = volume->checkFrustum(frustum, mNode._model);
-					mNode.visible().setBit(visibleId, visible);
-					return visible;
-				} else {
-					return true;
-				}
-			} else {
+			if constexpr (std::is_same_v<V, EmptyVisibleChecker>) {
 				return mNode._boundingVolume ? mNode.visible().checkBit(visibleId) : true;
+			} else {
+				if (dirtyVisible || mNode._modelChanged) {
+					if (const BoundingVolume* volume = mNode._boundingVolume) {
+						const bool visible = visibleChecker.checkVisible(volume, mNode._model);
+						mNode.visible().setBit(visibleId, visible);
+						return visible;
+					} else {
+						return true;
+					}
+				} else {
+					return mNode._boundingVolume ? mNode.visible().checkBit(visibleId) : true;
+				}
 			}
 		}
 	};
 
+	template<typename V>
 	struct RenderListEmplacer {
-		inline static bool _(H_Node* node, RenderList& list, const Frustum* frustum = nullptr, const bool dirtyVisible = false, const uint8_t visibleId = 0) {
-			if (NodeMatrixUpdater::_(node, frustum, dirtyVisible, visibleId)) {
+		inline static bool _(H_Node* node, RenderList& list, const bool dirtyVisible, const uint8_t visibleId, V&& visibleChecker) {
+			if (NodeMatrixUpdater::_<V>(node, dirtyVisible, visibleId, std::forward<V>(visibleChecker))) {
 				if (const RenderObject* renderObject = node->value().getRenderObject()) {
 					list.addDescriptor(renderObject->getRenderDescriptor());
 				}
@@ -120,9 +141,19 @@ namespace engine {
 		}
 	};
 
-	inline void reloadRenderList(RenderList& list, H_Node* node, const Frustum* frustum = nullptr, const bool dirtyVisible = false, const uint8_t visibleId = 0) {
+	template<typename V = EmptyVisibleChecker>
+	inline void reloadRenderList(RenderList& list, H_Node* node, const bool dirtyVisible, const uint8_t visibleId, V&& visibleChecker = V()) {
 		list.clear();
-		node->execute_with<RenderListEmplacer>(list, frustum, dirtyVisible, visibleId);
+		node->execute_with<typename RenderListEmplacer<V>>(list, dirtyVisible, visibleId, std::forward<V>(visibleChecker));
+		list.sort();
+	}
+
+	template<typename V = EmptyVisibleChecker>
+	inline void reloadRenderList(RenderList& list, H_Node** node, size_t count, const bool dirtyVisible, const uint8_t visibleId, V&& visibleChecker = V()) {
+		list.clear();
+		for (size_t i = 0; i < count; ++i) {
+			node[i]->execute_with<typename RenderListEmplacer<V>>(list, dirtyVisible, visibleId, std::forward<V>(visibleChecker));
+		}
 		list.sort();
 	}
 

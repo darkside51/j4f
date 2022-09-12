@@ -95,5 +95,6 @@ namespace engine {
 
 		std::chrono::steady_clock::time_point _time;
 		double _minframeLimit = std::numeric_limits<double>::max();
+		FpsLimitType _frameLimitType = FpsLimitType::F_DONT_CARE;
 	};
 }

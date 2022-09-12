@@ -29,11 +29,14 @@ layout (set = 1, binding = 0) uniform sampler2DArray u_shadow_map;
 layout (set = 4, binding = 0) uniform sampler2DArray u_texture;
 
 float textureProj(vec4 shCoord, vec2 offset, uint cascade) {
-	float dist = texture(u_shadow_map, vec3(shCoord.xy + offset, cascade)).r;
-	float bias = 0.0001;
-	float depth = shCoord.z - bias;
-	depth *= step(-1.0, shCoord.z) * step(shCoord.z, 1.0);
-	return mix(1.0, u_constants.lightMinMax.x, step(dist, depth));
+	float d = step(-0.0, shCoord.z) * step(shCoord.z, 1.0);
+	if (d > 0.0) {
+		float dist = texture(u_shadow_map, vec3(shCoord.xy + offset, cascade)).r;
+		float bias = 0.0001;
+		float depth = shCoord.z - bias;
+		return mix(1.0, u_constants.lightMin, step(dist, depth));
+	}
+	return 1.0;
 }
 
 float filterPCF(vec4 sc, uint cascade) {

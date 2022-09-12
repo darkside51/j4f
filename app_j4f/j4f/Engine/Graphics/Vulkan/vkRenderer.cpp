@@ -211,7 +211,7 @@ namespace vulkan {
 		}
 
 		// find a suitable depth format
-		_mainDepthFormat = _vulkanDevice->getSupportedDepthFormat();
+		_mainDepthFormat = _vulkanDevice->getSupportedDepthFormat(_mainDepthFormatBits);
 
 		// setupDepthStencil
 		_depthStencil = vulkan::VulkanImage(_vulkanDevice, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_IMAGE_TYPE_2D, _mainDepthFormat, 1, _width, _height);

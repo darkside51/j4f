@@ -29,7 +29,7 @@ namespace engine {
 		PBUTTON_NONE = 255,
 	};
 
-	enum class KeyBoardKey : uint8_t {
+	enum class KeyboardKey : uint8_t {
 		K_SPACE = 0,
 		K_APOSTROPHE = 2,
 		K_COMMA = 3,
@@ -162,10 +162,10 @@ namespace engine {
 	};
 
 	struct KeyEvent {
-		KeyBoardKey key;
+		KeyboardKey key;
 		InputEventState state;
 
-		KeyEvent(const KeyBoardKey k, const InputEventState st) : key(k), state(st) {}
+		KeyEvent(const KeyboardKey k, const InputEventState st) : key(k), state(st) {}
 	};
 
 	class InputObserver {

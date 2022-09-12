@@ -21,16 +21,51 @@ namespace engine {
 	class Frustum {
 	public:
 		void calculate(const glm::mat4& clip);
-		void normalize();
-
+		
 		bool pointInFrustum(const glm::vec3& p) const;
 		bool sphereInFrustum(const glm::vec3& p, const float r);
 		bool cubeInFrustum_classic(const glm::vec3& min, const glm::vec3& max) const;
 		bool cubeInFrustum(const glm::vec3& min, const glm::vec3& max) const;
 
 	private:
+		void normalize();
 		bool _normalized;
 		float _frustum[6][4];
+	};
+
+	class FrustumCollection {
+	public:
+		FrustumCollection(const uint8_t count) : _frustums(count) {}
+
+		inline void calculate(const std::vector<glm::mat4>& clips) {
+			size_t i = 0;
+			for (auto&& f : _frustums) {
+				f.calculate(clips[i++]);
+			}
+		}
+
+		void calculateOne(const glm::mat4& clip, const uint8_t idx) {
+			_frustums[idx].calculate(clip);
+		}
+
+		inline bool pointInFrustum(const glm::vec3& p) const {
+			for (auto&& f : _frustums) { if (f.pointInFrustum(p)) return true; }
+		}
+
+		inline bool sphereInFrustum(const glm::vec3& p, const float r) {
+			for (auto&& f : _frustums) { if (f.sphereInFrustum(p, r)) return true; }
+		}
+
+		inline bool cubeInFrustum_classic(const glm::vec3& min, const glm::vec3& max) const {
+			for (auto&& f : _frustums) { if (f.cubeInFrustum_classic(min, max)) return true; }
+		}
+
+		inline bool cubeInFrustum(const glm::vec3& min, const glm::vec3& max) const {
+			for (auto&& f : _frustums) { if (f.cubeInFrustum(min, max)) return true; }
+		}
+
+	private:
+		std::vector<Frustum> _frustums;
 	};
 
 	enum class ProjectionType {

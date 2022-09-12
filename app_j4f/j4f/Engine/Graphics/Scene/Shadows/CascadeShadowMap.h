@@ -5,6 +5,7 @@
 #include "../../Vulkan/vkCommandBuffer.h"
 #include "../../Vulkan/vkFrameBuffer.h"
 #include "../../Vulkan/vkDebugMarker.h"
+#include "../Camera.h"
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <unordered_map>
@@ -168,6 +169,7 @@ namespace engine {
 		std::vector<float> _cascadeSplits;				// _cascadesCount
 		std::vector<float> _splitDepths;				// _cascadesCount
 		std::vector<glm::mat4> _cascadeViewProjects;	// _cascadesCount
+		std::vector<Frustum> _cascadeFrustums;			// _cascadesCount
 
 		VkClearValue _shadowClearValues;
 

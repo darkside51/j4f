@@ -54,6 +54,7 @@ namespace engine {
 		getModule<AssetManager>()->setLoader<JsonLoader>();
 
 		_minframeLimit = 1.0 / cfg.fpsLimit;
+		_frameLimitType = cfg.fpsLimitType;
 		_time = std::chrono::steady_clock::now();
 
 		initComplete(); // after all
@@ -98,12 +99,24 @@ namespace engine {
 	void Engine::nextFrame() {
 		const auto currentTime = std::chrono::steady_clock::now();
 		const std::chrono::duration<double> duration = currentTime - _time;
-		_time = currentTime;
 		const double durationTime = duration.count();
-		if (durationTime < _minframeLimit) { 
-			std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(1000.0 * (_minframeLimit - durationTime)));
+		
+		switch (_frameLimitType) {
+			case FpsLimitType::F_STRICT:
+				if (durationTime < _minframeLimit) {
+					return;
+				}
+				break;
+			case FpsLimitType::F_CPU_SLEEP:
+				if (durationTime < _minframeLimit) {
+					std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(1000.0 * (_minframeLimit - durationTime)));
+				}
+				break;
+			default:
+				break;
 		}
 
+		_time = currentTime;
 		const float delta = static_cast<float>(durationTime);
 
 		_graphics->beginFrame();

@@ -93,7 +93,8 @@ namespace engine {
 		_cascadesCount(count),
 		_cascadeSplits(count),
 		_splitDepths(4),
-		_cascadeViewProjects(count)
+		_cascadeViewProjects(count),
+		_cascadeFrustums(count)
 	{
 		if (Engine::getInstance().getModule<Graphics>()->getRenderer()->getDevice()->enabledFeatures.geometryShader) {
 			_technique = ShadowMapTechnique::SMT_GEOMETRY_SH;
@@ -117,7 +118,7 @@ namespace engine {
 		_shadowClearValues.depthStencil = { 1.0f, 0 };
 
 		auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
-		const auto depthFormat = renderer->getDevice()->getSupportedDepthFormat();
+		const auto depthFormat = renderer->getDevice()->getSupportedDepthFormat(16);
 
 		// create render pass
 		std::vector<VkAttachmentDescription> attachments(1);
@@ -321,6 +322,7 @@ namespace engine {
 			// store split distance and matrix in cascade
 			_splitDepths[i] = (nearFar.x + splitDist * clipRange) * -1.0f;
 			_cascadeViewProjects[i] = lightOrthoMatrix * lightViewMatrix;
+			_cascadeFrustums[i].calculate(_cascadeViewProjects[i]);
 
 			lastSplitDist = _cascadeSplits[i];
 		}
