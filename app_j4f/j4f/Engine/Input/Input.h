@@ -140,15 +140,15 @@ namespace engine {
 		K_KP_ADD = 107,
 		K_KP_ENTER = 108,
 		K_KP_EQUAL = 109,
-		K_LEFT_SHIFT = 110,
-		K_LEFT_CONTROL = 111,
-		K_LEFT_ALT = 112,
-		K_LEFT_SUPER = 113,
-		K_RIGHT_SHIFT = 114,
-		K_RIGHT_CONTROL = 115,
-		K_RIGHT_ALT = 116,
-		K_RIGHT_SUPER = 117,
-		K_MENU = 118,
+		K_LEFT_SHIFT = 113,
+		K_LEFT_CONTROL = 114,
+		K_LEFT_ALT = 115,
+		K_LEFT_SUPER = 116,
+		K_RIGHT_SHIFT = 117,
+		K_RIGHT_CONTROL = 118,
+		K_RIGHT_ALT = 119,
+		K_RIGHT_SUPER = 120,
+		K_MENU = 121,
 		K_UNKNOWN = 255
 	};
 
@@ -184,6 +184,16 @@ namespace engine {
 
 	class Input : public IEngineModule {
 	public:
+		inline constexpr static uint8_t ALT_PRESSED_BIT = 0;
+		inline constexpr static uint8_t CTRL_PRESSED_BIT = 1;
+		inline constexpr static uint8_t SHIFT_PRESSED_BIT = 2;
+		inline constexpr static uint8_t SUPER_PRESSED_BIT = 3;
+
+		inline bool isAltPressed()		const { return (_specialMask & (1 << ALT_PRESSED_BIT))		!= 0; }
+		inline bool isCtrlPressed()		const { return (_specialMask & (1 << CTRL_PRESSED_BIT))		!= 0; }
+		inline bool isShiftPressed()	const { return (_specialMask & (1 << SHIFT_PRESSED_BIT))	!= 0; }
+		inline bool isSuperPressed()	const { return (_specialMask & (1 << SUPER_PRESSED_BIT))	!= 0; }
+
 		void addObserver(InputObserver* o) {
 			_observers.push_back(o);
 			if (_observers.size() > 1) {
@@ -229,7 +239,21 @@ namespace engine {
 			}
 		}
 
+		inline void changeSpecialMask(const uint8_t mask, const InputEventState s) {
+			switch (s) {
+				case InputEventState::IES_PRESS:
+					_specialMask |= mask;
+					break;
+				case InputEventState::IES_RELEASE:
+					_specialMask &= ~mask;
+					break;
+				default:
+					break;
+			}
+		}
+
 	private:
+		uint8_t _specialMask;
 		std::vector<InputObserver*> _observers;
 	};
 }

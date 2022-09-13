@@ -350,8 +350,10 @@ namespace engine {
 					Engine::getInstance().getModule<Device>()->leaveMainLoop();
 					break;
 				case KeyboardKey::K_ENTER:
-					if (event.state != InputEventState::IES_RELEASE) break;
-					Engine::getInstance().getModule<Device>()->setFullscreen(!Engine::getInstance().getModule<Device>()->isFullscreen());
+					if (Engine::getInstance().getModule<Input>()->isAltPressed()) {
+						if (event.state != InputEventState::IES_RELEASE) break;
+						Engine::getInstance().getModule<Device>()->setFullscreen(!Engine::getInstance().getModule<Device>()->isFullscreen());
+					}
 					break;
 				default:
 					break;
@@ -1613,11 +1615,13 @@ int main() {
 	char buffer[1024];
 	fmt::format_to(buffer, "{}", 42);
 
-	//////////////////////////////////////
+	///////////////////////////////////
 	engine::EngineConfig cfg;
 	cfg.fpsLimit = 120;
-	cfg.fpsLimitType = engine::FpsLimitType::F_CPU_SLEEP;
-	cfg.graphicsCfg = { true, 2 }; // 1 - VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU, 2 - VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
+	cfg.fpsLimitType = engine::FpsLimitType::F_DONT_CARE;
+	cfg.graphicsCfg = { true, 2 , {} }; // 1 - VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU, 2 - VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
+	cfg.graphicsCfg.gpu_features.geometryShader = 1;
+	// fillModeNonSolid = _config.gpu_features.fillModeNonSolid; // example to enable POLYGON_MODE_LINE or POLYGON_MODE_POINT
 	engine::Engine::getInstance().init(cfg);
 	return 123;
 }

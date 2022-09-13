@@ -30,13 +30,14 @@ namespace engine {
 			using namespace vulkan;
 	
 			VkPhysicalDeviceFeatures enabledFeatures{};
-			std::vector<const char*> enabledDeviceExtensions; 
+			memcpy(&enabledFeatures, &_config.gpu_features, sizeof(VkPhysicalDeviceFeatures));
+			std::vector<const char*> &enabledDeviceExtensions = _config.gpu_extensions;
 			
 			VulkanRenderer* renderer = new VulkanRenderer();
 			renderer->createInstance({}, {});
 
-			enabledFeatures.geometryShader = VK_TRUE; // todo: configure it
-			//enabledFeatures.fillModeNonSolid = 1; // example to enable POLYGON_MODE_LINE or POLYGON_MODE_POINT
+			auto sz = sizeof(VkPhysicalDeviceFeatures);
+			auto sz2 = sizeof(GraphicConfig::GPUFeatures);
 
 			renderer->createDevice(enabledFeatures, enabledDeviceExtensions, static_cast<VkPhysicalDeviceType>(_config.gpu_type));
 			renderer->createSwapChain(surfaceInitialiser, _config.v_sync);

@@ -91,6 +91,7 @@ namespace engine {
 	void glfwOnKeyboard(GLFWwindow* window, int key, int scancode, int action, int mods) {
 
 		KeyboardKey k = KeyboardKey::K_UNKNOWN;
+		uint8_t specialMask = 0;
 
 		if (key >= GLFW_KEY_0 && key <= GLFW_KEY_9) {
 			k = static_cast<KeyboardKey>((key - GLFW_KEY_0) + static_cast<int>(KeyboardKey::K_0));
@@ -100,56 +101,82 @@ namespace engine {
 			k = static_cast<KeyboardKey>((key - GLFW_KEY_ESCAPE) + static_cast<int>(KeyboardKey::K_ESCAPE));
 		} else if (key >= GLFW_KEY_KP_0 && key <= GLFW_KEY_MENU) {
 			k = static_cast<KeyboardKey>((key - GLFW_KEY_KP_0) + static_cast<int>(KeyboardKey::K_KP_0));
-		} else {
 
-		switch (key) {
-			case GLFW_KEY_SPACE:
-				k = KeyboardKey::K_SPACE;
-				break;
-			case GLFW_KEY_APOSTROPHE:
-				k = KeyboardKey::K_APOSTROPHE;
-				break;
-			case GLFW_KEY_COMMA:
-				k = KeyboardKey::K_COMMA;
-				break;
-			case GLFW_KEY_MINUS:
-				k = KeyboardKey::K_MINUS;
-				break;
-			case GLFW_KEY_PERIOD:
-				k = KeyboardKey::K_PERIOD;
-				break;
-			case GLFW_KEY_SLASH:
-				k = KeyboardKey::K_SLASH;
-				break;
-			case GLFW_KEY_SEMICOLON:
-				k = KeyboardKey::K_SEMICOLON;
-				break;
-			case GLFW_KEY_EQUAL:
-				k = KeyboardKey::K_EQUAL;
-				break;
-			case GLFW_KEY_LEFT_BRACKET:
-				k = KeyboardKey::K_LEFT_BRACKET;
-				break;
-			case GLFW_KEY_BACKSLASH:
-				k = KeyboardKey::K_BACKSLASH;
-				break;
-			case GLFW_KEY_RIGHT_BRACKET:
-				k = KeyboardKey::K_SPACE;
-				break;
-			case GLFW_KEY_GRAVE_ACCENT:
-				k = KeyboardKey::K_GRAVE_ACCENT;
-				break;
-			default:
-				action = 255; // for no call onKeyEvent
-				break;
+			switch (k) {
+				case KeyboardKey::K_LEFT_ALT:
+				case KeyboardKey::K_RIGHT_ALT:
+					specialMask |= (1 << Input::ALT_PRESSED_BIT);
+					break;
+				case KeyboardKey::K_LEFT_CONTROL:
+				case KeyboardKey::K_RIGHT_CONTROL:
+					specialMask |= (1 << Input::CTRL_PRESSED_BIT);
+					break;
+				case KeyboardKey::K_LEFT_SHIFT:
+				case KeyboardKey::K_RIGHT_SHIFT:
+					specialMask |= (1 << Input::SHIFT_PRESSED_BIT);
+					break;
+				case KeyboardKey::K_LEFT_SUPER:
+				case KeyboardKey::K_RIGHT_SUPER:
+					specialMask |= (1 << Input::SUPER_PRESSED_BIT);
+					break;
+				default:
+					break;
+			}
+		} else {
+			switch (key) {
+				case GLFW_KEY_SPACE:
+					k = KeyboardKey::K_SPACE;
+					break;
+				case GLFW_KEY_APOSTROPHE:
+					k = KeyboardKey::K_APOSTROPHE;
+					break;
+				case GLFW_KEY_COMMA:
+					k = KeyboardKey::K_COMMA;
+					break;
+				case GLFW_KEY_MINUS:
+					k = KeyboardKey::K_MINUS;
+					break;
+				case GLFW_KEY_PERIOD:
+					k = KeyboardKey::K_PERIOD;
+					break;
+				case GLFW_KEY_SLASH:
+					k = KeyboardKey::K_SLASH;
+					break;
+				case GLFW_KEY_SEMICOLON:
+					k = KeyboardKey::K_SEMICOLON;
+					break;
+				case GLFW_KEY_EQUAL:
+					k = KeyboardKey::K_EQUAL;
+					break;
+				case GLFW_KEY_LEFT_BRACKET:
+					k = KeyboardKey::K_LEFT_BRACKET;
+					break;
+				case GLFW_KEY_BACKSLASH:
+					k = KeyboardKey::K_BACKSLASH;
+					break;
+				case GLFW_KEY_RIGHT_BRACKET:
+					k = KeyboardKey::K_SPACE;
+					break;
+				case GLFW_KEY_GRAVE_ACCENT:
+					k = KeyboardKey::K_GRAVE_ACCENT;
+					break;
+				default:
+					action = 255; // for no call onKeyEvent
+					break;
 			}
 		}
 
 		switch (action) {
 			case GLFW_PRESS:
+				if (specialMask) {
+					Engine::getInstance().getModule<Input>()->changeSpecialMask(specialMask, InputEventState::IES_PRESS);
+				}
 				Engine::getInstance().getModule<Input>()->onKeyEvent(KeyEvent(k, InputEventState::IES_PRESS));
 				break;
 			case GLFW_RELEASE:
+				if (specialMask) {
+					Engine::getInstance().getModule<Input>()->changeSpecialMask(specialMask, InputEventState::IES_RELEASE);
+				}
 				Engine::getInstance().getModule<Input>()->onKeyEvent(KeyEvent(k, InputEventState::IES_RELEASE));
 				break;
 			default:
@@ -158,6 +185,7 @@ namespace engine {
 	}
 
 	void glfwOnChar(GLFWwindow* window, unsigned int codepoint) {
+		Engine::getInstance().getModule<Input>()->onCharEvent(codepoint);
 	}
 
 	static GlfwStatObserver* statObserver; // todo remove stat observer from this code
