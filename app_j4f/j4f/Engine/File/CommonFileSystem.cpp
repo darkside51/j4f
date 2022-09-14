@@ -64,7 +64,8 @@ namespace engine {
 				if (std::filesystem::is_directory(entry.status())) {
 					round(entry, files);
 				} else if (std::filesystem::is_regular_file(entry.status())) {
-					std::string file_path = entry.path().u8string();
+					//std::string file_path = entry.path().u8string();
+					std::string file_path = entry.path().string();
 
 					const size_t sz = _root.length();
 					file_path = file_path.substr(sz, file_path.length() - sz);

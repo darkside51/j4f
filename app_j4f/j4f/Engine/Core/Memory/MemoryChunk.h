@@ -36,7 +36,7 @@ namespace engine {
 
         MemoryChunk(MemoryChunk&& chunk) noexcept : 
             _memSize(chunk._memSize),
-            _last(chunk.last),
+            _last(chunk._last),
             _holesCount(chunk._holesCount),
             _memory(chunk._memory),
             _holes(std::move(chunk._holes)),
@@ -48,7 +48,7 @@ namespace engine {
 
         MemoryChunk& operator= (MemoryChunk&& chunk) noexcept {
             _memSize = chunk._memSize;
-            _last = chunk.last;
+            _last = chunk._last;
             _holesCount = chunk._holesCount;
             _memory = chunk._memory;
             _holes = std::move(chunk._holes);
@@ -79,7 +79,7 @@ namespace engine {
         }
 
         inline bool destroyObject(T* object) {
-            if (object >= &_memory[0] && object < &_memory[last]) {
+            if (object >= &_memory[0] && object < &_memory[_last]) {
                 const size_t i = static_cast<size_t>(object - &_memory[0]);
 
                 if (_holesMap[i]) { return false; } // если там дырка - то не делаем ничего

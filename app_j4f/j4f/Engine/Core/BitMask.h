@@ -124,7 +124,7 @@ namespace engine {
 
 	template <typename M, typename T, typename... Args>
 	void fillBitMaskType(M& mask) {
-		mask.setBit(T::template rtti()<T>(), 1);
+		mask.setBit(T::template rtti<T>(), 1);
 		fillBitMaskType<Args...>(mask);
 	}
 

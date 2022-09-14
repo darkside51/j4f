@@ -51,7 +51,9 @@ namespace engine {
 		for (auto&& c : callbacks) {
 			c.mesh->createWithData(m, c.semanticMask, c.latency);
 			Engine::getInstance().getModule<Looper>()->pushTask([callback = std::move(c.callback), v = c.mesh]() {
-				if (callback) { callback(v, AssetLoadingResult::LOADING_SUCCESS); }
+				if (callback) { 
+					callback(v, AssetLoadingResult::LOADING_SUCCESS);
+				}
 			});
 		}
 	}

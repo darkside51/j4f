@@ -31,7 +31,7 @@ namespace engine {
 				flowTask->_dependency.fetch_add(1, std::memory_order_release);
 			}
 
-			const auto currentState = state();
+			const auto currentState = ITaskHandler::state();
 			switch (currentState) {
 				case TaskState::CANCELED:
 					return;

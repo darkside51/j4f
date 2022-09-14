@@ -21,7 +21,8 @@ namespace engine {
 			if (_outTime) {
 				*_outTime = time;
 			} else {
-				LOG_TAG_LEVEL(engine::LogLevel::L_DEBUG, TIME_PROFILER, "[{}(mcs)]\t {}", time, _name.c_str());
+				//LOG_TAG_LEVEL(engine::LogLevel::L_DEBUG, TIME_PROFILER, "[{}(mcs)]\t {}", time, _name.c_str());
+				LOG_TAG_LEVEL(engine::LogLevel::L_DEBUG, TIME_PROFILER, "[%d(mcs)]\t %s", time, _name.c_str());
 			}
 		}
 

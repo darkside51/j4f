@@ -29,12 +29,12 @@ namespace engine {
             generator = std::make_unique<std::mt19937>(std::clock());
         }
 
-        if constexpr (std::is_same_v<randomTypeAcessor<T>::value, int>) {
+        if constexpr (std::is_same_v<typename randomTypeAcessor<T>::value, int>) {
             std::uniform_int_distribution<T> distribution(min, max);
             return distribution(*generator.get());
         }
 
-        if constexpr (std::is_same_v<randomTypeAcessor<T>::value, float>) {
+        if constexpr (std::is_same_v<typename randomTypeAcessor<T>::value, float>) {
             std::uniform_real_distribution<T> distribution(min, max);
             return distribution(*generator.get());
         }

@@ -41,7 +41,7 @@ namespace engine {
 		}
 
 		NodeRenderer() = default;
-		NodeRenderer(type g) : NodeGraphics(&g->getRenderDescriptor()), _graphics(g) {}
+		NodeRenderer(type g) : RenderObject(&g->getRenderDescriptor()), _graphics(g) {}
 
 		inline void setNode(const Node* n) {
 			_node = const_cast<Node*>(n);

@@ -31,7 +31,8 @@ namespace engine {
 
     public:
         ThreadPool(uint8_t threads_count) : _threads_count(threads_count), _state(TPoolState::RUN) {
-            log("create ThreadPool with {} threads", threads_count);
+            //log("create ThreadPool with {} threads", threads_count);
+            log("create ThreadPool with %d threads", threads_count);
             _current_worker_tasks.resize(_threads_count);
             _workers.reserve(_threads_count);
             for (uint8_t i = 0; i < _threads_count; ++i) {

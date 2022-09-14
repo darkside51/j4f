@@ -20,9 +20,9 @@ namespace engine {
     class ChunkedMemoryPool final {
         using Chunk = MemoryChunkChain<T>;
     public:
-        ChunkedMemoryPool(const size_t sz) : _chunksCount(1), _first(new Chunk(sz)), _used(_first) {}
+        ChunkedMemoryPool(const size_t sz) : _chunksCount(1), _chunksMemSize(sz), _first(new Chunk(sz)), _used(_first) {}
         ~ChunkedMemoryPool() {
-            _used = first;
+            _used = _first;
             while (_used) {
                 Chunk* tmp = _used->next;
                 delete _used;
@@ -30,12 +30,12 @@ namespace engine {
             }
         }
 
-        template <typename... ARGS>
-        inline T* createObject(ARGS&&... args) {
+        template <typename... Args>
+        inline T* createObject(Args&&... args) {
             T* obj = _used->chunk.createObject(std::forward<Args>(args)...);
             while (!obj) {
                 if (_used->next == nullptr) {
-                    _used->next = new Chunk(sz);
+                    _used->next = new Chunk(_chunksMemSize);
                     ++_chunksCount;
                 }
 
@@ -53,6 +53,7 @@ namespace engine {
 
     private:
         uint16_t _chunksCount;
+        size_t _chunksMemSize;
         Chunk* _first;
         Chunk* _used; // будем запоминать последний, в котором происходили какие - либо операции, чтоб начинать следующие действия с него
     };

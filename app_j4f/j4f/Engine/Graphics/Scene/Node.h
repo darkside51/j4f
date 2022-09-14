@@ -143,16 +143,18 @@ namespace engine {
 
 	template<typename V = EmptyVisibleChecker>
 	inline void reloadRenderList(RenderList& list, H_Node* node, const bool dirtyVisible, const uint8_t visibleId, V&& visibleChecker = V()) {
+		using list_emplacer_type = RenderListEmplacer<V>;
 		list.clear();
-		node->execute_with<typename RenderListEmplacer<V>>(list, dirtyVisible, visibleId, std::forward<V>(visibleChecker));
+		node->execute_with<list_emplacer_type>(list, dirtyVisible, visibleId, std::forward<V>(visibleChecker));
 		list.sort();
 	}
 
 	template<typename V = EmptyVisibleChecker>
 	inline void reloadRenderList(RenderList& list, H_Node** node, size_t count, const bool dirtyVisible, const uint8_t visibleId, V&& visibleChecker = V()) {
+		using list_emplacer_type = RenderListEmplacer<V>;
 		list.clear();
 		for (size_t i = 0; i < count; ++i) {
-			node[i]->execute_with<typename RenderListEmplacer<V>>(list, dirtyVisible, visibleId, std::forward<V>(visibleChecker));
+			node[i]->execute_with<list_emplacer_type>(list, dirtyVisible, visibleId, std::forward<V>(visibleChecker));
 		}
 		list.sort();
 	}

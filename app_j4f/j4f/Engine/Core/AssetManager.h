@@ -69,7 +69,7 @@ namespace engine {
 
 	template <typename T>
 	struct CallbackHandler { // не хочет std::function нормально работать как void* 
-		const AssetLoadingCallback<T>& callback;
+		const AssetLoadingCallback<T> callback;
 		CallbackHandler(const AssetLoadingCallback<T>& c) : callback(c) {}
 	};
 
@@ -130,17 +130,17 @@ namespace engine {
 
 		template<typename Loader>
 		inline void setLoader() {
-			if (const IAssetLoader* loader = getLoader<Loader::asset_type>()) {
+			if (const IAssetLoader* loader = getLoader<typename Loader::asset_type>()) {
 				delete loader;
 			}
-			const uint16_t loaderId = UniqueTypeId<IAssetLoader>::getUniqueId<Loader::asset_type>();
+			const uint16_t loaderId = UniqueTypeId<IAssetLoader>::getUniqueId<typename Loader::asset_type>();
 			_loaders[loaderId] = new AssetLoaderT<Loader>();
 		}
 
 		template<typename Loader>
 		inline const IAssetLoader* replaceLoader() { // return old loader if it exist
-			const IAssetLoader* loader = getLoader<Loader::asset_type>();
-			const uint16_t loaderId = UniqueTypeId<IAssetLoader>::getUniqueId<Loader::asset_type>();
+			const IAssetLoader* loader = getLoader<typename Loader::asset_type>();
+			const uint16_t loaderId = UniqueTypeId<IAssetLoader>::getUniqueId<typename Loader::asset_type>();
 			_loaders[loaderId] = new AssetLoaderT<Loader>();
 			return loader;
 		}
@@ -149,7 +149,8 @@ namespace engine {
 		inline T loadAsset(ALP&& params, Callback&& callback = nullptr) const {
 			if (const IAssetLoader* loader = getLoader<T>()) {
 				T value;
-				loader->loadAsset(params, &value, &CallbackHandler<T>(callback));
+				CallbackHandler<T> callbackHandler(callback);
+				loader->loadAsset(std::forward<ALP>(params), &value, &callbackHandler);
 				return value;
 			}
 
