@@ -1615,7 +1615,7 @@ int main() {
 	char buffer[1024];
 	fmt::format_to(buffer, "{}", 42);
 
-	///////////////////////////////////
+	//////////////////////////////////
 	engine::EngineConfig cfg;
 	cfg.fpsLimit = 120;
 	cfg.fpsLimitType = engine::FpsLimitType::F_DONT_CARE;
