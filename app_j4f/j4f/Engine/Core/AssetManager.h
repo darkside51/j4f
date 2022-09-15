@@ -67,12 +67,6 @@ namespace engine {
 		virtual void loadAsset(const AssetLoadingFlags& p, void* data, const void* loadingCallback) const = 0;
 	};
 
-	template <typename T>
-	struct CallbackHandler { // не хочет std::function нормально работать как void* 
-		const AssetLoadingCallback<T> callback;
-		CallbackHandler(const AssetLoadingCallback<T>& c) : callback(c) {}
-	};
-
 	template <typename Loader>
 	class AssetLoaderT : public IAssetLoader {
 	public:
@@ -82,8 +76,8 @@ namespace engine {
 			using params_type = AssetLoadingParams<raw_type_name<type>>;
 			type& value = *static_cast<type*>(data);
 			const params_type& params = static_cast<const params_type&>(p);
-			const CallbackHandler<type>* callbackHandler = static_cast<const CallbackHandler<type>*>(loadingCallback);
-			Loader::loadAsset(value, params, callbackHandler->callback);
+			const AssetLoadingCallback<type>& callback = *(static_cast<const AssetLoadingCallback<type>*>(loadingCallback));
+			Loader::loadAsset(value, params, callback);
 		}
 	};
 
@@ -149,8 +143,8 @@ namespace engine {
 		inline T loadAsset(ALP&& params, Callback&& callback = nullptr) const {
 			if (const IAssetLoader* loader = getLoader<T>()) {
 				T value;
-				CallbackHandler<T> callbackHandler(callback);
-				loader->loadAsset(std::forward<ALP>(params), &value, &callbackHandler);
+				const AssetLoadingCallback<T>& f = callback;
+				loader->loadAsset(std::forward<ALP>(params), &value, &f);
 				return value;
 			}
 
