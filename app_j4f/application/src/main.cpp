@@ -1304,8 +1304,16 @@ namespace engine {
 				const char* buildType = "release";
 #endif
 				
+				const std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+				const auto time = std::localtime(&now);
+
 				//std::shared_ptr<TextureFrame> frame = bitmapFont->createFrame(fmt_string("resolution: %dx%d\nv_sync: %s\ndraw calls: %d\nfps: %d\ncpu frame time: %f", width, height, vsync ? "on" : "off", statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime()));
-				std::shared_ptr<TextureFrame> frame = bitmapFont->createFrame(fmt_string("build type: {}\ngpu: {}\nresolution: {}x{}\nv_sync: {}\ndraw calls: {}\nfps: {}\ncpu frame time: {:.3}", buildType, renderer->getDevice()->gpuProperties.deviceName, width, height, vsync ? "on" : "off", statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime()));
+				std::shared_ptr<TextureFrame> frame = bitmapFont->createFrame(
+					fmt_string(
+						"system time: {}:{}:{}\nbuild type: {}\ngpu: {}\nresolution: {}x{}\nv_sync: {}\ndraw calls: {}\nfps: {}\ncpu frame time: {:.3}", 
+						time->tm_hour, time->tm_min, time->tm_sec, buildType, renderer->getDevice()->gpuProperties.deviceName, width, height, vsync ? "on" : "off", statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime()
+					)
+				);
 				TextureFrameBounds frameBounds(frame.get());
 
 				plainTest->graphics()->setFrame(frame);
