@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# use example $python glsl_includes_ext.py -i ./glsl/ -o ./spirv/
+# use example $python convert_with_includes_ext.py -i ./glsl/ -o ./spirv/
 
 import sys
 import getopt
@@ -19,7 +19,7 @@ def convert(inDir, fileName, outDir):
         else:
             fileData = fileData + line
 
-    tmpFileName = 'tmp/' + fileName
+    tmpFileName = inDir + '/tmp/' + fileName
     tmpFileName = tmpFileName.replace('.psh', '.frag')
     tmpFileName = tmpFileName.replace('.vsh', '.vert')
     tmpFileName = tmpFileName.replace('.gsh', '.geom')
@@ -61,9 +61,14 @@ if __name__ == '__main__':
     if not os.path.exists(outputFolder):
         os.mkdir(outputFolder) 
 
+    tmpDir = inputFolder + '/tmp/'
+    if not os.path.exists(tmpDir):
+        os.mkdir(tmpDir)
+
     for path in os.listdir(inputFolder):
         # check if current path is a file
         if os.path.isfile(os.path.join(inputFolder, path)) and checkIsShaderFile(path):
             convert(inputFolder, path, outputFolder)
 
+    os.rmdir(tmpDir)
     print('*conversion complete*')
