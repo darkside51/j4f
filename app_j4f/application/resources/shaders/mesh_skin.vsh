@@ -19,6 +19,7 @@ layout (set = 2, binding = 0) uniform shadowUBO {
 	vec4 cascade_splits;
 	mat4 cascade_matrix[SHADOW_MAP_CASCADE_COUNT];
 	mat4 view;
+	vec3 camera_position;
 } u_shadow;
 
 layout (set = 4, binding = 0) uniform UBO {
@@ -34,7 +35,8 @@ layout(push_constant) uniform PUSH_CONST {
 layout (location = 0) out vec2 out_uv;
 layout (location = 1) out float out_view_depth;
 layout (location = 2) out vec3 out_position;
-layout (location = 3) out mat3 out_tbn;
+layout (location = 3) out vec3 out_halfwayDir;
+layout (location = 4) out mat3 out_tbn;
 
 out gl_PerVertex {
     vec4 gl_Position;   
@@ -74,4 +76,8 @@ void main() {
 		out_position = world_position.xyz;
 		gl_Position = u_push_const.camera_matrix * world_position;
 	}
+
+	vec3 lightDir   = -u_constants.lightDirection;//normalize(-u_constants.lightDirection * 100000.0 - out_position);
+	vec3 viewDir    = normalize(u_shadow.camera_position - out_position);
+	out_halfwayDir 	= normalize(lightDir + viewDir);
 }

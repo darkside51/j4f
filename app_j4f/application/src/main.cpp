@@ -84,7 +84,7 @@ namespace engine {
 
 	glm::vec3 wasd(0.0f);
 
-	////////////////////
+	//////////////////////
 	/// cascade shadow map
 	constexpr uint8_t SHADOW_MAP_CASCADE_COUNT = 3;
 	constexpr uint16_t SHADOWMAP_DIM = 2048; // VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
@@ -94,7 +94,7 @@ namespace engine {
 
 	glm::vec4 lightColor(1.0f, 1.0f, 1.0f, 1.0f);
 	//glm::vec2 lightMinMax(0.075f, 3.0f);
-	glm::vec2 lightMinMax(0.4f, 1.65f);
+	glm::vec2 lightMinMax(0.3f, 1.5f);
 
 	H_Node* rootNode;
 	H_Node* uiNode;
@@ -122,7 +122,7 @@ namespace engine {
 			auto l4 = grass_default->getGPUParamLayoutByName("lightColor");
 			grass_default->setValueToLayout(l4, &lightColor, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 
-			shadowMap->registerProgramAsReciever(program_mesh_default);
+			shadowMap->registerProgramAsReciever(grass_default);
 
 			std::vector<glm::mat4> grassTransforms(instanceCount);
 			const int step = static_cast<int>(sqrtf(instanceCount));
@@ -159,7 +159,7 @@ namespace engine {
 			auto l4 = grass_default->getGPUParamLayoutByName("lightColor");
 			grass_default->setValueToLayout(l4, &lightColor, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 
-			shadowMap->registerProgramAsReciever(program_mesh_default);
+			shadowMap->registerProgramAsReciever(grass_default);
 
 			std::vector<glm::mat4> grassTransforms;
 			const float space = 26.0f;
@@ -236,6 +236,10 @@ namespace engine {
 		void onCameraTransformChanged(const Camera* camera) override {
 			shadowMap->updateCascades(camera);
 			cameraMatrixChanged = true;
+
+			const glm::vec3& p = camera->getPosition();
+			auto cameraPositionLayout = program_mesh_default->getGPUParamLayoutByName("camera_position");
+			program_mesh_default->setValueToLayout(cameraPositionLayout, &p, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 		}
 
 		ApplicationCustomData() {
@@ -438,6 +442,7 @@ namespace engine {
 			tex_params.files = { 
 				"resources/assets/models/chaman/textures/Ti-Pche_Mat_baseColor.png",
 				"resources/assets/models/chaman/textures/Ti-Pche_Mat_normal.png",
+				"resources/assets/models/chaman/textures/Ti-Pche_Mat_metallicRoughness.png"
 			};
 			tex_params.flags->async = 1;
 			tex_params.flags->use_cache = 1;
@@ -447,9 +452,9 @@ namespace engine {
 
 			TextureLoadingParams tex_params2;
 			tex_params2.files = { 
-				"resources/assets/models/warcraft3/textures/Armor_2_baseColor.png",
-				"resources/assets/models/warcraft3/textures/Armor_2.001_normal.png"
-				//"resources/assets/models/warcraft3/textures/Armor_2_normal.png"
+				"resources/assets/models/warcraft3/textures/Armor_2.001_baseColor.png",
+				"resources/assets/models/warcraft3/textures/Armor_2.001_normal.png",
+				"resources/assets/models/warcraft3/textures/Armor_2_metallicRoughness.png"
 			};
 			tex_params2.flags->async = 1;
 			tex_params2.flags->use_cache = 1;
@@ -459,12 +464,14 @@ namespace engine {
 			auto texture_v = assm->loadAsset<vulkan::VulkanTexture*>(tex_params2);
 			tex_params2.files = { 
 				"resources/assets/models/warcraft3/textures/body_baseColor.png",
-				"resources/assets/models/warcraft3/textures/body_normal.png"
+				"resources/assets/models/warcraft3/textures/body_normal.png",
+				"resources/assets/models/warcraft3/textures/body_metallicRoughness.png"
 			};
 			auto texture_v2 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params2);
 			tex_params2.files = { 
 				"resources/assets/models/warcraft3/textures/Metal_baseColor.png",
-				"resources/assets/models/warcraft3/textures/Metal_normal.png"
+				"resources/assets/models/warcraft3/textures/Metal_normal.png",
+				"resources/assets/models/warcraft3/textures/Metal_metallicRoughness.png"
 			};
 			auto texture_v3 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params2);
 
@@ -477,12 +484,13 @@ namespace engine {
 			tex_params3.files = { 
 				"resources/assets/models/tree1/textures/tree2_baseColor.png",
 				"resources/assets/models/tree1/textures/tree2_normal.png",
+				"resources/assets/models/tree1/textures/tree2_metallicRoughness.png"
 			};
 			auto texture_t = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
 			tex_params3.files = { 
 				"resources/assets/models/tree1/textures/branches_baseColor.png",
-				"resources/assets/models/tree1/textures/branches_normal.png",
+				"resources/assets/models/tree1/textures/branches_normal.png"
 			};
 			auto texture_t2 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
@@ -500,9 +508,10 @@ namespace engine {
 
 			tex_params3.files = { 
 				"resources/assets/models/vikingHut/textures/texture1.jpg",
-				"resources/assets/models/vikingHut/textures/Main_Material2_normal.jpg"
+				"resources/assets/models/vikingHut/textures/Main_Material2_normal.jpg",
+				"resources/assets/models/vikingHut/textures/Main_Material2_metallicRoughness.png"
 			};
-
+			
 			auto texture_t5 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
 			tex_params3.files = { 
@@ -516,7 +525,8 @@ namespace engine {
 
 			tex_params3.files = { 
 				"resources/assets/models/windmill/textures/standardSurface1_baseColor.png",
-				"resources/assets/models/windmill/textures/standardSurface1_normal.png"
+				"resources/assets/models/windmill/textures/standardSurface1_normal.png",
+				"resources/assets/models/windmill/textures/standardSurface1_metallicRoughness.png"
 			};
 			auto texture_t7 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
