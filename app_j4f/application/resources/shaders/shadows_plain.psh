@@ -10,7 +10,7 @@ layout (location = 3) in vec2 uv2;
 layout (location = 0) out vec4 outFragColor;
 
 layout (set = 0, binding = 0) uniform static_UBO {
-	float lightMin;
+	vec2 lightMinMax;
 	vec4 lightColor;
 	vec3 lightDirection;
 } u_constants;
@@ -54,15 +54,20 @@ void main() {
 	vec4 shadowCoord = u_shadow.cascade_matrix[cascade] * vec4(position, 1.0);
 	shadowCoord.xy = (shadowCoord.xy + 1.0) * 0.5;	
 
-	//float shadow = textureProj(shadowCoord / shadowCoord.w, vec2(0.0), cascade, u_constants.lightMin);
-	float shadow = filterPCF(shadowCoord / shadowCoord.w, cascade, u_constants.lightMin);
+	//float shadow = textureProj(shadowCoord / shadowCoord.w, vec2(0.0), cascade, u_constants.lightMinMax.x);
+	float shadow = filterPCF(shadowCoord / shadowCoord.w, cascade, u_constants.lightMinMax.x);
 
-	vec4 color = mix(texture(u_texture_arr, vec3(uv, 1)), texture(u_texture_arr, vec3(uv, 0)), texture(u_texture_mask, uv2, 0.0).r);
+	float mixC = texture(u_texture_mask, uv2, 0.0).r;
+	vec4 color = mix(texture(u_texture_arr, vec3(uv, 1)), texture(u_texture_arr, vec3(uv, 0)), mixC);
 	vec3 normal = vec3(0.0, 0.0, 1.0);
 	//vec3 normal = plainCalculateNormal();
 
-	const float light = max(dot(normal, -u_constants.lightDirection), 0.0);
-	color.rgb *= (gl_FrontFacing ? shadow : 1.0) * clamp(light, u_constants.lightMin, 1.0);
+	//const float light = max(dot(normal, -u_constants.lightDirection), 0.0);
+	//color.rgb *= (gl_FrontFacing ? shadow : 1.0) * clamp(light, u_constants.lightMinMax.x, 1.0);
+
+	const float light =(gl_FrontFacing ? shadow : 1.0) * max(dot(normal, -u_constants.lightDirection), 0.0);
+	color.rgb *=  clamp(u_constants.lightMinMax.y * light, u_constants.lightMinMax.x, u_constants.lightMinMax.y);
+
 
 	outFragColor = u_constants.lightColor * color;
 	

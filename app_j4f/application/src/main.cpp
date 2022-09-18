@@ -84,26 +84,27 @@ namespace engine {
 
 	glm::vec3 wasd(0.0f);
 
-	//////////////////////
+	/////////////////////
 	/// cascade shadow map
 	constexpr uint8_t SHADOW_MAP_CASCADE_COUNT = 3;
 	constexpr uint16_t SHADOWMAP_DIM = 2048; // VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
 	//constexpr uint16_t SHADOWMAP_DIM = 1024; // VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU
 	glm::vec3 lightPos = glm::vec3(-460.0f, -600.0f, 1000.0f);
-	/// cascade shadow map
+	//// cascade shadow map
 
 	glm::vec4 lightColor(1.0f, 1.0f, 1.0f, 1.0f);
 	//glm::vec2 lightMinMax(0.075f, 3.0f);
-	glm::vec2 lightMinMax(0.3f, 1.5f);
+	glm::vec2 lightMinMax(0.45f, 1.25f);
 
 	H_Node* rootNode;
 	H_Node* uiNode;
 	std::vector<H_Node*> shadowCastNodes;
 	bool cameraMatrixChanged = true;
 
-	constexpr bool renderBounds = false;
+	//constexpr bool renderBounds = false;
+	bool renderBounds = false;
 
-	//
+	////
 	class GrassRenderer {
 	public:
 		GrassRenderer(const uint32_t instanceCount) : _instanceCount(instanceCount), _mesh(nullptr) {
@@ -359,6 +360,10 @@ namespace engine {
 						Engine::getInstance().getModule<Device>()->setFullscreen(!Engine::getInstance().getModule<Device>()->isFullscreen());
 					}
 					break;
+				case KeyboardKey::K_LEFT_CONTROL:
+					if (event.state != InputEventState::IES_RELEASE) break;
+					renderBounds = !renderBounds;
+					break;
 				default:
 					break;
 			}
@@ -425,9 +430,9 @@ namespace engine {
 			auto l2 = program_mesh_default->getGPUParamLayoutByName("lightMinMax");
 			program_mesh_default->setValueToLayout(l2, &lightMinMax, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 
-			auto l3 = shadowPlainProgram->getGPUParamLayoutByName("lightMin");
+			auto l3 = shadowPlainProgram->getGPUParamLayoutByName("lightMinMax");
 			auto l31 = shadowPlainProgram->getGPUParamLayoutByName("lightDirection");
-			shadowPlainProgram->setValueToLayout(l3, &lightMinMax.x, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			shadowPlainProgram->setValueToLayout(l3, &lightMinMax, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 			shadowPlainProgram->setValueToLayout(l31, &lightDir, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 
 			auto l4 = program_mesh_default->getGPUParamLayoutByName("lightColor");
@@ -1232,7 +1237,8 @@ namespace engine {
 			//mesh2->render(commandBuffer, currentFrame, &cameraMatrix);
 			//mesh3->render(commandBuffer, currentFrame, &cameraMatrix);
 
-			if constexpr (renderBounds) {
+			//if constexpr (renderBounds) {
+			if (renderBounds) {
 				renderNodesBounds(rootNode, cameraMatrix, commandBuffer, currentFrame, 0); // draw bounding boxes
 			}
 
@@ -1337,7 +1343,8 @@ namespace engine {
 
 				reloadRenderList(uiRenderList, uiNode, false, 0, engine::FrustumVisibleChecker(camera2->getFrustum()));
 
-				if constexpr (renderBounds) {
+				//if constexpr (renderBounds) {
+				if (renderBounds) {
 					renderNodesBounds(uiNode, camera2Matrix, commandBuffer, currentFrame, 0); // draw bounding boxes
 				}
 
