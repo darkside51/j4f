@@ -84,6 +84,8 @@ namespace vulkan {
 	};
 
 	struct VulkanPrimitiveTopology {
+		VulkanPrimitiveTopology() : topology(PrimitiveTopology::TRIANGLE_LIST), enableRestart(false) {}
+		VulkanPrimitiveTopology(const PrimitiveTopology t, const bool er) : topology(t), enableRestart(er) {}
 		PrimitiveTopology topology : 4;
 		bool enableRestart : 1;
 	};
