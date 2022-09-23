@@ -40,6 +40,10 @@ namespace engine {
                 std::vector<IEventObserver*>& observers = it->second;
                 observers.erase(std::remove(observers.begin(), observers.end(), o), observers.end());
                 observers.shrink_to_fit();
+
+                if (observers.empty()) { // ?
+                    _eventObservers.erase(it);
+                }
             }
         }
 

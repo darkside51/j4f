@@ -106,6 +106,207 @@ namespace engine {
 	//constexpr bool renderBounds = false;
 	bool renderBounds = false;
 
+	class SkyBoxRenderer : public RenderedEntity {
+	public:
+		~SkyBoxRenderer() {
+			_verticesBuffer->destroy();
+			_indicesBuffer->destroy();
+			delete _verticesBuffer;
+			delete _indicesBuffer;
+		}
+		void createRenderData() {
+
+			createGpuData();
+
+			const size_t renderDataCount = 1;
+
+			_renderDescriptor.renderData = new vulkan::RenderData * [renderDataCount];
+
+			for (size_t i = 0; i < renderDataCount; ++i) {
+				const size_t partsCount = 1;
+				_renderDescriptor.renderData[i] = new vulkan::RenderData();
+				_renderDescriptor.renderData[i]->createRenderParts(partsCount);
+				for (size_t j = 0; j < partsCount; ++j) {
+					_renderDescriptor.renderData[i]->renderParts[j] = vulkan::RenderData::RenderPart{
+														0,	// firstIndex
+														36,	// indexCount
+														0,	// vertexCount (parameter no used with indexed render)
+														0,	// firstVertex
+														1,	// instanceCount (can change later)
+														0,	// firstInstance (can change later)
+														0,	// vbOffset
+														0	// ibOffset
+					};
+				}
+
+				_renderDescriptor.renderData[i]->indexes = _indicesBuffer;
+				_renderDescriptor.renderData[i]->vertexes = _verticesBuffer;
+			}
+
+			_renderDescriptor.renderDataCount = renderDataCount;
+
+			_renderState.vertexDescription.bindings_strides.push_back(std::make_pair(0, sizeof(SkyBoxVertex)));
+			_renderState.topology = { vulkan::TRIANGLE_LIST, false };
+			_renderState.rasterisationState = vulkan::VulkanRasterizationState(vulkan::CULL_MODE_NONE, vulkan::POLYGON_MODE_FILL);
+			_renderState.blendMode = vulkan::CommonBlendModes::blend_none;
+			_renderState.depthState = vulkan::VulkanDepthState(false, false, VK_COMPARE_OP_LESS);
+			_renderState.stencilState = vulkan::VulkanStencilState(false);
+
+			_vertexInputAttributes = SkyBoxVertex::getVertexAttributesDescription();
+			if (!_vertexInputAttributes.empty()) {
+				_renderState.vertexDescription.attributesCount = static_cast<uint32_t>(_vertexInputAttributes.size());
+				_renderState.vertexDescription.attributes = _vertexInputAttributes.data();
+			}
+
+			// fixed gpu layout works
+			_fixedGpuLayouts.resize(2);
+			_fixedGpuLayouts[0].second = "camera_matrix";
+			_fixedGpuLayouts[1].second = "model_matrix";
+
+			auto&& gpuProgramManager = Engine::getInstance().getModule<Graphics>()->getGpuProgramsManager();
+			std::vector<engine::ProgramStageInfo> psi;
+			psi.emplace_back(ProgramStage::VERTEX, "resources/shaders/skyBox.vsh.spv");
+			psi.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/skyBox.psh.spv");
+			vulkan::VulkanGpuProgram* program = gpuProgramManager->getProgram(psi);
+
+			setProgram(program);
+		}
+
+		inline void updateRenderData(const glm::mat4& worldMatrix, const bool worldMatrixChanged) {
+			if (worldMatrixChanged) {
+				_renderDescriptor.renderData[0]->setParamForLayout(_fixedGpuLayouts[1].first, &const_cast<glm::mat4&>(worldMatrix), false, 1);
+			}
+		}
+	private:
+		struct SkyBoxVertex {
+			float position[3];
+			float uv[3];
+
+			inline static std::vector<VkVertexInputAttributeDescription> getVertexAttributesDescription() {
+				std::vector<VkVertexInputAttributeDescription> vertexInputAttributs(2);
+				// attribute location 0: position
+				vertexInputAttributs[0].binding = 0;
+				vertexInputAttributs[0].location = 0;
+				vertexInputAttributs[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+				vertexInputAttributs[0].offset = offset_of(SkyBoxVertex, position);
+				// attribute location 1: uv
+				vertexInputAttributs[1].binding = 0;
+				vertexInputAttributs[1].location = 1;
+				vertexInputAttributs[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+				vertexInputAttributs[1].offset = offset_of(SkyBoxVertex, uv);
+
+				return vertexInputAttributs;
+			}
+		};
+
+		void createGpuData() {
+			const std::vector<SkyBoxVertex> vtx = {
+				{{ -1.0f, -1.0f, -1.0f},	{1.0f, 0.0f, 0.0f}},
+				{{	1.0f, -1.0f, -1.0f},	{1.0f, 0.0f, 0.0f}},
+				{{ -1.0f, 1.0f, -1.0f},		{1.0f, 0.0f, 0.0f}},
+				{{	1.0f, 1.0f, -1.0f},		{1.0f, 0.0f, 0.0f}},
+
+				{{ -1.0f, 1.0f, -1.0f},	{0.0f, 1.0f, 0.0f}},
+				{{	1.0f, 1.0f, -1.0f},	{0.0f, 1.0f, 0.0f}},
+				{{ -1.0f, 1.0f, 1.0f},	{0.0f, 1.0f, 1.0f}},
+				{{	1.0f, 1.0f, 1.0f},	{0.0f, 1.0f, 1.0f}},
+
+				{{ -1.0f, -1.0f, -1.0f},	{0.0f, 0.0f, 0.0f}},
+				{{	-1.0f, 1.0f, -1.0f},	{0.0f, 0.0f, 0.0f}},
+				{{ -1.0f, -1.0f, 1.0f},		{0.0f, 0.0f, 1.0f}},
+				{{	-1.0f, 1.0f, 1.0f},		{0.0f, 0.0f, 1.0f}},
+
+				{{ 1.0f, -1.0f, -1.0f},	{0.0f, 0.0f, 0.0f}},
+				{{ 1.0f, 1.0f, -1.0f},	{0.0f, 0.0f, 0.0f}},
+				{{ 1.0f, -1.0f, 1.0f},	{0.0f, 0.0f, 1.0f}},
+				{{ 1.0f, 1.0f, 1.0f},	{0.0f, 0.0f, 1.0f}},
+
+				{{ -1.0f, -1.0f, -1.0f},	{0.0f, 1.0f, 0.0f}},
+				{{	1.0f, -1.0f, -1.0f},	{0.0f, 1.0f, 0.0f}},
+				{{ -1.0f, -1.0f, 1.0f},		{0.0f, 1.0f, 1.0f}},
+				{{	1.0f, -1.0f, 1.0f},		{0.0f, 1.0f, 1.0f}},
+
+				{{ -1.0f, -1.0f, 1.0f},	{1.0f, 0.0f, 1.0f}},
+				{{	1.0f, -1.0f, 1.0f},	{1.0f, 0.0f, 1.0f}},
+				{{ -1.0f, 1.0f, 1.0f},	{1.0f, 0.0f, 1.0f}},
+				{{	1.0f, 1.0f, 1.0f},	{1.0f, 0.0f, 1.0f}},
+			};
+
+			const std::vector<uint32_t> idx = {
+				0,1,2,		2,1,3,
+				4,5,6,		6,5,7,
+				8,9,10,		10,9,11,
+				12,13,14,	14,13,15,
+				16,17,18,	18,17,19,
+				20,21,22,	22,21,23
+			};
+
+			////////////////////////
+			const uint32_t vertexBufferSize = static_cast<uint32_t>(vtx.size()) * sizeof(SkyBoxVertex);
+			const uint32_t indexBufferSize = static_cast<uint32_t>(idx.size()) * sizeof(uint32_t);
+
+			auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
+
+			vulkan::VulkanBuffer stage_vertices;
+			vulkan::VulkanBuffer stage_indices;
+
+			renderer->getDevice()->createBuffer(
+				VK_SHARING_MODE_EXCLUSIVE,
+				VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+				&stage_vertices,
+				vertexBufferSize
+			);
+
+			renderer->getDevice()->createBuffer(
+				VK_SHARING_MODE_EXCLUSIVE,
+				VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+				&stage_indices,
+				indexBufferSize
+			);
+
+			//
+			_verticesBuffer = new vulkan::VulkanBuffer();
+			renderer->getDevice()->createBuffer(
+				VK_SHARING_MODE_EXCLUSIVE,
+				VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+				0,
+				_verticesBuffer,
+				vertexBufferSize
+			);
+
+			_indicesBuffer = new vulkan::VulkanBuffer();
+			renderer->getDevice()->createBuffer(
+				VK_SHARING_MODE_EXCLUSIVE,
+				VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+				0,
+				_indicesBuffer,
+				indexBufferSize
+			);
+
+			stage_vertices.upload(&vtx[0], vertexBufferSize, 0, false);
+			stage_indices.upload(&idx[0], indexBufferSize, 0, false);
+
+			auto&& copyPool = renderer->getDevice()->getCommandPool(vulkan::GPUQueueFamily::F_GRAPHICS);
+			auto&& cmdBuffer = renderer->getDevice()->createVulkanCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, copyPool);
+			cmdBuffer.begin();
+
+			VkBufferCopy regionV{ 0, 0, stage_vertices.m_size };
+			VkBufferCopy regionI{ 0, 0, stage_indices.m_size };
+			cmdBuffer.cmdCopyBuffer(stage_vertices, *_verticesBuffer, &regionV);
+			cmdBuffer.cmdCopyBuffer(stage_indices, *_indicesBuffer, &regionI);
+
+			cmdBuffer.flush(renderer->getMainQueue());
+
+			stage_vertices.destroy();
+			stage_indices.destroy();
+		}
+
+		vulkan::VulkanBuffer* _verticesBuffer = nullptr;
+		vulkan::VulkanBuffer* _indicesBuffer = nullptr;
+	};
+
 	////
 	class GrassRenderer {
 	public:
@@ -232,6 +433,7 @@ namespace engine {
 	};
 
 	NodeRenderer<GrassRenderer>* grassMesh2 = nullptr;
+	NodeRenderer<SkyBoxRenderer>* skyBox = nullptr;
 
 	class ApplicationCustomData : public InputObserver, public ICameraTransformChangeObserver {
 	public:
@@ -603,6 +805,24 @@ namespace engine {
 			mesh7 = new NodeRenderer<Mesh>();
 			//grassMesh = new NodeRenderer<Mesh>();
 			grassMesh2 = new NodeRenderer<GrassRenderer>();
+			
+			//
+			{
+				skyBox = new NodeRenderer<SkyBoxRenderer>();
+				SkyBoxRenderer* skyboxRenderer = new SkyBoxRenderer();
+				skyboxRenderer->createRenderData();
+
+				glm::mat4 wtr(1.0f);
+				//scaleMatrix(wtr, glm::vec3(1.0f));
+
+				H_Node* node = new H_Node();
+				node->value().setLocalMatrix(wtr);
+				//node->value().setBoundingVolume(BoundingVolume::make<SphereVolume>(glm::vec3(0.0f, 1.45f, 0.0f), 1.8f));
+				rootNode->addChild(node);
+
+				skyBox->setGraphics(skyboxRenderer);
+				skyBox->setNode(node->value());
+			}
 			
 			assm->loadAsset<Mesh*>(mesh_params, [program_gltf, texture_zombi, this](Mesh* asset, const AssetLoadingResult result) {
 				asset->setProgram(program_gltf);
@@ -1154,6 +1374,7 @@ namespace engine {
 			grassMesh2->updateRenderData();
 
 			plainTest->updateRenderData();
+			skyBox->updateRenderData();
 
 			const uint64_t wh = renderer->getWH();
 			const uint32_t width = static_cast<uint32_t>(wh >> 0);
