@@ -60,6 +60,14 @@ namespace engine {
 		inline BitMask64& visible() { return _visibleMask; }
 		inline const BitMask64& visible() const { return _visibleMask; }
 
+		inline void setVisible(const uint8_t visibleId, const bool value) {
+			_visibleMask.setBit(visibleId, value);
+		}
+
+		inline bool isVisible(const uint8_t visibleId) const {
+			return _visibleMask.checkBit(visibleId);
+		}
+
 	private:
 		bool _dirtyModel = false;
 		bool _modelChanged = false;
@@ -110,18 +118,19 @@ namespace engine {
 			}
 
 			if constexpr (std::is_same_v<V, EmptyVisibleChecker>) {
-				return mNode._boundingVolume ? mNode.visible().checkBit(visibleId) : true;
+				return mNode._boundingVolume ? mNode.isVisible(visibleId) : true;
 			} else {
 				if (dirtyVisible || mNode._modelChanged) {
 					if (const BoundingVolume* volume = mNode._boundingVolume) {
 						const bool visible = visibleChecker.checkVisible(volume, mNode._model);
-						mNode.visible().setBit(visibleId, visible);
+						mNode.setVisible(visibleId, visible);
 						return visible;
 					} else {
+						mNode.setVisible(visibleId, true);
 						return true;
 					}
 				} else {
-					return mNode._boundingVolume ? mNode.visible().checkBit(visibleId) : true;
+					return mNode._boundingVolume ? mNode.isVisible(visibleId) : true;
 				}
 			}
 		}

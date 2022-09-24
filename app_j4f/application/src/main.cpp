@@ -96,7 +96,7 @@ namespace engine {
 
 	glm::vec4 lightColor(1.0f, 1.0f, 1.0f, 1.0f);
 	//glm::vec2 lightMinMax(0.075f, 3.0f);
-	glm::vec2 lightMinMax(0.45f, 1.25f);
+	glm::vec2 lightMinMax(0.375f, 1.25f);
 
 	H_Node* rootNode;
 	H_Node* uiNode;
@@ -435,6 +435,11 @@ namespace engine {
 	NodeRenderer<GrassRenderer>* grassMesh2 = nullptr;
 	NodeRenderer<SkyBoxRenderer>* skyBox = nullptr;
 
+	GraphicsTypeUpdateSystem<Mesh> meshUpdateSystem;
+	GraphicsTypeUpdateSystem<GrassRenderer> grassUpdateSystem;
+	GraphicsTypeUpdateSystem<SkyBoxRenderer> skyBoxUpdateSystem;
+	GraphicsTypeUpdateSystem<Plain> plainUpdateSystem;
+	
 	class ApplicationCustomData : public InputObserver, public ICameraTransformChangeObserver {
 	public:
 
@@ -806,9 +811,21 @@ namespace engine {
 			//grassMesh = new NodeRenderer<Mesh>();
 			grassMesh2 = new NodeRenderer<GrassRenderer>();
 			
+			meshUpdateSystem.registerObject(mesh);
+			meshUpdateSystem.registerObject(mesh2);
+			meshUpdateSystem.registerObject(mesh3);
+			meshUpdateSystem.registerObject(mesh4);
+			meshUpdateSystem.registerObject(mesh5);
+			meshUpdateSystem.registerObject(mesh6);
+			meshUpdateSystem.registerObject(mesh7);
+
+			grassUpdateSystem.registerObject(grassMesh2);
+
 			//
 			{
 				skyBox = new NodeRenderer<SkyBoxRenderer>();
+				skyBoxUpdateSystem.registerObject(skyBox);
+
 				SkyBoxRenderer* skyboxRenderer = new SkyBoxRenderer();
 				skyboxRenderer->createRenderData();
 
@@ -1067,6 +1084,7 @@ namespace engine {
 				});
 
 			plainTest = new NodeRenderer<Plain>();
+			plainUpdateSystem.registerObject(plainTest);
 			{
 				glm::mat4 wtr(1.0f);
 				//scaleMatrix(wtr, glm::vec3(1.0f));
@@ -1364,17 +1382,10 @@ namespace engine {
 			reloadRenderList(shadowRenderList, shadowCastNodes.data(), shadowCastNodes.size(), false, 0, engine::FrustumVisibleChecker(camera->getFrustum()));
 			cameraMatrixChanged = false;
 
-			mesh->updateRenderData();
-			mesh2->updateRenderData();
-			mesh3->updateRenderData();
-			mesh4->updateRenderData();
-			mesh5->updateRenderData();
-			mesh6->updateRenderData();
-			mesh7->updateRenderData();
-			grassMesh2->updateRenderData();
-
-			plainTest->updateRenderData();
-			skyBox->updateRenderData();
+			meshUpdateSystem.updateRenderDataIfVisible(0);
+			grassUpdateSystem.updateRenderDataIfVisible(0);
+			skyBoxUpdateSystem.updateRenderDataIfVisible(0);
+			plainUpdateSystem.updateRenderDataIfVisible(0);
 
 			const uint64_t wh = renderer->getWH();
 			const uint32_t width = static_cast<uint32_t>(wh >> 0);
