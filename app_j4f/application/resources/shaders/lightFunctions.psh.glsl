@@ -2,7 +2,7 @@ float textureProj(vec4 shCoord, vec2 offset, uint cascade, float minLight) {
 	float d = step(-0.0, shCoord.z) * step(shCoord.z, 1.0);
 	if (d > 0.0) {
 		float dist = texture(u_shadow_map, vec3(shCoord.xy + offset, cascade)).r;
-		float bias = 0.0001;
+		float bias = 0.001;
 		float depth = shCoord.z - bias;
 		return mix(1.0, minLight, step(dist, depth));
 	}

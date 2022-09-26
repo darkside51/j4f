@@ -86,7 +86,7 @@ namespace engine {
 
 	glm::vec3 wasd(0.0f);
 
-	/////////////////////
+	///////////////////////////
 	/// cascade shadow map
 	constexpr uint8_t SHADOW_MAP_CASCADE_COUNT = 3;
 	constexpr uint16_t SHADOWMAP_DIM = 2048; // VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
@@ -96,8 +96,7 @@ namespace engine {
 
 	glm::vec4 lightColor(1.0f, 1.0f, 1.0f, 1.0f);
 	//glm::vec2 lightMinMax(0.075f, 3.0f);
-
-	glm::vec2 lightMinMax(0.4f, 1.25f);
+	glm::vec2 lightMinMax(0.5f, 1.0f);
 
 	H_Node* rootNode;
 	H_Node* uiNode;
@@ -150,7 +149,7 @@ namespace engine {
 			_renderState.topology = { vulkan::TRIANGLE_LIST, false };
 			_renderState.rasterisationState = vulkan::VulkanRasterizationState(vulkan::CULL_MODE_NONE, vulkan::POLYGON_MODE_FILL);
 			_renderState.blendMode = vulkan::CommonBlendModes::blend_none;
-			_renderState.depthState = vulkan::VulkanDepthState(true, false, VK_COMPARE_OP_LESS);
+			_renderState.depthState = vulkan::VulkanDepthState(true, true, VK_COMPARE_OP_LESS);
 			_renderState.stencilState = vulkan::VulkanStencilState(false);
 
 			_vertexInputAttributes = SkyBoxVertex::getVertexAttributesDescription();
@@ -746,7 +745,7 @@ namespace engine {
 			auto texture_t7 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
 			TextureLoadingParams tex_params_logo;
-			tex_params_logo.files = { "resources/assets/textures/vulkan_logo.png" };
+			tex_params_logo.files = { "resources/assets/textures/sun2.jpg" };
 			tex_params_logo.flags->async = 1;
 			tex_params_logo.flags->use_cache = 1;
 			texture_1 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params_logo);
@@ -822,7 +821,7 @@ namespace engine {
 
 			grassUpdateSystem.registerObject(grassMesh2);
 
-			//
+			////
 			{
 				skyBox = new NodeRenderer<SkyBoxRenderer>();
 				skyBoxUpdateSystem.registerObject(skyBox);
@@ -1161,7 +1160,7 @@ namespace engine {
 			//texture_text->createSingleDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0);
 
 			bitmapFont = new BitmapFont(f, 16, 256, 256, 0);
-			bitmapFont->addSymbols("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+*/=&%#@!?<>,.()[];:@$^~_", 2, 0, 0xeeeeeeff, 0x000000ff, 1.0f, 2, 2);
+			bitmapFont->addSymbols("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+*/=&%#@!?<>,.()[];:@$^~_", 2, 0, 0xccccccff, 0x000000ff, 1.0f, 2, 2);
 			//bitmapFont.addSymbols("wxyzABCDEFGHIJKLMN", 2, 20, 0xffffffff, 0x000000ff, 1.0f, 2, 0);
 			//bitmapFont.addSymbols("OPQRSTUVWXYZ", 2, 40, 0xffffffff, 0x000000ff, 1.0f, 2, 0);
 			//bitmapFont.addSymbols("0123456789-+*/=", 2, 60, 0xffffffff, 0x000000ff, 1.0f, 2, 0);
@@ -1472,77 +1471,13 @@ namespace engine {
 			//mesh2->render(commandBuffer, currentFrame, &cameraMatrix);
 			//mesh3->render(commandBuffer, currentFrame, &cameraMatrix);
 
-			if constexpr (0) { // test
-				auto&& renderHelper = Engine::getInstance().getModule<Graphics>()->getRenderHelper();
-				auto&& autoBatcher = renderHelper->getAutoBatchRenderer();
-				auto&& gpuProgramManager = Engine::getInstance().getModule<Graphics>()->getGpuProgramsManager();
-
-				std::vector<engine::ProgramStageInfo> psiCTextured;
-				psiCTextured.emplace_back(ProgramStage::VERTEX, "resources/shaders/texture.vsh.spv");
-				psiCTextured.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/texture.psh.spv");
-				vulkan::VulkanGpuProgram* programTextured = reinterpret_cast<vulkan::VulkanGpuProgram*>(gpuProgramManager->getProgram(psiCTextured));
-
-				vulkan::VulkanPrimitiveTopology primitiveTopology = { vulkan::TRIANGLE_LIST, false };
-				vulkan::VulkanRasterizationState rasterisation(vulkan::CULL_MODE_NONE, vulkan::POLYGON_MODE_FILL);
-				vulkan::VulkanDepthState depthState(false, false, VK_COMPARE_OP_LESS);
-				vulkan::VulkanStencilState stencilState(false);
-
-				std::vector<VkVertexInputAttributeDescription> vertexInputAttributs = TexturedVertex::getVertexAttributesDescription();
-				vulkan::VertexDescription vertexDescription;
-				vertexDescription.bindings_strides.push_back(std::make_pair(0, sizeof(TexturedVertex)));
-				vertexDescription.attributesCount = static_cast<uint32_t>(vertexInputAttributs.size());
-				vertexDescription.attributes = vertexInputAttributs.data();
-
-				auto&& pipeline = renderer->getGraphicsPipeline(
-					vertexDescription,
-					primitiveTopology,
-					rasterisation,
-					vulkan::CommonBlendModes::blend_alpha,
-					depthState,
-					stencilState,
-					programTextured
-				);
-
-				const vulkan::GPUParamLayoutInfo* mvp_layout = pipeline->program->getGPUParamLayoutByName("mvp");
-
-				TexturedVertex vtx[4] = {
-					{ {-1.0f, -1.0f, 0.0f}, {0.0f, 0.0f} },
-					{ {1.0f, -1.0f, 0.0f}, {1.0f, 0.0f} },
-					{ {-1.0f, 1.0f, 0.0f}, {0.0f, 1.0f} },
-					{ {1.0f, 1.0f, 0.0f}, {1.0f, 1.0f} }
-				};
-
-				const uint32_t idxs[6] = {
-					0, 1, 2,
-					2, 1, 3
-				};
-
-				constexpr uint32_t vertexBufferSize = 4 * sizeof(TexturedVertex);
-				constexpr uint32_t indexBufferSize = 6 * sizeof(uint32_t);
-
-				vulkan::RenderData renderData(const_cast<vulkan::VulkanPipeline*>(pipeline));
-
-				glm::mat4 wtr5(1.0f);
-				translateMatrixTo(wtr5, glm::vec3(-float(width) * 0.5f + 150.0f, float(height) * 0.5f - 110.0f, 0.0f));
-
-				glm::mat4 transform(1.0f);// = camera2->getMatrix() * wtr5;
-				renderData.setParamForLayout(mvp_layout, &transform, false);
-				renderData.setParamByName("u_texture", texture_1, false);
-
-				GPU_DEBUG_MARKER_INSERT(commandBuffer.m_commandBuffer, "project render vulkan sprite", 0.5f, 0.5f, 0.5f, 1.0f);
-				autoBatcher->addToDraw(renderData.pipeline, sizeof(TexturedVertex), &vtx[0], vertexBufferSize, &idxs[0], indexBufferSize, renderData.params, commandBuffer, currentFrame);
-
-				autoBatcher->draw(commandBuffer, currentFrame);
-			}
-
-
 			//if constexpr (renderBounds) {
 			if (renderBounds) {
 				renderNodesBounds(rootNode, cameraMatrix, commandBuffer, currentFrame, 0); // draw bounding boxes
 			}
 
 			sceneRenderList.render(commandBuffer, currentFrame, &cameraMatrix);
-			
+
 			////////
 			if constexpr (0) {
 				if (auto&& g = mesh->graphics()) {
@@ -1648,6 +1583,136 @@ namespace engine {
 				}
 
 				uiRenderList.render(commandBuffer, currentFrame, &camera2Matrix);
+
+				autoBatcher->draw(commandBuffer, currentFrame);
+			}
+
+
+			////////////////////
+			if constexpr (1) { // test
+				auto&& renderHelper = Engine::getInstance().getModule<Graphics>()->getRenderHelper();
+				auto&& autoBatcher = renderHelper->getAutoBatchRenderer();
+				auto&& gpuProgramManager = Engine::getInstance().getModule<Graphics>()->getGpuProgramsManager();
+
+				std::vector<engine::ProgramStageInfo> psiCTextured;
+				psiCTextured.emplace_back(ProgramStage::VERTEX, "resources/shaders/texture.vsh.spv");
+				psiCTextured.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/texture.psh.spv");
+				vulkan::VulkanGpuProgram* programTextured = reinterpret_cast<vulkan::VulkanGpuProgram*>(gpuProgramManager->getProgram(psiCTextured));
+
+				vulkan::VulkanPrimitiveTopology primitiveTopology = { vulkan::TRIANGLE_LIST, false };
+				vulkan::VulkanRasterizationState rasterisation(vulkan::CULL_MODE_NONE, vulkan::POLYGON_MODE_FILL);
+				vulkan::VulkanDepthState depthState(true, false, VK_COMPARE_OP_LESS);
+				vulkan::VulkanStencilState stencilState(false);
+
+				std::vector<VkVertexInputAttributeDescription> vertexInputAttributs = TexturedVertex::getVertexAttributesDescription();
+				vulkan::VertexDescription vertexDescription;
+				vertexDescription.bindings_strides.push_back(std::make_pair(0, sizeof(TexturedVertex)));
+				vertexDescription.attributesCount = static_cast<uint32_t>(vertexInputAttributs.size());
+				vertexDescription.attributes = vertexInputAttributs.data();
+
+				auto&& pipeline = renderer->getGraphicsPipeline(
+					vertexDescription,
+					primitiveTopology,
+					rasterisation,
+					vulkan::CommonBlendModes::blend_add,
+					depthState,
+					stencilState,
+					programTextured
+				);
+
+				const vulkan::GPUParamLayoutInfo* mvp_layout = pipeline->program->getGPUParamLayoutByName("mvp");
+
+				TexturedVertex vtx[4] = {
+					{ {-100.0f, -100.0f, 0.0f}, {0.0f, 0.0f} },
+					{ {100.0f, -100.0f, 0.0f}, {1.0f, 0.0f} },
+					{ {-100.0f, 100.0f, 0.0f}, {0.0f, 1.0f} },
+					{ {100.0f, 100.0f, 0.0f}, {1.0f, 1.0f} }
+				};
+
+				const uint32_t idxs[6] = {
+					0, 1, 2,
+					2, 1, 3
+				};
+
+				constexpr uint32_t vertexBufferSize = 4 * sizeof(TexturedVertex);
+				constexpr uint32_t indexBufferSize = 6 * sizeof(uint32_t);
+
+				vulkan::RenderData renderData(const_cast<vulkan::VulkanPipeline*>(pipeline));
+
+				glm::mat4 wtr5(1.0f);
+				translateMatrixTo(wtr5, lightPos);
+
+				glm::mat4 invM = glm::inverse(camera->getViewTransform());
+				invM[3] = glm::vec4(0.0f, 0.0f, 0.0f, invM[3][3]);
+
+
+				glm::mat4 transform = camera->getMatrix() * wtr5 * invM;
+				renderData.setParamForLayout(mvp_layout, &transform, false);
+				renderData.setParamByName("u_texture", texture_1, false);
+
+				GPU_DEBUG_MARKER_INSERT(commandBuffer.m_commandBuffer, "project render vulkan sprite", 0.5f, 0.5f, 0.5f, 1.0f);
+				autoBatcher->addToDraw(renderData.pipeline, sizeof(TexturedVertex), &vtx[0], vertexBufferSize, &idxs[0], indexBufferSize, renderData.params, commandBuffer, currentFrame);
+
+				autoBatcher->draw(commandBuffer, currentFrame);
+			}
+			////////////////////
+
+			if constexpr (1) { // test
+				auto&& renderHelper = Engine::getInstance().getModule<Graphics>()->getRenderHelper();
+				auto&& autoBatcher = renderHelper->getAutoBatchRenderer();
+				auto&& gpuProgramManager = Engine::getInstance().getModule<Graphics>()->getGpuProgramsManager();
+
+				std::vector<engine::ProgramStageInfo> psiCTextured;
+				psiCTextured.emplace_back(ProgramStage::VERTEX, "resources/shaders/texture.vsh.spv");
+				psiCTextured.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/texture.psh.spv");
+				vulkan::VulkanGpuProgram* programTextured = reinterpret_cast<vulkan::VulkanGpuProgram*>(gpuProgramManager->getProgram(psiCTextured));
+
+				vulkan::VulkanPrimitiveTopology primitiveTopology = { vulkan::TRIANGLE_LIST, false };
+				vulkan::VulkanRasterizationState rasterisation(vulkan::CULL_MODE_NONE, vulkan::POLYGON_MODE_FILL);
+				vulkan::VulkanDepthState depthState(false, false, VK_COMPARE_OP_LESS);
+				vulkan::VulkanStencilState stencilState(false);
+
+				std::vector<VkVertexInputAttributeDescription> vertexInputAttributs = TexturedVertex::getVertexAttributesDescription();
+				vulkan::VertexDescription vertexDescription;
+				vertexDescription.bindings_strides.push_back(std::make_pair(0, sizeof(TexturedVertex)));
+				vertexDescription.attributesCount = static_cast<uint32_t>(vertexInputAttributs.size());
+				vertexDescription.attributes = vertexInputAttributs.data();
+
+				auto&& pipeline = renderer->getGraphicsPipeline(
+					vertexDescription,
+					primitiveTopology,
+					rasterisation,
+					vulkan::CommonBlendModes::blend_add,
+					depthState,
+					stencilState,
+					programTextured
+				);
+
+				const vulkan::GPUParamLayoutInfo* mvp_layout = pipeline->program->getGPUParamLayoutByName("mvp");
+
+				TexturedVertex vtx[4] = {
+					{ {-1.0f, -1.0f, 0.0f}, {0.45f, 0.9f} },
+					{ {1.0f, -1.0f, 0.0f}, {0.55f, 0.9f} },
+					{ {-1.0f, 1.0f, 0.0f}, {0.45f, 1.0f} },
+					{ {1.0f, 1.0f, 0.0f}, {0.55f, 1.0f} }
+				};
+
+				const uint32_t idxs[6] = {
+					0, 1, 2,
+					2, 1, 3
+				};
+
+				constexpr uint32_t vertexBufferSize = 4 * sizeof(TexturedVertex);
+				constexpr uint32_t indexBufferSize = 6 * sizeof(uint32_t);
+
+				vulkan::RenderData renderData(const_cast<vulkan::VulkanPipeline*>(pipeline));
+
+				glm::mat4 transform(1.0f);
+				renderData.setParamForLayout(mvp_layout, &transform, false);
+				renderData.setParamByName("u_texture", texture_1, false);
+
+				GPU_DEBUG_MARKER_INSERT(commandBuffer.m_commandBuffer, "project render vulkan sprite", 0.5f, 0.5f, 0.5f, 1.0f);
+				autoBatcher->addToDraw(renderData.pipeline, sizeof(TexturedVertex), &vtx[0], vertexBufferSize, &idxs[0], indexBufferSize, renderData.params, commandBuffer, currentFrame);
 
 				autoBatcher->draw(commandBuffer, currentFrame);
 			}

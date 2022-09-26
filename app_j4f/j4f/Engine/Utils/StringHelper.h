@@ -13,7 +13,7 @@ namespace engine {
 		constexpr uint16_t max_buffer_size = 1024;
 		static thread_local char buffer[max_buffer_size]; // max_buffer_size bytes memory for every thread, with static allocation
 		//snprintf(buffer, max_buffer_size, fmt, std::forward<Args>(args)...);
-		memset(&buffer[0], 0, max_buffer_size * sizeof(char));
+		//memset(&buffer[0], 0, max_buffer_size * sizeof(char));
 		fmt::format_to(buffer, format, std::forward<Args>(args)...);
 		return buffer;
 	}
