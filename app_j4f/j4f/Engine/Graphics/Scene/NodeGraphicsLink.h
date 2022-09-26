@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../../Core/Common.h"
 #include "../../Core/Math/math.h"
 #include <vulkan/vulkan.h>
 
@@ -17,16 +18,17 @@ namespace engine {
 
 	class RenderObject {
 	public:
-		virtual ~RenderObject() {
-			_descriptor = nullptr;
-		};
+		virtual ~RenderObject() { _descriptor = nullptr; };
 
 		RenderObject() = default;
 		RenderObject(RenderDescriptor* d) : _descriptor(d) {}
-		inline RenderDescriptor* getRenderDescriptor() const { return _descriptor; }
+		inline RenderDescriptor* getRenderDescriptor() const noexcept { return _descriptor; }
+		inline void setNeedUpdate(const bool value) { _needUpdateData = value; }
+		inline bool getNeedUpdate() const noexcept { return _needUpdateData; }
 
 	protected:
 		RenderDescriptor* _descriptor = nullptr;
+		bool _needUpdateData = false;
 	};
 
 	template<typename T>
@@ -81,14 +83,6 @@ namespace engine {
 			}
 		}
 
-		inline bool updateRenderDataIfVisible(const uint8_t visibleId) {
-			if (_graphics && _node && _node->isVisible(visibleId)) {
-				_graphics->updateRenderData(_node->model(), _node->modelChanged());
-				return true;
-			}
-			return false;
-		}
-
 		inline void setProgram(vulkan::VulkanGpuProgram* program, VkRenderPass renderPass = nullptr) {
 			if (_graphics) {
 				_graphics->setProgram(program, renderPass);
@@ -127,13 +121,10 @@ namespace engine {
 
 		inline void updateRenderData() {
 			for (auto&& o : _objects) {
-				o->updateRenderData();
-			}
-		}
-
-		inline void updateRenderDataIfVisible(const uint8_t visibleId) {
-			for (auto&& o : _objects) {
-				o->updateRenderDataIfVisible(visibleId);
+				if (o->getNeedUpdate()) {
+					o->updateRenderData();
+					o->setNeedUpdate(false);
+				}
 			}
 		}
 

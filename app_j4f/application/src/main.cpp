@@ -96,7 +96,8 @@ namespace engine {
 
 	glm::vec4 lightColor(1.0f, 1.0f, 1.0f, 1.0f);
 	//glm::vec2 lightMinMax(0.075f, 3.0f);
-	glm::vec2 lightMinMax(0.375f, 1.25f);
+
+	glm::vec2 lightMinMax(0.4f, 1.25f);
 
 	H_Node* rootNode;
 	H_Node* uiNode;
@@ -149,7 +150,7 @@ namespace engine {
 			_renderState.topology = { vulkan::TRIANGLE_LIST, false };
 			_renderState.rasterisationState = vulkan::VulkanRasterizationState(vulkan::CULL_MODE_NONE, vulkan::POLYGON_MODE_FILL);
 			_renderState.blendMode = vulkan::CommonBlendModes::blend_none;
-			_renderState.depthState = vulkan::VulkanDepthState(false, false, VK_COMPARE_OP_LESS);
+			_renderState.depthState = vulkan::VulkanDepthState(true, false, VK_COMPARE_OP_LESS);
 			_renderState.stencilState = vulkan::VulkanStencilState(false);
 
 			_vertexInputAttributes = SkyBoxVertex::getVertexAttributesDescription();
@@ -830,7 +831,7 @@ namespace engine {
 				skyboxRenderer->createRenderData();
 
 				glm::mat4 wtr(1.0f);
-				//scaleMatrix(wtr, glm::vec3(1.0f));
+				scaleMatrix(wtr, glm::vec3(1000.0f));
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
@@ -1160,7 +1161,7 @@ namespace engine {
 			//texture_text->createSingleDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0);
 
 			bitmapFont = new BitmapFont(f, 16, 256, 256, 0);
-			bitmapFont->addSymbols("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+*/=&%#@!?<>,.()[];:@$^~_", 2, 0, 0xffffffff, 0x000000ff, 1.0f, 2, 2);
+			bitmapFont->addSymbols("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+*/=&%#@!?<>,.()[];:@$^~_", 2, 0, 0xeeeeeeff, 0x000000ff, 1.0f, 2, 2);
 			//bitmapFont.addSymbols("wxyzABCDEFGHIJKLMN", 2, 20, 0xffffffff, 0x000000ff, 1.0f, 2, 0);
 			//bitmapFont.addSymbols("OPQRSTUVWXYZ", 2, 40, 0xffffffff, 0x000000ff, 1.0f, 2, 0);
 			//bitmapFont.addSymbols("0123456789-+*/=", 2, 60, 0xffffffff, 0x000000ff, 1.0f, 2, 0);
@@ -1382,10 +1383,10 @@ namespace engine {
 			reloadRenderList(shadowRenderList, shadowCastNodes.data(), shadowCastNodes.size(), false, 0, engine::FrustumVisibleChecker(camera->getFrustum()));
 			cameraMatrixChanged = false;
 
-			meshUpdateSystem.updateRenderDataIfVisible(0);
-			grassUpdateSystem.updateRenderDataIfVisible(0);
-			skyBoxUpdateSystem.updateRenderDataIfVisible(0);
-			plainUpdateSystem.updateRenderDataIfVisible(0);
+			meshUpdateSystem.updateRenderData();
+			grassUpdateSystem.updateRenderData();
+			skyBoxUpdateSystem.updateRenderData();
+			plainUpdateSystem.updateRenderData();
 
 			const uint64_t wh = renderer->getWH();
 			const uint32_t width = static_cast<uint32_t>(wh >> 0);

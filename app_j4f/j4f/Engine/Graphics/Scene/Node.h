@@ -12,7 +12,7 @@
 namespace engine {
 	
 	class Node {
-		friend struct NodeMatrixUpdater;
+		friend struct NodeUpdater;
 	public:
 		virtual ~Node() {
 			if (_graphics) {
@@ -41,12 +41,14 @@ namespace engine {
 		inline const glm::mat4& model() const { return _model; }
 		inline bool modelChanged() const { return _modelChanged; }
 
+		inline RenderObject* getRenderObject() { return _graphics; }
 		inline const RenderObject* getRenderObject() const { return _graphics; }
+
 		inline void setRenderObject(const RenderObject* r) {
 			if (_graphics) {
 				delete _graphics;
 			}
-			_graphics = r;
+			_graphics = const_cast<RenderObject*>(r);
 		}
 
 		inline const BoundingVolume* getBoundingVolume() const { return _boundingVolume; }
@@ -73,7 +75,7 @@ namespace engine {
 		bool _modelChanged = false;
 		glm::mat4 _local = glm::mat4(1.0f);
 		glm::mat4 _model = glm::mat4(1.0f);
-		const RenderObject* _graphics = nullptr;
+		RenderObject* _graphics = nullptr;
 		const BoundingVolume* _boundingVolume = nullptr;
 		BitMask64 _visibleMask; // маска видимости (предполагается, что объект может быть видимым или нет с нескольких источников, для сохранения видимости с каждого можно использовать BitMask64)
 	};
@@ -96,7 +98,7 @@ namespace engine {
 		const Frustum* _frustum = nullptr;
 	};
 
-	struct NodeMatrixUpdater {
+	struct NodeUpdater {
 		template<typename V>
 		inline static bool _(H_Node* node, const bool dirtyVisible, const uint8_t visibleId, V&& visibleChecker) {
 			Node& mNode = node->value();
@@ -139,8 +141,9 @@ namespace engine {
 	template<typename V>
 	struct RenderListEmplacer {
 		inline static bool _(H_Node* node, RenderList& list, const bool dirtyVisible, const uint8_t visibleId, V&& visibleChecker) {
-			if (NodeMatrixUpdater::_<V>(node, dirtyVisible, visibleId, std::forward<V>(visibleChecker))) {
-				if (const RenderObject* renderObject = node->value().getRenderObject()) {
+			if (NodeUpdater::_<V>(node, dirtyVisible, visibleId, std::forward<V>(visibleChecker))) {
+				if (RenderObject* renderObject = node->value().getRenderObject()) {
+					renderObject->setNeedUpdate(true);
 					list.addDescriptor(renderObject->getRenderDescriptor());
 				}
 				return true;
