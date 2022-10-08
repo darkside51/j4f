@@ -37,6 +37,7 @@
 #include <Engine/Graphics/Scene/Shadows/CascadeShadowMap.h>
 
 #include <Engine/Graphics/Scene/Node.h>
+#include <Engine/Graphics/Scene/NodeToRenderList.h>
 #include <Engine/Graphics/Scene/NodeGraphicsLink.h>
 #include <Engine/Graphics/Scene/BoundingVolume.h>
 
