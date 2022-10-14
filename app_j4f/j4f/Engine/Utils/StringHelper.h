@@ -14,14 +14,15 @@ namespace engine {
 		static thread_local char buffer[max_buffer_size]; // max_buffer_size bytes memory for every thread, with static allocation
 		//snprintf(buffer, max_buffer_size, fmt, std::forward<Args>(args)...);
 		//memset(&buffer[0], 0, max_buffer_size * sizeof(char));
-		fmt::format_to(buffer, format, std::forward<Args>(args)...);
+		auto result = fmt::format_to_n(buffer, max_buffer_size, std::move(format), std::forward<Args>(args)...);
+		*result.out = '\0';
 		return buffer;
 	}
 
 	template <typename...Args>
 	inline std::string fmtString(const fmt::format_string<Args...> format, Args&&...args) {
 		//return std::string(fmt_string(fmt, std::forward<Args>(args)...));
-		return fmt::format(format, std::forward<Args>(args)...);
+		return fmt::format(std::move(format), std::forward<Args>(args)...);
 	}
 
 	inline uint16_t stringReplace(std::string& source, const std::string& find, const std::string& replace) {

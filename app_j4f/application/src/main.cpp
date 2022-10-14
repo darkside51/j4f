@@ -22,6 +22,7 @@
 #include <Engine/Core/Memory/MemoryChunk.h>
 #include <Engine/Input/Input.h>
 #include <Engine/Core/Handler.h>
+#include <Engine/Core/Linked_ptr.h>
 #include <Engine/Utils/Debug/Profiler.h>
 //#include <Engine/Graphics/Text/TextImage.h>
 #include <Engine/Graphics/Text/FontLoader.h>
@@ -1947,7 +1948,40 @@ namespace engine {
 	}
 }
 
+
+
 int main() {
+
+	class TestLinked : public engine::ref_counter<TestLinked> {
+	public:
+		inline void empty() const {}
+	private:
+	};
+
+	engine::linked_ptr<TestLinked> testPtr(new TestLinked());
+	engine::linked_ptr<TestLinked> testPtr2 = testPtr;
+	{
+		engine::linked_ptr<TestLinked> testPtr3 = testPtr;
+		auto uc = testPtr.use_count();
+	}
+
+	auto uc = testPtr.use_count();
+	testPtr->empty();
+
+	engine::linked_ptr<TestLinked> testPtr4 = testPtr.get();
+	uc = testPtr.use_count();
+
+	engine::linked_ptr<TestLinked> testPtr5 = std::move(testPtr4);
+	if (testPtr5) {
+		uc = testPtr.use_count();
+	}
+
+	engine::linked_ptr<TestLinked> testPtr6;
+	testPtr6 = testPtr5;
+
+	engine::linked_ptr<TestLinked> testPtr7(new TestLinked());
+	testPtr7 = testPtr6;
+
 	struct A {
 		A() : a(0) {}
 		A(int aa) : a(aa) {}

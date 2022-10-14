@@ -1,0 +1,120 @@
+#pragma once
+
+#include <cstdint>
+
+namespace engine {
+
+	template<typename T>
+	concept has_counter_functions = requires(T v) {
+		v._decrease_counter();
+		v._increase_counter();
+		v._use_count();
+	};
+
+	template <typename T>// requires has_counter_functions<T>
+	class linked_ptr;
+
+	template <typename T>
+	class ref_counter {
+		friend class linked_ptr<T>;
+
+		inline void _decrease_counter() { --__counter; }
+		inline void _increase_counter() { ++__counter; }
+		inline uint32_t _use_count() const { return __counter; }
+
+		uint32_t __counter = 0;
+	};
+
+	template <typename T>
+	class atomic_ref_counter {
+		friend class linked_ptr<T>;
+
+		inline void _decrease_counter() { __counter.fetch_sub(1, std::memory_order_consume); }
+		inline void _increase_counter() { __counter.fetch_add(1, std::memory_order_consume); }
+		inline uint32_t _use_count() const { return __counter.load(std::memory_order_acquire); }
+
+		std::atomic_uint32_t __counter = 0;
+	};
+
+	template <typename T>// requires has_counter_functions<T>
+	class linked_ptr {
+		using type = T;
+
+	public:
+		linked_ptr() = default;
+
+		~linked_ptr() {
+			_decrease_counter();
+			_ptr = nullptr;
+		}
+
+		linked_ptr(type* ptr) : _ptr(ptr) {
+			_increase_counter();
+		}
+
+		linked_ptr(const linked_ptr& p) : _ptr(p._ptr) {
+			_increase_counter();
+		}
+
+		linked_ptr(linked_ptr&& p) noexcept : _ptr(p._ptr) {
+			p._ptr = nullptr;
+		}
+
+		inline const linked_ptr& operator= (const linked_ptr& p) {
+			_decrease_counter();
+			_ptr = p._ptr;
+			_increase_counter();
+			return *this;
+		}
+
+		inline const linked_ptr& operator= (linked_ptr&& p) noexcept {
+			_decrease_counter();
+			_ptr = p._ptr;
+			p._ptr = nullptr;
+			return *this;
+		}
+
+		inline const linked_ptr& operator= (type* p) {
+			_decrease_counter();
+			_ptr = p;
+			_increase_counter();
+			return *this;
+		}
+
+		inline bool operator== (const linked_ptr& p) { return _ptr == p._ptr; }
+		inline bool operator== (const type* p) { return _ptr == p; }
+
+		inline type* operator->() { return _ptr; }
+		inline const type* operator->() const { return _ptr; }
+
+		inline operator bool() const noexcept { return _ptr != nullptr; }
+
+		inline uint32_t use_count() const { return _ptr->_use_count(); }
+
+		inline type* get() { return _ptr; }
+		inline const type* get() const { return _ptr; }
+
+	private:
+		inline void _increase_counter() {
+			if (_ptr) {
+				_ptr->_increase_counter();
+			}
+		}
+
+		inline void _decrease_counter() {
+			if (_ptr) {
+				_ptr->_decrease_counter();
+				if (_ptr->_use_count() == 0) {
+					delete _ptr;
+				}
+			}
+		}
+
+		type* _ptr = nullptr;
+	};
+
+	template <typename T, typename... Args>
+	inline linked_ptr<T> make_linked(Args&&... args) {
+		return linked_ptr<T>(new T(std::forward<Args>(args)...));
+	}
+}
