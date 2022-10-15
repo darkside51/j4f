@@ -1667,11 +1667,9 @@ namespace engine {
 				glm::mat4 wtr5(1.0f);
 				translateMatrixTo(wtr5, lightPos);
 
-				glm::mat4 invM = glm::inverse(camera->getViewTransform());
-				invM[3] = glm::vec4(0.0f, 0.0f, 0.0f, invM[3][3]);
+				glm::mat4 billboardMatrix = engine::getBillboardViewMatrix(camera->getInvViewMatrix());
 
-
-				glm::mat4 transform = camera->getMatrix() * wtr5 * invM;
+				glm::mat4 transform = camera->getMatrix() * wtr5 * billboardMatrix;
 				renderData.setParamForLayout(mvp_layout, &transform, false);
 				renderData.setParamByName("u_texture", texture_1, false);
 
@@ -1716,8 +1714,8 @@ namespace engine {
 				const vulkan::GPUParamLayoutInfo* mvp_layout = pipeline->program->getGPUParamLayoutByName("mvp");
 
 				TexturedVertex vtx[4] = {
-					{ {-1.0f, -1.0f, 0.0f}, {0.45f, 0.9f} },
-					{ {1.0f, -1.0f, 0.0f}, {0.55f, 0.9f} },
+					{ {-1.0f, -1.0f, 0.0f}, {0.45f, 0.95f} },
+					{ {1.0f, -1.0f, 0.0f}, {0.55f, 0.95f} },
 					{ {-1.0f, 1.0f, 0.0f}, {0.45f, 1.0f} },
 					{ {1.0f, 1.0f, 0.0f}, {0.55f, 1.0f} }
 				};

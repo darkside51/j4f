@@ -291,4 +291,12 @@ namespace engine {
         matrix[3][1] = -dot(u, eye);
         matrix[3][2] =  dot(f, eye);
     }
+
+    inline glm::mat4 getBillboardViewMatrix(const glm::mat4& inverseViewMatrix) {
+        glm::mat4 matrix = inverseViewMatrix;
+        // matrix[3].x = 0.0f; matrix[3].y = 0.0f; matrix[3].z = 0.0f;
+        // matrix[3].w = matrix[3].w; // не меняем значение
+        memset(&matrix[3], 0, sizeof(float) * 3);
+        return matrix;
+    }
 }

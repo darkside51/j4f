@@ -24,7 +24,7 @@ namespace engine {
 		vulkan::RenderData** renderData = nullptr;
 		BatchingParams* batchingParams = nullptr;
 		RenderDescritorMode mode = RenderDescritorMode::RDM_SINGLE_DRAW;
-		uint16_t order = 0;
+		int16_t order = 0;
 		bool visible = true;
 
 		const vulkan::GPUParamLayoutInfo* camera_matrix = nullptr;

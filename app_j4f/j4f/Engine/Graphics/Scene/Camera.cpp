@@ -217,6 +217,7 @@ namespace engine {
 		_transform = _projectionTransform * _viewTransform;
 		_dirty->transform = 0;
 		_dirty->invTransform = 1;
+		_dirty->invViewTransform = 1;
 
 		if (_frustum) {
 			_frustum->calculate(_transform);

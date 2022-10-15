@@ -84,6 +84,7 @@ namespace engine {
 		struct DirtyFlags {
 			bool transform : 1;
 			bool invTransform : 1;
+			bool invViewTransform : 1;
 		};
 
 		union DirtyValue {
@@ -125,6 +126,14 @@ namespace engine {
 				_dirty->invTransform = 0;
 			}
 			return _invTransform;
+		}
+
+		inline const glm::mat4& getInvViewMatrix() {
+			if (_dirty->invViewTransform) {
+				_invViewTransform = glm::inverse(_viewTransform);
+				_dirty->invViewTransform = 0;
+			}
+			return _invViewTransform;
 		}
 
 		inline void setRotationOrder(const RotationsOrder ro) {
@@ -212,6 +221,7 @@ namespace engine {
 		glm::vec2 _near_far;
 		glm::mat4 _transform;
 		glm::mat4 _invTransform;
+		glm::mat4 _invViewTransform;
 
 		glm::mat4 _viewTransform;
 		glm::mat4 _projectionTransform;
