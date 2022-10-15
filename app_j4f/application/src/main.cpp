@@ -42,6 +42,8 @@
 #include <Engine/Graphics/Scene/NodeGraphicsLink.h>
 #include <Engine/Graphics/Scene/BoundingVolume.h>
 
+#include <Engine/Events/Bus.h>
+
 #include <format>
 
 namespace engine {
@@ -1293,6 +1295,27 @@ namespace engine {
 
 			mask.nullify();
 
+			auto&& bus = engine::Engine::getInstance().getModule<engine::Bus>();
+
+			struct TestBusEvent {
+				float x = 0.0f, y = 0.0f;
+			};
+
+			engine::EventSubscriber<TestBusEvent> subscriber([](const TestBusEvent& evt)->bool {
+				const float x = evt.x;
+				const float y = evt.y;
+				return true;
+			});
+
+			bus->addSubscriber<TestBusEvent>(subscriber);
+
+			auto&& subscriber2 = bus->addSubscriber<TestBusEvent>([](const auto& evt)->bool {
+				const float x = evt.x;
+				const float y = evt.y;
+				return true;
+			});
+
+			bus->sendEvent<TestBusEvent>({ 1.0f, 2.0f });
 		}
 
 		void draw(const float delta) {

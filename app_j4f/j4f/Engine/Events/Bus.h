@@ -4,8 +4,12 @@
 #include "../Core/EngineModule.h"
 
 #include <unordered_map>
+#include <functional>
+#include <memory>
 
 namespace engine {
+
+    class Bus;
 
 	class IEventObserver {
 	public:
@@ -19,13 +23,56 @@ namespace engine {
 		virtual bool processEvent(const T& evt) = 0;
 	};
 
+    class IEventSubscriber {
+    public:
+        virtual ~IEventSubscriber() = default;
+    };
+
+    template <typename T>
+    class EventSubscriber : public IEventSubscriber {
+        friend class Bus;
+    public:
+        using Callback = std::function<bool(const T&)>;
+
+        EventSubscriber() = default;
+        ~EventSubscriber() {
+            if (_bus && _callback) {
+                _bus->removeSubscriber(this);
+            }
+            _bus = nullptr;
+        }
+
+        EventSubscriber(Callback&& callback) : _callback(std::move(callback)) {}
+        EventSubscriber(const Callback& callback) : _callback(callback) {}
+
+        EventSubscriber(EventSubscriber&& e) noexcept : _callback(std::move(e._callback)), _bus(e._bus) { e._callback = nullptr; e._bus = nullptr; }
+        EventSubscriber(const EventSubscriber& e) : _callback(e.callback), _bus(e._bus) {}
+
+        const EventSubscriber& operator= (EventSubscriber&& e) noexcept {
+            _callback = std::move(e._callback);
+            e._callback = nullptr;
+            return *this;
+        }
+
+        const EventSubscriber& operator= (const EventSubscriber& e) {
+            _callback = e._callback;
+            return *this;
+        }
+
+        inline bool processEvent(const T& event) const { return _callback(event); }
+
+    private:
+        Callback _callback = nullptr;
+        Bus* _bus = nullptr;
+    };
+
 	class Bus : public IEngineModule {
 	public:
 		~Bus() = default;
 
         template <typename EVENT>
         inline void addObserver(EventObserverImpl<EVENT>* o) {
-			constexpr uint16_t observer_type_id = UniqueTypeId<IEventObserver>::getUniqueId<EVENT>();
+			const uint16_t observer_type_id = UniqueTypeId<IEventObserver>::getUniqueId<EVENT>();
             std::vector<IEventObserver*>& observers = _eventObservers[observer_type_id];
             if (std::find(observers.begin(), observers.end(), o) == observers.end()) {
                 observers.emplace_back(o);
@@ -34,7 +81,7 @@ namespace engine {
 
         template <typename EVENT>
         inline void removeObserver(EventObserverImpl<EVENT>* o) {
-			constexpr uint16_t observer_type_id = UniqueTypeId<IEventObserver>::getUniqueId<EVENT>();
+			const uint16_t observer_type_id = UniqueTypeId<IEventObserver>::getUniqueId<EVENT>();
             auto it = _eventObservers.find(observer_type_id);
             if (it != _eventObservers.end()) {
                 std::vector<IEventObserver*>& observers = it->second;
@@ -48,11 +95,44 @@ namespace engine {
         }
 
         template <typename EVENT>
+        inline void addSubscriber(const EventSubscriber<EVENT>& s) {
+            const uint16_t observer_type_id = UniqueTypeId<IEventObserver>::getUniqueId<EVENT>();
+            std::vector<IEventSubscriber*>& subscribers = _eventSubscribers[observer_type_id];
+            EventSubscriber<EVENT>& ref = const_cast<EventSubscriber<EVENT>&>(s);
+            ref._bus = const_cast<Bus*>(this);
+            subscribers.push_back(&(ref));
+        }
+
+        template <typename EVENT>
+        inline std::unique_ptr<EventSubscriber<EVENT>> addSubscriber(const std::function<bool(const EVENT&)>& callback) {
+            const uint16_t observer_type_id = UniqueTypeId<IEventObserver>::getUniqueId<EVENT>();
+            std::vector<IEventSubscriber*>& subscribers = _eventSubscribers[observer_type_id];
+            auto&& result = static_cast<EventSubscriber<EVENT>*>(subscribers.emplace_back(new EventSubscriber<EVENT>(callback)));
+            result->_bus = const_cast<Bus*>(this);
+            return std::unique_ptr<EventSubscriber<EVENT>>(result);
+        }
+
+        template <typename EVENT>
+        inline void removeSubscriber(const EventSubscriber<EVENT>* s) {
+            const uint16_t observer_type_id = UniqueTypeId<IEventObserver>::getUniqueId<EVENT>();
+            auto it = _eventSubscribers.find(observer_type_id);
+            if (it != _eventSubscribers.end()) {
+                std::vector<IEventSubscriber*>& subscribers = it->second;
+                subscribers.erase(std::remove(subscribers.begin(), subscribers.end(), s), subscribers.end());
+                subscribers.shrink_to_fit();
+
+                if (subscribers.empty()) { // ?
+                    _eventSubscribers.erase(it);
+                }
+            }
+        }
+
+        template <typename EVENT>
         inline bool sendEvent(EVENT&& evt) { // отправка событий обсерверам,
             // отправка событий сейчас непосредственная, т.е. происходит в том месте, где произошел вызов, возможно лучше было бы централизованно отправлять, например из Bus::update, но пока не могу точно сказать
 
             using simple_event_type = typename std::remove_const<typename std::remove_reference<EVENT>::type>::type;
-            constexpr uint16_t observer_type_id = UniqueTypeId<IEventObserver>::getUniqueId<simple_event_type>();
+            const uint16_t observer_type_id = UniqueTypeId<IEventObserver>::getUniqueId<simple_event_type>();
 
             bool result = false;
             auto it = _eventObservers.find(observer_type_id);
@@ -62,6 +142,14 @@ namespace engine {
                     // if (result && notifyOne) { break; }
                 }
             }
+
+            auto it2 = _eventSubscribers.find(observer_type_id);
+            if (it2 != _eventSubscribers.end()) {
+                for (IEventSubscriber* o : it2->second) {
+                    result |= static_cast<EventSubscriber<EVENT>*>(o)->processEvent(evt);
+                }
+            }
+
             return result;
         }
 
@@ -69,6 +157,7 @@ namespace engine {
 
 	private:
 		std::unordered_map<size_t, std::vector<IEventObserver*>> _eventObservers;
+        std::unordered_map<size_t, std::vector<IEventSubscriber*>> _eventSubscribers;
 	};
 
 }
