@@ -43,6 +43,7 @@
 #include <Engine/Graphics/Scene/BoundingVolume.h>
 
 #include <Engine/Events/Bus.h>
+#include <Engine/Utils/Debug/Assert.h>
 
 #include <format>
 
@@ -2032,6 +2033,8 @@ int main() {
 	auto cid15 = c5->rtti();
 
 	delete c5;
+
+	ENGINE_BREAK_CONDITION(true);
 
 	auto ri = engine::random(0, 10);
 	auto rf = engine::random(-10.0f, 20.0f);
