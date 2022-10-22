@@ -1971,8 +1971,33 @@ namespace engine {
 }
 
 
+class A1 {
+public:
+	void f() {
+		printf("A1::f\n");
+	}
+};
+
+class B1 : public A1 {
+public:
+	void f() {
+		printf("B1::f\n");
+	}
+};
 
 int main() {
+
+	bool isSmartPtr1 = engine::is_smart_pointer<int>::value;
+	bool isSmartPtr2 = engine::is_smart_pointer<std::shared_ptr<int>>::value;
+	bool isSmartPtr3 = engine::is_smart_pointer_v<engine::linked_ptr<int>>;
+	bool isSmartPtr4 = engine::is_smart_pointer_v<std::unique_ptr<int>>;
+	bool isSmartPtr5 = engine::is_smart_pointer_v<int*>;
+
+	A1 a1;
+	a1.f();
+
+	B1 b1;
+	b1.f();
 
 	class TestLinked : public engine::ref_counter<TestLinked> {
 	public:

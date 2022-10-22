@@ -1,11 +1,14 @@
 ﻿#pragma once
 
-#include <cstdint>
-#include <atomic>
+#include "Linked_ptr.h"
 
 #ifdef _DEBUG
 #include "../Utils/Debug/MemoryLeakChecker.h"
 #endif
+
+#include <cstdint>
+#include <atomic>
+#include <memory>
 
 #define offset_of(type, p) (reinterpret_cast<size_t>(&((reinterpret_cast<type*>(0))->p)))
 
@@ -35,6 +38,21 @@ namespace engine {
 	struct CommonType;
 	using CommonUniqueTypeId = UniqueTypeId<CommonType>;
 
+	template <typename>
+	struct is_smart_pointer { constinit enum : bool { value = false }; };
+
+	template <typename T>
+	struct is_smart_pointer<std::unique_ptr<T>> { constinit enum : bool { value = true }; };
+
+	template <typename T>
+	struct is_smart_pointer<std::shared_ptr<T>> { constinit enum : bool { value = true }; };
+
+	template <typename T>
+	struct is_smart_pointer<linked_ptr<T>> { constinit enum : bool { value = true }; };
+
+	template<typename T>
+	inline constinit bool is_smart_pointer_v = engine::is_smart_pointer<T>::value;
+
 	namespace static_inheritance {
 		// класс для проверки возможности конвертирования T в U
 		template <typename T, typename U>
@@ -45,7 +63,7 @@ namespace engine {
 			static second_type ftest(...);
 			static T makeT();
 		public:
-			enum {
+			constinit enum : bool {
 				exists = sizeof(ftest(makeT())) == sizeof(first_type),
 				same_type = false
 			};
@@ -54,7 +72,7 @@ namespace engine {
 		template <typename T>
 		class Conversion<T, T> {
 		public:
-			enum {
+			constinit enum : bool {
 				exists = true,
 				same_type = true
 			};
