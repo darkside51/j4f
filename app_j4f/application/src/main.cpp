@@ -1999,11 +1999,17 @@ int main() {
 	B1 b1;
 	b1.f();
 
-	class TestLinked : public engine::ref_counter<TestLinked> {
+	class TestLinked : public engine::control_block<TestLinked> {
 	public:
 		inline void empty() const {}
+		void destroy() {}
 	private:
 	};
+
+	engine::linked_weak_ptr<TestLinked> weak_test;
+	auto ptr1 = weak_test.lock();
+
+	engine::linked_weak_ptr_control<TestLinked> weak_control;
 
 	engine::linked_ptr<TestLinked> testPtr(new TestLinked());
 	engine::linked_ptr<TestLinked> testPtr2 = testPtr;

@@ -12,35 +12,84 @@ namespace engine {
 		v._use_count();
 	};
 
-	template <typename T>// requires has_counter_functions<T>
+	template<typename T>
+	concept destroy_requirement = requires(T v) {
+		v.destroy();
+	};
+
+	template <typename T> // requires has_counter_functions<T>
 	class linked_ptr;
 
-	template <typename T>
-	class ref_counter {
-		friend class linked_ptr<T>;
+	template<typename T>
+	class linked_weak_ptr_control;
 
-		inline void _decrease_counter() { --__counter; }
-		inline void _increase_counter() { ++__counter; }
-		inline uint32_t _use_count() const { return __counter; }
+	template <typename T>
+	class linked_weak_ptr;
+
+	template <typename T>
+	class control_block {
+		using type = control_block<T>;
+		using counter_type = uint32_t;
+
+		friend class linked_weak_ptr<T>;
+		friend class linked_ptr<T>;
+		friend class linked_weak_ptr_control<T>;
+
+		inline uint32_t _decrease_counter()			{ return --__counter; }
+		inline uint32_t _increase_counter()			{ return ++__counter; }
+		inline uint32_t _use_count() const			{ return __counter; }
 
 		uint32_t __counter = 0;
 	};
 
 	template <typename T>
-	class atomic_ref_counter {
-		friend class linked_ptr<T>;
+	class atomic_control_block {
+		using type = atomic_control_block<T>;
+		using counter_type = std::atomic_uint32_t;
 
-		inline void _decrease_counter() { __counter.fetch_sub(1, std::memory_order_consume); }
-		inline void _increase_counter() { __counter.fetch_add(1, std::memory_order_consume); }
-		inline uint32_t _use_count() const { return __counter.load(std::memory_order_acquire); }
+		friend class linked_weak_ptr<T>;
+		friend class linked_ptr<T>;
+		friend class linked_weak_ptr_control<T>;
+
+		inline uint32_t _decrease_counter()			{ return __counter.fetch_sub(1, std::memory_order_consume) - 1; }
+		inline uint32_t _increase_counter()			{ return __counter.fetch_add(1, std::memory_order_consume) + 1; }
+		inline uint32_t _use_count() const			{ return __counter.load(std::memory_order_acquire); }
 
 		std::atomic_uint32_t __counter = 0;
 	};
 
-	template <typename T>// requires has_counter_functions<T>
+	template<typename T>
+	class linked_weak_ptr_control {
+		friend class linked_weak_ptr<T>;
+
+		T::type _counter;
+		T* _target = nullptr;
+	};
+
+	// https://stackoverflow.com/questions/2400458/is-there-a-boostweak-intrusive-pointer
+	template <typename T>
+	class linked_weak_ptr {
+	public:
+		linked_weak_ptr() = default;
+
+		inline linked_ptr<T> lock() {
+			return nullptr;
+		}
+
+		inline bool expired() const {
+			return false;
+		}
+
+	private:
+		linked_weak_ptr_control<T>* _control = nullptr;
+	};
+
+	template <typename T> // requires destroy_requirement<T>
 	class linked_ptr {
 	public:
 		using element_type = T;
+		using weak_control_type = linked_weak_ptr_control<T>;
+		using weak = linked_weak_ptr<T>;
 
 		linked_ptr() = default;
 
@@ -110,14 +159,12 @@ namespace engine {
 		}
 
 		inline void _decrease_counter() {
-			if (_ptr) {
-				_ptr->_decrease_counter();
-				if (_ptr->_use_count() == 0) {
-					delete _ptr;
-				}
+			if (_ptr && _ptr->_decrease_counter() == 0) {
+				delete _ptr;
 			}
 		}
 
+		weak_control_type* _weak_control = nullptr;
 		element_type* _ptr = nullptr;
 	};
 
