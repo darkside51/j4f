@@ -52,3 +52,7 @@ vec3 saturate(vec3 c, float s) {
 vec3 calculateNormal(mat3 tbn, vec3 tangentNormal) {
 	return normalize(tbn * tangentNormal);
 }
+
+vec3 gammaCorrection(vec3 color, float gamma) {
+	return pow(color, vec3(1.0 / gamma));
+}

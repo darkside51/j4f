@@ -20,6 +20,9 @@ namespace engine {
 	template <typename T> // requires has_counter_functions<T>
 	class linked_ptr;
 
+	template <typename T>
+	class linked_ext_ptr;
+
 	template<typename T>
 	class linked_weak_ptr_control;
 
@@ -28,12 +31,13 @@ namespace engine {
 
 	template <typename T>
 	class control_block {
-		using type = control_block<T>;
-		using counter_type = uint32_t;
-
 		friend class linked_weak_ptr<T>;
 		friend class linked_ptr<T>;
+		friend class linked_ext_ptr<T>;
 		friend class linked_weak_ptr_control<T>;
+
+		using type = control_block<T>;
+		using counter_type = uint32_t;
 
 		inline uint32_t _decrease_counter()			{ return --__counter; }
 		inline uint32_t _increase_counter()			{ return ++__counter; }
@@ -44,12 +48,13 @@ namespace engine {
 
 	template <typename T>
 	class atomic_control_block {
-		using type = atomic_control_block<T>;
-		using counter_type = std::atomic_uint32_t;
-
 		friend class linked_weak_ptr<T>;
 		friend class linked_ptr<T>;
+		friend class linked_ext_ptr<T>;
 		friend class linked_weak_ptr_control<T>;
+
+		using type = atomic_control_block<T>;
+		using counter_type = std::atomic_uint32_t;
 
 		inline uint32_t _decrease_counter()			{ return __counter.fetch_sub(1, std::memory_order_consume) - 1; }
 		inline uint32_t _increase_counter()			{ return __counter.fetch_add(1, std::memory_order_consume) + 1; }
@@ -58,39 +63,11 @@ namespace engine {
 		std::atomic_uint32_t __counter = 0;
 	};
 
-	template<typename T>
-	class linked_weak_ptr_control {
-		friend class linked_weak_ptr<T>;
-
-		T::type _counter;
-		T* _target = nullptr;
-	};
-
-	// https://stackoverflow.com/questions/2400458/is-there-a-boostweak-intrusive-pointer
-	template <typename T>
-	class linked_weak_ptr {
-	public:
-		linked_weak_ptr() = default;
-
-		inline linked_ptr<T> lock() {
-			return nullptr;
-		}
-
-		inline bool expired() const {
-			return false;
-		}
-
-	private:
-		linked_weak_ptr_control<T>* _control = nullptr;
-	};
-
 	template <typename T> // requires destroy_requirement<T>
 	class linked_ptr {
 	public:
 		using element_type = T;
-		using weak_control_type = linked_weak_ptr_control<T>;
-		using weak = linked_weak_ptr<T>;
-
+		
 		linked_ptr() = default;
 
 		~linked_ptr() {
@@ -138,8 +115,8 @@ namespace engine {
 			return *this;
 		}
 
-		inline bool operator== (const linked_ptr& p) { return _ptr == p._ptr; }
-		inline bool operator== (const element_type* p) { return _ptr == p; }
+		inline bool operator== (const linked_ptr& p) const { return _ptr == p._ptr; }
+		inline bool operator== (const element_type* p) const { return _ptr == p; }
 
 		inline element_type* operator->() { return _ptr; }
 		inline const element_type* operator->() const { return _ptr; }
@@ -151,7 +128,7 @@ namespace engine {
 		inline element_type* get() { return _ptr; }
 		inline const element_type* get() const { return _ptr; }
 
-	private:
+	protected:
 		inline void _increase_counter() {
 			if (_ptr) {
 				_ptr->_increase_counter();
@@ -164,7 +141,6 @@ namespace engine {
 			}
 		}
 
-		weak_control_type* _weak_control = nullptr;
 		element_type* _ptr = nullptr;
 	};
 

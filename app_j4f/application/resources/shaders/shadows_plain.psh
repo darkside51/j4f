@@ -13,6 +13,7 @@ layout (set = 0, binding = 0) uniform static_UBO {
 	vec2 lightMinMax;
 	vec4 lightColor;
 	vec3 lightDirection;
+	float saturation;
 } u_constants;
 
 layout (set = 1, binding = 0) uniform shadow_UBO {
@@ -26,7 +27,7 @@ layout (set = 3, binding = 0) uniform sampler2D u_texture_mask;
 layout (set = 4, binding = 0) uniform sampler2DArray u_texture_arr;
 layout (set = 5, binding = 0) uniform sampler2D u_texture_normal;
 
-#import lightFunctions.psh.glsl
+#import color_works.psh.glsl
 
 vec3 plainCalculateNormal() {
 	vec2 n_uv = 2.0 * uv;//vec2(1.0 - uv.x, 1.0 - uv.y);
@@ -75,7 +76,7 @@ void main() {
 	//float gamma = 2.2;
     //outFragColor.rgb = pow(outFragColor.rgb, vec3(1.0 / gamma));
 
-	outFragColor.rgb = saturate(outFragColor.rgb, 1.5);
+	outFragColor.rgb = saturate(outFragColor.rgb, u_constants.saturation);
 
 	// debug cascades
 	//outFragColor.rgb *= vec3(0.4f + float(cascade) * 0.1);

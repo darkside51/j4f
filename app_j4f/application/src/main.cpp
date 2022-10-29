@@ -102,6 +102,7 @@ namespace engine {
 	glm::vec4 lightColor(1.0f, 1.0f, 1.0f, 1.0f);
 	//glm::vec2 lightMinMax(0.075f, 3.0f);
 	glm::vec2 lightMinMax(0.5f, 1.0f);
+	float saturation = 1.3f;
 
 	H_Node* rootNode;
 	H_Node* uiNode;
@@ -330,6 +331,8 @@ namespace engine {
 			grass_default->setValueToLayout(l2, &lightMinMax, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 			auto l4 = grass_default->getGPUParamLayoutByName("lightColor");
 			grass_default->setValueToLayout(l4, &lightColor, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			auto l5 = grass_default->getGPUParamLayoutByName("saturation");
+			grass_default->setValueToLayout(l5, &saturation, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 
 			shadowMap->registerProgramAsReciever(grass_default);
 
@@ -367,6 +370,8 @@ namespace engine {
 			grass_default->setValueToLayout(l2, &lightMinMax, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 			auto l4 = grass_default->getGPUParamLayoutByName("lightColor");
 			grass_default->setValueToLayout(l4, &lightColor, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			auto l5 = grass_default->getGPUParamLayoutByName("saturation");
+			grass_default->setValueToLayout(l5, &saturation, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 
 			shadowMap->registerProgramAsReciever(grass_default);
 
@@ -651,8 +656,14 @@ namespace engine {
 
 			auto l4 = program_mesh_default->getGPUParamLayoutByName("lightColor");
 			auto l5 = shadowPlainProgram->getGPUParamLayoutByName("lightColor");
+
+			auto l6 = program_mesh_default->getGPUParamLayoutByName("saturation");
+			auto l7 = shadowPlainProgram->getGPUParamLayoutByName("saturation");
+
 			program_mesh_default->setValueToLayout(l4, &lightColor, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 			shadowPlainProgram->setValueToLayout(l5, &lightColor, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			program_mesh_default->setValueToLayout(l6, &saturation, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			shadowPlainProgram->setValueToLayout(l7, &saturation, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 
 			shadowMap->registerProgramAsReciever(program_mesh_default);
 			shadowMap->registerProgramAsReciever(shadowPlainProgram);
@@ -1131,7 +1142,7 @@ namespace engine {
 			TextureLoadingParams tex_params_floorArray;
 			tex_params_floorArray.files = { 
 				"resources/assets/textures/swamp5.jpg",
-				"resources/assets/textures/sand5.jpg"
+				"resources/assets/textures/sand4.jpg"
 			};
 			tex_params_floorArray.flags->async = 1;
 			tex_params_floorArray.flags->use_cache = 1;

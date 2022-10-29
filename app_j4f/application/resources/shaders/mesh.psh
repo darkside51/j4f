@@ -19,6 +19,7 @@ layout (set = 0, binding = 0) uniform static_lightUBO {
 	vec3 lightDirection;
 	vec2 lightMinMax;
 	vec4 lightColor;
+	float saturation;
 } u_constants;
 
 layout (set = 2, binding = 0) uniform shadowUBO {
@@ -31,7 +32,7 @@ layout (set = 2, binding = 0) uniform shadowUBO {
 layout (set = 1, binding = 0) uniform sampler2DArray u_shadow_map;
 layout (set = 3, binding = 0) uniform sampler2DArray u_texture;
 
-#import lightFunctions.psh.glsl
+#import color_works.psh.glsl
 
 void main() {
 	vec4 color = texture(u_texture, vec3(in_uv, 0.0));
@@ -67,7 +68,7 @@ void main() {
 		//float gamma = 2.2;
     	//outColor.rgb = pow(outColor.rgb, vec3(1.0 / gamma));
 
-    	outColor.rgb = saturate(outColor.rgb, 1.5);
+    	outColor.rgb = saturate(outColor.rgb, u_constants.saturation);
 
 		// debug cascades
 		/*switch(cascade) {

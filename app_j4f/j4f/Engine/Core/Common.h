@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "Linked_ptr.h"
+#include "Linked_ext_ptr.h"
 
 #ifdef _DEBUG
 #include "../Utils/Debug/MemoryLeakChecker.h"
@@ -49,6 +50,9 @@ namespace engine {
 
 	template <typename T>
 	struct is_smart_pointer<linked_ptr<T>> { constinit enum : bool { value = true }; };
+
+	template <typename T>
+	struct is_smart_pointer<linked_ext_ptr<T>> { constinit enum : bool { value = true }; };
 
 	template<typename T>
 	inline constinit bool is_smart_pointer_v = engine::is_smart_pointer<T>::value;

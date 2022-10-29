@@ -10,10 +10,10 @@
 
 namespace engine {
 	
-	class Node {
+	class Node final {
 		friend struct NodeUpdater;
 	public:
-		virtual ~Node() {
+		~Node() {
 			if (_graphics) {
 				delete _graphics;
 				_graphics = nullptr;
@@ -84,7 +84,7 @@ namespace engine {
 
 	class EmptyVisibleChecker {};
 
-	struct NodeUpdater {
+	struct NodeUpdater final {
 		template<typename V>
 		inline static bool _(H_Node* node, const bool dirtyVisible, const uint8_t visibleId, V&& visibleChecker) {
 			Node& mNode = node->value();

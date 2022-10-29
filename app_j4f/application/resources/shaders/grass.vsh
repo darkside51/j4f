@@ -10,6 +10,7 @@ layout (set = 0, binding = 0) uniform static_lightUBO {
 	vec3 lightDirection;
 	vec2 lightMinMax;
 	vec4 lightColor;
+	float saturation;
 } u_constants;
 
 layout (set = 2, binding = 0) readonly buffer static_SSBO {
