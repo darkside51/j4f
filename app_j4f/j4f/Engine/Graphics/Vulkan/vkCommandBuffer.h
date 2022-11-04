@@ -538,14 +538,17 @@ namespace vulkan {
 
 		void cmdEndRenderPass() const { vkCmdEndRenderPass(m_commandBuffer); }
 
-		inline void cmdSetViewport(const VkViewport& viewport) {
+		inline bool cmdSetViewport(const VkViewport& viewport) {
 			if constexpr (stated) { 
 				if (state.setViewPort(viewport)) {
 					vkCmdSetViewport(m_commandBuffer, 0, 1, &viewport);
+					return true;
 				}
 			} else {
 				vkCmdSetViewport(m_commandBuffer, 0, 1, &viewport);
+				return true;
 			}
+			return false;
 		}
 
 		inline void cmdSetViewport(const float x, const float y, const float w, const float h, const float minDepth = 0.0f, const float maxDepth = 1.0f, const bool useNegative = true) {
@@ -570,33 +573,39 @@ namespace vulkan {
 			cmdSetViewport(viewport);
 		}
 
-		inline void cmdSetScissor(const VkRect2D& scissor) {
+		inline bool cmdSetScissor(const VkRect2D& scissor) {
 			if constexpr (stated) {
 				if (state.setScissor(scissor)) {
 					vkCmdSetScissor(m_commandBuffer, 0, 1, &scissor);
+					return true;
 				}
 			} else {
 				vkCmdSetScissor(m_commandBuffer, 0, 1, &scissor);
+				return true;
 			}
+			return false;
 		}
 
-		inline void cmdSetScissor(const int32_t x, const int32_t y, const int32_t w, const int32_t h) {
+		inline bool cmdSetScissor(const int32_t x, const int32_t y, const int32_t w, const int32_t h) {
 			VkRect2D scissor = {};
 			scissor.offset.x = x;
 			scissor.offset.y = y;
 			scissor.extent.width = w;
 			scissor.extent.height = h;
-			cmdSetScissor(scissor);
+			return cmdSetScissor(scissor);
 		}
 
-		inline void cmdSetDepthBias(const float depthBiasConstantFactor, const float depthBiasClamp, const float depthBiasSlopeFactor) {
+		inline bool cmdSetDepthBias(const float depthBiasConstantFactor, const float depthBiasClamp, const float depthBiasSlopeFactor) {
 			if constexpr (stated) {
 				if (state.setDepthBias(depthBiasConstantFactor, depthBiasClamp, depthBiasSlopeFactor)) {
 					vkCmdSetDepthBias(m_commandBuffer, depthBiasConstantFactor, depthBiasClamp, depthBiasSlopeFactor);
+					return true;
 				}
 			} else {
 				vkCmdSetDepthBias(m_commandBuffer, depthBiasConstantFactor, depthBiasClamp, depthBiasSlopeFactor);
+				return true;
 			}
+			return false;
 		}
 
 		inline void cmdBindDescriptorSet(const VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout layout,

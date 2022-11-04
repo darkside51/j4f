@@ -104,7 +104,7 @@ namespace engine {
 	glm::vec4 lightColor(1.0f, 1.0f, 1.0f, 1.0f);
 	//glm::vec2 lightMinMax(0.075f, 3.0f);
 	glm::vec2 lightMinMax(0.5f, 1.0f);
-	float saturation = 1.3f;
+	float saturation = 1.25f;
 
 	H_Node* rootNode;
 	H_Node* uiNode;
@@ -584,6 +584,20 @@ namespace engine {
 				case KeyboardKey::K_LEFT_CONTROL:
 					if (event.state != InputEventState::IES_RELEASE) break;
 					renderBounds = !renderBounds;
+					break;
+				case KeyboardKey::K_MINUS:
+					if (event.state == InputEventState::IES_RELEASE) {
+						Engine::getInstance().setGameTimeMultiply(std::max(0.0f, Engine::getInstance().getGameTimeMultiply() - 0.1f));
+					}
+					break;
+				case KeyboardKey::K_EQUAL:
+					if (event.state == InputEventState::IES_RELEASE) {
+						if (Engine::getInstance().getModule<Input>()->isShiftPressed()) {
+							Engine::getInstance().setGameTimeMultiply(Engine::getInstance().getGameTimeMultiply() + 0.1f);
+						} else {
+							Engine::getInstance().setGameTimeMultiply(1.0f);
+						}
+					}
 					break;
 				default:
 					break;
@@ -1340,7 +1354,8 @@ namespace engine {
 			auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
 			const uint32_t currentFrame = renderer->getCurrentFrame();
 
-			camera->movePosition(100.0f * delta * engine::as_normalized(wasd));
+			const float moveCameraSpeed = 0.016f;
+			camera->movePosition(50.0f * moveCameraSpeed * engine::as_normalized(wasd));
 
 			camera->calculateTransform();
 			camera2->calculateTransform();
@@ -1606,8 +1621,8 @@ namespace engine {
 				//std::shared_ptr<TextureFrame> frame = bitmapFont->createFrame(fmt_string("resolution: %dx%d\nv_sync: %s\ndraw calls: %d\nfps: %d\ncpu frame time: %f", width, height, vsync ? "on" : "off", statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime()));
 				std::shared_ptr<TextureFrame> frame = bitmapFont->createFrame(
 					fmt_string(
-						"system time: {}:{}:{}\nbuild type: {}\ngpu: {}\nresolution: {}x{}\nv_sync: {}\ndraw calls: {}\nfps: {}\ncpu frame time: {:.3}", 
-						time->tm_hour, time->tm_min, time->tm_sec, buildType, renderer->getDevice()->gpuProperties.deviceName, width, height, vsync ? "on" : "off", statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime()
+						"system time: {}:{}:{}\nbuild type: {}\ngpu: {}\nresolution: {}x{}\nv_sync: {}\ndraw calls: {}\nfps: {}\ncpu frame time: {:.3}\nspeed mult: {:.3}", 
+						time->tm_hour, time->tm_min, time->tm_sec, buildType, renderer->getDevice()->gpuProperties.deviceName, width, height, vsync ? "on" : "off", statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime(), Engine::getInstance().getGameTimeMultiply()
 					)
 				);
 				TextureFrameBounds frameBounds(frame.get());
@@ -2089,7 +2104,7 @@ int main() {
 
 	auto ri = engine::random(0, 10);
 	auto rf = engine::random(-10.0f, 20.0f);
-
+	/*
 	{
 		engine::ExecutionTime t("fmt_string2");
 		for (size_t i = 0; i < 1000; ++i) {
@@ -2120,8 +2135,9 @@ int main() {
 
 	char buffer[1024];
 	fmt::format_to(buffer, "{}", 42);
+	*/
 
-	std::function<int(int, int)> sum = [&sum](int a, int b) {
+	/*std::function<int(int, int)> sum = [&sum](int a, int b) {
 		if (b == 0) return a;
 		if (a == 0) return b;
 		int c = a ^ b;
@@ -2129,21 +2145,17 @@ int main() {
 		return sum(c, d << 1);
 	};
 
-	int s = sum(3, 4);
+	int s = sum(3, 4);*/
 	
-	std::function<void(int&, int&)> swap = [](int& a, int& b) {
+	//std::function<void(int&, int&)> swap = [](int& a, int& b) {
 		//a += b;
 		//b = a - b;
 		//a -= b;
 
-		a = a ^ b;
-		b = a ^ b;
-		a = a ^ b;
-	};
-
-	int a = 10;
-	int b = 12;
-	swap(a, b);
+		//a = a ^ b;
+		//b = a ^ b;
+		//a = a ^ b;
+	//};
 
 	//////////////////////////////////
 	engine::EngineConfig cfg;

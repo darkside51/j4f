@@ -81,6 +81,9 @@ namespace engine {
 
 		void run();
 
+		inline void setGameTimeMultiply(const float m) { _gameTimeMultiply = m; }
+		inline float getGameTimeMultiply() const { return _gameTimeMultiply; }
+
 	private:
 		Engine();
 		void initComplete();
@@ -96,5 +99,6 @@ namespace engine {
 		std::chrono::steady_clock::time_point _time;
 		double _minframeLimit = std::numeric_limits<double>::max();
 		FpsLimitType _frameLimitType = FpsLimitType::F_DONT_CARE;
+		float _gameTimeMultiply = 1.0f;
 	};
 }

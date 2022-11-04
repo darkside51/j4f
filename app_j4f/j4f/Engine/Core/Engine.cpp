@@ -120,7 +120,7 @@ namespace engine {
 		const float delta = static_cast<float>(durationTime);
 
 		_graphics->beginFrame();
-		_application->nextFrame(delta);
+		_application->nextFrame(delta * _gameTimeMultiply);
 
 		_looper->nextFrame(delta);
 
