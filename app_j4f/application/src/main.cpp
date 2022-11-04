@@ -47,6 +47,8 @@
 
 #include <format>
 
+#include <charconv>
+
 namespace engine {
 
 	vulkan::VulkanGpuProgram* grass_default = nullptr;
@@ -634,6 +636,7 @@ namespace engine {
 
 			std::vector<engine::ProgramStageInfo> psi;
 			psi.emplace_back(ProgramStage::VERTEX, "resources/shaders/mesh_skin.vsh.spv");
+			psi.emplace_back(ProgramStage::GEOMETRY, "resources/shaders/mesh_skin_stroke.gsh.spv");
 			psi.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/mesh.psh.spv");
 			VulkanGpuProgram* program_gltf = gpuProgramManager->getProgram(psi);
 
@@ -2017,10 +2020,10 @@ int main() {
 	private:
 	};
 
-	engine::linked_weak_ptr<TestLinked> weak_test;
-	auto ptr1 = weak_test.lock();
+	//engine::linked_weak_ptr<TestLinked> weak_test;
+	//auto ptr1 = weak_test.lock();
 
-	engine::linked_weak_ptr_control<TestLinked> weak_control;
+	//engine::linked_weak_ptr_control<TestLinked> weak_control;
 
 	engine::linked_ptr<TestLinked> testPtr(new TestLinked());
 	engine::linked_ptr<TestLinked> testPtr2 = testPtr;
@@ -2111,6 +2114,30 @@ int main() {
 
 	char buffer[1024];
 	fmt::format_to(buffer, "{}", 42);
+
+	std::function<int(int, int)> sum = [&sum](int a, int b) {
+		if (b == 0) return a;
+		if (a == 0) return b;
+		int c = a ^ b;
+		int d = a & b;
+		return sum(c, d << 1);
+	};
+
+	int s = sum(3, 4);
+	
+	std::function<void(int&, int&)> swap = [](int& a, int& b) {
+		//a += b;
+		//b = a - b;
+		//a -= b;
+
+		a = a ^ b;
+		b = a ^ b;
+		a = a ^ b;
+	};
+
+	int a = 10;
+	int b = 12;
+	swap(a, b);
 
 	//////////////////////////////////
 	engine::EngineConfig cfg;
