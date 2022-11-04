@@ -32,14 +32,15 @@ void main() {
 		out_tbn = in_tbn[i];
 
 		vec3 normal = out_tbn[2];
-		vec3 position = out_position + gl_InvocationID * (normal * 0.5f);
+		vec3 position = out_position + gl_InvocationID * (normal * 0.35f);
 
 		gl_Position = vp_matrix[gl_InvocationID] * vec4(position, 1.0);
 		out_stroke = float(gl_InvocationID);
 
 		float depth = gl_Position.z / gl_Position.w;
 
-		gl_Position.z += (1.0 - depth) * 9.25 * out_stroke;
+		//gl_Position.z += (1.0 - depth) * 2.25 * out_stroke;
+		gl_Position.z += 0.05 * out_stroke;
 		EmitVertex();
 	}
 	EndPrimitive();

@@ -512,7 +512,7 @@ namespace engine {
 
 		bool onInputPointerEvent(const PointerEvent& event) override {
 
-			static bool m1 = false;
+			static uint8_t m1 = 0;
 
 			static float x = event.x;
 			static float y = event.y;
@@ -927,6 +927,8 @@ namespace engine {
 				asset->getRenderDataAt(9)->setParamByName("u_texture", texture_v3, false); // helm
 				asset->getRenderDataAt(11)->setParamByName("u_texture", texture_v3, false);
 				asset->getRenderDataAt(13)->setParamByName("u_texture", texture_v3, false);
+
+				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE; // for stroke
 
 				animTree2 = new MeshAnimationTree(0.0f, asset->getNodesCount(), asset->getSkeleton()->getLatency());
 
@@ -1496,6 +1498,7 @@ namespace engine {
 
 			commandBuffer.cmdSetViewport(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f, 1.0f, false);
 			commandBuffer.cmdSetScissor(0, 0, width, height);
+			commandBuffer.cmdSetDepthBias(0.0f, 0.0f, 0.0f);
 
 			const glm::mat4& cameraMatrix = camera->getMatrix();
 
@@ -1584,6 +1587,9 @@ namespace engine {
 
 				GPU_DEBUG_MARKER_INSERT(commandBuffer.m_commandBuffer, "project render shadow plain", 0.5f, 0.5f, 0.5f, 1.0f);
 				autoBatcher->addToDraw(&renderDataFloor, sizeof(TexturedVertex), &floorVtx[0], vertexBufferSize, &idxs[0], indexBufferSize, commandBuffer, currentFrame);
+				commandBuffer.cmdSetDepthBias(2330.0f, 0.0f, 0.0f);
+				autoBatcher->draw(commandBuffer, currentFrame);
+				commandBuffer.cmdSetDepthBias(0.0f, 0.0f, 0.0f);
 
 				//// statl label
 				auto statistic = Engine::getInstance().getModule<Statistic>();

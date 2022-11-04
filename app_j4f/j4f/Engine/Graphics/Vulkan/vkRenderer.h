@@ -108,8 +108,12 @@ namespace vulkan {
 			rasterizationState.cullMode = VkCullModeFlags(cullmode);
 			rasterizationState.frontFace = VkFrontFace(faceOrientation);
 			rasterizationState.rasterizerDiscardEnable = discardEnable;
+
 			rasterizationState.depthClampEnable = VK_FALSE;
-			rasterizationState.depthBiasEnable = VK_FALSE;
+			rasterizationState.depthBiasEnable = VK_TRUE;
+			rasterizationState.depthBiasConstantFactor = 0.0f;
+			rasterizationState.depthBiasClamp = 0.0f;
+			rasterizationState.depthBiasSlopeFactor = 0.0f;
 
 			return rasterizationState;
 		}

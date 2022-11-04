@@ -98,6 +98,7 @@ namespace engine {
 		inline void prepareToRender(vulkan::VulkanCommandBuffer& commandBuffer) const {
 			commandBuffer.cmdSetViewport(0.0f, 0.0f, static_cast<float>(_dimension), static_cast<float>(_dimension), 0.0f, 1.0f, false);
 			commandBuffer.cmdSetScissor(0, 0, _dimension, _dimension);
+			commandBuffer.cmdSetDepthBias(0.0f, 0.0f, 0.0f);
 		}
 
 		inline void beginRenderPass(vulkan::VulkanCommandBuffer& commandBuffer, const uint8_t cascadeId) const {

@@ -33,8 +33,9 @@ namespace engine {
 						}
 					}
 				} else {
-					value = malloc(sz);
-					memcpy(value, v, sz);
+					if (value = malloc(sz)) {
+						memcpy(value, v, sz);
+					}
 				}
 
 				mustFreeMemory = true;

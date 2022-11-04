@@ -370,6 +370,9 @@ namespace vulkan {
 			// Update dynamic scissor state
 			commandBuffer.cmdSetScissor(0, 0, _width, _height);
 
+			// Update dynamic depth bias state
+			commandBuffer.cmdSetDepthBias(0.0f, 0.0f, 0.0f);
+
 			///////////////// finish cmd buffer
 			commandBuffer.cmdEndRenderPass();
 
@@ -950,6 +953,7 @@ namespace vulkan {
 		std::vector<VkDynamicState> dynamicStateEnables;
 		dynamicStateEnables.push_back(VK_DYNAMIC_STATE_VIEWPORT);
 		dynamicStateEnables.push_back(VK_DYNAMIC_STATE_SCISSOR);
+		dynamicStateEnables.push_back(VK_DYNAMIC_STATE_DEPTH_BIAS);
 
 		VkPipelineDynamicStateCreateInfo dynamicState = {};
 		dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;

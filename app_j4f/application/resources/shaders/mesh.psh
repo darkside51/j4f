@@ -41,7 +41,8 @@ void main() {
 		discard;
 	} else {
 		if (in_stroke > 0.0) {
-			outColor = vec4(0.175, 0.05, 0.0, 1.0);
+			//outColor = vec4(0.175, 0.05, 0.0, 1.0);
+			outColor = vec4(0.0, 0.0, 0.0, 1.0);
 		} else {
 			// get cascade index for the current fragment's view position
 			uint cascade = 0;

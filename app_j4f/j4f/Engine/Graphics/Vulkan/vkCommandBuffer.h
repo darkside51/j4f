@@ -57,8 +57,8 @@ namespace vulkan {
 			uint8_t firstSet = 0;
 			uint8_t setsCount = 0;
 			uint8_t dynamicOffsetsCount = 0;
-			std::array<uint32_t, 8> dynamicOffsets;
-			std::array<VkDescriptorSet, 8> sets;
+			std::array<uint32_t, 8> dynamicOffsets{};
+			std::array<VkDescriptorSet, 8> sets{};
 
 			NeedBindDescriptors() = default;
 
@@ -96,6 +96,10 @@ namespace vulkan {
 		VkDeviceSize m_indexBufferOffset = 0;
 		VkIndexType m_indexBufferType = VK_INDEX_TYPE_MAX_ENUM;
 
+		float m_depthBiasConstantFactor = 0xffff;
+		float m_depthBiasClamp = 0xffff;
+		float m_depthBiasSlopeFactor = 0xffff;
+
 		BindingSets m_bindSets[3];
 
 		bool processed = false;
@@ -112,6 +116,10 @@ namespace vulkan {
 
 			memset(&m_viewport, 0, sizeof(VkViewport));
 			memset(&m_scissor, 0, sizeof(VkRect2D));
+
+			m_depthBiasConstantFactor = 0xffff;
+			m_depthBiasClamp = 0xffff;
+			m_depthBiasSlopeFactor = 0xffff;
 
 			m_bindSets[0].invalidate();
 			m_bindSets[1].invalidate();
@@ -155,6 +163,19 @@ namespace vulkan {
 				memcpy(&m_scissor, &scissor, sizeof(VkRect2D));
 				return true;
 			}
+			return false;
+		}
+
+		inline bool setDepthBias(const float depthBiasConstantFactor, const float depthBiasClamp, const float depthBiasSlopeFactor) {
+			if (m_depthBiasConstantFactor != depthBiasConstantFactor ||
+				m_depthBiasClamp != depthBiasClamp ||
+				m_depthBiasSlopeFactor != depthBiasSlopeFactor) {
+				m_depthBiasConstantFactor = depthBiasConstantFactor;
+				m_depthBiasClamp = depthBiasClamp;
+				m_depthBiasSlopeFactor = depthBiasSlopeFactor;
+				return true;
+			}
+
 			return false;
 		}
 
@@ -566,6 +587,16 @@ namespace vulkan {
 			scissor.extent.width = w;
 			scissor.extent.height = h;
 			cmdSetScissor(scissor);
+		}
+
+		inline void cmdSetDepthBias(const float depthBiasConstantFactor, const float depthBiasClamp, const float depthBiasSlopeFactor) {
+			if constexpr (stated) {
+				if (state.setDepthBias(depthBiasConstantFactor, depthBiasClamp, depthBiasSlopeFactor)) {
+					vkCmdSetDepthBias(m_commandBuffer, depthBiasConstantFactor, depthBiasClamp, depthBiasSlopeFactor);
+				}
+			} else {
+				vkCmdSetDepthBias(m_commandBuffer, depthBiasConstantFactor, depthBiasClamp, depthBiasSlopeFactor);
+			}
 		}
 
 		inline void cmdBindDescriptorSet(const VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout layout,
