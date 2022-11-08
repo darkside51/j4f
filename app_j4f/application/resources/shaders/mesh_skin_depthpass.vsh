@@ -24,6 +24,7 @@ layout (set = 2, binding = 0) uniform shadowUBO {
 } u_shadow;
 
 layout (set = 4, binding = 0) uniform UBO {
+	vec4 color;
 	int use_skin;
 	mat4 skin_matrixes[192];
 } u_ubo;

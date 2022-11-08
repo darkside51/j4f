@@ -49,6 +49,8 @@
 
 #include <charconv>
 
+#include <unordered_set>
+
 namespace engine {
 
 	vulkan::VulkanGpuProgram* grass_default = nullptr;
@@ -878,6 +880,8 @@ namespace engine {
 				asset->setProgram(program_gltf);
 				asset->setParamByName("u_texture", texture_zombi, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
+				glm::vec4 color(1.0f, 0.0f, 0.0f, 1.0f);
+				asset->setParamByName("color", &color, true);
 
 				animTree = new MeshAnimationTree(0.0f, asset->getNodesCount(), asset->getSkeleton()->getLatency());
 				animTree->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[2], 1.0f, asset->getSkeleton()->getLatency()));
@@ -907,6 +911,8 @@ namespace engine {
 				asset->setProgram(program_gltf);
 				asset->setParamByName("u_texture", texture_zombi, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
+				glm::vec4 color(1.0f, 1.0f, 0.0f, 1.0f);
+				asset->setParamByName("color", &color, true);
 
 				asset->setSkeleton(mesh->graphics()->getSkeleton());
 
@@ -934,6 +940,8 @@ namespace engine {
 				asset->setProgram(program_gltf);
 				asset->setParamByName("u_texture", texture_v, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
+				glm::vec4 color(0.0f, 0.0f, 0.0f, 1.0f);
+				asset->setParamByName("color", &color, true);
 
 				asset->getRenderDataAt(3)->setParamByName("u_texture", texture_v3, false);
 				asset->getRenderDataAt(7)->setParamByName("u_texture", texture_v2, false); // eye
@@ -975,6 +983,8 @@ namespace engine {
 				asset->setParamByName("u_texture", texture_t, false);
 				asset->getRenderDataAt(1)->setParamByName("u_texture", texture_t2, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
+				glm::vec4 color(0.5f, 0.5f, 0.5f, 1.0f);
+				asset->setParamByName("color", &color, true);
 
 				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
 				asset->pipelineAttributesChanged();
@@ -1001,6 +1011,8 @@ namespace engine {
 				asset->setParamByName("u_texture", texture_t3, false);
 				asset->getRenderDataAt(1)->setParamByName("u_texture", texture_t4, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
+				glm::vec4 color(0.5f, 0.5f, 0.5f, 1.0f);
+				asset->setParamByName("color", &color, true);
 
 				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
 				asset->pipelineAttributesChanged();
@@ -1026,6 +1038,8 @@ namespace engine {
 				asset->setProgram(program_gltf);
 				asset->setParamByName("u_texture", texture_t5, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
+				glm::vec4 color(0.0f, 0.0f, 0.0f, 1.0f);
+				asset->setParamByName("color", &color, true);
 
 				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
 				asset->pipelineAttributesChanged();
@@ -1051,6 +1065,8 @@ namespace engine {
 				asset->setProgram(program_gltf);
 				asset->setParamByName("u_texture", texture_t7, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
+				glm::vec4 color(0.0f, 0.0f, 0.0f, 1.0f);
+				asset->setParamByName("color", &color, true);
 
 				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
 				asset->pipelineAttributesChanged();
@@ -1595,7 +1611,7 @@ namespace engine {
 				renderDataFloor.setParamForLayout(mvp_layout2, &const_cast<glm::mat4&>(cameraMatrix), false);
 				const glm::mat4& viewTransform = camera->getViewTransform();
 
-				renderDataFloor.setParamByName("u_texture_arr", texture_array_test, false);
+				//renderDataFloor.setParamByName("u_texture_arr", texture_array_test, false);
 				renderDataFloor.setParamByName("u_texture_mask", texture_floor_mask, false);
 				renderDataFloor.setParamByName("u_texture_normal", texture_floor_normal, false);
 				renderDataFloor.setParamByName("u_shadow_map", shadowMap->getTexture(), false);
@@ -1603,6 +1619,7 @@ namespace engine {
 				GPU_DEBUG_MARKER_INSERT(commandBuffer.m_commandBuffer, "project render shadow plain", 0.5f, 0.5f, 0.5f, 1.0f);
 				autoBatcher->addToDraw(&renderDataFloor, sizeof(TexturedVertex), &floorVtx[0], vertexBufferSize, &idxs[0], indexBufferSize, commandBuffer, currentFrame);
 				commandBuffer.cmdSetDepthBias(2330.0f, 0.0f, 0.0f);
+				//commandBuffer.cmdSetDepthBias(0.0f, 0.0f, 20.0f);
 				autoBatcher->draw(commandBuffer, currentFrame);
 				commandBuffer.cmdSetDepthBias(0.0f, 0.0f, 0.0f);
 
@@ -2020,8 +2037,8 @@ public:
 	}
 };
 
-int main() {
 
+int main() {
 	bool isSmartPtr1 = engine::is_smart_pointer<int>::value;
 	bool isSmartPtr2 = engine::is_smart_pointer<std::shared_ptr<int>>::value;
 	bool isSmartPtr3 = engine::is_smart_pointer_v<engine::linked_ptr<int>>;

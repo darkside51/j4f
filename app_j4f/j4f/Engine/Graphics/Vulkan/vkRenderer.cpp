@@ -260,16 +260,16 @@ namespace vulkan {
 			160, 160, 160, 255, 100, 100, 100, 255
 	};
 #else
-		_emptyTexture = new VulkanTexture(this, 1, 1, 1);
-		_emptyTextureArray = new VulkanTexture(this, 1, 1, 1);
-		const unsigned char emptyImg[4] = { 200, 200, 200, 255 };
+		//_emptyTexture = new VulkanTexture(this, 1, 1, 1);
+		//_emptyTextureArray = new VulkanTexture(this, 1, 1, 1);
+		//const unsigned char emptyImg[4] = { 200, 200, 200, 255 };
 
-		/*_emptyTexture = new VulkanTexture(this, 2, 2, 1);
-		  _emptyTextureArray = new VulkanTexture(this, 2, 2, 1);
+		_emptyTexture = new VulkanTexture(this, 2, 2, 1);
+		_emptyTextureArray = new VulkanTexture(this, 2, 2, 1);
 		const unsigned char emptyImg[16] = { 
 			100, 100, 100, 255, 160, 160, 160, 255,
 			160, 160, 160, 255, 100, 100, 100, 255
-		};*/
+		};
 
 #endif
 
@@ -316,7 +316,7 @@ namespace vulkan {
 		samplerDescription |= minFilter << 0; // 1 bit
 		samplerDescription |= magFilter << 1; // 1 bit
 		samplerDescription |= mipmapMode << 2; // 1 bit
-		// addresModes
+		// addressModes
 		samplerDescription |= addressModeU << 3; // 3 bits
 		samplerDescription |= addressModeV << 6; // 3 bits
 		samplerDescription |= addressModeW << 9; // 3 bits

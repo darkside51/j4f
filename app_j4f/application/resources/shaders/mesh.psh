@@ -30,6 +30,12 @@ layout (set = 2, binding = 0) uniform shadowUBO {
 	vec3 camera_position;
 } u_shadow;
 
+layout (set = 4, binding = 0) uniform UBO {
+	vec4 color;
+	int use_skin;
+	mat4 skin_matrixes[192];
+} u_ubo;
+
 layout (set = 1, binding = 0) uniform sampler2DArray u_shadow_map;
 layout (set = 3, binding = 0) uniform sampler2DArray u_texture;
 
@@ -42,7 +48,7 @@ void main() {
 	} else {
 		if (in_stroke > 0.0) {
 			//outColor = vec4(0.175, 0.05, 0.0, 1.0);
-			outColor = vec4(0.0, 0.0, 0.0, 1.0);
+			outColor = u_ubo.color;
 		} else {
 			// get cascade index for the current fragment's view position
 			uint cascade = 0;

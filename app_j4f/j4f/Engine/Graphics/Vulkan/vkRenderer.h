@@ -183,10 +183,10 @@ namespace vulkan {
 
 	union VulkanBlendMode {
 		VulkanBlendMode(const uint32_t mode = 0) : _blendMode(mode) {};
-		VulkanBlendMode(VulkanBlendMode&& mode) : _blendMode(std::move(mode._blendMode)) {};
+		VulkanBlendMode(VulkanBlendMode&& mode) noexcept : _blendMode(std::move(mode._blendMode)) {};
 		VulkanBlendMode(const VulkanBlendMode& mode) : _blendMode(mode._blendMode) {};
 		VulkanBlendMode(const BlendParameters& parameters) : _parameters(parameters) {};
-		VulkanBlendMode(BlendParameters&& parameters) : _parameters(std::move(parameters)) {};
+		VulkanBlendMode(BlendParameters&& parameters) noexcept : _parameters(std::move(parameters)) {};
 
 		template <class ...Args>
 		VulkanBlendMode(Args&&...args) : _parameters(std::forward<Args&&>(args)...) {
