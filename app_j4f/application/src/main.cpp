@@ -1011,7 +1011,7 @@ namespace engine {
 				asset->setParamByName("u_texture", texture_t3, false);
 				asset->getRenderDataAt(1)->setParamByName("u_texture", texture_t4, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
-				glm::vec4 color(0.5f, 0.5f, 0.5f, 1.0f);
+				glm::vec4 color(0.2f, 0.2f, 0.2f, 1.0f);
 				asset->setParamByName("color", &color, true);
 
 				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
@@ -1370,8 +1370,8 @@ namespace engine {
 			auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
 			const uint32_t currentFrame = renderer->getCurrentFrame();
 
-			const float moveCameraSpeed = 0.016f;
-			camera->movePosition(50.0f * moveCameraSpeed * engine::as_normalized(wasd));
+			const float moveCameraSpeed = 100.0f * Engine::getInstance().getFrameDeltaTime();
+			camera->movePosition(moveCameraSpeed * engine::as_normalized(wasd));
 
 			camera->calculateTransform();
 			camera2->calculateTransform();
@@ -1599,7 +1599,7 @@ namespace engine {
 				static auto&& pipeline_shadow_test = CascadeShadowMap::getSpecialPipeline(ShadowMapSpecialPipelines::SH_PIPEINE_PLAIN);
 				static const vulkan::GPUParamLayoutInfo* mvp_layout2 = pipeline_shadow_test->program->getGPUParamLayoutByName("mvp");
 
-				const float tc = 8.0f;
+				const float tc = 12.0f;
 				TexturedVertex floorVtx[4] = {
 					{ {-1024.0f, -1024.0f, 0.0f},	{0.0f, tc} },
 					{ {1024.0f, -1024.0f, 0.0f},	{tc, tc} },
@@ -1611,14 +1611,15 @@ namespace engine {
 				renderDataFloor.setParamForLayout(mvp_layout2, &const_cast<glm::mat4&>(cameraMatrix), false);
 				const glm::mat4& viewTransform = camera->getViewTransform();
 
-				//renderDataFloor.setParamByName("u_texture_arr", texture_array_test, false);
+				renderDataFloor.setParamByName("u_texture_arr", texture_array_test, false);
 				renderDataFloor.setParamByName("u_texture_mask", texture_floor_mask, false);
 				renderDataFloor.setParamByName("u_texture_normal", texture_floor_normal, false);
 				renderDataFloor.setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 
 				GPU_DEBUG_MARKER_INSERT(commandBuffer.m_commandBuffer, "project render shadow plain", 0.5f, 0.5f, 0.5f, 1.0f);
 				autoBatcher->addToDraw(&renderDataFloor, sizeof(TexturedVertex), &floorVtx[0], vertexBufferSize, &idxs[0], indexBufferSize, commandBuffer, currentFrame);
-				commandBuffer.cmdSetDepthBias(2330.0f, 0.0f, 0.0f);
+
+				commandBuffer.cmdSetDepthBias(200.0f, 0.0f, 0.0f);
 				//commandBuffer.cmdSetDepthBias(0.0f, 0.0f, 20.0f);
 				autoBatcher->draw(commandBuffer, currentFrame);
 				commandBuffer.cmdSetDepthBias(0.0f, 0.0f, 0.0f);
@@ -1638,7 +1639,7 @@ namespace engine {
 				//std::shared_ptr<TextureFrame> frame = bitmapFont->createFrame(fmt_string("resolution: %dx%d\nv_sync: %s\ndraw calls: %d\nfps: %d\ncpu frame time: %f", width, height, vsync ? "on" : "off", statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime()));
 				std::shared_ptr<TextureFrame> frame = bitmapFont->createFrame(
 					fmt_string(
-						"system time: {}:{}:{}\nbuild type: {}\ngpu: {}\nresolution: {}x{}\nv_sync: {}\ndraw calls: {}\nfps: {}\ncpu frame time: {:.3}\nspeed mult: {:.3}", 
+						"system time: {}:{}:{}\nbuild type: {}\ngpu: {}\nresolution: {}x{}\nv_sync: {}\ndraw calls: {}\nfps: {}\ncpu frame time: {:.3}\nspeed mult: {:.3}\n\nWASD + mouse(camera control)", 
 						time->tm_hour, time->tm_min, time->tm_sec, buildType, renderer->getDevice()->gpuProperties.deviceName, width, height, vsync ? "on" : "off", statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime(), Engine::getInstance().getGameTimeMultiply()
 					)
 				);

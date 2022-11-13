@@ -117,15 +117,15 @@ namespace engine {
 		}
 
 		_time = currentTime;
-		const float delta = static_cast<float>(durationTime);
+		_frameDeltaTime = static_cast<float>(durationTime);
 
 		_graphics->beginFrame();
-		_application->nextFrame(delta * _gameTimeMultiply);
+		_application->nextFrame(_frameDeltaTime * _gameTimeMultiply);
 
-		_looper->nextFrame(delta);
+		_looper->nextFrame(_frameDeltaTime);
 
 		if (_statistic) {
-			_statistic->nextFrame(delta);
+			_statistic->nextFrame(_frameDeltaTime);
 			_statistic->addFramePrepareTime(static_cast<float>((std::chrono::duration<double>(std::chrono::steady_clock::now() - currentTime)).count()));
 		}
 

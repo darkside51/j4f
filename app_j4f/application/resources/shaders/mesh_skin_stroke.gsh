@@ -24,24 +24,26 @@ layout (location = 4) in mat3 in_tbn[];
 layout (location = 7) in mat4 vp_matrix[];
 
 void main() {
+	vec4 mp = vec4(vp_matrix[gl_InvocationID][0][2], vp_matrix[gl_InvocationID][1][2], vp_matrix[gl_InvocationID][2][2], vp_matrix[gl_InvocationID][3][2]);
+	float strokeWidth = 0.325;
+	
 	for (int i = 0; i < gl_in.length(); i++) {
 		out_uv = in_uv[i];
 		out_view_depth = in_view_depth[i];
 		out_position = in_position[i];
 		out_halfwayDir = in_halfwayDir[i];
 		out_tbn = in_tbn[i];
-
 		out_stroke = float(gl_InvocationID);
 
 		vec3 normal = out_tbn[2];
-		vec3 position = out_position + out_stroke * (normal * 0.4);
-
-		gl_Position = vp_matrix[gl_InvocationID] * vec4(position, 1.0);
+		out_position.z += strokeWidth;
+		vec3 position = out_position + out_stroke * (normal * strokeWidth);
+		vec4 p = vp_matrix[gl_InvocationID] * vec4(position, 1.0);
 		
-		//float depth = gl_Position.z / gl_Position.w;
-		//gl_Position.z += (1.0 - depth) * 2.25 * out_stroke;
+		float simpleZ = dot(mp, vec4(out_position, 1.0));
+		p.z = max(p.z + 0.02 * out_stroke, simpleZ);
 
-		gl_Position.z += 0.051 * out_stroke;
+		gl_Position = p;
 		EmitVertex();
 	}
 	EndPrimitive();

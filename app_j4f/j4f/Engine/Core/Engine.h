@@ -84,6 +84,8 @@ namespace engine {
 		inline void setGameTimeMultiply(const float m) { _gameTimeMultiply = m; }
 		inline float getGameTimeMultiply() const { return _gameTimeMultiply; }
 
+		inline float getFrameDeltaTime() const { return _frameDeltaTime; }
+
 	private:
 		Engine();
 		void initComplete();
@@ -97,6 +99,7 @@ namespace engine {
 		Looper* _looper = nullptr;
 
 		std::chrono::steady_clock::time_point _time;
+		float _frameDeltaTime = 0.0f;
 		double _minframeLimit = std::numeric_limits<double>::max();
 		FpsLimitType _frameLimitType = FpsLimitType::F_DONT_CARE;
 		float _gameTimeMultiply = 1.0f;
