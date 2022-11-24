@@ -3,6 +3,7 @@
 #include "../Core/EngineModule.h"
 #include "../Core/Configs.h"
 #include <cstdint>
+#include <utility>
 
 namespace vulkan {
 	class VulkanRenderer;
@@ -45,10 +46,13 @@ namespace engine {
 
 		inline const GraphicConfig& config() const { return _config; }
 
+		inline const std::pair<uint16_t, uint16_t>& getSize() const { return _size; }
+
 	private:
 		void createLoaders();
 
 		GraphicConfig _config;
+		std::pair<uint16_t, uint16_t> _size;
 
 		void* _renderer;
 		GpuProgramsManager* _gpuProgramManager;

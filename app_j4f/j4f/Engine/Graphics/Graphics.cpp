@@ -58,6 +58,10 @@ namespace engine {
 			}
 
 			//render_type = Render_Type::VULKAN;
+			const uint64_t wh = renderer->getWH();
+			_size.first = static_cast<uint16_t>(wh >> 0);
+			_size.second = static_cast<uint16_t>(wh >> 32);
+
 			_renderer = renderer;
 		}
 
@@ -94,6 +98,7 @@ namespace engine {
 	}
 
 	void Graphics::resize(const uint16_t w, const uint16_t h) {
+		_size.first = w; _size.second = h;
 		static_cast<render_type*>(_renderer)->resize(w, h, _config.v_sync);
 		_renderHelper->onResize();
 	}

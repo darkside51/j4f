@@ -41,6 +41,9 @@ vec3 plainCalculateNormal() {
 }
 
 void main() {
+	float mixC = texture(u_texture_mask, uv2, 0.0).r;
+	vec4 color1 = texture(u_texture_arr, vec3(uv, 1));
+	vec4 color2 =texture(u_texture_arr, vec3(uv, 0));
 
 	// get cascade index for the current fragment's view position
 	uint cascade = 0;
@@ -55,10 +58,11 @@ void main() {
 
 	//float shadow = textureProj(shadowCoord / shadowCoord.w, vec2(0.0), cascade, u_constants.lightMinMax.x);
 	float shadow = filterPCF(shadowCoord / shadowCoord.w, cascade, u_constants.lightMinMax.x);
-
-	float mixC = texture(u_texture_mask, uv2, 0.0).r;
-	vec4 color = mix(texture(u_texture_arr, vec3(uv, 1)), texture(u_texture_arr, vec3(uv, 0)), mixC);
+	
 	vec3 normal = vec3(0.0, 0.0, 1.0);
+
+	vec4 color = mix(color1, color2, mixC);
+	
 	//vec3 normal = plainCalculateNormal();
 
 	//const float light = max(dot(normal, -u_constants.lightDirection), 0.0);

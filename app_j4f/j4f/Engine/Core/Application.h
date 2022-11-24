@@ -8,6 +8,7 @@ namespace engine {
 	public:
 		Application();
 		~Application() { freeCustomData(); }
+		void update(const float delta);
 		void nextFrame(const float delta);
 		void resize(const uint16_t w, const uint16_t h);
 		void deviceDestroyed() { freeCustomData(); }
@@ -18,6 +19,7 @@ namespace engine {
 
 #ifdef J4F_NO_APPLICATION
 	Application::Application() = default;
+	void Application::update(const float delta) {}
 	void Application::nextFrame(const float delta) {}
 	void Application::resize(const uint16_t w, const uint16_t h) {}
 	void Application::deviceDestroyed() {}

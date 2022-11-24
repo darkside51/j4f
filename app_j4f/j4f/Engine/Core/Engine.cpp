@@ -68,11 +68,20 @@ namespace engine {
 		_graphics->onEngineInitComplete();
 	}
 
+
+
 	void Engine::run() {
+		//_updateThread = new WorkerThread(&Engine::update, this);
+		//_renderThread = std::make_unique<WorkerThread>(&Engine::render, this);
+		_renderThread = std::make_unique<WorkerThread>(&Engine::nextFrame, this);
+
 		getModule<Device>()->start();
 	}
 
 	void Engine::destroy() {
+		_renderThread = nullptr;
+		_updateThread = nullptr;
+
 		for (auto&& m : _modules) {
 			delete m;
 		}
@@ -85,51 +94,94 @@ namespace engine {
 	}
 
 	void Engine::resize(const uint16_t w, const uint16_t h) {
-		_graphics->resize(w, h);
-		_application->resize(w, h);
+		_looper->pushTask([this, w, h]() {
+			_graphics->resize(w, h);
+			_application->resize(w, h);
+		});
+		//_graphics->resize(w, h);
+		//_application->resize(w, h);
+
+		/*if (_renderThread->isActive()) {
+			_renderThread->stop();
+			_graphics->resize(w, h);
+			_application->resize(w, h);
+			_renderThread = std::make_unique<WorkerThread>(&Engine::render, this);
+		}*/
+
+		/*
+		if (_renderThread->isActive()) {
+			_renderThread->pause();
+			_renderThread->wait();
+
+			_graphics->resize(w, h);
+			_application->resize(w, h);
+
+			_renderThread->resume();
+			_renderThread->notify();
+		}
+		*/
 	}
 
 	void Engine::deviceDestroyed() {
+		if (_renderThread) {
+			_renderThread->stop();
+		}
+
+		if (_updateThread) {
+			_updateThread->stop();
+		}
+
 		getModule<ThreadPool>()->stop();
 		getModule<AssetManager>()->deviceDestroyed();
 		_graphics->deviceDestroyed();
 		_application->deviceDestroyed();
 	}
 
+	void Engine::update() {
+		while (_updateThread->isActive()) {
+			_application->update(0.0f);
+		}
+	}
+
 	void Engine::nextFrame() {
 		const auto currentTime = std::chrono::steady_clock::now();
 		const std::chrono::duration<double> duration = currentTime - _time;
 		const double durationTime = duration.count();
-		
+
 		switch (_frameLimitType) {
-			case FpsLimitType::F_STRICT:
-				if (durationTime < _minframeLimit) {
-					return;
-				}
-				break;
-			case FpsLimitType::F_CPU_SLEEP:
-				if (durationTime < _minframeLimit) {
-					std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(1000.0 * (_minframeLimit - durationTime)));
-				}
-				break;
-			default:
-				break;
+		case FpsLimitType::F_STRICT:
+			if (durationTime < _minframeLimit) {
+				return;
+			}
+			break;
+		case FpsLimitType::F_CPU_SLEEP:
+			if (durationTime < _minframeLimit) {
+				std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(1000.0 * (_minframeLimit - durationTime)));
+			}
+			break;
+		default:
+			break;
 		}
 
 		_time = currentTime;
 		_frameDeltaTime = static_cast<float>(durationTime);
 
-		_graphics->beginFrame();
-		_application->nextFrame(_frameDeltaTime * _gameTimeMultiply);
+		const auto& size = _graphics->getSize();
+		if (size.first != 0 && size.second != 0) {
+			_graphics->beginFrame();
+			_application->nextFrame(_frameDeltaTime * _gameTimeMultiply);
 
-		_looper->nextFrame(_frameDeltaTime);
+			//_looper->nextFrame(_frameDeltaTime);
 
-		if (_statistic) {
-			_statistic->nextFrame(_frameDeltaTime);
-			_statistic->addFramePrepareTime(static_cast<float>((std::chrono::duration<double>(std::chrono::steady_clock::now() - currentTime)).count()));
+			if (_statistic) {
+				_statistic->nextFrame(_frameDeltaTime);
+				_statistic->addFramePrepareTime(static_cast<float>((std::chrono::duration<double>(std::chrono::steady_clock::now() - currentTime)).count()));
+			}
+
+			_graphics->endFrame();
 		}
 
-		_graphics->endFrame();
+		_looper->nextFrame(_frameDeltaTime);
 
 		++_frameId; // increase frameId at the end of frame
 	}

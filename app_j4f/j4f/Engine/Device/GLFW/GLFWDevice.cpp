@@ -261,7 +261,8 @@ namespace engine {
 	void GLFWDevice::start() {
 		while (!glfwWindowShouldClose(_window)) {
 			if (_width != 0 && _height != 0) {
-				Engine::getInstance().nextFrame();
+				//Engine::getInstance().nextFrame();
+				std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(12));
 			} 
 
 			glfwPollEvents();

@@ -765,12 +765,14 @@ namespace vulkan {
 				
 			}
 
-			if (_width == 0 || _height == 0) { return; }
+			if (_width == 0 || _height == 0) { 
+				return;
+			}
 
 			_swapChain.resize(_width, _height, _vSync);
 
-			if (_swapchainImagesCount != _swapchainImagesCount) {
-				_swapchainImagesCount = _swapchainImagesCount;
+			if (_swapchainImagesCount != _swapChain.imageCount) {
+				_swapchainImagesCount = _swapChain.imageCount;
 			}
 
 			// recreate resources

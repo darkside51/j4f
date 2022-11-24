@@ -51,6 +51,8 @@
 
 #include <unordered_set>
 
+#include <mutex>
+
 namespace engine {
 
 	vulkan::VulkanGpuProgram* grass_default = nullptr;
@@ -1365,6 +1367,9 @@ namespace engine {
 			bus->sendEvent<TestBusEvent>({ 1.0f, 2.0f });
 		}
 
+		void update(const float delta) { // update thread
+		}
+
 		void draw(const float delta) {
 
 			auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
@@ -2016,13 +2021,16 @@ namespace engine {
 		_customData->draw(delta);
 	}
 
+	void Application::update(const float delta) {
+		_customData->update(delta);
+	}
+
 	void Application::resize(const uint16_t w, const uint16_t h) {
 		if (w != 0 && h != 0) {
 			_customData->resize(w, h);
 		}
 	}
 }
-
 
 class A1 {
 public:
@@ -2038,8 +2046,50 @@ public:
 	}
 };
 
+template <typename T, typename... Args>
+struct MyTuple {
+	T value;
+	MyTuple<Args...> tail;
+};
+
+template <typename T>
+struct MyTuple<T> {
+	T value;
+};
+
+struct alignas(8) MyBitStruct
+{
+	alignas(4) uint16_t a;
+	alignas(4) uint16_t b;
+	alignas(4) uint16_t c;
+};
+
+template <typename T>
+struct RetType {
+	using type = const T&;
+};
+
+template <>
+struct RetType<int> {
+	using type = int;
+};
+
+template <typename T>
+using return_type = RetType<T>::type;
+
+template<typename T>
+auto test_func(const T& t) -> return_type<T> {
+	return return_type<T>(t);
+}
 
 int main() {
+	auto testInt = test_func(10);
+
+	MyBitStruct mbbb;
+	auto sssize = sizeof(MyBitStruct);
+
+	MyTuple<int, int, float> myTuple;
+
 	bool isSmartPtr1 = engine::is_smart_pointer<int>::value;
 	bool isSmartPtr2 = engine::is_smart_pointer<std::shared_ptr<int>>::value;
 	bool isSmartPtr3 = engine::is_smart_pointer_v<engine::linked_ptr<int>>;
@@ -2155,31 +2205,11 @@ int main() {
 	fmt::format_to(buffer, "{}", 42);
 	*/
 
-	/*std::function<int(int, int)> sum = [&sum](int a, int b) {
-		if (b == 0) return a;
-		if (a == 0) return b;
-		int c = a ^ b;
-		int d = a & b;
-		return sum(c, d << 1);
-	};
-
-	int s = sum(3, 4);*/
-	
-	//std::function<void(int&, int&)> swap = [](int& a, int& b) {
-		//a += b;
-		//b = a - b;
-		//a -= b;
-
-		//a = a ^ b;
-		//b = a ^ b;
-		//a = a ^ b;
-	//};
-
 	//////////////////////////////////
 	engine::EngineConfig cfg;
 	cfg.fpsLimit = 120;
 	cfg.fpsLimitType = engine::FpsLimitType::F_DONT_CARE;
-	cfg.graphicsCfg = { true, 2 , {} }; // 1 - VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU, 2 - VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
+	cfg.graphicsCfg = { true, 2, {} }; // 1 - VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU, 2 - VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
 	cfg.graphicsCfg.gpu_features.geometryShader = 1;
 	// fillModeNonSolid = _config.gpu_features.fillModeNonSolid; // example to enable POLYGON_MODE_LINE or POLYGON_MODE_POINT
 	engine::Engine::getInstance().init(cfg);
