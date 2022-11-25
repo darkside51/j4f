@@ -3,11 +3,46 @@
 #include <Platform_inc.h>
 #include "../Utils/StringHelper.h"
 #include "../Time/Time.h"
+#include "../Core/EngineModule.h"
 #include <inttypes.h>
 
 #ifdef j4f_PLATFORM_WINDOWS
 	#include <windows.h>
 	#define __FILENAME__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
+
+#ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
+#define ENABLE_VIRTUAL_TERMINAL_PROCESSING  0x0004
+#endif
+
+static HANDLE stdoutHandle = nullptr;
+static DWORD outModeInit = 0;
+
+inline void setupConsole() {
+ 	DWORD outMode = 0;
+	stdoutHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+	if (stdoutHandle == INVALID_HANDLE_VALUE) {
+		exit(GetLastError());
+	}
+
+	if (!GetConsoleMode(stdoutHandle, &outMode)) {
+		exit(GetLastError());
+	}
+
+	outModeInit = outMode;
+
+	// enable ANSI escape codes
+	outMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+	if (!SetConsoleMode(stdoutHandle, outMode)) {
+		exit(GetLastError());
+	}
+}
+
+inline void restoreConsole() {
+	// reset console mode
+	if (!SetConsoleMode(stdoutHandle, outModeInit)) {
+		exit(GetLastError());
+	 }
+ }
 
 //#define USE_NOSTD_CONSOLE_OUTPUT
 
@@ -26,6 +61,9 @@ namespace engine {
 #else
 	#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 
+inline void setupConsole() {}
+inline void restoreConsole() {}
+
 namespace engine {
 	template <typename...Args>
 	inline void printLog(const char* fmt, Args&&...args) {
@@ -35,6 +73,16 @@ namespace engine {
 #endif
 
 namespace engine {
+	class LogManager : public IEngineModule {
+	public:
+		LogManager() {
+			setupConsole();
+		}
+
+		~LogManager() {
+			restoreConsole();
+		}
+	};
 
 	enum class LogLevel : uint8_t {
 		L_COMMON	= 0,

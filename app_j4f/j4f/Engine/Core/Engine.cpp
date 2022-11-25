@@ -34,6 +34,7 @@ namespace engine {
 	}
 	
 	void Engine::init(const EngineConfig& cfg) {
+		setModule<LogManager>();
 		setModule<Statistic>();
 
 		setModule<ThreadPool>(std::max(static_cast<uint8_t>(std::thread::hardware_concurrency()), uint8_t(1)));
