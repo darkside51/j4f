@@ -735,6 +735,9 @@ namespace vulkan {
 
 			_vulkanDevice->waitIdle();
 
+			for (auto&& fence : _waitFences) {
+				fence.destroy();
+			}
 			_waitFences.clear();
 
 			for (auto&& semaphore : _presentCompleteSemaphores) {
@@ -766,6 +769,7 @@ namespace vulkan {
 			}
 
 			if (_width == 0 || _height == 0) { 
+				//assert(false);
 				return;
 			}
 
@@ -795,24 +799,23 @@ namespace vulkan {
 
 			_presentCompleteSemaphores.reserve(_swapchainImagesCount);
 			for (size_t i = 0; i < _swapchainImagesCount; ++i) {
-				_presentCompleteSemaphores.emplace_back(vulkan::VulkanSemaphore(_vulkanDevice->device));
-				_mainSupportCommandBuffers.addWaitSemaphore(_presentCompleteSemaphores[i].semaphore, i);
+				auto&& semaphore = _presentCompleteSemaphores.emplace_back(vulkan::VulkanSemaphore(_vulkanDevice->device));
+				_mainSupportCommandBuffers.addWaitSemaphore(semaphore.semaphore, i);
 			}
 
 			_mainRenderCommandBuffers.depend(_mainSupportCommandBuffers);
 
-			_waitFences.clear();
-
+			_waitFences.reserve(_swapchainImagesCount);
 			// wait fences to sync command buffer access
 			for (uint32_t i = 0; i < _swapchainImagesCount; ++i) {
 				_waitFences.emplace_back(vulkan::VulkanFence(_vulkanDevice->device, VK_FENCE_CREATE_SIGNALED_BIT));
 			}
 
-			_currentFrame = 0;
-
 			buildDefaultMainRenderCommandBuffer();
 
 			_tmpBuffers.resize(_swapchainImagesCount);
+
+			_currentFrame = 0;
 		}
 	}
 
@@ -854,7 +857,13 @@ namespace vulkan {
 		_mainSupportCommandBuffers[_currentFrame].end();
 
 		uint32_t aciquireImageIndex = 0;
-		_swapChain.acquireNextImage(_presentCompleteSemaphores[_currentFrame].semaphore, &aciquireImageIndex);
+		const VkResult result = _swapChain.acquireNextImage(_presentCompleteSemaphores[_currentFrame].semaphore, &aciquireImageIndex);
+		if (result != VK_SUCCESS) { // acquire failed - skip this frame to present
+			_waitFences[_currentFrame].destroy();
+			_waitFences[_currentFrame] = vulkan::VulkanFence(_vulkanDevice->device, VK_FENCE_CREATE_SIGNALED_BIT);
+			_currentFrame = (_currentFrame + 1) % _swapchainImagesCount;
+			return;
+		}
 
 		VkSubmitInfo submitInfos[2];
 

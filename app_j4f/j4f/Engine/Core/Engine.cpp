@@ -6,6 +6,7 @@
 #include <Platform_inc.h>
 #include "Cache.h"
 #include "Threads/ThreadPool.h"
+#include "Threads/Worker.h"
 #include "Threads/Looper.h"
 #include "Memory/MemoryManager.h"
 #include "AssetManager.h"
@@ -68,11 +69,8 @@ namespace engine {
 		_graphics->onEngineInitComplete();
 	}
 
-
-
 	void Engine::run() {
 		//_updateThread = new WorkerThread(&Engine::update, this);
-		//_renderThread = std::make_unique<WorkerThread>(&Engine::render, this);
 		_renderThread = std::make_unique<WorkerThread>(&Engine::nextFrame, this);
 
 		getModule<Device>()->start();
@@ -94,32 +92,19 @@ namespace engine {
 	}
 
 	void Engine::resize(const uint16_t w, const uint16_t h) {
-		_looper->pushTask([this, w, h]() {
+		if (_renderThread) {
+			if (_renderThread->isActive()) {
+				_renderThread->pause();
+
+				_graphics->resize(w, h);
+				_application->resize(w, h);
+
+				_renderThread->resume();
+			}
+		} else {
 			_graphics->resize(w, h);
 			_application->resize(w, h);
-		});
-		//_graphics->resize(w, h);
-		//_application->resize(w, h);
-
-		/*if (_renderThread->isActive()) {
-			_renderThread->stop();
-			_graphics->resize(w, h);
-			_application->resize(w, h);
-			_renderThread = std::make_unique<WorkerThread>(&Engine::render, this);
-		}*/
-
-		/*
-		if (_renderThread->isActive()) {
-			_renderThread->pause();
-			_renderThread->wait();
-
-			_graphics->resize(w, h);
-			_application->resize(w, h);
-
-			_renderThread->resume();
-			_renderThread->notify();
 		}
-		*/
 	}
 
 	void Engine::deviceDestroyed() {
@@ -138,9 +123,7 @@ namespace engine {
 	}
 
 	void Engine::update() {
-		while (_updateThread->isActive()) {
-			_application->update(0.0f);
-		}
+		_application->update(0.0f);
 	}
 
 	void Engine::nextFrame() {
@@ -149,18 +132,18 @@ namespace engine {
 		const double durationTime = duration.count();
 
 		switch (_frameLimitType) {
-		case FpsLimitType::F_STRICT:
-			if (durationTime < _minframeLimit) {
-				return;
-			}
-			break;
-		case FpsLimitType::F_CPU_SLEEP:
-			if (durationTime < _minframeLimit) {
-				std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(1000.0 * (_minframeLimit - durationTime)));
-			}
-			break;
-		default:
-			break;
+			case FpsLimitType::F_STRICT:
+				if (durationTime < _minframeLimit) {
+					return;
+				}
+				break;
+			case FpsLimitType::F_CPU_SLEEP:
+				if (durationTime < _minframeLimit) {
+					std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(1000.0 * (_minframeLimit - durationTime)));
+				}
+				break;
+			default:
+				break;
 		}
 
 		_time = currentTime;
@@ -171,7 +154,7 @@ namespace engine {
 			_graphics->beginFrame();
 			_application->nextFrame(_frameDeltaTime * _gameTimeMultiply);
 
-			//_looper->nextFrame(_frameDeltaTime);
+			_looper->nextFrame(_frameDeltaTime);
 
 			if (_statistic) {
 				_statistic->nextFrame(_frameDeltaTime);
@@ -180,8 +163,6 @@ namespace engine {
 
 			_graphics->endFrame();
 		}
-
-		_looper->nextFrame(_frameDeltaTime);
 
 		++_frameId; // increase frameId at the end of frame
 	}

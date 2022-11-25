@@ -66,6 +66,12 @@ namespace engine {
 		Engine::getInstance().getModule<GLFWDevice>()->setSize(uw, uh);
 	}
 
+	void glfwOnFrameBufferResize(GLFWwindow*, int w, int h) {
+		//const uint16_t uw = static_cast<uint16_t>(w);
+		//const uint16_t uh = static_cast<uint16_t>(h);
+		//Engine::getInstance().getModule<GLFWDevice>()->setSize(uw, uh);
+	}
+
 	void glfwOnWindowIconify(GLFWwindow*, int iconified) {
 		//iconified ? printf("iconify window\n") : printf("restore window\n");
 	}
@@ -207,6 +213,7 @@ namespace engine {
 		_window = glfwCreateWindow(_width, _height, "j4f (vulkan)", nullptr, nullptr);
 		//_window = glfwCreateWindow(_width, _height, "j4f (vulkan)", monitor, nullptr);
 
+		glfwSetFramebufferSizeCallback(_window, &glfwOnFrameBufferResize);
 		glfwSetWindowSizeCallback(_window, &glfwOnWindowResize);
 		glfwSetWindowIconifyCallback(_window, &glfwOnWindowIconify);
 
@@ -219,7 +226,7 @@ namespace engine {
 
 		_surfaceInitialiser = new GlfwVkSurfaceInitialiser(_window);
 
-		statObserver = new GlfwStatObserver(_window); // todo remove stat observer from this code
+		//statObserver = new GlfwStatObserver(_window); // todo remove stat observer from this code
 	}
 
 	GLFWDevice::~GLFWDevice() {

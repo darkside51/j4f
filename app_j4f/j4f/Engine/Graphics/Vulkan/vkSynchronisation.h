@@ -39,9 +39,7 @@ namespace vulkan {
 		}
 
 		~VulkanFence() {
-			if (fence != VK_NULL_HANDLE) {
-				vkDestroyFence(device, fence, allocator);
-			}
+			destroy();
 		}
 
 		inline void destroy() {
