@@ -859,8 +859,11 @@ namespace vulkan {
 		uint32_t aciquireImageIndex = 0;
 		const VkResult result = _swapChain.acquireNextImage(_presentCompleteSemaphores[_currentFrame].semaphore, &aciquireImageIndex);
 		if (result != VK_SUCCESS) { // acquire failed - skip this frame to present
-			_waitFences[_currentFrame].destroy();
-			_waitFences[_currentFrame] = vulkan::VulkanFence(_vulkanDevice->device, VK_FENCE_CREATE_SIGNALED_BIT);
+			const VkResult fenceStatus = vkGetFenceStatus(_vulkanDevice->device, _waitFences[_currentFrame].fence);
+			if (fenceStatus != VK_SUCCESS) {
+				_waitFences[_currentFrame].destroy();
+				_waitFences[_currentFrame] = vulkan::VulkanFence(_vulkanDevice->device, VK_FENCE_CREATE_SIGNALED_BIT);
+			}
 			_currentFrame = (_currentFrame + 1) % _swapchainImagesCount;
 			return;
 		}

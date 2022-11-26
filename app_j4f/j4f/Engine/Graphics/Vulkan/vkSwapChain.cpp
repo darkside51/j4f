@@ -65,7 +65,10 @@ namespace vulkan {
 		std::vector<VkPresentModeKHR> presentModes(presentModeCount);
 		vkGetPhysicalDeviceSurfacePresentModesKHR(_physicalDevice, surface, &presentModeCount, &presentModes[0]);
 
-		VkExtent2D swapchainExtent = {width , height};
+		const uint32_t fixedWidth = std::max(surfCaps.minImageExtent.width, std::min(width, surfCaps.maxImageExtent.width));
+		const uint32_t fixedHeight = std::max(surfCaps.minImageExtent.height, std::min(height, surfCaps.maxImageExtent.height));
+
+		VkExtent2D swapchainExtent = { fixedWidth , fixedHeight };
 
 		// select a present mode for the swapchain
 

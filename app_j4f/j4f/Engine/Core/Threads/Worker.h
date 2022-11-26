@@ -5,6 +5,7 @@
 #include <mutex>
 #include <memory>
 #include <functional>
+#include "Synchronisations.h"
 
 namespace engine {
 
@@ -40,8 +41,22 @@ namespace engine {
 				_wait.test_and_set(std::memory_order_acq_rel);
 
 				if (isAlive()) {
-					std::unique_lock<std::mutex> lock(_mutex);
-					_condition.wait(lock, [this] { return isActive(); });
+					std::function<bool()> pauseCallback;
+					{
+						AtomicLockF lock(_callbackLock);
+						pauseCallback = std::move(_onPause);
+						_onPause = nullptr;
+					}
+
+					if (pauseCallback) {
+						if (pauseCallback()) {
+							sleep();
+						} else {
+							requestResume(); // remove pause flag if _onPause returnedz false
+						}
+					} else {
+						sleep();
+					}
 				}
 			}
 		}
@@ -50,13 +65,13 @@ namespace engine {
 		inline bool isAlive() const { return !_stop.test(std::memory_order_acquire); }
 
 		inline void resume() {
-			_paused.clear(std::memory_order_release);
-			__notify();
+			requestResume();
+			notify();
 		}
 
 		inline void pause() {
-			__pause();
-			__wait();
+			requestPause(nullptr);
+			waitPaused();
 		}
 
 		inline void stop() {
@@ -68,16 +83,39 @@ namespace engine {
 			}
 		}
 
-	private:
-		inline void __pause() { _paused.test_and_set(std::memory_order_release); }
+		inline void requestPause(const std::function<bool()>& onPause) { 
+			{
+				AtomicLockF lock(_callbackLock);
+				_onPause = onPause;
+			}
+			_paused.test_and_set(std::memory_order_release);
+		}
 
-		inline void __wait() {
+		inline void requestPause(std::function<bool()>&& onPause) {
+			{
+				AtomicLockF lock(_callbackLock);
+				_onPause = std::move(onPause);
+			}
+			_paused.test_and_set(std::memory_order_release);
+		}
+
+		inline void requestResume() {
+			_paused.clear(std::memory_order_release);
+		}
+
+		inline void waitPaused() {
 			while (!_wait.test(std::memory_order_acquire)) {
 				std::this_thread::yield();
 			}
 		}
 
-		inline void __notify() { _condition.notify_one(); }
+	private:
+		inline void sleep() {
+			std::unique_lock<std::mutex> lock(_mutex);
+			_condition.wait(lock, [this] { return isActive(); });
+		}
+
+		inline void notify() { _condition.notify_one(); }
 
 		std::thread _thread;
 		std::atomic_flag _paused;
@@ -86,7 +124,11 @@ namespace engine {
 
 		std::mutex _mutex;
 		std::condition_variable _condition;
-		std::function<void()> _task;
+
+		std::function<void()> _task = nullptr;
+
+		std::atomic_flag _callbackLock;
+		std::function<bool()> _onPause = nullptr;
 	};
 
 }

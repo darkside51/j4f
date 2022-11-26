@@ -118,6 +118,8 @@ namespace engine {
 	//constexpr bool renderBounds = false;
 	bool renderBounds = false;
 
+	glm::vec3 targetCameraRotation(0.0f, 0.0f, 0.0f);
+
 	class SkyBoxRenderer : public RenderedEntity {
 	public:
 		~SkyBoxRenderer() {
@@ -535,8 +537,9 @@ namespace engine {
 				case InputEventState::IES_NONE:
 				{
 					if (m1) {
-						constexpr float k = 0.005f;
-						camera->setRotation(camera->getRotation() + glm::vec3(-k * (event.y - y), 0.0f, k * (event.x - x)));
+						constexpr float k = 0.0075f;
+						targetCameraRotation = (camera->getRotation() + glm::vec3(-k * (event.y - y), 0.0f, k * (event.x - x)));
+						//camera->setRotation(camera->getRotation() + glm::vec3(-k * (event.y - y), 0.0f, k * (event.x - x)));
 						x = event.x;
 						y = event.y;
 					}
@@ -617,12 +620,14 @@ namespace engine {
 			const uint32_t width = static_cast<uint32_t>(wh >> 0);
 			const uint32_t height = static_cast<uint32_t>(wh >> 32);
 
+			targetCameraRotation = glm::vec3(-engine::math_constants::pi / 3.0f, 0.0f, 0.0f);
+
 			camera = new Camera(width, height);
 			camera->enableFrustum();
 
 			camera->makeProjection(engine::math_constants::pi / 4.0f, static_cast<float>(width) / static_cast<float>(height), 1.0f, 4000.0f);
 			//camera->makeOrtho(-float(width) * 0.5f, float(width) * 0.5f, -float(height) * 0.5f, float(height) * 0.5f, 1.0f, 1000.0f);
-			camera->setRotation(glm::vec3(-engine::math_constants::pi / 3.0f, 0.0f, 0.0f));
+			camera->setRotation(targetCameraRotation);
 			camera->setPosition(glm::vec3(0.0f, -500.0f, 300.0f));
 
 			camera2 = new Camera(width, height);
@@ -1377,6 +1382,10 @@ namespace engine {
 
 			const float moveCameraSpeed = 100.0f * Engine::getInstance().getFrameDeltaTime();
 			camera->movePosition(moveCameraSpeed * engine::as_normalized(wasd));
+
+			const float rotateCameraSpeed = 24.0f * Engine::getInstance().getFrameDeltaTime();
+			camera->setRotation(camera->getRotation() + rotateCameraSpeed * (targetCameraRotation - camera->getRotation()));
+
 
 			camera->calculateTransform();
 			camera2->calculateTransform();

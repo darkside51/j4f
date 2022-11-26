@@ -13,9 +13,9 @@ namespace engine {
 
 	class Looper : public IEngineModule {
 	public:
-		Looper() : _lock(false) { }
+		Looper() { }
 		~Looper() {
-			AtomicLock l(_lock);
+			AtomicLockF l(_lock);
 			_tasks.clear();
 		}
 		
@@ -24,7 +24,7 @@ namespace engine {
 
 			std::vector<LooperTask> tasks;
 			{
-				AtomicLock l(_lock);
+				AtomicLockF l(_lock);
 				tasks = std::move(_tasks);
 				_tasks.clear();
 			}
@@ -35,17 +35,17 @@ namespace engine {
 		}
 
 		inline void pushTask(LooperTask&& t) {
-			AtomicLock l(_lock);
+			AtomicLockF l(_lock);
 			_tasks.push_back(std::move(t));
 		}
 
 		inline void pushTask(const LooperTask& t) {
-			AtomicLock l(_lock);
+			AtomicLockF l(_lock);
 			_tasks.push_back(t);
 		}
 
 	private:
-		std::atomic_bool _lock;
+		std::atomic_flag _lock{};
 		std::vector<LooperTask> _tasks;
 	};
 

@@ -213,7 +213,7 @@ namespace engine {
 		_window = glfwCreateWindow(_width, _height, "j4f (vulkan)", nullptr, nullptr);
 		//_window = glfwCreateWindow(_width, _height, "j4f (vulkan)", monitor, nullptr);
 
-		glfwSetFramebufferSizeCallback(_window, &glfwOnFrameBufferResize);
+		//glfwSetFramebufferSizeCallback(_window, &glfwOnFrameBufferResize);
 		glfwSetWindowSizeCallback(_window, &glfwOnWindowResize);
 		glfwSetWindowIconifyCallback(_window, &glfwOnWindowIconify);
 
@@ -266,12 +266,13 @@ namespace engine {
 	}
 
 	void GLFWDevice::start() {
-		while (!glfwWindowShouldClose(_window)) {
-			if (_width != 0 && _height != 0) {
-				//Engine::getInstance().nextFrame();
-				std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(12));
-			} 
+		constexpr uint8_t pollEventsDeltaTimeMilliseconds = 32; // ~ 30fps
 
+		while (!glfwWindowShouldClose(_window)) {
+			//if (_width != 0 && _height != 0) {
+				//Engine::getInstance().nextFrame();
+			//} 
+			std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(pollEventsDeltaTimeMilliseconds));
 			glfwPollEvents();
 		}
 

@@ -29,6 +29,28 @@ namespace engine {
 		std::atomic_bool& _lock;
 	};
 
+	class AtomicLockF {
+	public:
+		AtomicLockF(std::atomic_flag& l) : _lock(l) {
+			while (_lock.test_and_set(std::memory_order_consume)) {
+				std::this_thread::yield();
+			}
+		}
+
+		~AtomicLockF() {
+			_lock.clear(std::memory_order_release);
+		}
+
+		static void wait(std::atomic_flag& l) {
+			while (l.test_and_set(std::memory_order_consume)) {
+				std::this_thread::yield();
+			}
+		}
+
+	private:
+		std::atomic_flag& _lock;
+	};
+
 	class AtomicInc {
 	public:
 		AtomicInc(std::atomic_uint16_t& c) : _counter(c) {
