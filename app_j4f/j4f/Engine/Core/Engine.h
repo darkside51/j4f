@@ -16,7 +16,6 @@ namespace engine {
 	class WorkerThread;
 	
 	class Engine {
-		friend class std::thread;
 	public:
 		~Engine();
 
@@ -76,8 +75,6 @@ namespace engine {
 			return oldModule;
 		}
 
-		inline uint16_t getFrameId() const { return _frameId; }
-		void nextFrame();
 		void resize(const uint16_t w, const uint16_t h);
 		void deviceDestroyed();
 
@@ -86,17 +83,15 @@ namespace engine {
 		inline void setGameTimeMultiply(const float m) { _gameTimeMultiply = m; }
 		inline float getGameTimeMultiply() const { return _gameTimeMultiply; }
 
-		inline float getFrameDeltaTime() const { return _frameDeltaTime; }
-
 	private:
 		Engine();
 		void initComplete();
 
-		void update();
+		void nextFrame(const float delta, const std::chrono::steady_clock::time_point& currentTime);
+		void update(const float delta, const std::chrono::steady_clock::time_point& currentTime);
 
 		std::vector<IEngineModule*> _modules;
 
-		uint16_t _frameId = 0;
 		Statistic* _statistic = nullptr;
 		Graphics* _graphics = nullptr;
 		Application* _application = nullptr;
@@ -104,10 +99,6 @@ namespace engine {
 		std::unique_ptr<WorkerThread> _renderThread = nullptr;
 		std::unique_ptr<WorkerThread> _updateThread = nullptr;
 
-		std::chrono::steady_clock::time_point _time;
-		float _frameDeltaTime = 0.0f;
-		double _minframeLimit = std::numeric_limits<double>::max();
-		FpsLimitType _frameLimitType = FpsLimitType::F_DONT_CARE;
 		float _gameTimeMultiply = 1.0f;
 	};
 }

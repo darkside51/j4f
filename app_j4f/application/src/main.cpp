@@ -107,7 +107,7 @@ namespace engine {
 
 	glm::vec4 lightColor(1.0f, 1.0f, 1.0f, 1.0f);
 	//glm::vec2 lightMinMax(0.075f, 3.0f);
-	glm::vec2 lightMinMax(0.5f, 1.0f);
+	glm::vec2 lightMinMax(0.35f, 1.0f);
 	float saturation = 1.25f;
 
 	H_Node* rootNode;
@@ -588,7 +588,7 @@ namespace engine {
 						Engine::getInstance().getModule<Device>()->setFullscreen(!Engine::getInstance().getModule<Device>()->isFullscreen());
 					}
 					break;
-				case KeyboardKey::K_LEFT_CONTROL:
+				case KeyboardKey::K_TAB:
 					if (event.state != InputEventState::IES_RELEASE) break;
 					renderBounds = !renderBounds;
 					break;
@@ -1184,7 +1184,7 @@ namespace engine {
 			TextureLoadingParams tex_params_floorArray;
 			tex_params_floorArray.files = { 
 				"resources/assets/textures/swamp5.jpg",
-				"resources/assets/textures/sand4.jpg"
+				"resources/assets/textures/ground133.jpg"
 			};
 			tex_params_floorArray.flags->async = 1;
 			tex_params_floorArray.flags->use_cache = 1;
@@ -1380,12 +1380,14 @@ namespace engine {
 			auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
 			const uint32_t currentFrame = renderer->getCurrentFrame();
 
-			const float moveCameraSpeed = 100.0f * Engine::getInstance().getFrameDeltaTime();
+			const float moveCameraSpeed = 100.0f * delta;
 			camera->movePosition(moveCameraSpeed * engine::as_normalized(wasd));
 
-			const float rotateCameraSpeed = 24.0f * Engine::getInstance().getFrameDeltaTime();
+			const float rotateCameraSpeed = 24.0f * delta;
 			camera->setRotation(camera->getRotation() + rotateCameraSpeed * (targetCameraRotation - camera->getRotation()));
 
+
+			const float dt = delta * Engine::getInstance().getGameTimeMultiply();
 
 			camera->calculateTransform();
 			camera2->calculateTransform();
@@ -1400,7 +1402,7 @@ namespace engine {
 			// mix test
 			static float mix = 0.7f;
 			static bool na = false;
-			const float step = 1.5f * delta;
+			const float step = 1.5f * dt;
 			static uint8_t animNum = 2;
 			if (!na) {
 				if (mix > -4.0f) {
@@ -1437,24 +1439,24 @@ namespace engine {
 
 			////
 			if (animTree) {
-				animTree->updateAnimation(delta, mesh->graphics()->getSkeleton());
+				animTree->updateAnimation(dt, mesh->graphics()->getSkeleton());
 				//mesh->graphics()->getSkeleton()->updateAnimation(delta, animTree);
 			}
 
 			if (animTree2) {
-				animTree2->updateAnimation(delta, mesh3->graphics()->getSkeleton());
+				animTree2->updateAnimation(dt, mesh3->graphics()->getSkeleton());
 				//mesh3->graphics()->getSkeleton()->updateAnimation(delta, animTree2);
 			}
 
 			if (animTreeWindMill) {
-				animTreeWindMill->updateAnimation(delta, mesh7->graphics()->getSkeleton());
+				animTreeWindMill->updateAnimation(dt, mesh7->graphics()->getSkeleton());
 				//mesh7->graphics()->getSkeleton()->updateAnimation(delta, animTreeWindMill);
 			}
 
 			////////
 			if (auto&& grassNode = grassMesh2->getNode()) {
 				static float t = 0.0f;
-				t += 2.0f * delta;
+				t += 2.0f * dt;
 
 				if (t > math_constants::pi2) {
 					t -= math_constants::pi2;
@@ -1814,7 +1816,7 @@ namespace engine {
 				if (animTree2) {
 
 					static float angle = 0.0f;
-					angle -= delta;
+					angle -= dt;
 
 					glm::mat4 wtr4(1.0f);
 					//rotateMatrix_xyz(wtr4, glm::vec3(1.57f, 0.0f, angle));

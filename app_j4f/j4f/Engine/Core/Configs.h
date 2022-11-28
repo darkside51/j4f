@@ -72,7 +72,7 @@ namespace engine {
 	enum class FpsLimitType : uint8_t {
 		F_DONT_CARE = 0,
 		F_STRICT = 1,
-		F_CPU_SLEEP =21
+		F_CPU_SLEEP = 2
 	};
 
 	struct EngineConfig {

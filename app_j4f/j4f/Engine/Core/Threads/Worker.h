@@ -5,7 +5,10 @@
 #include <mutex>
 #include <memory>
 #include <functional>
+#include <chrono>
+
 #include "Synchronisations.h"
+#include "../Configs.h"
 
 namespace engine {
 
@@ -13,14 +16,14 @@ namespace engine {
 	public:
 		template <typename T, typename F, typename... Args>
 		explicit WorkerThread(F T::* f, T* t, Args&&... args) : 
-			_task([f, t, args...]() { (t->*f)(std::forward<Args>(args)...); }), 
-			_thread(&WorkerThread::work, this) {
+			_task([f, t, args...](const float time, const std::chrono::steady_clock::time_point& currentTime) { (t->*f)(time, currentTime, std::forward<Args>(args)...); }),
+			_time(std::chrono::steady_clock::now()) {
 		}
 
 		template <typename F, typename... Args>
 		explicit WorkerThread(F&& f, Args&&... args) :
-			_task([f, args...]() { f(std::forward<Args>(args)...); }),
-			_thread(&WorkerThread::work, this) {
+			_task([f, args...](const float time, const std::chrono::steady_clock::time_point& currentTime) { f(time, currentTime, std::forward<Args>(args)...); }),
+			_time(std::chrono::steady_clock::now()) {
 		}
 
 		~WorkerThread() {
@@ -30,12 +33,40 @@ namespace engine {
 		WorkerThread(const WorkerThread&) = delete;
 		const WorkerThread& operator= (WorkerThread&) = delete;
 
+		inline void run() {
+			_thread = std::thread(&WorkerThread::work, this);
+		}
+
 		inline void work() {
 			while (isAlive()) {
 				_wait.clear(std::memory_order_release);
 
 				while (isActive()) {
-					_task();
+					const auto currentTime = std::chrono::steady_clock::now();
+					const std::chrono::duration<double> duration = currentTime - _time;
+					const double durationTime = duration.count();
+					
+					switch (_fpsLimitType) {
+						case FpsLimitType::F_STRICT:
+							if (durationTime < _targetFrameTime) {
+								std::this_thread::yield();
+								continue;
+							}
+							break;
+						case FpsLimitType::F_CPU_SLEEP:
+							if (durationTime < _targetFrameTime) {
+								std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(1000.0 * (_targetFrameTime - durationTime)));
+							}
+							break;
+						default:
+							break;
+					}
+
+					_time = currentTime;
+					_task(static_cast<float>(durationTime), currentTime);
+
+					_frameId.fetch_add(1, std::memory_order_release); // increase frameId at the end of frame
+					std::this_thread::yield();
 				}
 
 				_wait.test_and_set(std::memory_order_acq_rel);
@@ -52,12 +83,14 @@ namespace engine {
 						if (pauseCallback()) {
 							sleep();
 						} else {
-							requestResume(); // remove pause flag if _onPause returnedz false
+							requestResume(); // remove pause flag if _onPause returned false
 						}
 					} else {
 						sleep();
 					}
 				}
+
+				std::this_thread::yield();
 			}
 		}
 
@@ -109,6 +142,16 @@ namespace engine {
 			}
 		}
 
+		void setTargetFrameTime(const double t) {
+			_targetFrameTime = t;
+		}
+
+		void setFpsLimitType(const FpsLimitType t) {
+			_fpsLimitType = t;
+		}
+
+		inline uint16_t getFrameId() const { return _frameId.load(std::memory_order_consume); }
+
 	private:
 		inline void sleep() {
 			std::unique_lock<std::mutex> lock(_mutex);
@@ -125,10 +168,16 @@ namespace engine {
 		std::mutex _mutex;
 		std::condition_variable _condition;
 
-		std::function<void()> _task = nullptr;
+		std::function<void(const float, const std::chrono::steady_clock::time_point&)> _task = nullptr;
 
 		std::atomic_flag _callbackLock;
 		std::function<bool()> _onPause = nullptr;
+
+		std::chrono::steady_clock::time_point _time;
+		std::atomic_uint16_t _frameId = { 0 };
+
+		double _targetFrameTime = std::numeric_limits<double>::max();
+		FpsLimitType _fpsLimitType = FpsLimitType::F_DONT_CARE;
 	};
 
 }
