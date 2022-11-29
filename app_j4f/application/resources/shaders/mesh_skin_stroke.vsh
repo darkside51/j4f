@@ -39,6 +39,7 @@ layout (location = 1) out float out_view_depth;
 layout (location = 2) out vec3 out_position;
 layout (location = 3) out vec3 out_halfwayDir;
 layout (location = 4) out mat3 out_tbn;
+layout (location = 7) out mat4 vp_matrix;
 
 out gl_PerVertex {
     vec4 gl_Position;   
@@ -63,7 +64,6 @@ void main() {
 
 		out_view_depth = view_position.z;
 		out_position = world_position.xyz;
-		gl_Position = u_push_const.camera_matrix * world_position; // for geometry shader;
 	} else {
 		vec3 normal = normalize((u_push_const.model_matrix * vec4(a_normal, 0.0)).xyz);
 		vec3 tangent = normalize((u_push_const.model_matrix * vec4(a_tangent.xyz, 0.0)).xyz);
@@ -75,10 +75,11 @@ void main() {
 
 		out_view_depth = view_position.z;
 		out_position = world_position.xyz;
-		gl_Position = u_push_const.camera_matrix * world_position; // for geometry shader;
 	}
 
 	vec3 lightDir   = -u_constants.lightDirection;//normalize(-u_constants.lightDirection * 100000.0 - out_position);
 	vec3 viewDir    = normalize(u_shadow.camera_position - out_position);
 	out_halfwayDir 	= normalize(lightDir + viewDir);
+
+	vp_matrix = u_push_const.camera_matrix;
 }

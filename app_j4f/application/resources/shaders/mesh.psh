@@ -7,7 +7,6 @@ layout (location = 1) in float in_view_depth;
 layout (location = 2) in vec3 in_position;
 layout (location = 3) in vec3 in_halfwayDir;
 layout (location = 4) in mat3 in_tbn;
-//layout (location = 7) in float in_stroke;
 
 layout (location = 0) out vec4 outColor;
 
@@ -46,58 +45,53 @@ void main() {
 	if (color.a < 0.9) {
 		discard;
 	} else {
-		//if (in_stroke > 0.0) {
-			//outColor = vec4(0.175, 0.05, 0.0, 1.0);
-			outColor = u_ubo.color;
-		//} else {
-			vec3 tangentNormal = texture(u_texture, vec3(in_uv, 1.0)).xyz * 2.0 - 1.0;
-			vec4 metallicRoughness = texture(u_texture, vec3(in_uv, 2.0));
+		vec3 tangentNormal = texture(u_texture, vec3(in_uv, 1.0)).xyz * 2.0 - 1.0;
+		vec4 metallicRoughness = texture(u_texture, vec3(in_uv, 2.0));
 
-			// get cascade index for the current fragment's view position
-			uint cascade = 0;
-			for (uint i = 0; i < (SHADOW_MAP_CASCADE_COUNT - 1); ++i) {
-				if (in_view_depth < u_shadow.cascade_splits[i]) {	
-					cascade = i + 1;
-				}
+		// get cascade index for the current fragment's view position
+		uint cascade = 0;
+		for (uint i = 0; i < (SHADOW_MAP_CASCADE_COUNT - 1); ++i) {
+			if (in_view_depth < u_shadow.cascade_splits[i]) {	
+				cascade = i + 1;
 			}
+		}
 
-			vec4 shadowCoord = u_shadow.cascade_matrix[cascade] * vec4(in_position, 1.0);
-			shadowCoord.xy = (shadowCoord.xy + 1.0) * 0.5;
-			float shadow = filterPCF(shadowCoord / shadowCoord.w, cascade, u_constants.lightMinMax.x);
+		vec4 shadowCoord = u_shadow.cascade_matrix[cascade] * vec4(in_position, 1.0);
+		shadowCoord.xy = (shadowCoord.xy + 1.0) * 0.5;
+		float shadow = filterPCF(shadowCoord / shadowCoord.w, cascade, u_constants.lightMinMax.x);
 
-			vec3 normal = calculateNormal(in_tbn, tangentNormal);
+		vec3 normal = calculateNormal(in_tbn, tangentNormal);
 
-			const float light = max(dot((gl_FrontFacing ? normal : -normal), -u_constants.lightDirection), 0.0);
-			color.rgb *= clamp(u_constants.lightMinMax.y * light, u_constants.lightMinMax.x, u_constants.lightMinMax.y);
+		const float light = max(dot((gl_FrontFacing ? normal : -normal), -u_constants.lightDirection), 0.0);
+		color.rgb *= clamp(u_constants.lightMinMax.y * light, u_constants.lightMinMax.x, u_constants.lightMinMax.y);
 
-			float spec = pow(max(dot((gl_FrontFacing ? normal : -normal), in_halfwayDir) * metallicRoughness.b, 0.0), 100.0);
-			color.rgb += spec;
+		float spec = pow(max(dot((gl_FrontFacing ? normal : -normal), in_halfwayDir) * metallicRoughness.b, 0.0), 100.0);
+		color.rgb += spec;
 
-			outColor = u_constants.lightColor * color; // Blinn - Fong light model
-			outColor.rgb *= shadow;
+		outColor = u_constants.lightColor * color; // Blinn - Fong light model
+		outColor.rgb *= shadow;
 
-			//float gamma = 2.2;
-    		//outColor.rgb = pow(outColor.rgb, vec3(1.0 / gamma));
+		//float gamma = 2.2;
+    	//outColor.rgb = pow(outColor.rgb, vec3(1.0 / gamma));
 
-    		outColor.rgb = saturate(outColor.rgb, u_constants.saturation);
+    	outColor.rgb = saturate(outColor.rgb, u_constants.saturation);
 
-			// debug cascades
-			/*switch(cascade) {
-				case 0:
-					outColor.rgb *= vec3(1.0, 0.0, 0.0);
-					break;
-				case 1:
-					outColor.rgb *= vec3(0.0, 1.0, 0.0);
-					break;
-				case 2:
-					outColor.rgb *= vec3(0.0, 0.0, 1.0);
-					break;
-				case 3:
-					outColor.rgb *= vec3(1.0, 1.0, 0.0);
-					break;
-				default:
-					break;
-			}*/
-		//}
+		// debug cascades
+		/*switch(cascade) {
+			case 0:
+				outColor.rgb *= vec3(1.0, 0.0, 0.0);
+				break;
+			case 1:
+				outColor.rgb *= vec3(0.0, 1.0, 0.0);
+				break;
+			case 2:
+				outColor.rgb *= vec3(0.0, 0.0, 1.0);
+				break;
+			case 3:
+				outColor.rgb *= vec3(1.0, 1.0, 0.0);
+				break;
+			default:
+				break;
+		}*/
 	}	
 }

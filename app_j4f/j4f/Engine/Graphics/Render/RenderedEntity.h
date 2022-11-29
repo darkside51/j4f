@@ -52,16 +52,20 @@ namespace engine {
 			}
 		}
 
-		inline void setProgram(vulkan::VulkanGpuProgram* program, VkRenderPass renderPass = nullptr) {
-			if (_renderDescriptor.renderDataCount == 0) return;
-			if (_vertexInputAttributes.empty()) return;
+		inline vulkan::VulkanGpuProgram* setProgram(vulkan::VulkanGpuProgram* program, VkRenderPass renderPass = nullptr) {
+			if (_renderDescriptor.renderDataCount == 0) return nullptr;
+			if (_vertexInputAttributes.empty()) return nullptr;
 
 			auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
 			vulkan::VulkanPipeline* pipeline = renderer->getGraphicsPipeline(_renderState, program, renderPass);
+			vulkan::VulkanPipeline* currentPipeline = _renderDescriptor.renderData[0]->pipeline;
 
-			if (_renderDescriptor.renderData[0]->pipeline == pipeline) return;
+			const vulkan::VulkanGpuProgram* currentProgram = currentPipeline ? currentPipeline->program : nullptr;
+
+			if (currentPipeline == pipeline) return const_cast<vulkan::VulkanGpuProgram*>(currentProgram);
 
 			setPipeline(pipeline);
+			return const_cast<vulkan::VulkanGpuProgram*>(currentProgram);
 		}
 
 		inline void pipelineAttributesChanged() {

@@ -91,6 +91,7 @@ namespace engine {
 
 	vulkan::VulkanGpuProgram* program_mesh_default = nullptr;
 	vulkan::VulkanGpuProgram* program_mesh_shadow = nullptr;
+	vulkan::VulkanGpuProgram* program_mesh_with_stroke = nullptr;
 
 	VkClearValue clearValues[2];
 
@@ -441,8 +442,8 @@ namespace engine {
 			_mesh->updateRenderData(worldMatrix, worldMatrixChanged);
 		}
 
-		inline void setProgram(vulkan::VulkanGpuProgram* program, VkRenderPass renderPass = nullptr) {
-			_mesh->setProgram(program, renderPass);
+		inline vulkan::VulkanGpuProgram* setProgram(vulkan::VulkanGpuProgram* program, VkRenderPass renderPass = nullptr) {
+			return _mesh->setProgram(program, renderPass);
 		}
 
 		inline const RenderDescriptor& getRenderDescriptor() const { return _mesh->getRenderDescriptor(); }
@@ -469,8 +470,8 @@ namespace engine {
 			cameraMatrixChanged = true;
 
 			const glm::vec3& p = camera->getPosition();
-			auto cameraPositionLayout = program_mesh_default->getGPUParamLayoutByName("camera_position");
-			program_mesh_default->setValueToLayout(cameraPositionLayout, &p, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			program_mesh_default->setValueByName("camera_position", &p, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			program_mesh_with_stroke->setValueByName("camera_position", &p, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 		}
 
 		ApplicationCustomData() {
@@ -662,40 +663,40 @@ namespace engine {
 
 			std::vector<engine::ProgramStageInfo> psi;
 			psi.emplace_back(ProgramStage::VERTEX, "resources/shaders/mesh_skin.vsh.spv");
-			//psi.emplace_back(ProgramStage::GEOMETRY, "resources/shaders/mesh_skin_stroke.gsh.spv");
 			psi.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/mesh.psh.spv");
 			VulkanGpuProgram* program_gltf = gpuProgramManager->getProgram(psi);
 
+			std::vector<engine::ProgramStageInfo> psi2;
+			psi2.emplace_back(ProgramStage::VERTEX, "resources/shaders/mesh_skin_stroke.vsh.spv");
+			psi2.emplace_back(ProgramStage::GEOMETRY, "resources/shaders/mesh_skin_stroke.gsh.spv");
+			psi2.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/mesh_stroke.psh.spv");
+			VulkanGpuProgram* program_gltf2 = gpuProgramManager->getProgram(psi2);
+
 			program_mesh_default = program_gltf;
 			program_mesh_shadow = CascadeShadowMap::getShadowProgram<Mesh>();
+			program_mesh_with_stroke = program_gltf2;
 			VulkanGpuProgram* shadowPlainProgram = const_cast<VulkanGpuProgram*>(CascadeShadowMap::getSpecialPipeline(ShadowMapSpecialPipelines::SH_PIPEINE_PLAIN)->program);
 
 			glm::vec3 lightDir = as_normalized(-lightPos);
 
-			auto l = program_mesh_default->getGPUParamLayoutByName("lightDirection");
-			program_mesh_default->setValueToLayout(l, &lightDir, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			program_mesh_default->setValueByName("lightDirection", &lightDir, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			program_mesh_default->setValueByName("lightMinMax", &lightMinMax, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			program_mesh_default->setValueByName("lightColor", &lightColor, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			program_mesh_default->setValueByName("saturation", &saturation, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 
-			auto l2 = program_mesh_default->getGPUParamLayoutByName("lightMinMax");
-			program_mesh_default->setValueToLayout(l2, &lightMinMax, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			shadowPlainProgram->setValueByName("lightMinMax", &lightMinMax, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			shadowPlainProgram->setValueByName("lightDirection", &lightDir, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			shadowPlainProgram->setValueByName("lightColor", &lightColor, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			shadowPlainProgram->setValueByName("saturation", &saturation, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 
-			auto l3 = shadowPlainProgram->getGPUParamLayoutByName("lightMinMax");
-			auto l31 = shadowPlainProgram->getGPUParamLayoutByName("lightDirection");
-			shadowPlainProgram->setValueToLayout(l3, &lightMinMax, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
-			shadowPlainProgram->setValueToLayout(l31, &lightDir, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
-
-			auto l4 = program_mesh_default->getGPUParamLayoutByName("lightColor");
-			auto l5 = shadowPlainProgram->getGPUParamLayoutByName("lightColor");
-
-			auto l6 = program_mesh_default->getGPUParamLayoutByName("saturation");
-			auto l7 = shadowPlainProgram->getGPUParamLayoutByName("saturation");
-
-			program_mesh_default->setValueToLayout(l4, &lightColor, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
-			shadowPlainProgram->setValueToLayout(l5, &lightColor, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
-			program_mesh_default->setValueToLayout(l6, &saturation, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
-			shadowPlainProgram->setValueToLayout(l7, &saturation, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			program_mesh_with_stroke->setValueByName("lightDirection", &lightDir, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			program_mesh_with_stroke->setValueByName("lightMinMax", &lightMinMax, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			program_mesh_with_stroke->setValueByName("lightColor", &lightColor, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			program_mesh_with_stroke->setValueByName("saturation", &saturation, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 
 			shadowMap->registerProgramAsReciever(program_mesh_default);
 			shadowMap->registerProgramAsReciever(shadowPlainProgram);
+			shadowMap->registerProgramAsReciever(program_mesh_with_stroke);
 
 			TextureLoadingParams tex_params;
 			tex_params.files = { 
@@ -892,8 +893,8 @@ namespace engine {
 				skyBox->setNode(node->value());
 			}
 			
-			assm->loadAsset<Mesh*>(mesh_params, [program_gltf, texture_zombi, this](Mesh* asset, const AssetLoadingResult result) {
-				asset->setProgram(program_gltf);
+			assm->loadAsset<Mesh*>(mesh_params, [program_gltf2, texture_zombi, this](Mesh* asset, const AssetLoadingResult result) {
+				asset->setProgram(program_gltf2);
 				asset->setParamByName("u_texture", texture_zombi, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 				glm::vec4 color(1.0f, 0.0f, 0.0f, 1.0f);
@@ -1536,13 +1537,13 @@ namespace engine {
 			commandBuffer.begin();
 
 			//////// shadow pass
-			mesh->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
-			mesh2->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
-			mesh3->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
-			mesh4->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
-			mesh5->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
-			mesh6->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
-			mesh7->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
+			auto&& pr0 = mesh->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
+			auto&& pr1 = mesh2->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
+			auto&& pr2 = mesh3->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
+			auto&& pr3 = mesh4->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
+			auto&& pr4 = mesh5->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
+			auto&& pr5 = mesh6->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
+			auto&& pr6 = mesh7->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
 
 			for (auto&& m : testMehsesVec) {
 				m->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
@@ -1587,13 +1588,13 @@ namespace engine {
 					break;
 			}
 
-			mesh->setProgram(program_mesh_default);
-			mesh2->setProgram(program_mesh_default);
-			mesh3->setProgram(program_mesh_default);
-			mesh4->setProgram(program_mesh_default);
-			mesh5->setProgram(program_mesh_default);
-			mesh6->setProgram(program_mesh_default);
-			mesh7->setProgram(program_mesh_default);
+			mesh->setProgram(pr0);
+			mesh2->setProgram(pr1);
+			mesh3->setProgram(pr2);
+			mesh4->setProgram(pr3);
+			mesh5->setProgram(pr4);
+			mesh6->setProgram(pr5);
+			mesh7->setProgram(pr6);
 			grassMesh2->setProgram(grass_default);
 
 			for (auto&& m : testMehsesVec) {

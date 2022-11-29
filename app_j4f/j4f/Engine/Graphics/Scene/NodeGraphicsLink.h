@@ -83,10 +83,11 @@ namespace engine {
 			}
 		}
 
-		inline void setProgram(vulkan::VulkanGpuProgram* program, VkRenderPass renderPass = nullptr) {
+		inline vulkan::VulkanGpuProgram* setProgram(vulkan::VulkanGpuProgram* program, VkRenderPass renderPass = nullptr) {
 			if (_graphics) {
-				_graphics->setProgram(program, renderPass);
+				return _graphics->setProgram(program, renderPass);
 			}
+			return nullptr;
 		}
 
 		inline type& operator->() { return _graphics; }
