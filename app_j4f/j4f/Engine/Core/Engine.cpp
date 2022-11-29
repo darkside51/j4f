@@ -107,8 +107,15 @@ namespace engine {
 
 				_graphics->resize(w, h);
 				_application->resize(w, h);
-
-				_renderThread->resume();
+				if (w > 0 && h > 0) {
+					_renderThread->resume();
+				}
+			} else {
+				if (w > 0 && h > 0) {
+					_graphics->resize(w, h);
+					_application->resize(w, h);
+					_renderThread->resume();
+				}
 			}
 		} else {
 			_graphics->resize(w, h);
@@ -136,19 +143,16 @@ namespace engine {
 	}
 
 	void Engine::nextFrame(const float delta, const std::chrono::steady_clock::time_point& currentTime) {
-		const auto& size = _graphics->getSize();
-		if (size.first != 0 && size.second != 0) {
-			_graphics->beginFrame();
-			_application->nextFrame(delta);
+		_graphics->beginFrame();
+		_application->nextFrame(delta);
 
-			_looper->nextFrame(delta);
+		_looper->nextFrame(delta);
 
-			if (_statistic) {
-				_statistic->nextFrame(delta);
-				_statistic->addFramePrepareTime(static_cast<float>((std::chrono::duration<double>(std::chrono::steady_clock::now() - currentTime)).count()));
-			}
-
-			_graphics->endFrame();
+		if (_statistic) {
+			_statistic->nextFrame(delta);
+			_statistic->addFramePrepareTime(static_cast<float>((std::chrono::duration<double>(std::chrono::steady_clock::now() - currentTime)).count()));
 		}
+
+		_graphics->endFrame();
 	}
 }

@@ -7,6 +7,7 @@
 #include <functional>
 #include <chrono>
 
+#include "../../Log/Log.h"
 #include "Synchronisations.h"
 #include "../Configs.h"
 
@@ -70,6 +71,7 @@ namespace engine {
 				}
 
 				_wait.test_and_set(std::memory_order_acq_rel);
+				//LOG_TAG_LEVEL(engine::LogLevel::L_DEBUG, THREAD, "pause worker thread");
 
 				if (isAlive()) {
 					std::function<bool()> pauseCallback;
@@ -90,6 +92,7 @@ namespace engine {
 					}
 				}
 
+				//LOG_TAG_LEVEL(engine::LogLevel::L_DEBUG, THREAD, "resume worker thread");
 				std::this_thread::yield();
 			}
 		}

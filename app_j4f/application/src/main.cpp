@@ -14,6 +14,7 @@
 #include <Engine/Graphics/Mesh/AnimationTree.h>
 #include <Engine/Graphics/Plain/Plain.h>
 #include <Engine/Core/Math/math.h>
+#include <Engine/Core/Math/functions.h>
 #include <Engine/Graphics/Vulkan/vkHelper.h>
 #include <Engine/Graphics/Scene/Camera.h>
 #include <Engine/Graphics/Render/RenderHelper.h>
@@ -72,6 +73,8 @@ namespace engine {
 	NodeRenderer<Mesh>* mesh5 = nullptr;
 	NodeRenderer<Mesh>* mesh6 = nullptr;
 	NodeRenderer<Mesh>* mesh7 = nullptr;
+
+	std::vector<NodeRenderer<Mesh>*> testMehsesVec;
 
 	NodeRenderer<Mesh>* grassMesh = nullptr;
 	NodeRenderer<Plain>* plainTest = nullptr;
@@ -659,7 +662,7 @@ namespace engine {
 
 			std::vector<engine::ProgramStageInfo> psi;
 			psi.emplace_back(ProgramStage::VERTEX, "resources/shaders/mesh_skin.vsh.spv");
-			psi.emplace_back(ProgramStage::GEOMETRY, "resources/shaders/mesh_skin_stroke.gsh.spv");
+			//psi.emplace_back(ProgramStage::GEOMETRY, "resources/shaders/mesh_skin_stroke.gsh.spv");
 			psi.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/mesh.psh.spv");
 			VulkanGpuProgram* program_gltf = gpuProgramManager->getProgram(psi);
 
@@ -853,6 +856,12 @@ namespace engine {
 			//grassMesh = new NodeRenderer<Mesh>();
 			grassMesh2 = new NodeRenderer<GrassRenderer>();
 			
+
+			testMehsesVec.reserve(10);
+			for (size_t i = 0; i < 10; ++i) {
+				meshUpdateSystem.registerObject(testMehsesVec.emplace_back(new NodeRenderer<Mesh>()));
+			}
+
 			meshUpdateSystem.registerObject(mesh);
 			meshUpdateSystem.registerObject(mesh2);
 			meshUpdateSystem.registerObject(mesh3);
@@ -942,6 +951,45 @@ namespace engine {
 
 				shadowCastNodes.push_back(node);
 				});
+
+			static std::atomic<size_t> iii = 0;
+			static std::atomic<size_t> jjj = 0;
+			for (auto&& meshObj : testMehsesVec) {
+				assm->loadAsset<Mesh*>(mesh_params, [meshObj, program_gltf, texture_zombi](Mesh* asset, const AssetLoadingResult result) {
+					asset->setProgram(program_gltf);
+					asset->setParamByName("u_texture", texture_zombi, false);
+					asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
+					glm::vec4 color(1.0f, 1.0f, 0.0f, 1.0f);
+					asset->setParamByName("color", &color, true);
+
+					asset->setSkeleton(mesh->graphics()->getSkeleton());
+
+					asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
+					asset->pipelineAttributesChanged();
+
+					////////////////////
+					glm::mat4 wtr(1.0f);
+					scaleMatrix(wtr, glm::vec3(20.0f));
+					rotateMatrix_xyz(wtr, glm::vec3(1.57f, -0.45f, 0.0f));
+					translateMatrixTo(wtr, glm::vec3(-800.0f + iii * 50, -800.0f + jjj * 50, 0.0f));
+
+					++iii;
+					if (iii >= 20) {
+						++jjj;
+						iii = 0;
+					}
+
+					H_Node* node = new H_Node();
+					node->value().setLocalMatrix(wtr);
+					node->value().setBoundingVolume(BoundingVolume::make<SphereVolume>(glm::vec3(0.0f, 1.45f, 0.0f), 1.8f));
+					rootNode->addChild(node);
+
+					meshObj->setGraphics(asset);
+					meshObj->setNode(node->value());
+
+					shadowCastNodes.push_back(node);
+					});
+			}
 
 			assm->loadAsset<Mesh*>(mesh_params2, [program_gltf, texture_v, texture_v2, texture_v3](Mesh* asset, const AssetLoadingResult result) {
 				asset->setProgram(program_gltf);
@@ -1182,9 +1230,13 @@ namespace engine {
 			}
 
 			TextureLoadingParams tex_params_floorArray;
-			tex_params_floorArray.files = { 
+			/*tex_params_floorArray.files = {
 				"resources/assets/textures/swamp5.jpg",
 				"resources/assets/textures/ground133.jpg"
+			};*/
+			tex_params_floorArray.files = {
+				"resources/assets/textures/512x512/swamp5.jpg",
+				"resources/assets/textures/512x512/ground.jpg"
 			};
 			tex_params_floorArray.flags->async = 1;
 			tex_params_floorArray.flags->use_cache = 1;
@@ -1492,6 +1544,10 @@ namespace engine {
 			mesh6->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
 			mesh7->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
 
+			for (auto&& m : testMehsesVec) {
+				m->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
+			}
+
 			//if (animTree2) {
 				// у меня лайоуты совпадают у юниформов, для теней => не нужно вызывать переназначение, достаточно одного раза
 				//mesh->updateRenderData(wtr);
@@ -1539,6 +1595,11 @@ namespace engine {
 			mesh6->setProgram(program_mesh_default);
 			mesh7->setProgram(program_mesh_default);
 			grassMesh2->setProgram(grass_default);
+
+			for (auto&& m : testMehsesVec) {
+				m->setProgram(program_mesh_default);
+			}
+
 			//////// shadow pass
 
 			commandBuffer.cmdBeginRenderPass(renderer->getMainRenderPass(), { {0, 0}, {width, height} }, &clearValues[0], 2, renderer->getFrameBuffer().m_framebuffer, VK_SUBPASS_CONTENTS_INLINE);
@@ -1615,7 +1676,7 @@ namespace engine {
 				static auto&& pipeline_shadow_test = CascadeShadowMap::getSpecialPipeline(ShadowMapSpecialPipelines::SH_PIPEINE_PLAIN);
 				static const vulkan::GPUParamLayoutInfo* mvp_layout2 = pipeline_shadow_test->program->getGPUParamLayoutByName("mvp");
 
-				const float tc = 12.0f;
+				const float tc = 16.0f;
 				TexturedVertex floorVtx[4] = {
 					{ {-1024.0f, -1024.0f, 0.0f},	{0.0f, tc} },
 					{ {1024.0f, -1024.0f, 0.0f},	{tc, tc} },

@@ -7,7 +7,7 @@ layout (location = 1) in float in_view_depth;
 layout (location = 2) in vec3 in_position;
 layout (location = 3) in vec3 in_halfwayDir;
 layout (location = 4) in mat3 in_tbn;
-layout (location = 7) in float in_stroke;
+//layout (location = 7) in float in_stroke;
 
 layout (location = 0) out vec4 outColor;
 
@@ -46,10 +46,10 @@ void main() {
 	if (color.a < 0.9) {
 		discard;
 	} else {
-		if (in_stroke > 0.0) {
+		//if (in_stroke > 0.0) {
 			//outColor = vec4(0.175, 0.05, 0.0, 1.0);
 			outColor = u_ubo.color;
-		} else {
+		//} else {
 			vec3 tangentNormal = texture(u_texture, vec3(in_uv, 1.0)).xyz * 2.0 - 1.0;
 			vec4 metallicRoughness = texture(u_texture, vec3(in_uv, 2.0));
 
@@ -98,6 +98,6 @@ void main() {
 				default:
 					break;
 			}*/
-		}
+		//}
 	}	
 }
