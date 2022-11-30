@@ -76,15 +76,27 @@ namespace engine {
 		auto&& gpuProgramManager = Engine::getInstance().getModule<Graphics>()->getGpuProgramsManager();
 
 		{
-			std::vector<ProgramStageInfo> psi_shadow;
-			psi_shadow.emplace_back(ProgramStage::VERTEX, "resources/shaders/mesh_skin_depthpass.vsh.spv");
-			psi_shadow.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/depthpass.psh.spv");
+			std::vector<ProgramStageInfo> infos;
+			infos.emplace_back(ProgramStage::VERTEX, "resources/shaders/mesh_skin_depthpass.vsh.spv");
+			infos.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/depthpass.psh.spv");
 			if (Engine::getInstance().getModule<Graphics>()->getRenderer()->getDevice()->enabledFeatures.geometryShader) {
-				psi_shadow.emplace_back(ProgramStage::GEOMETRY, "resources/shaders/mesh_skin_depthpass.gsh.spv");
+				infos.emplace_back(ProgramStage::GEOMETRY, "resources/shaders/mesh_depthpass.gsh.spv");
 			}
-			vulkan::VulkanGpuProgram* program = gpuProgramManager->getProgram(psi_shadow);
+			vulkan::VulkanGpuProgram* program = gpuProgramManager->getProgram(infos);
 
-			registerShadowProgram<Mesh>(program);
+			registerShadowProgram<MeshSkinnedShadow>(program);
+		}
+
+		{
+			std::vector<ProgramStageInfo> infos;
+			infos.emplace_back(ProgramStage::VERTEX, "resources/shaders/mesh_depthpass.vsh.spv");
+			infos.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/depthpass.psh.spv");
+			if (Engine::getInstance().getModule<Graphics>()->getRenderer()->getDevice()->enabledFeatures.geometryShader) {
+				infos.emplace_back(ProgramStage::GEOMETRY, "resources/shaders/mesh_depthpass.gsh.spv");
+			}
+			vulkan::VulkanGpuProgram* program = gpuProgramManager->getProgram(infos);
+
+			registerShadowProgram<MeshStaticShadow>(program);
 		}
 	}
 

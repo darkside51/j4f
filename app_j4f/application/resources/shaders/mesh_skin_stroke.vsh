@@ -25,7 +25,6 @@ layout (set = 2, binding = 0) uniform shadowUBO {
 
 layout (set = 4, binding = 0) uniform UBO {
 	vec4 color;
-	int use_skin;
 	mat4 skin_matrixes[192];
 } u_ubo;
 
@@ -48,34 +47,21 @@ out gl_PerVertex {
 void main() {
 	out_uv = a_uv;
 
-	if (u_ubo.use_skin == 1) {
-		mat4 skin = u_ubo.skin_matrixes[int(a_joints.x)] * a_weights.x
-			 	  + u_ubo.skin_matrixes[int(a_joints.y)] * a_weights.y
-			  	  + u_ubo.skin_matrixes[int(a_joints.z)] * a_weights.z
-			  	  + u_ubo.skin_matrixes[int(a_joints.w)] * a_weights.w;
+	mat4 skin = u_ubo.skin_matrixes[int(a_joints.x)] * a_weights.x
+			 	+ u_ubo.skin_matrixes[int(a_joints.y)] * a_weights.y
+			  	+ u_ubo.skin_matrixes[int(a_joints.z)] * a_weights.z
+			  	+ u_ubo.skin_matrixes[int(a_joints.w)] * a_weights.w;
 
-		vec3 normal = normalize((u_push_const.model_matrix * (skin * vec4(a_normal, 0.0))).xyz);
-		vec3 tangent = normalize((u_push_const.model_matrix * (skin * vec4(a_tangent.xyz, 0.0))).xyz);
-		vec3 binormal = cross(normal, tangent) * a_tangent.w;
-		out_tbn = mat3(tangent, binormal, normal);
+	vec3 normal = normalize((u_push_const.model_matrix * (skin * vec4(a_normal, 0.0))).xyz);
+	vec3 tangent = normalize((u_push_const.model_matrix * (skin * vec4(a_tangent.xyz, 0.0))).xyz);
+	vec3 binormal = cross(normal, tangent) * a_tangent.w;
+	out_tbn = mat3(tangent, binormal, normal);
 
-		vec4 world_position = u_push_const.model_matrix * (skin * vec4(a_position, 1.0));
-		vec3 view_position = (u_shadow.view * world_position).xyz;
+	vec4 world_position = u_push_const.model_matrix * (skin * vec4(a_position, 1.0));
+	vec3 view_position = (u_shadow.view * world_position).xyz;
 
-		out_view_depth = view_position.z;
-		out_position = world_position.xyz;
-	} else {
-		vec3 normal = normalize((u_push_const.model_matrix * vec4(a_normal, 0.0)).xyz);
-		vec3 tangent = normalize((u_push_const.model_matrix * vec4(a_tangent.xyz, 0.0)).xyz);
-		vec3 binormal = cross(normal, tangent) * a_tangent.w;
-		out_tbn = mat3(tangent, binormal, normal);
-
-		vec4 world_position = u_push_const.model_matrix * vec4(a_position, 1.0);
-		vec3 view_position = (u_shadow.view * world_position).xyz;
-
-		out_view_depth = view_position.z;
-		out_position = world_position.xyz;
-	}
+	out_view_depth = view_position.z;
+	out_position = world_position.xyz;
 
 	vec3 lightDir   = -u_constants.lightDirection;//normalize(-u_constants.lightDirection * 100000.0 - out_position);
 	vec3 viewDir    = normalize(u_shadow.camera_position - out_position);

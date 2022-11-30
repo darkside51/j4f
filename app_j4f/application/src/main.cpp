@@ -89,9 +89,11 @@ namespace engine {
 	vulkan::VulkanTexture* texture_floor_normal = nullptr;
 	vulkan::VulkanTexture* texture_array_test = nullptr;
 
-	vulkan::VulkanGpuProgram* program_mesh_default = nullptr;
+	vulkan::VulkanGpuProgram* program_mesh_skin = nullptr;
+	vulkan::VulkanGpuProgram* program_mesh = nullptr;
+	vulkan::VulkanGpuProgram* program_mesh_skin_shadow = nullptr;
 	vulkan::VulkanGpuProgram* program_mesh_shadow = nullptr;
-	vulkan::VulkanGpuProgram* program_mesh_with_stroke = nullptr;
+	vulkan::VulkanGpuProgram* program_mesh_skin_with_stroke = nullptr;
 
 	VkClearValue clearValues[2];
 
@@ -470,8 +472,9 @@ namespace engine {
 			cameraMatrixChanged = true;
 
 			const glm::vec3& p = camera->getPosition();
-			program_mesh_default->setValueByName("camera_position", &p, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
-			program_mesh_with_stroke->setValueByName("camera_position", &p, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			program_mesh->setValueByName("camera_position", &p, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			program_mesh_skin->setValueByName("camera_position", &p, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			program_mesh_skin_with_stroke->setValueByName("camera_position", &p, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 		}
 
 		ApplicationCustomData() {
@@ -661,10 +664,15 @@ namespace engine {
 			auto&& gpuProgramManager = Engine::getInstance().getModule<Graphics>()->getGpuProgramsManager();
 			AssetManager* assm = Engine::getInstance().getModule<AssetManager>();
 
-			std::vector<engine::ProgramStageInfo> psi;
-			psi.emplace_back(ProgramStage::VERTEX, "resources/shaders/mesh_skin.vsh.spv");
-			psi.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/mesh.psh.spv");
-			VulkanGpuProgram* program_gltf = gpuProgramManager->getProgram(psi);
+			std::vector<engine::ProgramStageInfo> psi0;
+			psi0.emplace_back(ProgramStage::VERTEX, "resources/shaders/mesh.vsh.spv");
+			psi0.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/mesh.psh.spv");
+			VulkanGpuProgram* program_gltf0 = gpuProgramManager->getProgram(psi0);
+
+			std::vector<engine::ProgramStageInfo> psi1;
+			psi1.emplace_back(ProgramStage::VERTEX, "resources/shaders/mesh_skin.vsh.spv");
+			psi1.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/mesh.psh.spv");
+			VulkanGpuProgram* program_gltf1 = gpuProgramManager->getProgram(psi1);
 
 			std::vector<engine::ProgramStageInfo> psi2;
 			psi2.emplace_back(ProgramStage::VERTEX, "resources/shaders/mesh_skin_stroke.vsh.spv");
@@ -672,31 +680,38 @@ namespace engine {
 			psi2.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/mesh_stroke.psh.spv");
 			VulkanGpuProgram* program_gltf2 = gpuProgramManager->getProgram(psi2);
 
-			program_mesh_default = program_gltf;
-			program_mesh_shadow = CascadeShadowMap::getShadowProgram<Mesh>();
-			program_mesh_with_stroke = program_gltf2;
+			program_mesh = program_gltf0;
+			program_mesh_skin = program_gltf1;
+			program_mesh_skin_shadow = CascadeShadowMap::getShadowProgram<MeshSkinnedShadow>();
+			program_mesh_shadow = CascadeShadowMap::getShadowProgram<MeshStaticShadow>();
+			program_mesh_skin_with_stroke = program_gltf2;
 			VulkanGpuProgram* shadowPlainProgram = const_cast<VulkanGpuProgram*>(CascadeShadowMap::getSpecialPipeline(ShadowMapSpecialPipelines::SH_PIPEINE_PLAIN)->program);
 
 			glm::vec3 lightDir = as_normalized(-lightPos);
 
-			program_mesh_default->setValueByName("lightDirection", &lightDir, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
-			program_mesh_default->setValueByName("lightMinMax", &lightMinMax, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
-			program_mesh_default->setValueByName("lightColor", &lightColor, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
-			program_mesh_default->setValueByName("saturation", &saturation, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			program_mesh->setValueByName("lightDirection", &lightDir, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			program_mesh->setValueByName("lightMinMax", &lightMinMax, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			program_mesh->setValueByName("lightColor", &lightColor, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			program_mesh->setValueByName("saturation", &saturation, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+
+			program_mesh_skin->setValueByName("lightDirection", &lightDir, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			program_mesh_skin->setValueByName("lightMinMax", &lightMinMax, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			program_mesh_skin->setValueByName("lightColor", &lightColor, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			program_mesh_skin->setValueByName("saturation", &saturation, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 
 			shadowPlainProgram->setValueByName("lightMinMax", &lightMinMax, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 			shadowPlainProgram->setValueByName("lightDirection", &lightDir, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 			shadowPlainProgram->setValueByName("lightColor", &lightColor, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 			shadowPlainProgram->setValueByName("saturation", &saturation, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 
-			program_mesh_with_stroke->setValueByName("lightDirection", &lightDir, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
-			program_mesh_with_stroke->setValueByName("lightMinMax", &lightMinMax, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
-			program_mesh_with_stroke->setValueByName("lightColor", &lightColor, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
-			program_mesh_with_stroke->setValueByName("saturation", &saturation, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			program_mesh_skin_with_stroke->setValueByName("lightDirection", &lightDir, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			program_mesh_skin_with_stroke->setValueByName("lightMinMax", &lightMinMax, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			program_mesh_skin_with_stroke->setValueByName("lightColor", &lightColor, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
+			program_mesh_skin_with_stroke->setValueByName("saturation", &saturation, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 
-			shadowMap->registerProgramAsReciever(program_mesh_default);
+			shadowMap->registerProgramAsReciever(program_mesh_skin);
 			shadowMap->registerProgramAsReciever(shadowPlainProgram);
-			shadowMap->registerProgramAsReciever(program_mesh_with_stroke);
+			shadowMap->registerProgramAsReciever(program_mesh_skin_with_stroke);
 
 			TextureLoadingParams tex_params;
 			tex_params.files = { 
@@ -814,28 +829,28 @@ namespace engine {
 
 			MeshLoadingParams mesh_params3;
 			mesh_params3.file = "resources/assets/models/tree1/scene.gltf";
-			mesh_params3.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::TANGENT, AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT, AttributesSemantic::TEXCOORD_0);
+			mesh_params3.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::TANGENT, AttributesSemantic::TEXCOORD_0);
 			mesh_params3.latency = 1;
 			mesh_params3.flags->async = 1;
 			mesh_params3.graphicsBuffer = meshesGraphicsBuffer;
 
 			MeshLoadingParams mesh_params4;
 			mesh_params4.file = "resources/assets/models/pineTree/scene.gltf";
-			mesh_params4.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::TANGENT, AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT, AttributesSemantic::TEXCOORD_0);
+			mesh_params4.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::TANGENT, AttributesSemantic::TEXCOORD_0);
 			mesh_params4.latency = 1;
 			mesh_params4.flags->async = 1;
 			mesh_params4.graphicsBuffer = meshesGraphicsBuffer;
 
 			MeshLoadingParams mesh_params5;
 			mesh_params5.file = "resources/assets/models/vikingHut/scene.gltf";
-			mesh_params5.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::TANGENT, AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT, AttributesSemantic::TEXCOORD_0);
+			mesh_params5.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::TANGENT, AttributesSemantic::TEXCOORD_0);
 			mesh_params5.latency = 1;
 			mesh_params5.flags->async = 1;
 			mesh_params5.graphicsBuffer = meshesGraphicsBuffer;
 
 			MeshLoadingParams mesh_params6;
 			mesh_params6.file = "resources/assets/models/windmill/scene.gltf";
-			mesh_params6.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::TANGENT, AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT, AttributesSemantic::TEXCOORD_0);
+			mesh_params6.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::TANGENT, AttributesSemantic::TEXCOORD_0);
 			mesh_params6.latency = 3;
 			mesh_params6.flags->async = 1;
 			mesh_params6.graphicsBuffer = meshesGraphicsBuffer;
@@ -858,8 +873,8 @@ namespace engine {
 			grassMesh2 = new NodeRenderer<GrassRenderer>();
 			
 
-			testMehsesVec.reserve(10);
-			for (size_t i = 0; i < 10; ++i) {
+			testMehsesVec.reserve(100);
+			for (size_t i = 0; i < 100; ++i) {
 				meshUpdateSystem.registerObject(testMehsesVec.emplace_back(new NodeRenderer<Mesh>()));
 			}
 
@@ -924,8 +939,8 @@ namespace engine {
 				shadowCastNodes.push_back(node);
 				});
 
-			assm->loadAsset<Mesh*>(mesh_params, [program_gltf, texture_zombi](Mesh* asset, const AssetLoadingResult result) {
-				asset->setProgram(program_gltf);
+			assm->loadAsset<Mesh*>(mesh_params, [texture_zombi](Mesh* asset, const AssetLoadingResult result) {
+				asset->setProgram(program_mesh_skin);
 				asset->setParamByName("u_texture", texture_zombi, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 				glm::vec4 color(1.0f, 1.0f, 0.0f, 1.0f);
@@ -956,8 +971,8 @@ namespace engine {
 			static std::atomic<size_t> iii = 0;
 			static std::atomic<size_t> jjj = 0;
 			for (auto&& meshObj : testMehsesVec) {
-				assm->loadAsset<Mesh*>(mesh_params, [meshObj, program_gltf, texture_zombi](Mesh* asset, const AssetLoadingResult result) {
-					asset->setProgram(program_gltf);
+				assm->loadAsset<Mesh*>(mesh_params, [meshObj, texture_zombi](Mesh* asset, const AssetLoadingResult result) {
+					asset->setProgram(program_mesh_skin);
 					asset->setParamByName("u_texture", texture_zombi, false);
 					asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 					glm::vec4 color(1.0f, 1.0f, 0.0f, 1.0f);
@@ -970,9 +985,9 @@ namespace engine {
 
 					////////////////////
 					glm::mat4 wtr(1.0f);
-					scaleMatrix(wtr, glm::vec3(20.0f));
-					rotateMatrix_xyz(wtr, glm::vec3(1.57f, -0.45f, 0.0f));
-					translateMatrixTo(wtr, glm::vec3(-800.0f + iii * 50, -800.0f + jjj * 50, 0.0f));
+					scaleMatrix(wtr, glm::vec3(engine::random(18.0f, 22.0f)));
+					rotateMatrix_xyz(wtr, glm::vec3(1.57f, engine::random(-3.1415f, 3.1415f), 0.0f));
+					translateMatrixTo(wtr, glm::vec3(engine::random(-1024.0f, 1024.0f), engine::random(-1024.0f, 1024.0f), 0.0f));
 
 					++iii;
 					if (iii >= 20) {
@@ -992,8 +1007,8 @@ namespace engine {
 					});
 			}
 
-			assm->loadAsset<Mesh*>(mesh_params2, [program_gltf, texture_v, texture_v2, texture_v3](Mesh* asset, const AssetLoadingResult result) {
-				asset->setProgram(program_gltf);
+			assm->loadAsset<Mesh*>(mesh_params2, [texture_v, texture_v2, texture_v3](Mesh* asset, const AssetLoadingResult result) {
+				asset->setProgram(program_mesh_skin);
 				asset->setParamByName("u_texture", texture_v, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 				glm::vec4 color(0.0f, 0.0f, 0.0f, 1.0f);
@@ -1034,8 +1049,8 @@ namespace engine {
 				shadowCastNodes.push_back(node);
 				});
 
-			assm->loadAsset<Mesh*>(mesh_params3, [program_gltf, texture_t, texture_t2, this](Mesh* asset, const AssetLoadingResult result) {
-				asset->setProgram(program_gltf);
+			assm->loadAsset<Mesh*>(mesh_params3, [texture_t, texture_t2, this](Mesh* asset, const AssetLoadingResult result) {
+				asset->setProgram(program_mesh);
 				asset->setParamByName("u_texture", texture_t, false);
 				asset->getRenderDataAt(1)->setParamByName("u_texture", texture_t2, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
@@ -1062,8 +1077,8 @@ namespace engine {
 				shadowCastNodes.push_back(node);
 				});
 
-			assm->loadAsset<Mesh*>(mesh_params4, [program_gltf, texture_t3, texture_t4, this](Mesh* asset, const AssetLoadingResult result) {
-				asset->setProgram(program_gltf);
+			assm->loadAsset<Mesh*>(mesh_params4, [texture_t3, texture_t4, this](Mesh* asset, const AssetLoadingResult result) {
+				asset->setProgram(program_mesh);
 				asset->setParamByName("u_texture", texture_t3, false);
 				asset->getRenderDataAt(1)->setParamByName("u_texture", texture_t4, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
@@ -1090,8 +1105,8 @@ namespace engine {
 				shadowCastNodes.push_back(node);
 				});
 
-			assm->loadAsset<Mesh*>(mesh_params5, [program_gltf, texture_t5, texture_t6, this](Mesh* asset, const AssetLoadingResult result) {
-				asset->setProgram(program_gltf);
+			assm->loadAsset<Mesh*>(mesh_params5, [texture_t5, texture_t6, this](Mesh* asset, const AssetLoadingResult result) {
+				asset->setProgram(program_mesh);
 				asset->setParamByName("u_texture", texture_t5, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 				glm::vec4 color(0.0f, 0.0f, 0.0f, 1.0f);
@@ -1117,8 +1132,8 @@ namespace engine {
 				shadowCastNodes.push_back(node);
 				});
 
-			assm->loadAsset<Mesh*>(mesh_params6, [program_gltf, texture_t7, texture_t6, this](Mesh* asset, const AssetLoadingResult result) {
-				asset->setProgram(program_gltf);
+			assm->loadAsset<Mesh*>(mesh_params6, [texture_t7, texture_t6, this](Mesh* asset, const AssetLoadingResult result) {
+				asset->setProgram(program_mesh);
 				asset->setParamByName("u_texture", texture_t7, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 				glm::vec4 color(0.0f, 0.0f, 0.0f, 1.0f);
@@ -1433,12 +1448,11 @@ namespace engine {
 			auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
 			const uint32_t currentFrame = renderer->getCurrentFrame();
 
-			const float moveCameraSpeed = 100.0f * delta;
+			const float moveCameraSpeed = 170.0f * delta;
 			camera->movePosition(moveCameraSpeed * engine::as_normalized(wasd));
 
 			const float rotateCameraSpeed = 24.0f * delta;
 			camera->setRotation(camera->getRotation() + rotateCameraSpeed * (targetCameraRotation - camera->getRotation()));
-
 
 			const float dt = delta * Engine::getInstance().getGameTimeMultiply();
 
@@ -1537,16 +1551,16 @@ namespace engine {
 			commandBuffer.begin();
 
 			//////// shadow pass
-			auto&& pr0 = mesh->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
-			auto&& pr1 = mesh2->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
-			auto&& pr2 = mesh3->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
+			auto&& pr0 = mesh->setProgram(program_mesh_skin_shadow, shadowMap->getRenderPass());
+			auto&& pr1 = mesh2->setProgram(program_mesh_skin_shadow, shadowMap->getRenderPass());
+			auto&& pr2 = mesh3->setProgram(program_mesh_skin_shadow, shadowMap->getRenderPass());
 			auto&& pr3 = mesh4->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
 			auto&& pr4 = mesh5->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
 			auto&& pr5 = mesh6->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
 			auto&& pr6 = mesh7->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
 
 			for (auto&& m : testMehsesVec) {
-				m->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
+				m->setProgram(program_mesh_skin_shadow, shadowMap->getRenderPass());
 			}
 
 			//if (animTree2) {
@@ -1598,7 +1612,7 @@ namespace engine {
 			grassMesh2->setProgram(grass_default);
 
 			for (auto&& m : testMehsesVec) {
-				m->setProgram(program_mesh_default);
+				m->setProgram(program_mesh_skin);
 			}
 
 			//////// shadow pass

@@ -330,11 +330,10 @@ namespace engine {
 		}
 
 		// fixed gpu layout works
-		_fixedGpuLayouts.resize(4);
+		_fixedGpuLayouts.resize(3);
 		_fixedGpuLayouts[0].second = "camera_matrix";
 		_fixedGpuLayouts[1].second = "model_matrix";
 		_fixedGpuLayouts[2].second = "skin_matrixes";
-		_fixedGpuLayouts[3].second = "use_skin";
 	}
 
 	std::vector<VkVertexInputAttributeDescription> Mesh::getVertexInputAttributes() const {
@@ -418,13 +417,12 @@ namespace engine {
 			const Mesh_Node& node = _skeleton->_nodes[renderFrameNum][_meshData->meshes[i].nodeIndex]->value();
 			glm::mat4 model = worldMatrix * node.modelMatrix;
 
-			if (_fixedGpuLayouts[3].first) {
-				int useSkin = node.skinIndex != 0xffff ? 1 : 0;
-				r_data->setParamForLayout(_fixedGpuLayouts[3].first, &useSkin, false, 1);
-			}
-
-			if (node.skinIndex != 0xffff && _fixedGpuLayouts[2].first) {
-				r_data->setParamForLayout(_fixedGpuLayouts[2].first, &(_skeleton->_skinsMatrices[renderFrameNum][node.skinIndex][0]), false, _skeleton->_skinsMatrices[renderFrameNum][node.skinIndex].size());
+			if (_fixedGpuLayouts[2].first) {
+				if (node.skinIndex != 0xffff) {
+					r_data->setParamForLayout(_fixedGpuLayouts[2].first, &(_skeleton->_skinsMatrices[renderFrameNum][node.skinIndex][0]), false, _skeleton->_skinsMatrices[renderFrameNum][node.skinIndex].size());
+				} else {
+					r_data->setParamForLayout(_fixedGpuLayouts[2].first, const_cast<glm::mat4*>(&(engine::emptyMatrix)), false, 1);
+				}
 			}
 
 			r_data->setParamForLayout(_fixedGpuLayouts[0].first, &const_cast<glm::mat4&>(cameraMatrix), false, 1);
@@ -449,13 +447,12 @@ namespace engine {
 			const Mesh_Node& node = _skeleton->_nodes[renderFrameNum][_meshData->meshes[i].nodeIndex]->value();
 			glm::mat4 model = worldMatrix * node.modelMatrix;
 
-			if (_fixedGpuLayouts[3].first) {
-				int32_t useSkin = node.skinIndex != 0xffff ? 1 : 0;
-				r_data->setParamForLayout(_fixedGpuLayouts[3].first, &useSkin, true, 1);
-			}
-
-			if (node.skinIndex != 0xffff && _fixedGpuLayouts[2].first) {
-				r_data->setParamForLayout(_fixedGpuLayouts[2].first, &(_skeleton->_skinsMatrices[renderFrameNum][node.skinIndex][0]), false, _skeleton->_skinsMatrices[renderFrameNum][node.skinIndex].size());
+			if (_fixedGpuLayouts[2].first) {
+				if (node.skinIndex != 0xffff) {
+					r_data->setParamForLayout(_fixedGpuLayouts[2].first, &(_skeleton->_skinsMatrices[renderFrameNum][node.skinIndex][0]), false, _skeleton->_skinsMatrices[renderFrameNum][node.skinIndex].size());
+				} else {
+					r_data->setParamForLayout(_fixedGpuLayouts[2].first, const_cast<glm::mat4*>(&(engine::emptyMatrix)), false, 1);
+				}
 			}
 
 			r_data->setParamForLayout(_fixedGpuLayouts[1].first, &model, true, 1);

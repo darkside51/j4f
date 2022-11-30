@@ -10,11 +10,6 @@ layout (location = 4) in mat3 in_tbn;
 
 layout (location = 0) out vec4 outColor;
 
-//layout (set = 0, binding = 0) uniform UBO {
-//	int use_skin;
-//	mat4 skin_matrixes[192];
-//} u_ubo;
-
 layout (set = 0, binding = 0) uniform static_lightUBO {
 	vec3 lightDirection;
 	vec2 lightMinMax;
@@ -31,7 +26,6 @@ layout (set = 2, binding = 0) uniform shadowUBO {
 
 layout (set = 4, binding = 0) uniform UBO {
 	vec4 color;
-	int use_skin;
 	mat4 skin_matrixes[192];
 } u_ubo;
 

@@ -154,8 +154,15 @@ namespace engine {
 										memcpy(&vertexBuffer[firstVertex + idx], &buffer[v * dataSize], dataSize * sizeof(float));
 									}
 								} else {
-									for (uint32_t c = 0; c < dataSize; ++c) {
-										vertexBuffer[firstVertex + idx + c] = 0.0f;
+									if (a_idx == static_cast<uint8_t>(gltf::AttributesSemantic::WEIGHT)) {
+										vertexBuffer[firstVertex + idx + 0] = 1.0f; // first weight = 1.0f
+										for (uint32_t c = 1; c < dataSize; ++c) {
+											vertexBuffer[firstVertex + idx + c] = 0.0f;
+										}
+									} else {
+										for (uint32_t c = 0; c < dataSize; ++c) {
+											vertexBuffer[firstVertex + idx + c] = 0.0f;
+										}
 									}
 								}
 

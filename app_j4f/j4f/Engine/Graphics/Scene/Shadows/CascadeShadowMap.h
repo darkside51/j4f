@@ -32,6 +32,9 @@ namespace engine {
 		SMT_GEOMETRY_SH = 1
 	};
 
+	class MeshSkinnedShadow {};
+	class MeshStaticShadow {};
+
 	class CascadeShadowMap {
 		friend class Graphics;
 
