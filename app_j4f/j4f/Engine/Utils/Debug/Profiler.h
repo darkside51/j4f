@@ -1,7 +1,9 @@
 #pragma once
 
 #ifdef _DEBUG
-	#define PROFILER_ENABLE
+	#ifndef PROFILER_ENABLE
+		#define PROFILER_ENABLE
+	#endif // !PROFILER_ENABLE
 #endif
 
 #include "../../Time/Time.h"

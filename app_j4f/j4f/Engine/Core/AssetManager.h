@@ -50,7 +50,7 @@ namespace engine {
 			LoadingFlags(const uint8_t f) : mask(f) {}
 
 			Flags* operator->() { return &flags; }
-			const Flags const* operator->() const { return &flags; }
+			const Flags* operator->() const { return &flags; }
 		};
 
 		virtual ~AssetLoadingFlags() = default;

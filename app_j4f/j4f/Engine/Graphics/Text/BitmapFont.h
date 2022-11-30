@@ -4,7 +4,8 @@
 #include "../Render/TextureFrame.h"
 
 #include <unordered_map>
-#include<cstdint>
+#include <cstdint>
+#include <memory>
 
 namespace vulkan {
 	class VulkanTexture;

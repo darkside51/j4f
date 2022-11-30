@@ -94,7 +94,7 @@ namespace engine {
 			DirtyValue(const uint8_t value) : v(value) {}
 
 			DirtyFlags* operator->() { return &flags; }
-			const DirtyFlags const* operator->() const { return &flags; }
+			const DirtyFlags* operator->() const { return &flags; }
 		};
 
 	public:
@@ -111,7 +111,7 @@ namespace engine {
 
 		inline const glm::vec2& getSize() const { return _size; }
 		inline const glm::vec2& getNearFar() const { return _near_far; }
-		inline const Frustum const* getFrustum() const { return _frustum; }
+		inline const Frustum* getFrustum() const { return _frustum; }
 
 		inline const glm::vec3& getScale() const { return _scale; }
 		inline const glm::vec3& getRotation() const { return _rotation; }

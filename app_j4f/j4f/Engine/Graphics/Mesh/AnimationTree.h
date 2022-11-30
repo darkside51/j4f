@@ -230,10 +230,10 @@ namespace engine {
 		}
 
 	private:
-		float _weight;
-		float _time;
-		float _speed;
-		const Mesh_Animation* _animation;
+		float _weight = 0.0f;
+		float _time = 0.0f;
+		float _speed = 1.0f;
+		const Mesh_Animation* _animation = nullptr;
 		std::vector<float> _frameTimes;
 		std::vector<std::vector<Transform>> _transforms;
 	};
@@ -315,7 +315,7 @@ namespace engine {
 		}
 
 		inline AnimatorType* getAnimator() { return _animator; }
-		inline const AnimatorType const* getAnimator() const { return _animator; }
+		inline const AnimatorType* getAnimator() const { return _animator; }
 
 	private:
 		AnimatorType* _animator;

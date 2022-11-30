@@ -346,9 +346,9 @@ namespace vulkan {
 	};
 
 	struct VertexDescription {
-		std::vector<std::pair<uint32_t, uint32_t>> bindings_strides; // pair of binding, stride
-		uint32_t attributesCount;
-		VkVertexInputAttributeDescription* attributes;
+		std::vector<std::pair<uint32_t, uint32_t>> bindings_strides{}; // pair of binding, stride
+		uint32_t attributesCount = 0;
+		VkVertexInputAttributeDescription* attributes = nullptr;
 	};
 
 	struct VulkanRenderState {

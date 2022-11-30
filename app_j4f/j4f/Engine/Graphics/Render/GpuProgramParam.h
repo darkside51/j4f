@@ -21,12 +21,14 @@ namespace engine {
 		}
 
 		inline void setRawData(void* v, const size_t sz, const bool copyData) {
+			assert(sz != 0);
 			if (copyData) {
 				if (mustFreeMemory) {
 					if (size != sz) {
 						free(value);
-						value = malloc(sz);
-						memcpy(value, v, sz);
+						if (value = malloc(sz)) {
+							memcpy(value, v, sz);
+						}
 					} else {
 						if (memcmp(value, v, sz) != 0) {
 							memcpy(value, v, sz);

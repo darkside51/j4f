@@ -188,7 +188,7 @@ namespace engine {
 		const Mesh_Node& getNode(const uint8_t updateFrame, const uint16_t nodeId) const { return _skeleton->_nodes[updateFrame][nodeId]->value(); }
 
 		inline Mesh_Data* getMeshData() { return _meshData; }
-		inline const Mesh_Data const* getMeshData() const { return _meshData; }
+		inline const Mesh_Data* getMeshData() const { return _meshData; }
 
 		inline const glm::vec3& getMinCorner() const { return _minCorner; }
 		inline const glm::vec3& getMaxCorner() const { return _maxCorner; }
