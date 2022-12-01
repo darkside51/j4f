@@ -22,6 +22,13 @@ namespace engine {
 		}
 
 		template <typename T>
+		inline void setParamByName(const std::string& name, T&& value, bool copyData, const uint32_t count = 1) {
+			for (uint32_t i = 0; i < _renderDescriptor.renderDataCount; ++i) {
+				_renderDescriptor.renderData[i]->setParamByName(name, &value, copyData, count);
+			}
+		}
+
+		template <typename T>
 		inline void setParamForLayout(const vulkan::GPUParamLayoutInfo* info, T* value, const bool copyData, const uint32_t count = 1) {
 			for (uint32_t i = 0; i < _renderDescriptor.renderDataCount; ++i) {
 				_renderDescriptor.renderData[i]->setParamForLayout(info, value, copyData, count);

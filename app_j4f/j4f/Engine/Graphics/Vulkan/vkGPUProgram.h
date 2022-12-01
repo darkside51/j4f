@@ -202,8 +202,10 @@ namespace vulkan {
 
 		uint32_t setValueToLayout(const GPUParamLayoutInfo* paramLayout, const void* value, VulkanPushConstant* pConstant, const uint32_t knownOffset = UNDEFINED, const uint32_t knownSize = UNDEFINED, const bool allBuffers = false);
 		uint32_t setValueByName(const std::string& name, const void* value, VulkanPushConstant* pConstant, const uint32_t knownOffset = UNDEFINED, const uint32_t knownSize = UNDEFINED, const bool allBuffers = false) {
-			const GPUParamLayoutInfo* paramLayout = getGPUParamLayoutByName(name);
-			return setValueToLayout(paramLayout, value, pConstant, knownOffset, knownSize, allBuffers);
+			if (const GPUParamLayoutInfo* paramLayout = getGPUParamLayoutByName(name)) {
+				return setValueToLayout(paramLayout, value, pConstant, knownOffset, knownSize, allBuffers);
+			}
+			return UNDEFINED;
 		}
 		void finishUpdateParams();
 

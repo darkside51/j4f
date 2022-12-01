@@ -34,6 +34,7 @@ namespace engine {
 
 	class MeshSkinnedShadow {};
 	class MeshStaticShadow {};
+	class MeshStaticInstanceShadow {};
 
 	class CascadeShadowMap {
 		friend class Graphics;
