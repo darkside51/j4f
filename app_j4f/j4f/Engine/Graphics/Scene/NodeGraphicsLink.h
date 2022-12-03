@@ -93,8 +93,8 @@ namespace engine {
 		inline type& operator->() { return _graphics; }
 		inline const type& operator->() const { return _graphics; }
 
-		inline type& graphics() { return _graphics; }
-		inline const type& graphics() const { return _graphics; }
+		inline type graphics() { return _graphics; }
+		inline const type graphics() const { return _graphics; }
 
 	private:
 		type _graphics = nullptr;

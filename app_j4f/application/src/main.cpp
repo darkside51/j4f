@@ -46,6 +46,8 @@
 #include <Engine/Events/Bus.h>
 #include <Engine/Utils/Debug/Assert.h>
 
+#include <Engine/Graphics/Render/InstanceHelper.h>
+
 #include <format>
 
 #include <charconv>
@@ -116,7 +118,7 @@ namespace engine {
 
 	glm::vec4 lightColor(1.0f, 1.0f, 1.0f, 1.0f);
 	//glm::vec2 lightMinMax(0.075f, 3.0f);
-	glm::vec2 lightMinMax(0.5f, 1.0f);
+	glm::vec2 lightMinMax(0.6f, 1.0f);
 	float saturation = 1.3f;
 
 	H_Node* rootNode;
@@ -459,84 +461,16 @@ namespace engine {
 		Mesh* _mesh;
 	};
 
-	//////////////////////////////////////////////////////////////
-	class InstanceSpecRenderer {
-	public:
-		InstanceSpecRenderer(const TextureData& img, vulkan::VulkanGpuProgram* program, vulkan::VulkanGpuProgram* programShadow, uint32_t count, const float scaleMin, const float scaleMax) : _instanceCount(count), _mesh(nullptr) {
-			std::vector<glm::mat4> instanceTransforms(_instanceCount);
-			const uint32_t* data = reinterpret_cast<const uint32_t*>(img.data());
+	using InstanceMeshRenderer = engine::InstanceRenderer<Mesh>;
 
-			const auto w = img.width();
-			const auto h = img.height();
-			const float cx = 2048.0f / w;
-			const float cy = 2048.0f / h;
-
-			for (size_t i = 0; i < _instanceCount; ++i) {
-				uint16_t x = engine::random(0, w);
-				uint16_t y = engine::random(0, h);
-				uint32_t v = data[y * w + x];
-				while ((v & 0x000000f0) < 240) {
-					x = engine::random(0, w);
-					y = engine::random(0, h);
-					v = data[y * w + x];
-				}
-
-				const float scale_xyz = (engine::random(scaleMin, scaleMax));
-
-				glm::mat4 wtr(scale_xyz);
-				wtr[3][3] = 1.0f;
-				rotateMatrix_xyz(wtr, glm::vec3(0.0f, 0.0f, engine::random(-3.1415926, 3.1415926)));
-				translateMatrixTo(wtr, glm::vec3(-1024.0f + cx * x, 1024.0f - cy * y, 0.0f));
-				instanceTransforms[i] = std::move(wtr);
-			}
-
-			program->setValueByName("models", instanceTransforms.data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, sizeof(glm::mat4) * _instanceCount, true);
-			programShadow->setValueByName("models", instanceTransforms.data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, sizeof(glm::mat4) * _instanceCount, true);
-		}
-
-		~InstanceSpecRenderer() {
-			if (_mesh) {
-				delete _mesh;
-				_mesh = nullptr;
-			}
-		}
-
-		void setMesh(Mesh* asset) {
-			_mesh = asset;
-
-			auto&& rdescriptor = _mesh->getRenderDescriptor();
-			for (size_t i = 0; i < rdescriptor.renderDataCount; ++i) {
-				for (size_t j = 0; j < rdescriptor.renderData[i]->renderPartsCount; ++j) {
-					rdescriptor.renderData[i]->renderParts[j].instanceCount = _instanceCount;
-				}
-			}
-		}
-
-		inline void updateRenderData(const glm::mat4& worldMatrix, const bool worldMatrixChanged) {
-			_mesh->updateRenderData(worldMatrix, worldMatrixChanged);
-		}
-
-		inline vulkan::VulkanGpuProgram* setProgram(vulkan::VulkanGpuProgram* program, VkRenderPass renderPass = nullptr) {
-			return _mesh->setProgram(program, renderPass);
-		}
-
-		inline const RenderDescriptor& getRenderDescriptor() const { return _mesh->getRenderDescriptor(); }
-		inline RenderDescriptor& getRenderDescriptor() { return _mesh->getRenderDescriptor(); }
-
-	private:
-		uint32_t _instanceCount;
-		Mesh* _mesh;
-	};
-	
-	//////////////////////////////////////////////////////////////
 	NodeRenderer<GrassRenderer>* grassMesh2 = nullptr;
 	NodeRenderer<SkyBoxRenderer>* skyBox = nullptr;
-	NodeRenderer<InstanceSpecRenderer>* forest = nullptr;
+	NodeRenderer<InstanceMeshRenderer>* forest = nullptr;
 
 	GraphicsTypeUpdateSystem<Mesh> meshUpdateSystem;
 	GraphicsTypeUpdateSystem<GrassRenderer> grassUpdateSystem;
 	GraphicsTypeUpdateSystem<SkyBoxRenderer> skyBoxUpdateSystem;
-	GraphicsTypeUpdateSystem<InstanceSpecRenderer> instanceMeshUpdateSystem;
+	GraphicsTypeUpdateSystem<InstanceMeshRenderer> instanceMeshUpdateSystem;
 	GraphicsTypeUpdateSystem<Plain> plainUpdateSystem;
 	
 	class ApplicationCustomData : public InputObserver, public ICameraTransformChangeObserver {
@@ -952,7 +886,7 @@ namespace engine {
 			mesh7 = new NodeRenderer<Mesh>();
 			//grassMesh = new NodeRenderer<Mesh>();
 			grassMesh2 = new NodeRenderer<GrassRenderer>();
-			forest = new NodeRenderer<InstanceSpecRenderer>();
+			forest = new NodeRenderer<InstanceMeshRenderer>();
 			
 			constexpr uint16_t unitsCount = 100;
 			testMehsesVec.reserve(unitsCount);
@@ -1230,8 +1164,40 @@ namespace engine {
 
 			TextureData img("resources/assets/textures/t3.jpg");
 			GrassRenderer* grenderer = new GrassRenderer(img);
-			InstanceSpecRenderer* forestRenderer = new InstanceSpecRenderer(img, program_mesh_instance, program_mesh_instance_shadow, 70, 0.4f, 0.75f);
-			
+
+			///////////////////////////////////////////////////////////////////////////
+			std::vector<glm::mat4> instanceTransforms(100);
+			{
+				const uint32_t* data = reinterpret_cast<const uint32_t*>(img.data());
+
+				const auto w = img.width();
+				const auto h = img.height();
+				const float cx = 2048.0f / w;
+				const float cy = 2048.0f / h;
+
+				for (size_t i = 0; i < 100; ++i) {
+					uint16_t x = engine::random(0, w);
+					uint16_t y = engine::random(0, h);
+					uint32_t v = data[y * w + x];
+					while ((v & 0x000000f0) < 240) {
+						x = engine::random(0, w);
+						y = engine::random(0, h);
+						v = data[y * w + x];
+					}
+
+					const float scale_xyz = (engine::random(0.4f, 0.75f));
+
+					glm::mat4 wtr(scale_xyz);
+					wtr[3][3] = 1.0f;
+					rotateMatrix_xyz(wtr, glm::vec3(0.0f, 0.0f, engine::random(-3.1415926, 3.1415926)));
+					translateMatrixTo(wtr, glm::vec3(-1024.0f + cx * x, 1024.0f - cy * y, 0.0f));
+					instanceTransforms[i] = std::move(wtr);
+				}
+			}
+
+			InstanceMeshRenderer* forestRenderer = new InstanceMeshRenderer({ program_mesh_instance, program_mesh_instance_shadow }, std::move(instanceTransforms), false);
+			///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 			TextureLoadingParams tex_params_floor_mask;
 			tex_params_floor_mask.flags->async = 0;
 			tex_params_floor_mask.flags->use_cache = 1;
@@ -1291,7 +1257,7 @@ namespace engine {
 				node->value().setBoundingVolume(BoundingVolume::make<CubeVolume>(glm::vec3(-1024.0f, 0.0f, -1024.0f), glm::vec3(1024.0f, 200.0f, 1024.0f)));
 				rootNode->addChild(node);
 
-				forestRenderer->setMesh(asset);
+				forestRenderer->setGraphics(asset);
 				forest->setGraphics(forestRenderer);
 				forest->setNode(node->value());
 
@@ -1923,7 +1889,7 @@ namespace engine {
 			}
 			////////////////////
 
-			if constexpr (1) { // test
+			if constexpr (0) { // test sprite on full screen
 				auto&& renderHelper = Engine::getInstance().getModule<Graphics>()->getRenderHelper();
 				auto&& autoBatcher = renderHelper->getAutoBatchRenderer();
 				auto&& gpuProgramManager = Engine::getInstance().getModule<Graphics>()->getGpuProgramsManager();

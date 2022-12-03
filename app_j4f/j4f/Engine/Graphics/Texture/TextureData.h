@@ -30,8 +30,8 @@ namespace engine {
 			rvalue._data = nullptr;
 		}
 
-		const TextureData& operator=(const TextureData&) = delete;
-		inline const TextureData& operator=(TextureData&& rvalue) noexcept {
+		TextureData& operator=(const TextureData&) = delete;
+		TextureData& operator=(TextureData&& rvalue) noexcept {
 			_data = rvalue._data;
 			_width = rvalue._width;
 			_height = rvalue._height;
