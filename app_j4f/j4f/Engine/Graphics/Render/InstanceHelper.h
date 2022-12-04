@@ -10,61 +10,61 @@
 
 namespace engine {
 
-	template <typename T>
-	class InstanceRenderer {
+	class SimpleInstanceStrategy {
 	public:
-		InstanceRenderer(const std::vector<vulkan::VulkanGpuProgram*>& programs, const std::vector<glm::mat4>& transforms, const bool storeTransforms) : _instanceCount(transforms.size()), _graphics(nullptr) {
+		SimpleInstanceStrategy(const std::vector<glm::mat4>& transforms, const std::vector<vulkan::VulkanGpuProgram*>& programs) {
 			for (auto&& p : programs) {
-				p->setValueByName("models", transforms.data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, sizeof(glm::mat4) * _instanceCount, true);
-			}
-
-			if (storeTransforms) {
-				_transforms = transforms;
+				p->setValueByName("models", transforms.data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, sizeof(glm::mat4) * transforms.size(), true);
 			}
 		}
 
-		InstanceRenderer(const std::vector<vulkan::VulkanGpuProgram*>& programs, std::vector<glm::mat4>&& transforms, const bool storeTransforms) : _instanceCount(transforms.size()), _graphics(nullptr) {
+		SimpleInstanceStrategy(std::vector<glm::mat4>&& transforms, const std::vector<vulkan::VulkanGpuProgram*>& programs) {
 			for (auto&& p : programs) {
-				p->setValueByName("models", transforms.data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, sizeof(glm::mat4) * _instanceCount, true);
+				p->setValueByName("models", transforms.data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, sizeof(glm::mat4) * transforms.size(), true);
 			}
+		}
 
-			if (storeTransforms) {
-				_transforms = std::move(transforms);
-			}
+		inline void updateGPUTransfromsData(const std::vector<vulkan::VulkanGpuProgram*>& programs) const {}
+	};
+
+	template <typename T, typename Strategy>
+	class InstanceRenderer {
+	public:
+		template <typename... Args>
+		InstanceRenderer(const std::vector<glm::mat4>& transforms, T* graphics, Args&&...args) :
+			_instanceCount(transforms.size()), 
+			_graphics(graphics),
+			_strategy(std::make_unique<Strategy>(transforms, std::forward<Args>(args)...))
+		{
+			updateGraphicsInstanceCount();
+		}
+
+		template <typename... Args>
+		InstanceRenderer(std::vector<glm::mat4>&& transforms, T* graphics, Args&&...args) :
+			_instanceCount(transforms.size()), 
+			_graphics(graphics),
+			_strategy(std::make_unique<Strategy>(transforms, std::forward<Args>(args)...))
+		{
+			updateGraphicsInstanceCount();
 		}
 
 		~InstanceRenderer() {
 			_graphics = nullptr;
+			_strategy = nullptr;
 		}
 
 		inline void updateGPUTransfromsData(const std::vector<vulkan::VulkanGpuProgram*>& programs) const {
-			if (_transforms.has_value()) {
-				for (auto&& p : programs) {
-					p->setValueByName("models", _transforms.value().data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, sizeof(glm::mat4) * _instanceCount, true);
-				}
-			}
+			_strategy->updateGPUTransfromsData(programs);
 		}
 
 		inline void setGraphics(T* g) {
 			_graphics = std::unique_ptr<T>(g);
-
-			auto&& rdescriptor = _graphics->getRenderDescriptor();
-			for (size_t i = 0; i < rdescriptor.renderDataCount; ++i) {
-				for (size_t j = 0; j < rdescriptor.renderData[i]->renderPartsCount; ++j) {
-					rdescriptor.renderData[i]->renderParts[j].instanceCount = _instanceCount;
-				}
-			}
+			updateGraphicsInstanceCount();
 		}
 
 		inline void setGraphics(std::unique_ptr<T>&& g) {
 			_graphics = std::move(g);
-
-			auto&& rdescriptor = _graphics->getRenderDescriptor();
-			for (size_t i = 0; i < rdescriptor.renderDataCount; ++i) {
-				for (size_t j = 0; j < rdescriptor.renderData[i]->renderPartsCount; ++j) {
-					rdescriptor.renderData[i]->renderParts[j].instanceCount = _instanceCount;
-				}
-			}
+			updateGraphicsInstanceCount();
 		}
 
 		inline void updateRenderData(const glm::mat4& worldMatrix, const bool worldMatrixChanged) {
@@ -79,9 +79,21 @@ namespace engine {
 		inline RenderDescriptor& getRenderDescriptor() { return _graphics->getRenderDescriptor(); }
 
 	private:
+
+		inline void updateGraphicsInstanceCount() {
+			if (_graphics) {
+				auto&& rdescriptor = _graphics->getRenderDescriptor();
+				for (size_t i = 0; i < rdescriptor.renderDataCount; ++i) {
+					for (size_t j = 0; j < rdescriptor.renderData[i]->renderPartsCount; ++j) {
+						rdescriptor.renderData[i]->renderParts[j].instanceCount = _instanceCount;
+					}
+				}
+			}
+		}
+
 		uint32_t _instanceCount;
 		std::unique_ptr<T> _graphics;
-		std::optional<std::vector<glm::mat4>> _transforms;
+		std::unique_ptr<Strategy> _strategy;
 	};
 
 }

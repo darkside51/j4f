@@ -403,20 +403,26 @@ namespace engine {
 					if ((v & 0x000000f0) >= 240) {
 						glm::mat4 wtr(1.0f);
 
-						const int grassType = engine::random(0, 100) < 5 ? engine::random(2, 4) : engine::random(0, 1);
-						if (grassType > 2) {
-							const float scale_xyz = (engine::random(25.0f, 35.0f) * 400.0f);
-							scaleMatrix(wtr, glm::vec3(scale_xyz, scale_xyz, scale_xyz));
-						} else {
-							const float scale_xyz = (engine::random(25.0f, 60.0f) * 500.0f);
-							const float scale_z = (engine::random(25.0f, 60.0f) * 350.0f);
-							scaleMatrix(wtr, glm::vec3(scale_xyz, scale_xyz, scale_z));
+						const float l = vec_length(glm::vec2(-1024.0f + 26.0f * x, 1024.0f - 26.0f * y) - glm::vec2(570.0f, -250.0f));
+						const float r = 100.0f;
+						if (l >= r) {
+
+							const int grassType = engine::random(0, 100) < 5 ? engine::random(2, 4) : engine::random(0, 1);
+							if (grassType > 2) {
+								const float scale_xyz = (engine::random(25.0f, 35.0f) * 400.0f);
+								scaleMatrix(wtr, glm::vec3(scale_xyz, scale_xyz, scale_xyz));
+							} else {
+								const float scale_xyz = (engine::random(25.0f, 60.0f) * 500.0f);
+								const float scale_z = (engine::random(25.0f, 60.0f) * 350.0f);
+								scaleMatrix(wtr, glm::vec3(scale_xyz, scale_xyz, scale_z));
+							}
+
+							rotateMatrix_xyz(wtr, glm::vec3(0.0f, 0.0f, engine::random(-3.1415926, 3.1415926)));
+							translateMatrixTo(wtr, glm::vec3(-1024.0f + x * space, 1024.0f - y * space, -engine::random(7.0f, 12.0f)));
+							wtr[0][3] = grassType;
+							grassTransforms.emplace_back(std::move(wtr));
 						}
 
-						rotateMatrix_xyz(wtr, glm::vec3(0.0f, 0.0f, engine::random(-3.1415926, 3.1415926)));
-						translateMatrixTo(wtr, glm::vec3(-1024.0f + x * space, 1024.0f - y * space, -engine::random(5.0f, 10.0f)));
-						wtr[0][3] = grassType;
-						grassTransforms.emplace_back(std::move(wtr));
 					}
 				}
 			}
@@ -461,7 +467,7 @@ namespace engine {
 		Mesh* _mesh;
 	};
 
-	using InstanceMeshRenderer = engine::InstanceRenderer<Mesh>;
+	using InstanceMeshRenderer = engine::InstanceRenderer<Mesh, engine::SimpleInstanceStrategy>;
 
 	NodeRenderer<GrassRenderer>* grassMesh2 = nullptr;
 	NodeRenderer<SkyBoxRenderer>* skyBox = nullptr;
@@ -784,17 +790,24 @@ namespace engine {
 			};
 			auto texture_t2 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
-			tex_params3.files = { 
-				"resources/assets/models/pineTree/textures/Leavs_baseColor.png",
-				"resources/assets/models/pineTree/textures/Trank_normal.png"
+			//tex_params3.files = { 
+			//	"resources/assets/models/pineTree/textures/Leavs_baseColor.png",
+			//	"resources/assets/models/pineTree/textures/Trank_normal.png"
+			//};
+			//auto texture_t3 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
+
+			//tex_params3.files = { 
+			//	"resources/assets/models/pineTree/textures/Trank_baseColor.png",
+			//	"resources/assets/models/pineTree/textures/Trank_normal.png"
+			//};
+			//auto texture_t4 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
+
+			tex_params3.files = {
+				"resources/assets/models/portal/textures/portal_diffuse.png",
+				"resources/assets/models/portal/textures/portal_normal.png",
+				"resources/assets/models/portal/textures/portal_specularGlossiness.png"
 			};
 			auto texture_t3 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
-
-			tex_params3.files = { 
-				"resources/assets/models/pineTree/textures/Trank_baseColor.png",
-				"resources/assets/models/pineTree/textures/Trank_normal.png"
-			};
-			auto texture_t4 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
 			tex_params3.files = { 
 				"resources/assets/models/vikingHut/textures/texture1.jpg",
@@ -850,7 +863,8 @@ namespace engine {
 			mesh_params3.graphicsBuffer = meshesGraphicsBuffer;
 
 			MeshLoadingParams mesh_params4;
-			mesh_params4.file = "resources/assets/models/pineTree/scene.gltf";
+			//mesh_params4.file = "resources/assets/models/pineTree/scene.gltf";
+			mesh_params4.file = "resources/assets/models/portal/scene.gltf";
 			mesh_params4.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::TANGENT, AttributesSemantic::TEXCOORD_0);
 			mesh_params4.latency = 1;
 			mesh_params4.flags->async = 1;
@@ -876,6 +890,37 @@ namespace engine {
 			mesh_params_grass.latency = 1;
 			mesh_params_grass.flags->async = 1;
 			mesh_params_grass.graphicsBuffer = meshesGraphicsBuffer;
+
+			///////
+			TextureLoadingParams tex_params_forest_tree;
+			tex_params_forest_tree.flags->async = 1;
+			tex_params_forest_tree.flags->use_cache = 1;
+			tex_params_forest_tree.imageViewTypeForce = VkImageViewType::VK_IMAGE_VIEW_TYPE_2D_ARRAY;
+
+			tex_params_forest_tree.files = {
+				"resources/assets/models/pine/textures/Branches_lp_baseColor.png",
+				"resources/assets/models/pine/textures/Branches_lp_normal.png",
+				"resources/assets/models/pine/textures/Branches_lp_metallicRoughness2.png"
+			};
+			
+			auto texture_forest_tree1 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params_forest_tree);
+
+			tex_params_forest_tree.files = {
+				"resources/assets/models/pine/textures/Tree_bark_baseColor.jpeg",
+				"resources/assets/models/pine/textures/Tree_bark_normal.png",
+				"resources/assets/models/pine/textures/Tree_bark_metallicRoughness.png"
+
+			};
+			auto texture_forest_tree2 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params_forest_tree);
+
+			MeshLoadingParams mesh_params_forestTree;
+			mesh_params_forestTree.file = "resources/assets/models/pine/tree.gltf";
+			mesh_params_forestTree.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::TANGENT, AttributesSemantic::TEXCOORD_0);
+			mesh_params_forestTree.latency = 1;
+			mesh_params_forestTree.flags->async = 1;
+			mesh_params_forestTree.graphicsBuffer = meshesGraphicsBuffer;
+			////////
+
 
 			mesh = new NodeRenderer<Mesh>();
 			mesh2 = new NodeRenderer<Mesh>();
@@ -1081,21 +1126,20 @@ namespace engine {
 				shadowCastNodes.push_back(node);
 				});
 
-			assm->loadAsset<Mesh*>(mesh_params4, [texture_t3, texture_t4, this](Mesh* asset, const AssetLoadingResult result) {
+			assm->loadAsset<Mesh*>(mesh_params4, [texture_t3, this](Mesh* asset, const AssetLoadingResult result) {
 				asset->setProgram(program_mesh);
 				asset->setParamByName("u_texture", texture_t3, false);
-				asset->getRenderDataAt(1)->setParamByName("u_texture", texture_t4, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
-				asset->setParamByName("color", glm::vec4(1.5f, 1.5f, 1.5f, 1.0f), true);
+				asset->setParamByName("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), true);
 
 				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
 				asset->pipelineAttributesChanged();
 
 				////////////////////
 				glm::mat4 wtr(1.0f);
-				scaleMatrix(wtr, glm::vec3(0.75f));
+				scaleMatrix(wtr, glm::vec3(0.125f));
 				rotateMatrix_xyz(wtr, glm::vec3(1.57f, 0.0f, 0.0f));
-				translateMatrixTo(wtr, glm::vec3(570.0f, -250.0f, 0.0f));
+				translateMatrixTo(wtr, glm::vec3(570.0f, -250.0f, 10.0f));
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
@@ -1179,23 +1223,39 @@ namespace engine {
 					uint16_t x = engine::random(0, w);
 					uint16_t y = engine::random(0, h);
 					uint32_t v = data[y * w + x];
+					
 					while ((v & 0x000000f0) < 240) {
 						x = engine::random(0, w);
 						y = engine::random(0, h);
 						v = data[y * w + x];
 					}
 
-					const float scale_xyz = (engine::random(0.4f, 0.75f));
+					const float l = vec_length(glm::vec2(-1024.0f + cx * x, 1024.0f - cy * y) - glm::vec2(570.0f, -250.0f));
+					const float r = 150.0f;
+
+					if (l < r) {
+						glm::vec2 direction = as_normalized(glm::vec2(570.0f, -250.0f) - glm::vec2(-1024.0f + cx * x, 1024.0f - cy * y));
+						x = (570.0f + r * direction.x) + 1024.0f / cx;
+						y = (570.0f + r * direction.y) - 1024.0f / -cy;
+
+						uint32_t v = data[y * w + x];
+						if ((v & 0x000000f0) < 240) {
+							--i;
+							continue;
+						}
+					}
+
+					const float scale_xyz = (engine::random(300.0f, 800.0f));
 
 					glm::mat4 wtr(scale_xyz);
 					wtr[3][3] = 1.0f;
-					rotateMatrix_xyz(wtr, glm::vec3(0.0f, 0.0f, engine::random(-3.1415926, 3.1415926)));
+					rotateMatrix_xyz(wtr, glm::vec3(engine::random(-0.1f, 0.1f), engine::random(-0.1f, 0.1f), engine::random(-3.1415926, 3.1415926)));
 					translateMatrixTo(wtr, glm::vec3(-1024.0f + cx * x, 1024.0f - cy * y, 0.0f));
 					instanceTransforms[i] = std::move(wtr);
 				}
 			}
 
-			InstanceMeshRenderer* forestRenderer = new InstanceMeshRenderer({ program_mesh_instance, program_mesh_instance_shadow }, std::move(instanceTransforms), false);
+			InstanceMeshRenderer* forestRenderer = new InstanceMeshRenderer(std::move(instanceTransforms), nullptr, std::vector<vulkan::VulkanGpuProgram*>{ program_mesh_instance, program_mesh_instance_shadow });
 			///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 			TextureLoadingParams tex_params_floor_mask;
@@ -1239,12 +1299,12 @@ namespace engine {
 				grassMesh2->setNode(node->value());
 				});
 
-			assm->loadAsset<Mesh*>(mesh_params4, [texture_t3, texture_t4, forestRenderer, this](Mesh* asset, const AssetLoadingResult result) {
+			assm->loadAsset<Mesh*>(mesh_params_forestTree, [texture_forest_tree1, texture_forest_tree2, forestRenderer, this](Mesh* asset, const AssetLoadingResult result) {
 				asset->setProgram(program_mesh_instance);
-				asset->setParamByName("u_texture", texture_t3, false);
-				asset->getRenderDataAt(1)->setParamByName("u_texture", texture_t4, false);
+				asset->setParamByName("u_texture", texture_forest_tree2, false);
+				asset->getRenderDataAt(1)->setParamByName("u_texture", texture_forest_tree1, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
-				asset->setParamByName("color", glm::vec4(1.5f, 1.5f, 1.5f, 1.0f), true);
+				asset->setParamByName("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), true);
 
 				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
 				asset->pipelineAttributesChanged();

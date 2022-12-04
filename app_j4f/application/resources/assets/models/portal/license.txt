@@ -1,0 +1,11 @@
+Model Information:
+* title:	Portal
+* source:	https://sketchfab.com/3d-models/portal-3279b8d99fe244059c40a66e8aa39590
+* author:	DJMaesen (https://sketchfab.com/bumstrum)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Portal" (https://sketchfab.com/3d-models/portal-3279b8d99fe244059c40a66e8aa39590) by DJMaesen (https://sketchfab.com/bumstrum) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
