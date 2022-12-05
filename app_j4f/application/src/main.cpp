@@ -111,7 +111,7 @@ namespace engine {
 	///////////////////////////
 	/// cascade shadow map
 	constexpr uint8_t SHADOW_MAP_CASCADE_COUNT = 3;
-	constexpr uint16_t SHADOWMAP_DIM = 2048; // VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
+	constexpr uint16_t SHADOWMAP_DIM = 1536; // VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
 	//constexpr uint16_t SHADOWMAP_DIM = 1024; // VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU
 	glm::vec3 lightPos = glm::vec3(-460.0f, -600.0f, 1000.0f) * 2.0f;
 	//// cascade shadow map
@@ -1236,7 +1236,7 @@ namespace engine {
 					if (l < r) {
 						glm::vec2 direction = as_normalized(glm::vec2(570.0f, -250.0f) - glm::vec2(-1024.0f + cx * x, 1024.0f - cy * y));
 						x = (570.0f + r * direction.x) + 1024.0f / cx;
-						y = (570.0f + r * direction.y) - 1024.0f / -cy;
+						y = (-250.0f + r * direction.y) - 1024.0f / -cy;
 
 						uint32_t v = data[y * w + x];
 						if ((v & 0x000000f0) < 240) {
