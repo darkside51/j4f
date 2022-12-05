@@ -202,6 +202,9 @@ namespace engine {
 				_renderDescriptor.renderData[0]->setParamForLayout(_fixedGpuLayouts[1].first, &const_cast<glm::mat4&>(worldMatrix), false, 1);
 			}
 		}
+
+		inline void updateModelMatrixChanged(const bool worldMatrixChanged) {}
+
 	private:
 		struct SkyBoxVertex {
 			float position[3];
@@ -453,6 +456,10 @@ namespace engine {
 
 		inline void updateRenderData(const glm::mat4& worldMatrix, const bool worldMatrixChanged) {
 			_mesh->updateRenderData(worldMatrix, worldMatrixChanged);
+		}
+
+		inline void updateModelMatrixChanged(const bool worldMatrixChanged) {
+			_mesh->updateModelMatrixChanged(worldMatrixChanged);
 		}
 
 		inline vulkan::VulkanGpuProgram* setProgram(vulkan::VulkanGpuProgram* program, VkRenderPass renderPass = nullptr) {
@@ -1235,8 +1242,8 @@ namespace engine {
 
 					if (l < r) {
 						glm::vec2 direction = as_normalized(glm::vec2(570.0f, -250.0f) - glm::vec2(-1024.0f + cx * x, 1024.0f - cy * y));
-						x = (570.0f + r * direction.x) + 1024.0f / cx;
-						y = (-250.0f + r * direction.y) - 1024.0f / -cy;
+						x = std::clamp((570.0f + r * direction.x) + 1024.0f / cx, 0.0f, w - 1.0f);
+						y = std::clamp((-250.0f + r * direction.y) - 1024.0f / -cy, 0.0f, h - 1.0f);
 
 						uint32_t v = data[y * w + x];
 						if ((v & 0x000000f0) < 240) {
@@ -1849,13 +1856,13 @@ namespace engine {
 #endif
 				
 				const std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-				const auto time = std::localtime(&now);
+				const auto time = fmt::localtime(now);
 
 				//std::shared_ptr<TextureFrame> frame = bitmapFont->createFrame(fmt_string("resolution: %dx%d\nv_sync: %s\ndraw calls: %d\nfps: %d\ncpu frame time: %f", width, height, vsync ? "on" : "off", statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime()));
 				std::shared_ptr<TextureFrame> frame = bitmapFont->createFrame(
 					fmt_string(
-						"system time: {}:{}:{}\nbuild type: {}\ngpu: {}\nresolution: {}x{}\nv_sync: {}\ndraw calls: {}\nfps: {}\ncpu frame time: {:.3}\nspeed mult: {:.3}\n\nWASD + mouse(camera control)", 
-						time->tm_hour, time->tm_min, time->tm_sec, buildType, renderer->getDevice()->gpuProperties.deviceName, width, height, vsync ? "on" : "off", statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime(), Engine::getInstance().getGameTimeMultiply()
+						"system time: {:%H:%M:%S}\nbuild type: {}\ngpu: {}\nresolution: {}x{}\nv_sync: {}\ndraw calls: {}\nfps: {}\ncpu frame time: {:.3}\nspeed mult: {:.3}\n\nWASD + mouse(camera control)", 
+						time, buildType, renderer->getDevice()->gpuProperties.deviceName, width, height, vsync ? "on" : "off", statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime(), Engine::getInstance().getGameTimeMultiply()
 					)
 				);
 				TextureFrameBounds frameBounds(frame.get());

@@ -103,7 +103,7 @@ namespace engine {
 		Mesh_Node& getNode(const uint8_t updateFrame, const uint16_t nodeId) { return _nodes[updateFrame][nodeId]->value(); }
 		const Mesh_Node& getNode(const uint8_t updateFrame, const uint16_t nodeId) const { return _nodes[updateFrame][nodeId]->value(); }
 
-		inline uint8_t getUpdateFrame() const { return _updateFrameNum; }
+		inline uint8_t getUpdateFrame() const noexcept { return _updateFrameNum; }
 
 		void updateAnimation(const float time, const Mesh_Animation* animation, float& currentAnimTime); // simple animation update
 		void updateAnimation(const float time, MeshAnimationTree* animTree); // advanced animation update
@@ -114,7 +114,8 @@ namespace engine {
 			}
 		}
 
-		inline uint8_t getLatency() const { return _latency; }
+		inline uint8_t getLatency() const noexcept { return _latency; }
+		inline bool dirtySkins() const noexcept { return _dirtySkins; }
 
 	private:
 		void updateSkins(const uint8_t updateFrame);
@@ -172,6 +173,7 @@ namespace engine {
 
 		uint8_t _latency;
 		uint8_t _updateFrameNum = 0;
+		bool _dirtySkins = true;
 	};
 
 	class Mesh : public RenderedEntity {
@@ -187,28 +189,28 @@ namespace engine {
 		Mesh_Node& getNode(const uint8_t updateFrame, const uint16_t nodeId) { return _skeleton->_nodes[updateFrame][nodeId]->value(); }
 		const Mesh_Node& getNode(const uint8_t updateFrame, const uint16_t nodeId) const { return _skeleton->_nodes[updateFrame][nodeId]->value(); }
 
-		inline Mesh_Data* getMeshData() { return _meshData; }
-		inline const Mesh_Data* getMeshData() const { return _meshData; }
+		inline Mesh_Data* getMeshData() noexcept { return _meshData; }
+		inline const Mesh_Data* getMeshData() const noexcept { return _meshData; }
 
-		inline const glm::vec3& getMinCorner() const { return _minCorner; }
-		inline const glm::vec3& getMaxCorner() const { return _maxCorner; }
+		inline const glm::vec3& getMinCorner() const noexcept { return _minCorner; }
+		inline const glm::vec3& getMaxCorner() const noexcept { return _maxCorner; }
 
-		inline std::shared_ptr<MeshSkeleton>& getSkeleton() { return _skeleton; }
-		inline const std::shared_ptr<MeshSkeleton>& getSkeleton() const { return _skeleton; }
+		inline std::shared_ptr<MeshSkeleton>& getSkeleton() noexcept { return _skeleton; }
+		inline const std::shared_ptr<MeshSkeleton>& getSkeleton() const noexcept { return _skeleton; }
 
-		inline void setSkeleton(const std::shared_ptr<MeshSkeleton>& s) { _skeleton = s; }
+		inline void setSkeleton(const std::shared_ptr<MeshSkeleton>& s) noexcept { _skeleton = s; }
 
 		void draw(const glm::mat4& cameraMatrix, const glm::mat4& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame);
 		void drawBoundingBox(const glm::mat4& cameraMatrix, const glm::mat4& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame);
 
 		void updateRenderData(const glm::mat4& worldMatrix, const bool worldMatrixChanged);
+		inline void updateModelMatrixChanged(const bool worldMatrixChanged) noexcept { _modelMatrixChanged |= worldMatrixChanged; }
 
 		inline void setCameraMatrix(const glm::mat4& cameraMatrix, const bool copy = false) {
 			_renderDescriptor.setRawDataForLayout(_fixedGpuLayouts[0].first, &const_cast<glm::mat4&>(cameraMatrix), copy, sizeof(glm::mat4));
 		}
 
 	private:
-
 		std::vector<VkVertexInputAttributeDescription> getVertexInputAttributes() const;
 		uint32_t sizeOfVertex() const;
 
@@ -217,6 +219,7 @@ namespace engine {
 		uint16_t _semanticMask = 0;
 
 		std::shared_ptr<MeshSkeleton> _skeleton;
+		bool _modelMatrixChanged = true;
 
 		glm::vec3 _minCorner = glm::vec3(0.0f);
 		glm::vec3 _maxCorner = glm::vec3(0.0f);

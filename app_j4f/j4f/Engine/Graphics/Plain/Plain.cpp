@@ -103,7 +103,9 @@ namespace engine {
 	}
 
 	void Plain::updateRenderData(const glm::mat4& worldMatrix, const bool worldMatrixChanged) {
-		if (worldMatrixChanged || _frameChanged) {
+		_modelMatrixChanged |= worldMatrixChanged;
+
+		if (_modelMatrixChanged || _frameChanged) {
 			_frameChanged = false;
 			if (_frame) {
 				size_t j = 0;
@@ -123,6 +125,8 @@ namespace engine {
 				_vtx[2].position[0] = p2.x; _vtx[2].position[1] = p2.y; _vtx[2].position[2] = p2.z;
 				_vtx[3].position[0] = p3.x; _vtx[3].position[1] = p3.y; _vtx[3].position[2] = p3.z;
 			}
+
+			_modelMatrixChanged = false;
 		}
 	}
 }

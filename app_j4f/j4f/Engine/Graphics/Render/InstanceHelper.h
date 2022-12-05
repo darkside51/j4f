@@ -71,6 +71,10 @@ namespace engine {
 			_graphics->updateRenderData(worldMatrix, worldMatrixChanged);
 		}
 
+		inline void updateModelMatrixChanged(const bool worldMatrixChanged) {
+			_graphics->updateModelMatrixChanged(worldMatrixChanged);
+		}
+
 		inline vulkan::VulkanGpuProgram* setProgram(vulkan::VulkanGpuProgram* program, VkRenderPass renderPass = nullptr) {
 			return _graphics->setProgram(program, renderPass);
 		}

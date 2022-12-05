@@ -23,7 +23,7 @@ namespace engine {
 		RenderObject() = default;
 		RenderObject(RenderDescriptor* d) : _descriptor(d) {}
 		inline RenderDescriptor* getRenderDescriptor() const noexcept { return _descriptor; }
-		inline void setNeedUpdate(const bool value) { _needUpdateData = value; }
+		inline void setNeedUpdate(const bool value) noexcept { _needUpdateData = value; }
 		inline bool getNeedUpdate() const noexcept { return _needUpdateData; }
 
 	protected:
@@ -35,6 +35,7 @@ namespace engine {
 	concept IsGraphicsType = requires(T v) {
 		v.getRenderDescriptor();
 		v.updateRenderData(glm::mat4(), bool());
+		v.updateModelMatrixChanged(bool());
 		v.setProgram([]()->vulkan::VulkanGpuProgram* {}(), VkRenderPass()); // wow!, it work :)
 	};
 
@@ -44,10 +45,11 @@ namespace engine {
 		using type = T*;
 
 		~NodeRenderer() {
-			if (_graphics) {
+			if (_graphics && _isGraphicsOwner) {
 				delete _graphics;
-				_graphics = nullptr;
 			}
+
+			_graphics = nullptr;
 			_node = nullptr;
 		}
 
@@ -67,19 +69,37 @@ namespace engine {
 		inline Node* getNode() { return _node; }
 		inline const Node* getNode() const { return _node; }
 
-		inline void setGraphics(type g) {
-			if (_graphics) {
+		inline type replaceGraphics(type g, const bool own = true) {
+			type oldGraphics = _graphics;
+			_isGraphicsOwner = own;
+			_descriptor = &g->getRenderDescriptor();
+			_graphics = g;
+			return oldGraphics;
+		}
+
+		inline void setGraphics(type g, const bool own = true) {
+			if (_graphics && _isGraphicsOwner) {
 				delete _graphics;
-				_graphics = nullptr;
 			}
 
+			_isGraphicsOwner = own;
 			_descriptor = &g->getRenderDescriptor();
 			_graphics = g;
 		}
 
+		inline void resetGraphics() { _graphics = nullptr; }
+
 		inline void updateRenderData() {
-			if (_graphics && _node) {
-				_graphics->updateRenderData(_node->model(), _node->modelChanged());
+
+			if (getNeedUpdate()) {
+				if (_graphics && _node) {
+					_graphics->updateRenderData(_node->model(), _node->modelChanged());
+				}
+				setNeedUpdate(false);
+			} else {
+				if (_graphics && _node) {
+					_graphics->updateModelMatrixChanged(_node->modelChanged());
+				}
 			}
 		}
 
@@ -97,6 +117,7 @@ namespace engine {
 		inline const type graphics() const { return _graphics; }
 
 	private:
+		bool _isGraphicsOwner = true;
 		type _graphics = nullptr;
 		Node* _node = nullptr;
 	};
@@ -122,10 +143,7 @@ namespace engine {
 
 		inline void updateRenderData() {
 			for (auto&& o : _objects) {
-				if (o->getNeedUpdate()) {
-					o->updateRenderData();
-					o->setNeedUpdate(false);
-				}
+				o->updateRenderData();
 			}
 		}
 

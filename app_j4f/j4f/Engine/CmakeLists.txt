@@ -61,6 +61,7 @@ set(
 	Graphics/Texture
 	Graphics/Scene
 	Graphics/Scene/Shadows
+	Graphics/Scene/LOD
 	Graphics/Render
 	Graphics/Mesh
 	Graphics/Text

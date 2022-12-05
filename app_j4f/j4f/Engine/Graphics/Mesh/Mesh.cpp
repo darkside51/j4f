@@ -225,6 +225,7 @@ namespace engine {
 	
 	void MeshSkeleton::updateSkins(const uint8_t updateFrame) {
 		size_t skinId = 0;
+		_dirtySkins = false;
 		for (const Mesh_Skin& s : _skins) {
 			const Mesh_Node& h = _nodes[updateFrame][s.skeletonRoot]->value();
 
@@ -236,6 +237,7 @@ namespace engine {
 				for (size_t i = 0; i < numJoints; ++i) {
 					if (auto&& n = _nodes[updateFrame][s.joints[i]]->value(); n.dirtyModelTransform) {
 						skin_matrices[i] = (n.modelMatrix * s.inverseBindMatrices[i]);
+						_dirtySkins = true;
 					}
 				}
 			} else {
@@ -243,6 +245,7 @@ namespace engine {
 				for (size_t i = 0; i < numJoints; ++i) {
 					if (auto&& n = _nodes[updateFrame][s.joints[i]]->value(); n.dirtyModelTransform) {
 						skin_matrices[i] = inverseTransform * (n.modelMatrix * s.inverseBindMatrices[i]);
+						_dirtySkins = true;
 					}
 				}
 			}
@@ -415,9 +418,8 @@ namespace engine {
 			if (r_data == nullptr || r_data->pipeline == nullptr) continue;
 
 			const Mesh_Node& node = _skeleton->_nodes[renderFrameNum][_meshData->meshes[i].nodeIndex]->value();
-			glm::mat4 model = worldMatrix * node.modelMatrix;
-
-			if (_fixedGpuLayouts[2].first) {
+			
+			if (_fixedGpuLayouts[2].first && _skeleton->dirtySkins()) {
 				if (node.skinIndex != 0xffff) {
 					r_data->setParamForLayout(_fixedGpuLayouts[2].first, &(_skeleton->_skinsMatrices[renderFrameNum][node.skinIndex][0]), false, _skeleton->_skinsMatrices[renderFrameNum][node.skinIndex].size());
 				} else {
@@ -426,6 +428,8 @@ namespace engine {
 			}
 
 			r_data->setParamForLayout(_fixedGpuLayouts[0].first, &const_cast<glm::mat4&>(cameraMatrix), false, 1);
+
+			glm::mat4 model = worldMatrix * node.modelMatrix;
 			r_data->setParamForLayout(_fixedGpuLayouts[1].first, &model, true, 1);
 
 			r_data->prepareRender(commandBuffer);
@@ -433,9 +437,10 @@ namespace engine {
 		}
 	}
 
-	void Mesh::updateRenderData(const glm::mat4& worldMatrix, const bool /*worldMatrixChanged*/) {
+	void Mesh::updateRenderData(const glm::mat4& worldMatrix, const bool worldMatrixChanged) {
 		if (!_skeleton) return;
 
+		_modelMatrixChanged |= worldMatrixChanged;
 		const uint8_t renderFrameNum = (_skeleton->_updateFrameNum + 1) % _skeleton->_latency;
 
 		_skeleton->checkAnimCalculation(renderFrameNum);
@@ -445,9 +450,8 @@ namespace engine {
 			if (r_data == nullptr || r_data->pipeline == nullptr) continue;
 
 			const Mesh_Node& node = _skeleton->_nodes[renderFrameNum][_meshData->meshes[i].nodeIndex]->value();
-			glm::mat4 model = worldMatrix * node.modelMatrix;
-
-			if (_fixedGpuLayouts[2].first) {
+			
+			if (_fixedGpuLayouts[2].first && _skeleton->dirtySkins()) {
 				if (node.skinIndex != 0xffff) {
 					r_data->setParamForLayout(_fixedGpuLayouts[2].first, &(_skeleton->_skinsMatrices[renderFrameNum][node.skinIndex][0]), false, _skeleton->_skinsMatrices[renderFrameNum][node.skinIndex].size());
 				} else {
@@ -455,8 +459,13 @@ namespace engine {
 				}
 			}
 
-			r_data->setParamForLayout(_fixedGpuLayouts[1].first, &model, true, 1);
+			if (node.dirtyModelTransform || _modelMatrixChanged) {
+				glm::mat4 model = worldMatrix * node.modelMatrix;
+				r_data->setParamForLayout(_fixedGpuLayouts[1].first, &model, true, 1);
+			}
 		}
+
+		_modelMatrixChanged = false;
 	}
 
 	void Mesh::createWithData(Mesh_Data* mData, const uint16_t semantic_mask, const uint8_t latency) {
