@@ -56,9 +56,9 @@ namespace engine {
 		using type = atomic_control_block<T>;
 		using counter_type = std::atomic_uint32_t;
 
-		inline uint32_t _decrease_counter()			{ return __counter.fetch_sub(1, std::memory_order_consume) - 1; }
-		inline uint32_t _increase_counter()			{ return __counter.fetch_add(1, std::memory_order_consume) + 1; }
-		inline uint32_t _use_count() const			{ return __counter.load(std::memory_order_acquire); }
+		inline uint32_t _decrease_counter()			{ return __counter.fetch_sub(1, std::memory_order_release) - 1; }
+		inline uint32_t _increase_counter()			{ return __counter.fetch_add(1, std::memory_order_release) + 1; }
+		inline uint32_t _use_count() const			{ return __counter.load(std::memory_order_consume); }
 
 		std::atomic_uint32_t __counter = 0;
 	};

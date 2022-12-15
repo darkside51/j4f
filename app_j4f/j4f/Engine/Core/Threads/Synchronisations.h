@@ -32,7 +32,7 @@ namespace engine {
 	class AtomicLockF {
 	public:
 		AtomicLockF(std::atomic_flag& l) : _lock(l) {
-			while (_lock.test_and_set(std::memory_order_consume)) {
+			while (_lock.test_and_set(std::memory_order_release)) {
 				std::this_thread::yield();
 			}
 		}
@@ -42,7 +42,7 @@ namespace engine {
 		}
 
 		static void wait(std::atomic_flag& l) {
-			while (l.test_and_set(std::memory_order_consume)) {
+			while (l.test_and_set(std::memory_order_release)) {
 				std::this_thread::yield();
 			}
 		}
