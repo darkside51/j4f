@@ -87,7 +87,7 @@ namespace engine {
 			_graphics = g;
 		}
 
-		inline void resetGraphics() { _graphics = nullptr; }
+		inline void resetGraphics() { _graphics = nullptr; _isGraphicsOwner = false; }
 
 		inline void updateRenderData() {
 
@@ -132,6 +132,16 @@ namespace engine {
 		~GraphicsTypeUpdateSystem() {
 			_objects.clear();
 		}
+
+		GraphicsTypeUpdateSystem(GraphicsTypeUpdateSystem&& system) noexcept : _objects(std::move(system._objects)) { system._objects.clear(); }
+		GraphicsTypeUpdateSystem& operator= (GraphicsTypeUpdateSystem&& system) noexcept {
+			_objects = std::move(system._objects);
+			system._objects.clear();
+			return *this;
+		}
+
+		GraphicsTypeUpdateSystem(const GraphicsTypeUpdateSystem& system) = delete;
+		GraphicsTypeUpdateSystem& operator= (const GraphicsTypeUpdateSystem& system) = delete;
 
 		inline void registerObject(type o) {
 			_objects.push_back(o);

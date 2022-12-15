@@ -40,22 +40,18 @@ namespace engine {
         friend class ITaskHandler;
     public:
         inline operator bool() const noexcept {
-            return _cancellation_token.load(std::memory_order_consume);
-        }
-
-        CancellationToken() {
-            _cancellation_token.store(false, std::memory_order_relaxed);
+            return _cancellation_token.test(std::memory_order_consume);
         }
     private:
         inline void cancel() noexcept {
-            _cancellation_token.store(true, std::memory_order_release);
+            _cancellation_token.test_and_set(std::memory_order_release);
         }
 
         inline void reset() noexcept {
-            _cancellation_token.store(false, std::memory_order_release);
+            _cancellation_token.clear();
         }
 
-        std::atomic_bool _cancellation_token;
+        std::atomic_flag _cancellation_token{};
     };
 
     class ITaskHandler {
