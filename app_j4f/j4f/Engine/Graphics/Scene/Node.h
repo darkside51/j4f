@@ -5,25 +5,16 @@
 #include "../../Core/BitMask.h"
 
 #include "Camera.h"
-#include "NodeGraphicsLink.h"
 #include "BoundingVolume.h"
 
 namespace engine {
 	
+	class NodeRenderObject;
+
 	class Node final {
 		friend struct NodeUpdater;
 	public:
-		~Node() {
-			if (_graphics) {
-				delete _graphics;
-				_graphics = nullptr;
-			}
-
-			if (_boundingVolume) {
-				delete _boundingVolume;
-				_boundingVolume = nullptr;
-			}
-		}
+		~Node();
 
 		inline void calculateModelMatrix(const glm::mat4& parentModel) {
 			_model = parentModel * _local;
@@ -40,15 +31,10 @@ namespace engine {
 		inline const glm::mat4& model() const { return _model; }
 		inline bool modelChanged() const { return _modelChanged; }
 
-		inline RenderObject* getRenderObject() { return _graphics; }
-		inline const RenderObject* getRenderObject() const { return _graphics; }
+		inline NodeRenderObject* getRenderObject() { return _graphics; }
+		inline const NodeRenderObject* getRenderObject() const { return _graphics; }
 
-		inline void setRenderObject(const RenderObject* r) {
-			if (_graphics) {
-				delete _graphics;
-			}
-			_graphics = const_cast<RenderObject*>(r);
-		}
+		void setRenderObject(const NodeRenderObject* r);
 
 		inline const BoundingVolume* getBoundingVolume() const { return _boundingVolume; }
 		inline void setBoundingVolume(const BoundingVolume* v) {
@@ -74,7 +60,7 @@ namespace engine {
 		bool _modelChanged = false;
 		glm::mat4 _local = glm::mat4(1.0f);
 		glm::mat4 _model = glm::mat4(1.0f);
-		RenderObject* _graphics = nullptr;
+		NodeRenderObject* _graphics = nullptr;
 		const BoundingVolume* _boundingVolume = nullptr;
 		BitMask64 _visibleMask; // маска видимости (предполагается, что объект может быть видимым или нет с нескольких источников, для сохранения видимости с каждого можно использовать BitMask64)
 	};

@@ -3,6 +3,7 @@
 #include "../../Core/Common.h"
 #include "../../Core/Math/math.h"
 #include <vulkan/vulkan.h>
+#include "Node.h"
 
 #include <vector>
 
@@ -12,9 +13,7 @@ namespace vulkan {
 
 namespace engine {
 
-	class Node;
 	struct RenderDescriptor;
-	class GraphicsLink;
 
 	class RenderObject {
 	public:
@@ -31,6 +30,20 @@ namespace engine {
 		bool _needUpdateData = false;
 	};
 
+	class NodeRenderObject : public RenderObject {
+		friend class Node;
+	public:
+		virtual ~NodeRenderObject() {
+			_node = nullptr;
+		}
+
+		inline Node* getNode() { return _node; }
+		inline const Node* getNode() const { return _node; }
+
+	protected:
+		Node* _node = nullptr;
+	};
+
 	template<typename T>
 	concept IsGraphicsType = requires(T v) {
 		v.getRenderDescriptor();
@@ -40,7 +53,7 @@ namespace engine {
 	};
 
 	template <typename T> requires IsGraphicsType<T>
-	class NodeRenderer : public RenderObject {
+	class NodeRenderer : public NodeRenderObject {
 	public:
 		using type = T*;
 
@@ -50,24 +63,10 @@ namespace engine {
 			}
 
 			_graphics = nullptr;
-			_node = nullptr;
 		}
 
 		NodeRenderer() = default;
 		NodeRenderer(type g) : RenderObject(&g->getRenderDescriptor()), _graphics(g) {}
-
-		inline void setNode(const Node* n) {
-			_node = const_cast<Node*>(n);
-			_node->setRenderObject(this);
-		}
-
-		inline void setNode(const Node& n) {
-			_node = &const_cast<Node&>(n);
-			_node->setRenderObject(this);
-		}
-
-		inline Node* getNode() { return _node; }
-		inline const Node* getNode() const { return _node; }
 
 		inline type replaceGraphics(type g, const bool own = true) {
 			type oldGraphics = _graphics;
@@ -119,7 +118,6 @@ namespace engine {
 	private:
 		bool _isGraphicsOwner = true;
 		type _graphics = nullptr;
-		Node* _node = nullptr;
 	};
 
 	template <typename T>

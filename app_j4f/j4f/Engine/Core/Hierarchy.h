@@ -345,6 +345,8 @@ namespace engine {
 		inline const Hierarchy* getPrev() const { return _prev; }
 		inline const Hierarchy* getNext() const { return _next; }
 
+		inline T* operator-> () { return &_value; }
+
 	private:
 		T _value;
 		const Hierarchy* _parent = nullptr;

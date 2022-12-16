@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Node.h"
+#include "NodeGraphicsLink.h"
 #include "../Render/RenderList.h"
 
 namespace engine {
@@ -22,7 +23,7 @@ namespace engine {
 	struct RenderListEmplacer {
 		inline static bool _(H_Node* node, RenderList& list, const bool dirtyVisible, const uint8_t visibleId, V&& visibleChecker) {
 			if (NodeUpdater::_<V>(node, dirtyVisible, visibleId, std::forward<V>(visibleChecker))) {
-				if (RenderObject* renderObject = node->value().getRenderObject()) {
+				if (NodeRenderObject* renderObject = node->value().getRenderObject()) {
 					renderObject->setNeedUpdate(true);
 					list.addDescriptor(renderObject->getRenderDescriptor());
 				}
@@ -38,7 +39,7 @@ namespace engine {
 		inline static bool _(H_Node* node, const bool dirtyVisible, const uint8_t visibleId, V&& visibleChecker) {
 			const bool visible = NodeUpdater::_<V>(node, dirtyVisible, visibleId, std::forward<V>(visibleChecker));
 
-			if (RenderObject* renderObject = node->value().getRenderObject()) {
+			if (NodeRenderObject* renderObject = node->value().getRenderObject()) {
 				renderObject->setNeedUpdate(visible);
 				renderObject->getRenderDescriptor()->visible = visible;
 			}

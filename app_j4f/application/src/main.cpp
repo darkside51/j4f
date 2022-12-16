@@ -974,7 +974,7 @@ namespace engine {
 				rootNode->addChild(node);
 
 				skyBox->setGraphics(skyboxRenderer);
-				skyBox->setNode(node->value());
+				(*node)->setRenderObject(skyBox); // (*node)-> == node->value().
 			}
 			
 			assm->loadAsset<Mesh*>(mesh_params, [texture_zombi, this](Mesh* asset, const AssetLoadingResult result) {
@@ -1002,7 +1002,7 @@ namespace engine {
 				rootNode->addChild(node);
 
 				mesh->setGraphics(asset);
-				mesh->setNode(node->value());
+				(*node)->setRenderObject(mesh);
 
 				shadowCastNodes.push_back(node);
 				});
@@ -1030,7 +1030,7 @@ namespace engine {
 				rootNode->addChild(node);
 
 				mesh2->setGraphics(asset);
-				mesh2->setNode(node->value());
+				(*node)->setRenderObject(mesh2);
 
 				shadowCastNodes.push_back(node);
 				});
@@ -1059,7 +1059,7 @@ namespace engine {
 					rootNode->addChild(node);
 
 					meshObj->setGraphics(asset);
-					meshObj->setNode(node->value());
+					(*node)->setRenderObject(meshObj);
 
 					shadowCastNodes.push_back(node);
 					});
@@ -1095,14 +1095,14 @@ namespace engine {
 				translateMatrixTo(wtr, glm::vec3(-100.0f, 210.0f, 0.0f));
 
 				H_Node* node = new H_Node();
-				node->value().setLocalMatrix(wtr);
-				node->value().setBoundingVolume(BoundingVolume::make<SphereVolume>((asset->getMinCorner() + asset->getMaxCorner()) * 0.5f, 1.0f));
-				//node->value().setBoundingVolume(BoundingVolume::make<CubeVolume>(asset->getMinCorner(), asset->getMaxCorner()));
+				(*node)->setLocalMatrix(wtr);
+				(*node)->setBoundingVolume(BoundingVolume::make<SphereVolume>((asset->getMinCorner() + asset->getMaxCorner()) * 0.5f, 1.0f));
+				//(*node)->setBoundingVolume(BoundingVolume::make<CubeVolume>(asset->getMinCorner(), asset->getMaxCorner()));
+				(*node)->setRenderObject(mesh3);
 				rootNode->addChild(node);
 
 				mesh3->setGraphics(asset);
-				mesh3->setNode(node->value());
-
+				
 				shadowCastNodes.push_back(node);
 				});
 
@@ -1128,7 +1128,7 @@ namespace engine {
 				rootNode->addChild(node);
 
 				mesh4->setGraphics(asset);
-				mesh4->setNode(node->value());
+				(*node)->setRenderObject(mesh4);
 
 				shadowCastNodes.push_back(node);
 				});
@@ -1154,7 +1154,7 @@ namespace engine {
 				rootNode->addChild(node);
 
 				mesh5->setGraphics(asset);
-				mesh5->setNode(node->value());
+				(*node)->setRenderObject(mesh5);
 
 				shadowCastNodes.push_back(node);
 				});
@@ -1180,7 +1180,7 @@ namespace engine {
 				rootNode->addChild(node);
 
 				mesh6->setGraphics(asset);
-				mesh6->setNode(node->value());
+				(*node)->setRenderObject(mesh6);
 
 				shadowCastNodes.push_back(node);
 				});
@@ -1208,7 +1208,7 @@ namespace engine {
 				rootNode->addChild(node);
 
 				mesh7->setGraphics(asset);
-				mesh7->setNode(node->value());
+				(*node)->setRenderObject(mesh7);
 
 				shadowCastNodes.push_back(node);
 				});
@@ -1226,7 +1226,7 @@ namespace engine {
 				const float cx = 2048.0f / w;
 				const float cy = 2048.0f / h;
 
-				for (size_t i = 0; i < 100; ++i) {
+				for (size_t i = 0; i < instanceTransforms.size(); ++i) {
 					uint16_t x = engine::random(0, w);
 					uint16_t y = engine::random(0, h);
 					uint32_t v = data[y * w + x];
@@ -1303,7 +1303,7 @@ namespace engine {
 
 				grenderer->setMesh(asset);
 				grassMesh2->setGraphics(grenderer);
-				grassMesh2->setNode(node->value());
+				(*node)->setRenderObject(grassMesh2);
 				});
 
 			assm->loadAsset<Mesh*>(mesh_params_forestTree, [texture_forest_tree1, texture_forest_tree2, forestRenderer, this](Mesh* asset, const AssetLoadingResult result) {
@@ -1326,7 +1326,7 @@ namespace engine {
 
 				forestRenderer->setGraphics(asset);
 				forest->setGraphics(forestRenderer);
-				forest->setNode(node->value());
+				(*node)->setRenderObject(forest);
 
 				shadowCastNodes.push_back(node);
 			});
@@ -1366,7 +1366,7 @@ namespace engine {
 					}
 				)), nullptr));
 
-				plainTest->setNode(node->value());
+				(*node)->setRenderObject(plainTest);
 
 				plainTest->graphics()->setParamByName("u_texture", texture_floor_normal, false);
 				plainTest->getRenderDescriptor()->order = 10;

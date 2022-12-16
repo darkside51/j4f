@@ -109,8 +109,11 @@ namespace engine {
 		void updateAnimation(const float time, MeshAnimationTree* animTree); // advanced animation update
 
 		inline void checkAnimCalculation(const uint8_t frame) {
-			if (_animCalculationResult[frame].valid() && _animCalculationResult[frame].wait_for(std::chrono::microseconds(0)) != std::future_status::ready) {
-				_animCalculationResult[frame].wait();
+			if (_animCalculationResult[frame]) {
+				if (const auto state = _animCalculationResult[frame].state(); (state != TaskState::COMPLETE && state != TaskState::CANCELED)) {
+					//if (_animCalculationResult[frame].valid() && _animCalculationResult[frame].wait_for(std::chrono::microseconds(0)) != std::future_status::ready) {
+					_animCalculationResult[frame].wait();
+				}
 			}
 		}
 
