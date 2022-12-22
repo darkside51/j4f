@@ -415,13 +415,13 @@ namespace engine {
 								const float scale_xyz = (engine::random(25.0f, 35.0f) * 400.0f);
 								scaleMatrix(wtr, glm::vec3(scale_xyz, scale_xyz, scale_xyz));
 							} else {
-								const float scale_xyz = (engine::random(25.0f, 60.0f) * 500.0f);
-								const float scale_z = (engine::random(25.0f, 60.0f) * 350.0f);
+								const float scale_xyz = (engine::random(25.0f, 60.0f) * 490.0f);
+								const float scale_z = (engine::random(25.0f, 60.0f) * 310.0f);
 								scaleMatrix(wtr, glm::vec3(scale_xyz, scale_xyz, scale_z));
 							}
 
 							rotateMatrix_xyz(wtr, glm::vec3(0.0f, 0.0f, engine::random(-3.1415926, 3.1415926)));
-							translateMatrixTo(wtr, glm::vec3(-1024.0f + x * space, 1024.0f - y * space, -engine::random(7.0f, 12.0f)));
+							translateMatrixTo(wtr, glm::vec3(-1024.0f + engine::random(-10.0f, 10.0f) + x * space, 1024.0f + engine::random(-10.0f, 10.0f) - y * space, 0.0f));
 							wtr[0][3] = grassType;
 							grassTransforms.emplace_back(std::move(wtr));
 						}

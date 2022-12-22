@@ -4,7 +4,6 @@
 #include "../../Core/Math/math.h"
 #include "../../Core/BitMask.h"
 
-#include "Camera.h"
 #include "BoundingVolume.h"
 
 namespace engine {

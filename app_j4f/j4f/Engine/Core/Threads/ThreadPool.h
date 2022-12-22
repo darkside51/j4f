@@ -58,26 +58,29 @@ namespace engine {
         }
         
         void pause(const uint8_t typeMask = 0b00000001) {
-            {
-                std::unique_lock<std::mutex> lock(_queue_mutex);
-                _state = TPoolState::PAUSE;
+            if (const bool paused = _state == TPoolState::RUN) {
+                {
+                    std::unique_lock<std::mutex> lock(_queue_mutex);
+                    _state = TPoolState::PAUSE;
+                }
+
+                printf("ThreadPool paused\n");
+
+                cancelTasks(typeMask); // отменит задачи, по типам, согласно маске typeMask
+                _condition.notify_all();
             }
-
-            printf("ThreadPool paused\n");
-
-            cancelTasks(typeMask); // отменит задачи, по типам, согласно маске typeMask
-            _condition.notify_all();
         }
 
         void resume() {
-            {
-                std::unique_lock<std::mutex> lock(_queue_mutex);
-                _state = TPoolState::RUN;
+            if (const bool resumed = _state == TPoolState::PAUSE) {
+                {
+                    std::unique_lock<std::mutex> lock(_queue_mutex);
+                    _state = TPoolState::RUN;
+                }
+
+                printf("ThreadPool resumed\n");
+                _condition.notify_all();
             }
-
-            printf("ThreadPool resumed\n");
-
-            _condition.notify_all();
         }
 
         void cancelTasks(const uint8_t typeMask) {

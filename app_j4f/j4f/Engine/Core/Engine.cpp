@@ -107,19 +107,32 @@ namespace engine {
 
 				_graphics->resize(w, h);
 				_application->resize(w, h);
+
 				if (w > 0 && h > 0) {
 					_renderThread->resume();
+					getModule<ThreadPool>()->resume();
+				} else {
+					getModule<ThreadPool>()->pause();
 				}
 			} else {
 				if (w > 0 && h > 0) {
 					_graphics->resize(w, h);
 					_application->resize(w, h);
 					_renderThread->resume();
+					getModule<ThreadPool>()->resume();
+				} else {
+					getModule<ThreadPool>()->pause();
 				}
 			}
 		} else {
 			_graphics->resize(w, h);
 			_application->resize(w, h);
+
+			if (w > 0 && h > 0) {
+				getModule<ThreadPool>()->resume();
+			} else {
+				getModule<ThreadPool>()->pause();
+			}
 		}
 	}
 

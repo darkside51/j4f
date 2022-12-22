@@ -1,4 +1,5 @@
 ﻿#pragma once
+// ♣♠♦♥
 
 // glm options
 #define GLM_FORCE_INLINE
