@@ -25,7 +25,7 @@ namespace engine {
 						r_data->setRawDataForLayout(camera_matrix, const_cast<glm::mat4*>(cameraMatrix), false, sizeof(glm::mat4));
 					}
 
-					r_data->prepareRender(commandBuffer);
+					r_data->prepareRender(/*commandBuffer*/);
 					r_data->render(commandBuffer, currentFrame);
 				}
 			}

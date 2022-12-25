@@ -1,4 +1,5 @@
-﻿#include "Mesh.h"
+﻿// ♣♠♦♥
+#include "Mesh.h"
 
 #include "MeshData.h"
 #include "Loader_gltf.h"
@@ -434,7 +435,7 @@ namespace engine {
 			glm::mat4 model = worldMatrix * node.modelMatrix;
 			r_data->setParamForLayout(_fixedGpuLayouts[1].first, &model, true, 1);
 
-			r_data->prepareRender(commandBuffer);
+			r_data->prepareRender(/*commandBuffer*/);
 			r_data->render(commandBuffer, currentFrame);
 		}
 	}
@@ -453,6 +454,8 @@ namespace engine {
 
 			const Mesh_Node& node = _skeleton->_nodes[renderFrameNum][_meshData->meshes[i].nodeIndex]->value();
 			
+			// для организации инстансной отрисовки мешей в различных кадрах анимаций, нужно делать storege_buffer для матриц костей и для нужной модельки брать правильное смещение
+			// + может быть нужно дописать возможность передачи параметра в r_data в нужное смещение от начала (либо копировать данные костей в общий буффер, а потом его устанавливать для gpuProgram)
 			if (_fixedGpuLayouts[2].first && _skeleton->dirtySkins()) {
 				if (node.skinIndex != 0xffff) {
 					r_data->setParamForLayout(_fixedGpuLayouts[2].first, &(_skeleton->_skinsMatrices[renderFrameNum][node.skinIndex][0]), false, _skeleton->_skinsMatrices[renderFrameNum][node.skinIndex].size());

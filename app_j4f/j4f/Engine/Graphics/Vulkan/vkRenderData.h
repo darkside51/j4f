@@ -221,12 +221,13 @@ namespace vulkan {
 			externalDescriptorsSets.resize(externalDescriptorsSetsCount);
 		}
 
-		void prepareRender(VulkanCommandBuffer& commandBuffer) {
+		uint32_t prepareRender(/*VulkanCommandBuffer& commandBuffer*/) {
 			using namespace vulkan;
 
 			VulkanGpuProgram* program = const_cast<VulkanGpuProgram*>(pipeline->program);
 			uint32_t increasedBuffers = 0;
 			uint8_t externalSetNum = 0;
+			uint32_t result = 0;
 
 			for (auto&& p : layouts) {
 				const GPUParamLayoutInfo* l = p.first;
@@ -240,10 +241,10 @@ namespace vulkan {
 						if (value) {
 							p.second = buffer->encrease();
 							increasedBuffers |= (uint64_t(1) << l->dynamcBufferIdx);
-							dynamicOffsets[l->dynamcBufferIdx] = program->setValueToLayout(l, value, nullptr, p.second, size);
+							result = dynamicOffsets[l->dynamcBufferIdx] = program->setValueToLayout(l, value, nullptr, p.second, size);
 						} else {
 							const uint32_t bufferOffset = buffer->getCurrentOffset();
-							dynamicOffsets[l->dynamcBufferIdx] = bufferOffset == 0 ? 0 : (buffer->alignedSize * (bufferOffset - 1));
+							result = dynamicOffsets[l->dynamcBufferIdx] = ((bufferOffset == 0) ? 0 : (buffer->alignedSize * (bufferOffset - 1)));
 						}
 					}
 						break;
@@ -254,10 +255,10 @@ namespace vulkan {
 						if (value) {
 							p.second = buffer->encrease();
 							increasedBuffers |= (uint64_t(1) << l->dynamcBufferIdx);
-							dynamicOffsets[l->dynamcBufferIdx] = program->setValueToLayout(l, value, nullptr, p.second, size);
+							result = dynamicOffsets[l->dynamcBufferIdx] = program->setValueToLayout(l, value, nullptr, p.second, size);
 						} else {
 							const uint32_t bufferOffset = buffer->getCurrentOffset();
-							dynamicOffsets[l->dynamcBufferIdx] = bufferOffset == 0 ? 0 : (buffer->alignedSize * (bufferOffset - 1));
+							result = dynamicOffsets[l->dynamcBufferIdx] = ((bufferOffset == 0) ? 0 : (buffer->alignedSize * (bufferOffset - 1)));
 						}
 					}
 						break;
@@ -273,42 +274,42 @@ namespace vulkan {
 								p.second = bufferOffset == 0 ? 0 : bufferOffset - 1;
 							}
 
-							dynamicOffsets[l->parentLayout->dynamcBufferIdx] = program->setValueToLayout(l, value, nullptr, p.second, size);
+							result = dynamicOffsets[l->parentLayout->dynamcBufferIdx] = program->setValueToLayout(l, value, nullptr, p.second, size);
 						}
 					}
 						break;
 					case GPUParamLayoutType::UNIFORM_BUFFER:
 					{
 						if (value) {
-							program->setValueToLayout(l, value, nullptr);
+							result = program->setValueToLayout(l, value, nullptr);
 						}
 					}
 						break;
 					case GPUParamLayoutType::STORAGE_BUFFER:
 					{
 						if (value) {
-							program->setValueToLayout(l, value, nullptr);
+							result = program->setValueToLayout(l, value, nullptr);
 						}
 					}
 						break;
 					case GPUParamLayoutType::BUFFER_PART:
 					{
 						if (value) {
-							program->setValueToLayout(l, value, nullptr);
+							result = program->setValueToLayout(l, value, nullptr);
 						}
 					}
 						break;
 					case GPUParamLayoutType::PUSH_CONSTANT: // full constant
 					{
 						if (value) {
-							program->setValueToLayout(l, value, &constants[l->push_constant_number], 0);
+							result = program->setValueToLayout(l, value, &constants[l->push_constant_number], 0);
 						}
 					}
 						break;
 					case GPUParamLayoutType::PUSH_CONSTANT_PART: // part of constant
 					{
 						if (value) {
-							program->setValueToLayout(l, value, &constants[l->parentLayout->push_constant_number], 0);
+							result = program->setValueToLayout(l, value, &constants[l->parentLayout->push_constant_number], 0);
 						}
 					}
 						break;
@@ -348,6 +349,8 @@ namespace vulkan {
 						break;
 				}
 			}
+
+			return result;
 		}
 
 		inline void render(VulkanCommandBuffer& commandBuffer, const uint32_t frame) const {

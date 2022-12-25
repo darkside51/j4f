@@ -90,7 +90,7 @@ namespace engine {
 
 		renderData->replaceParams(_params);
 		renderData->setRenderParts(&renderPart, 1);
-		renderData->prepareRender(commandBuffer);
+		renderData->prepareRender(/*commandBuffer*/);
 		renderData->render(commandBuffer, frame);
 		//renderData->setRenderParts(nullptr, 0);
 	}
