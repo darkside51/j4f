@@ -87,31 +87,48 @@ namespace engine {
 			p._ptr = nullptr;
 		}
 
-		inline const linked_ptr& operator= (const linked_ptr& p) {
-			_decrease_counter();
-			_ptr = p._ptr;
-			_increase_counter();
+		inline linked_ptr& operator= (nullptr_t) {
+			if (_ptr) {
+				_decrease_counter();
+				_ptr = nullptr;
+			}
 			return *this;
 		}
 
-		inline const linked_ptr& operator= (linked_ptr&& p) noexcept {
-			_decrease_counter();
+		inline linked_ptr& operator= (const linked_ptr& p) {
+			if (p._ptr != _ptr) {
+				_decrease_counter();
+				_ptr = p._ptr;
+				_increase_counter();
+			}
+			return *this;
+		}
+
+		inline linked_ptr& operator= (linked_ptr&& p) noexcept {
+			if (p._ptr != _ptr) {
+				_decrease_counter();
+			}
+
 			_ptr = p._ptr;
 			p._ptr = nullptr;
 			return *this;
 		}
 
 		inline const linked_ptr& operator= (element_type* p) {
-			_decrease_counter();
-			_ptr = p;
-			_increase_counter();
+			if (p != _ptr) {
+				_decrease_counter();
+				_ptr = p;
+				_increase_counter();
+			}
 			return *this;
 		}
 
 		inline const linked_ptr& operator= (const element_type* p) {
-			_decrease_counter();
-			_ptr = const_cast<element_type*>(p);
-			_increase_counter();
+			if (p != _ptr) {
+				_decrease_counter();
+				_ptr = const_cast<element_type*>(p);
+				_increase_counter();
+			}
 			return *this;
 		}
 
@@ -129,13 +146,13 @@ namespace engine {
 		inline const element_type* get() const { return _ptr; }
 
 	protected:
-		inline void _increase_counter() {
+		inline void _increase_counter() noexcept {
 			if (_ptr) {
 				_ptr->_increase_counter();
 			}
 		}
 
-		inline void _decrease_counter() {
+		inline void _decrease_counter() noexcept {
 			if (_ptr && _ptr->_decrease_counter() == 0) {
 				delete _ptr;
 			}
@@ -153,13 +170,13 @@ namespace engine {
 namespace std {
 	template< class T, class U >
 	engine::linked_ptr<T> static_pointer_cast(const engine::linked_ptr<U>& r) noexcept {
-		auto p = static_cast<typename engine::linked_ptr<T>::element_type*>(r.get());
+		auto p = static_cast<typename engine::linked_ptr<T>::element_type*>(const_cast<engine::linked_ptr<U>&>(r).get());
 		return engine::linked_ptr<T>(p);
 	}
 	
 	template< class T, class U >
 	engine::linked_ptr<T> dynamic_pointer_cast(const engine::linked_ptr<U>& r) noexcept {
-		if (auto p = dynamic_cast<typename engine::linked_ptr<T>::element_type*>(r.get())) {
+		if (auto p = dynamic_cast<typename engine::linked_ptr<T>::element_type*>(const_cast<engine::linked_ptr<U>&>(r).get())) {
 			return engine::linked_ptr<T>(p);
 		} else {
 			return engine::linked_ptr<T>();
@@ -168,13 +185,13 @@ namespace std {
 	
 	template< class T, class U >
 	engine::linked_ptr<T> const_pointer_cast(const engine::linked_ptr<U>& r) noexcept {
-		auto p = const_cast<typename engine::linked_ptr<T>::element_type*>(r.get());
+		auto p = const_cast<typename engine::linked_ptr<T>::element_type*>(const_cast<engine::linked_ptr<U>&>(r).get());
 		return engine::linked_ptr<T>(p);
 	}
 	
 	template< class T, class U >
 	engine::linked_ptr<T> reinterpret_pointer_cast(const engine::linked_ptr<U>& r) noexcept {
-		auto p = reinterpret_cast<typename engine::linked_ptr<T>::element_type*>(r.get());
+		auto p = reinterpret_cast<typename engine::linked_ptr<T>::element_type*>(const_cast<engine::linked_ptr<U>&>(r).get());
 		return engine::linked_ptr<T>(p);
 	}
 }

@@ -1521,16 +1521,16 @@ namespace engine {
 					return 1;
 				});
 
-			engine::addTaskToFlow(task, depTask);
-			engine::addTaskToFlow(task2, depTask);
+			//engine::addTaskToFlow(task, depTask);
+			//engine::addTaskToFlow(task2, depTask);
 
-			engine::Engine::getInstance().getModule<engine::ThreadPool>()->enqueue(0, task);
-			engine::Engine::getInstance().getModule<engine::ThreadPool>()->enqueue(0, task2);
+			//engine::Engine::getInstance().getModule<engine::ThreadPool>()->enqueue(0, task);
+			//engine::Engine::getInstance().getModule<engine::ThreadPool>()->enqueue(0, task2);
 
 			//std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
-			engine::addTaskToFlow(task, depTask2);
-			engine::addTaskToFlow(task2, depTask2);
+			//engine::addTaskToFlow(task, depTask2);
+			//engine::addTaskToFlow(task2, depTask2);
 
 			engine::BitMask32 mask;
 			mask.setBit(0, 1);

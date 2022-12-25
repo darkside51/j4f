@@ -162,7 +162,7 @@ namespace engine {
 
 	MeshSkeleton::~MeshSkeleton() {
 		for (size_t i = 0; i < _latency; ++i) {
-			_animCalculationResult[i].cancel();
+			if (_animCalculationResult[i]) { _animCalculationResult[i]->cancel(); }
 
 			std::vector<HierarchyRaw<Mesh_Node>*>& hi = _hierarchyes[i];
 			for (HierarchyRaw<Mesh_Node>* h : hi) {
@@ -209,7 +209,8 @@ namespace engine {
 
 		const float atime = animation->start + currentAnimTime;
 
-		_animCalculationResult[_updateFrameNum] = Engine::getInstance().getModule<ThreadPool>()->enqueue(TaskType::COMMON, 0, updateSkeletonAnimation, this, atime, animation, _updateFrameNum);
+		//_animCalculationResult[_updateFrameNum] = Engine::getInstance().getModule<ThreadPool>()->enqueue(TaskType::COMMON, 0, updateSkeletonAnimation, this, atime, animation, _updateFrameNum);
+		_animCalculationResult[_updateFrameNum] = Engine::getInstance().getModule<ThreadPool2>()->enqueue(TaskType::COMMON, updateSkeletonAnimation, this, atime, animation, _updateFrameNum);
 	}
 
 	void MeshSkeleton::updateAnimation(const float time, MeshAnimationTree* animTree) {
@@ -219,7 +220,8 @@ namespace engine {
 
 		animTree->update(time, _updateFrameNum); // просто пересчет времени
 
-		_animCalculationResult[_updateFrameNum] = Engine::getInstance().getModule<ThreadPool>()->enqueue(TaskType::COMMON, 0, updateSkeletonAnimationTree, this, animTree, _updateFrameNum);
+		//_animCalculationResult[_updateFrameNum] = Engine::getInstance().getModule<ThreadPool>()->enqueue(TaskType::COMMON, 0, updateSkeletonAnimationTree, this, animTree, _updateFrameNum);
+		_animCalculationResult[_updateFrameNum] = Engine::getInstance().getModule<ThreadPool2>()->enqueue(TaskType::COMMON, updateSkeletonAnimationTree, this, animTree, _updateFrameNum);
 	}
 
 	

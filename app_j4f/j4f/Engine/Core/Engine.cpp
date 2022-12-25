@@ -6,6 +6,7 @@
 #include <Platform_inc.h>
 #include "Cache.h"
 #include "Threads/ThreadPool.h"
+#include "Threads/ThreadPool2.h"
 #include "Threads/Worker.h"
 #include "Threads/Looper.h"
 #include "Memory/MemoryManager.h"
@@ -37,7 +38,8 @@ namespace engine {
 		setModule<LogManager>();
 		setModule<Statistic>();
 
-		setModule<ThreadPool>(std::max(static_cast<uint8_t>(std::thread::hardware_concurrency()), uint8_t(1)));
+		//setModule<ThreadPool>(std::max(static_cast<uint8_t>(std::thread::hardware_concurrency()), uint8_t(1)));
+		setModule<ThreadPool2>(std::max(static_cast<uint8_t>(std::thread::hardware_concurrency()), uint8_t(1)));
 		setModule<Looper>();
 		setModule<MemoryManager>();
 		setModule<CacheManager>();
@@ -110,18 +112,18 @@ namespace engine {
 
 				if (w > 0 && h > 0) {
 					_renderThread->resume();
-					getModule<ThreadPool>()->resume();
+					getModule<ThreadPool2>()->resume();
 				} else {
-					getModule<ThreadPool>()->pause();
+					getModule<ThreadPool2>()->pause();
 				}
 			} else {
 				if (w > 0 && h > 0) {
 					_graphics->resize(w, h);
 					_application->resize(w, h);
 					_renderThread->resume();
-					getModule<ThreadPool>()->resume();
+					getModule<ThreadPool2>()->resume();
 				} else {
-					getModule<ThreadPool>()->pause();
+					getModule<ThreadPool2>()->pause();
 				}
 			}
 		} else {
@@ -129,9 +131,9 @@ namespace engine {
 			_application->resize(w, h);
 
 			if (w > 0 && h > 0) {
-				getModule<ThreadPool>()->resume();
+				getModule<ThreadPool2>()->resume();
 			} else {
-				getModule<ThreadPool>()->pause();
+				getModule<ThreadPool2>()->pause();
 			}
 		}
 	}
@@ -145,7 +147,7 @@ namespace engine {
 			_updateThread->stop();
 		}
 
-		getModule<ThreadPool>()->stop();
+		getModule<ThreadPool2>()->stop();
 		getModule<AssetManager>()->deviceDestroyed();
 		_graphics->deviceDestroyed();
 		_application->deviceDestroyed();

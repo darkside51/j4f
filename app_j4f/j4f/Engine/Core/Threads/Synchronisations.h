@@ -5,6 +5,22 @@
 
 namespace engine {
 
+	class SpinLock {
+	public:
+		inline void lock() noexcept {
+			while (_flag.test_and_set(std::memory_order_acq_rel)) {
+				std::this_thread::yield();
+			}
+		}
+
+		inline void unlock() noexcept {
+			_flag.clear(std::memory_order_release);
+		}
+
+	private:
+		std::atomic_flag _flag{};
+	};
+
 	class AtomicLock {
 	public:
 		AtomicLock(std::atomic_bool& l) : _lock(l) {

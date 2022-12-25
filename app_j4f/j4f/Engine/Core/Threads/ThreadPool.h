@@ -64,10 +64,10 @@ namespace engine {
                     _state = TPoolState::PAUSE;
                 }
 
-                printf("ThreadPool paused\n");
-
                 cancelTasks(typeMask); // отменит задачи, по типам, согласно маске typeMask
                 _condition.notify_all();
+
+                LOG_TAG_LEVEL(engine::LogLevel::L_CUSTOM, THREADPOOL, "ThreadPool paused");
             }
         }
 
@@ -78,8 +78,9 @@ namespace engine {
                     _state = TPoolState::RUN;
                 }
 
-                printf("ThreadPool resumed\n");
                 _condition.notify_all();
+
+                LOG_TAG_LEVEL(engine::LogLevel::L_CUSTOM, THREADPOOL, "ThreadPool resumed");
             }
         }
 

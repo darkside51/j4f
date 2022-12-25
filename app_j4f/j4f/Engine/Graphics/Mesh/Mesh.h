@@ -3,6 +3,7 @@
 #include "../../Core/Math/math.h"
 #include "../../Core/Hierarchy.h"
 #include "../../Core/Threads/ThreadPool.h"
+#include "../../Core/Threads/ThreadPool2.h"
 #include "../Render/RenderedEntity.h"
 
 #include <memory>
@@ -110,9 +111,9 @@ namespace engine {
 
 		inline void checkAnimCalculation(const uint8_t frame) {
 			if (_animCalculationResult[frame]) {
-				if (const auto state = _animCalculationResult[frame].state(); (state != TaskState::COMPLETE && state != TaskState::CANCELED)) {
+				if (const auto state = _animCalculationResult[frame]->state(); (state != TaskState::COMPLETE && state != TaskState::CANCELED)) {
 					//if (_animCalculationResult[frame].valid() && _animCalculationResult[frame].wait_for(std::chrono::microseconds(0)) != std::future_status::ready) {
-					_animCalculationResult[frame].wait();
+					_animCalculationResult[frame]->wait();
 				}
 			}
 		}
@@ -172,7 +173,8 @@ namespace engine {
 		std::vector<std::vector<HierarchyRaw<Mesh_Node>*>> _hierarchyes;
 		std::vector<std::vector<HierarchyRaw<Mesh_Node>*>> _nodes;
 		std::vector<std::vector<std::vector<glm::mat4>>> _skinsMatrices;
-		std::vector<TaskResult<void>> _animCalculationResult;
+		//std::vector<TaskResult<void>> _animCalculationResult;
+		std::vector<linked_ptr<Task2<void>>> _animCalculationResult;
 
 		uint8_t _latency;
 		uint8_t _updateFrameNum = 0;
