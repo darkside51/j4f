@@ -6,21 +6,24 @@
 
 namespace engine {
 
-	class FrustumVisibleChecker {
+	class Frustum;
+
+	class FrustumVisibleChecker final {
 	public:
 		FrustumVisibleChecker() = default;
 		FrustumVisibleChecker(const Frustum* f) : _frustum(f) {}
 		~FrustumVisibleChecker() = default;
 
-		inline bool checkVisible(const BoundingVolume* volume, const glm::mat4& wtr) const {
+		inline bool operator()(const BoundingVolume* volume, const glm::mat4& wtr) const {
 			return volume->checkVisible<Frustum>(_frustum, wtr);
 		}
+
 	private:
 		const Frustum* _frustum = nullptr;
 	};
 
 	template<typename V>
-	struct RenderListEmplacer {
+	struct RenderListEmplacer final {
 		inline static bool _(H_Node* node, RenderList& list, const bool dirtyVisible, const uint8_t visibleId, V&& visibleChecker) {
 			if (NodeUpdater::_<V>(node, dirtyVisible, visibleId, std::forward<V>(visibleChecker))) {
 				if (NodeRenderObject* renderObject = node->value().getRenderObject()) {
@@ -35,7 +38,7 @@ namespace engine {
 	};
 
 	template<typename V>
-	struct RenderListUpdater {
+	struct RenderListUpdater final {
 		inline static bool _(H_Node* node, const bool dirtyVisible, const uint8_t visibleId, V&& visibleChecker) {
 			const bool visible = NodeUpdater::_<V>(node, dirtyVisible, visibleId, std::forward<V>(visibleChecker));
 

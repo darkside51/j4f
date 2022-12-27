@@ -95,7 +95,7 @@ namespace engine {
 			} else {
 				if (dirtyVisible || mNode._modelChanged) {
 					if (const BoundingVolume* volume = mNode._boundingVolume) {
-						const bool visible = visibleChecker.checkVisible(volume, mNode._model);
+						const bool visible = visibleChecker(volume, mNode._model);
 						mNode.setVisible(visibleId, visible);
 						return visible;
 					} else {
