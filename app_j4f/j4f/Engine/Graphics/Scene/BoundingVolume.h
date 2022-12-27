@@ -17,7 +17,7 @@ namespace engine {
 	public:
 		BVolume(const BVolumeType t) : _type(t) {}
 		virtual ~BVolume() = default;
-		virtual bool checkFrustum(const Frustum* f, const glm::mat4& wtr) const = 0;
+		virtual bool checkVisible(const void* visibleChecker, const glm::mat4& wtr) const = 0;
 		virtual void render(const glm::mat4& cameraMatrix, const glm::mat4& wtr, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame) const { }
 
 		inline BVolumeType type() const { return _type; }
@@ -31,10 +31,8 @@ namespace engine {
 		CubeVolume(const glm::vec3& m1, const glm::vec3& m2) : BVolume(BVolumeType::CUBE), _min(m1), _max(m2) { }
 		CubeVolume(glm::vec3&& m1, glm::vec3&& m2) : BVolume(BVolumeType::CUBE), _min(std::move(m1)), _max(std::move(m2)) { }
 
-		inline bool checkFrustum(const Frustum* f, const glm::mat4& wtr) const override {
-			//const glm::vec4 m1 = wtr * glm::vec4(_min.x, _min.y, _min.z, 1.0f);
-			//const glm::vec4 m2 = wtr * glm::vec4(_max.x, _max.y, _max.z, 1.0f);
-
+		template <typename T>
+		bool checkVisible(const T* visibleChecker, const glm::mat4& wtr) const {
 			glm::vec4 m1(FLT_MAX);
 			glm::vec4 m2(-FLT_MAX);
 			glm::vec4 m[8];
@@ -54,8 +52,10 @@ namespace engine {
 				m2.x = std::max(m2.x, m[i].x); m2.y = std::max(m2.y, m[i].y); m2.z = std::max(m2.z, m[i].z);
 			}
 
-			return f->cubeInFrustum(m1, m2);
+			return visibleChecker->isCubeVisible(m1, m2);
 		}
+
+		inline bool checkVisible(const void* visibleChecker, const glm::mat4& wtr) const override { return true; }
 
 		void render(const glm::mat4& cameraMatrix, const glm::mat4& wtr, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame) const override;
 
@@ -69,11 +69,14 @@ namespace engine {
 		SphereVolume(const glm::vec3& c, const float r) : BVolume(BVolumeType::SPHERE), _center(c), _radius(r) {}
 		SphereVolume(glm::vec3&& c, const float r) : BVolume(BVolumeType::SPHERE), _center(std::move(c)), _radius(r) {}
 
-		inline bool checkFrustum(const Frustum* f, const glm::mat4& wtr) const override {
+		template <typename T>
+		inline bool checkVisible(const T* visibleChecker, const glm::mat4& wtr) const {
 			const glm::vec4 center = wtr * glm::vec4(_center.x, _center.y, _center.z, 1.0f);
 			const float radius = vec_length(wtr[0]) * _radius;
-			return (const_cast<Frustum*>(f))->sphereInFrustum(center, radius);
+			return (const_cast<T*>(visibleChecker))->isSphereVisible(center, radius);
 		}
+
+		inline bool checkVisible(const void* visibleChecker, const glm::mat4& wtr) const override { return true; }
 
 		void render(const glm::mat4& cameraMatrix, const glm::mat4& wtr, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame) const override;
 
@@ -99,17 +102,18 @@ namespace engine {
 			return new BoundingVolume(new T(std::forward<Args>(args)...));;
 		}
 
-		inline bool checkFrustum(const Frustum* f, const glm::mat4& wtr) const { 
-			// reserved types use checkFrustum call without virtual table
+		template <typename T>
+		inline bool checkVisible(const T* visibleChecker, const glm::mat4& wtr) const {
+			// reserved types use checkVisible call without virtual table
 			switch (_impl->type()) {
 				case BVolumeType::CUBE:
-					return (static_cast<CubeVolume*>(_impl))->checkFrustum(f, wtr);
+					return (static_cast<CubeVolume*>(_impl))->checkVisible<T>(visibleChecker, wtr);
 					break;
 				case BVolumeType::SPHERE:
-					return (static_cast<SphereVolume*>(_impl))->checkFrustum(f, wtr);
+					return (static_cast<SphereVolume*>(_impl))->checkVisible<T>(visibleChecker, wtr);
 					break;
 				default:
-					return _impl->checkFrustum(f, wtr); // virtual call
+					return _impl->checkVisible(visibleChecker, wtr); // virtual call
 					break;
 			}
 

@@ -13,7 +13,7 @@ namespace engine {
 		~FrustumVisibleChecker() = default;
 
 		inline bool checkVisible(const BoundingVolume* volume, const glm::mat4& wtr) const {
-			return volume->checkFrustum(_frustum, wtr);
+			return volume->checkVisible<Frustum>(_frustum, wtr);
 		}
 	private:
 		const Frustum* _frustum = nullptr;

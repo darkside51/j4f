@@ -1,40 +1,41 @@
+п»ї// в™Јв™ в™¦в™Ґ
 #include "Camera.h"
 #include <algorithm>
 
 namespace engine {
 
 	void Frustum::calculate(const glm::mat4& clip) {
-		//находим A,B,C,D для правой плоскости
+		//РЅР°С…РѕРґРёРј A,B,C,D РґР»СЏ РїСЂР°РІРѕР№ РїР»РѕСЃРєРѕСЃС‚Рё
 		_frustum[0][0] = clip[0][3] - clip[0][0];
 		_frustum[0][1] = clip[1][3] - clip[1][0];
 		_frustum[0][2] = clip[2][3] - clip[2][0];
 		_frustum[0][3] = clip[3][3] - clip[3][0];
 
-		//находим A,B,C,D для левой плоскости
+		//РЅР°С…РѕРґРёРј A,B,C,D РґР»СЏ Р»РµРІРѕР№ РїР»РѕСЃРєРѕСЃС‚Рё
 		_frustum[1][0] = clip[0][3] + clip[0][0];
 		_frustum[1][1] = clip[1][3] + clip[1][0];
 		_frustum[1][2] = clip[2][3] + clip[2][0];
 		_frustum[1][3] = clip[3][3] + clip[3][0];
 
-		//находим A,B,C,D для нижней плоскости
+		//РЅР°С…РѕРґРёРј A,B,C,D РґР»СЏ РЅРёР¶РЅРµР№ РїР»РѕСЃРєРѕСЃС‚Рё
 		_frustum[2][0] = clip[0][3] + clip[0][1];
 		_frustum[2][1] = clip[1][3] + clip[1][1];
 		_frustum[2][2] = clip[2][3] + clip[2][1];
 		_frustum[2][3] = clip[3][3] + clip[3][1];
 
-		//находим A,B,C,D для верхней плоскости
+		//РЅР°С…РѕРґРёРј A,B,C,D РґР»СЏ РІРµСЂС…РЅРµР№ РїР»РѕСЃРєРѕСЃС‚Рё
 		_frustum[3][0] = clip[0][3] - clip[0][1];
 		_frustum[3][1] = clip[1][3] - clip[1][1];
 		_frustum[3][2] = clip[2][3] - clip[2][1];
 		_frustum[3][3] = clip[3][3] - clip[3][1];
 
-		//находим A,B,C,D для задней плоскости
+		//РЅР°С…РѕРґРёРј A,B,C,D РґР»СЏ Р·Р°РґРЅРµР№ РїР»РѕСЃРєРѕСЃС‚Рё
 		_frustum[4][0] = clip[0][3] - clip[0][2];
 		_frustum[4][1] = clip[1][3] - clip[1][2];
 		_frustum[4][2] = clip[2][3] - clip[2][2];
 		_frustum[4][3] = clip[3][3] - clip[3][2];
 
-		//находим A,B,C,D для передней плоскости
+		//РЅР°С…РѕРґРёРј A,B,C,D РґР»СЏ РїРµСЂРµРґРЅРµР№ РїР»РѕСЃРєРѕСЃС‚Рё
 		_frustum[5][0] = clip[0][3] + clip[0][2];
 		_frustum[5][1] = clip[1][3] + clip[1][2];
 		_frustum[5][2] = clip[2][3] + clip[2][2];
@@ -46,7 +47,7 @@ namespace engine {
 	void Frustum::normalize() { // normalize frustum plains
 		if (_normalized) return;
 
-		for (uint8_t i = 0; i < 6; ++i) { // приводим уравнения плоскостей к нормальному виду
+		for (uint8_t i = 0; i < 6; ++i) { // РїСЂРёРІРѕРґРёРј СѓСЂР°РІРЅРµРЅРёСЏ РїР»РѕСЃРєРѕСЃС‚РµР№ Рє РЅРѕСЂРјР°Р»СЊРЅРѕРјСѓ РІРёРґСѓ
 			const float t = inv_sqrt(_frustum[i][0] * _frustum[i][0] + _frustum[i][1] * _frustum[i][1] + _frustum[i][2] * _frustum[i][2]);
 			_frustum[i][0] *= t;
 			_frustum[i][1] *= t;
@@ -57,7 +58,7 @@ namespace engine {
 		_normalized = true;
 	}
 
-	bool Frustum::pointInFrustum(const glm::vec3& p) const {
+	bool Frustum::isPointVisible(const glm::vec3& p) const {
 		for (uint8_t i = 0; i < 6; ++i) {
 			if (_frustum[i][0] * p.x + _frustum[i][1] * p.y + _frustum[i][2] * p.z + _frustum[i][3] < 0.0f) {
 				return false;
@@ -67,14 +68,14 @@ namespace engine {
 		return true;
 	}
 
-	bool Frustum::sphereInFrustum(const glm::vec3& p, const float r) {
-		if (_normalized == false) { // для определения расстояний до плоскостей нужна нормализация плоскостей
+	bool Frustum::isSphereVisible(const glm::vec3& p, const float r) {
+		if (_normalized == false) { // РґР»СЏ РѕРїСЂРµРґРµР»РµРЅРёСЏ СЂР°СЃСЃС‚РѕСЏРЅРёР№ РґРѕ РїР»РѕСЃРєРѕСЃС‚РµР№ РЅСѓР¶РЅР° РЅРѕСЂРјР°Р»РёР·Р°С†РёСЏ РїР»РѕСЃРєРѕСЃС‚РµР№
 			normalize();
 		}
 
-		// Проходим через все стороны пирамиды
+		// РџСЂРѕС…РѕРґРёРј С‡РµСЂРµР· РІСЃРµ СЃС‚РѕСЂРѕРЅС‹ РїРёСЂР°РјРёРґС‹
 		for (uint8_t i = 0; i < 6; ++i) {
-			if (_frustum[i][0] * p.x + _frustum[i][1] * p.y + _frustum[i][2] * p.z + _frustum[i][3] <= -r) { // центр сферы дальше от плоскости, чем её радиус => вся сфера снаружи, возвращаем false
+			if (_frustum[i][0] * p.x + _frustum[i][1] * p.y + _frustum[i][2] * p.z + _frustum[i][3] < -r) { // С†РµРЅС‚СЂ СЃС„РµСЂС‹ РґР°Р»СЊС€Рµ РѕС‚ РїР»РѕСЃРєРѕСЃС‚Рё, С‡РµРј РµС‘ СЂР°РґРёСѓСЃ => РІСЃСЏ СЃС„РµСЂР° СЃРЅР°СЂСѓР¶Рё, РІРѕР·РІСЂР°С‰Р°РµРј false
 				return false;
 			}
 		}
@@ -82,7 +83,7 @@ namespace engine {
 		return true;
 	}
 
-	bool Frustum::cubeInFrustum_classic(const glm::vec3& min, const glm::vec3& max) const {
+	bool Frustum::isCubeVisible_classic(const glm::vec3& min, const glm::vec3& max) const {
 		for (uint8_t i = 0; i < 6; ++i) {
 			if (_frustum[i][0] * min.x + _frustum[i][1] * min.y +
 				_frustum[i][2] * min.z + _frustum[i][3] > 0.0f)
@@ -109,14 +110,14 @@ namespace engine {
 				_frustum[i][2] * max.z + _frustum[i][3] > 0.0f)
 				continue;
 
-			// если мы дошли досюда, куб не внутри пирамиды.
+			// РµСЃР»Рё РјС‹ РґРѕС€Р»Рё РґРѕСЃСЋРґР°, РєСѓР± РЅРµ РІРЅСѓС‚СЂРё РїРёСЂР°РјРёРґС‹.
 			return false;
 		}
 
 		return true;
 	}
 
-	bool Frustum::cubeInFrustum(const glm::vec3& min, const glm::vec3& max) const {
+	bool Frustum::isCubeVisible(const glm::vec3& min, const glm::vec3& max) const {
 		// https://gamedev.ru/code/articles/FrustumCulling
 		bool inside = true;
 		for (int i = 0; (inside && (i < 6)); ++i) {
@@ -158,7 +159,7 @@ namespace engine {
 		_near_far = glm::vec2(znear, zfar);
 		_dirty->transform = 1;
 
-		/* // parameters calculation variant(считает кажется правильно, но точности не хватает немного)
+		/* // parameters calculation variant(СЃС‡РёС‚Р°РµС‚ РєР°Р¶РµС‚СЃСЏ РїСЂР°РІРёР»СЊРЅРѕ, РЅРѕ С‚РѕС‡РЅРѕСЃС‚Рё РЅРµ С…РІР°С‚Р°РµС‚ РЅРµРјРЅРѕРіРѕ)
 		auto fov2 = 2.0f * atanf(1.0f / _projectionTransform[1][1]);
 		auto near2 = _projectionTransform[3][2] / (_projectionTransform[2][3] - 1.0);
 		auto far2 = near2 * (_projectionTransform[2][2] - 1.0f) / (_projectionTransform[2][2] + 1.0f);
@@ -168,7 +169,7 @@ namespace engine {
 	void Camera::makeOrtho(const float left, const float right, const float bottom, const float top, const float znear, const float zfar) {
 		_projectionType = ProjectionType::ORTHO;
 		_projectionTransform = glm::ortho(left, right, bottom, top, znear, zfar);
-		_projectionTransform[3][2] = 0.0f; // для большей точности в буфере глубины
+		_projectionTransform[3][2] = 0.0f; // РґР»СЏ Р±РѕР»СЊС€РµР№ С‚РѕС‡РЅРѕСЃС‚Рё РІ Р±СѓС„РµСЂРµ РіР»СѓР±РёРЅС‹
 		_projectionTransform[1][1] *= -1.0f;
 		_near_far = glm::vec2(znear, zfar);
 		_dirty->transform = 1;

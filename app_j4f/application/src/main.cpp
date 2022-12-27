@@ -2231,6 +2231,7 @@ namespace engine {
 		if (_customData) {
 			delete _customData;
 			_customData = nullptr;
+			LOG_TAG(Application, "finished");
 		}
 	}
 

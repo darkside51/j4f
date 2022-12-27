@@ -22,10 +22,10 @@ namespace engine {
 	public:
 		void calculate(const glm::mat4& clip);
 		
-		bool pointInFrustum(const glm::vec3& p) const;
-		bool sphereInFrustum(const glm::vec3& p, const float r);
-		bool cubeInFrustum_classic(const glm::vec3& min, const glm::vec3& max) const;
-		bool cubeInFrustum(const glm::vec3& min, const glm::vec3& max) const;
+		bool isPointVisible(const glm::vec3& p) const;
+		bool isSphereVisible(const glm::vec3& p, const float r);
+		bool isCubeVisible_classic(const glm::vec3& min, const glm::vec3& max) const;
+		bool isCubeVisible(const glm::vec3& min, const glm::vec3& max) const;
 
 	private:
 		void normalize();
@@ -48,20 +48,20 @@ namespace engine {
 			_frustums[idx].calculate(clip);
 		}
 
-		inline bool pointInFrustum(const glm::vec3& p) const {
-			for (auto&& f : _frustums) { if (f.pointInFrustum(p)) return true; }
+		inline bool isPointVisible(const glm::vec3& p) const {
+			for (auto&& f : _frustums) { if (f.isPointVisible(p)) return true; }
 		}
 
-		inline bool sphereInFrustum(const glm::vec3& p, const float r) {
-			for (auto&& f : _frustums) { if (f.sphereInFrustum(p, r)) return true; }
+		inline bool isSphereVisible(const glm::vec3& p, const float r) {
+			for (auto&& f : _frustums) { if (f.isSphereVisible(p, r)) return true; }
 		}
 
-		inline bool cubeInFrustum_classic(const glm::vec3& min, const glm::vec3& max) const {
-			for (auto&& f : _frustums) { if (f.cubeInFrustum_classic(min, max)) return true; }
+		inline bool isCubeVisible_classic(const glm::vec3& min, const glm::vec3& max) const {
+			for (auto&& f : _frustums) { if (f.isCubeVisible_classic(min, max)) return true; }
 		}
 
-		inline bool cubeInFrustum(const glm::vec3& min, const glm::vec3& max) const {
-			for (auto&& f : _frustums) { if (f.cubeInFrustum(min, max)) return true; }
+		inline bool isCubeVisible(const glm::vec3& min, const glm::vec3& max) const {
+			for (auto&& f : _frustums) { if (f.isCubeVisible(min, max)) return true; }
 		}
 
 	private:
@@ -101,7 +101,7 @@ namespace engine {
 		Camera(const uint32_t w, const uint32_t h);
 		Camera(const glm::vec2& sz);
 
-		~Camera() {
+		~Camera() noexcept {
 			disableFrustum();
 		}
 

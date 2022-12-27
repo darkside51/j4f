@@ -25,11 +25,11 @@ namespace engine {
         friend class TaskBase;
     public:
         inline operator bool() const noexcept {
-            return _cancellation_token.test(std::memory_order_consume);
+            return _cancellation_token.test(std::memory_order_relaxed);
         }
     private:
         inline void cancel() noexcept {
-            _cancellation_token.test_and_set(std::memory_order_release);
+            _cancellation_token.test_and_set(std::memory_order_relaxed);
         }
 
         inline void reset() noexcept {
