@@ -1,4 +1,5 @@
 ﻿#pragma once
+// ♣♠♦♥
 
 #include "vkDescriptorSet.h"
 #include "vkDynamicBuffer.h"
@@ -108,8 +109,13 @@ namespace vulkan {
 	};
 
 	enum class ImageType : uint8_t {
-		sampler2D = 0,
-		sampler2D_ARRAY = 1,
+		sampler1D = 0,
+		sampler1D_ARRAY = 1,
+		sampler2D = 2,
+		sampler2D_ARRAY = 3,
+		sampler3D = 4,
+		samplerCube = 5,
+		samplerCube_ARRAY = 6,
 		undefined = 0xff
 	};
 
@@ -225,7 +231,7 @@ namespace vulkan {
 		inline uint8_t getGPUBuffersSetsTypes() const { return m_gpuBuffersSetsTypes; } // типы буферов, 0 - статический(UNIFORM_BUFFER или STORAGE_BUFFER), 1 - динамический(UNIFORM_BUFFER_DYNAMIC или STORAGE_BUFFER_DYNAMIC)
 
 		inline const std::unordered_map<std::string, GPUParamLayoutInfo*>& getParamLayouts() const { return m_paramLayouts; }
-		inline const std::vector<GPUParamLayoutInfo*>& getParamsLayoutSortedVec() const { return m_paramLayoutsVec; }
+		inline const std::vector<GPUParamLayoutInfo*>& getParamsLayoutVec() const { return m_paramLayoutsVec; }
 
 	private:
 		void parseModules(const std::vector<VulkanShaderModule*>& modules);

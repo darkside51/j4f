@@ -118,7 +118,7 @@ namespace engine {
 
 	glm::vec4 lightColor(1.0f, 1.0f, 1.0f, 1.0f);
 	//glm::vec2 lightMinMax(0.075f, 3.0f);
-	glm::vec2 lightMinMax(0.6f, 1.0f);
+	glm::vec2 lightMinMax(0.5f, 1.0f);
 	float saturation = 1.3f;
 
 	H_Node* rootNode;

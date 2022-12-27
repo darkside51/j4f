@@ -1,4 +1,5 @@
-﻿#include "vkGPUProgram.h"
+﻿// ♣♠♦♥
+#include "vkGPUProgram.h"
 #include "vkDevice.h"
 #include "vkHelper.h"
 #include "VkRenderer.h"
@@ -168,8 +169,14 @@ namespace vulkan {
 					bindingDescription->name = binding->name;
 
 					switch (binding->image.dim) {
-						case SpvDim1D: 
-							assert(false); 
+						case SpvDim1D:
+						{
+							if (binding->image.arrayed) {
+								bindingDescription->imageType = ImageType::sampler1D_ARRAY;
+							} else {
+								bindingDescription->imageType = ImageType::sampler1D;
+							}
+						}
 							break;
 						case SpvDim2D:
 						{
@@ -181,10 +188,16 @@ namespace vulkan {
 						}
 							break;
 						case SpvDim3D: 
-							assert(false); 
+							bindingDescription->imageType = ImageType::sampler3D;
 							break;
 						case SpvDimCube: 
-							assert(false); 
+						{
+							if (binding->image.arrayed) {
+								bindingDescription->imageType = ImageType::samplerCube_ARRAY;
+							} else {
+								bindingDescription->imageType = ImageType::samplerCube;
+							}
+						}
 							break;
 						case SpvDimRect: 
 							assert(false); 
@@ -523,6 +536,9 @@ namespace vulkan {
 			m_paramLayoutsVec.push_back(it->second);
 		}
 
+		// сортировка m_paramLayoutsVec нужна для случая, когда в RenderData::prepareRender идет перебор layouts, 
+		// чтобы для случаев полных буфферов(full buffer) не нужно было делать проверки вида if ((increasedBuffers & (uint64_t(1) << l->dynamcBufferIdx)) == 0),
+		// проще тут один раз отсортировать
 		std::sort(m_paramLayoutsVec.begin(), m_paramLayoutsVec.end(), [](const GPUParamLayoutInfo* p1, const GPUParamLayoutInfo* p2) {
 				if (p1->type == p2->type) {
 					return p1->set < p2->set; // упорядочивание дескрипторов по set id
@@ -532,7 +548,7 @@ namespace vulkan {
 			}
 		);
 
-		////// generate programm data
+		////// generate program data
 		m_pipelineDescriptorLayout = &m_renderer->getDescriptorLayout(descriptorSetLayoutBindings, m_pushConstantsRanges);
 
 #ifdef  GPU_DEBUG_MARKERS

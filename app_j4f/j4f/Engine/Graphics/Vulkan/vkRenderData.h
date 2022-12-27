@@ -168,7 +168,7 @@ namespace vulkan {
 			using namespace vulkan;
 
 			const VulkanGpuProgram* program = pipeline->program;
-			const std::vector<GPUParamLayoutInfo*>& programParamLayouts = program->getParamsLayoutSortedVec();
+			const std::vector<GPUParamLayoutInfo*>& programParamLayouts = program->getParamsLayoutVec();
 			const size_t paramsCount = programParamLayouts.size();
 			if (params->size() < paramsCount) {
 				params->resize(paramsCount);
@@ -235,19 +235,6 @@ namespace vulkan {
 				const size_t size = params->operator[](l->id).size;
 				switch (l->type) {
 					case GPUParamLayoutType::UNIFORM_BUFFER_DYNAMIC: // full buffer
-					{
-						VulkanDynamicBuffer* buffer = reinterpret_cast<VulkanDynamicBuffer*>(l->data);
-
-						if (value) {
-							p.second = buffer->encrease();
-							increasedBuffers |= (uint64_t(1) << l->dynamcBufferIdx);
-							result = dynamicOffsets[l->dynamcBufferIdx] = program->setValueToLayout(l, value, nullptr, p.second, size);
-						} else {
-							const uint32_t bufferOffset = buffer->getCurrentOffset();
-							result = dynamicOffsets[l->dynamcBufferIdx] = ((bufferOffset == 0) ? 0 : (buffer->alignedSize * (bufferOffset - 1)));
-						}
-					}
-						break;
 					case GPUParamLayoutType::STORAGE_BUFFER_DYNAMIC: // full buffer
 					{
 						VulkanDynamicBuffer* buffer = reinterpret_cast<VulkanDynamicBuffer*>(l->data);
@@ -279,19 +266,7 @@ namespace vulkan {
 					}
 						break;
 					case GPUParamLayoutType::UNIFORM_BUFFER:
-					{
-						if (value) {
-							result = program->setValueToLayout(l, value, nullptr);
-						}
-					}
-						break;
 					case GPUParamLayoutType::STORAGE_BUFFER:
-					{
-						if (value) {
-							result = program->setValueToLayout(l, value, nullptr);
-						}
-					}
-						break;
 					case GPUParamLayoutType::BUFFER_PART:
 					{
 						if (value) {
