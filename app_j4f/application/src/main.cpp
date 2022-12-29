@@ -37,6 +37,7 @@
 #include <Engine/Core/BitMask.h>
 
 #include <Engine/Graphics/Scene/Shadows/CascadeShadowMap.h>
+#include <Engine/Graphics/Scene/Shadows/ShadowMapHelper.h>
 
 #include <Engine/Graphics/Scene/Node.h>
 #include <Engine/Graphics/Scene/NodeRenderListHelper.h>
@@ -1699,37 +1700,7 @@ namespace engine {
 				//mesh3->updateRenderData(wtr3);
 			//}
 
-			shadowMap->prepareToRender(commandBuffer);
-			switch (shadowMap->techique()) {
-				case ShadowMapTechnique::SMT_GEOMETRY_SH:
-				{
-					shadowMap->beginRenderPass(commandBuffer, 0);
-					shadowRenderList.render(commandBuffer, currentFrame, nullptr);
-					shadowMap->endRenderPass(commandBuffer);
-				}
-					break;
-				default:
-				{
-					for (uint32_t i = 0; i < shadowMap->getCascadesCount(); ++i) {
-						shadowMap->beginRenderPass(commandBuffer, i);
-
-						//todo: проверять в какой каскад меш попадает и только там его и рисовать
-						//mesh->setCameraMatrix(cascadesViewProjMatrixes[i]);
-						//mesh2->setCameraMatrix(cascadesViewProjMatrixes[i]);
-						//mesh3->setCameraMatrix(cascadesViewProjMatrixes[i]);
-
-						//mesh->render(commandBuffer, currentFrame, &shadowMap->getVPMatrix(i));
-						//mesh2->render(commandBuffer, currentFrame, &shadowMap->getVPMatrix(i));
-						//mesh3->render(commandBuffer, currentFrame, &shadowMap->getVPMatrix(i));
-						//sceneRenderList.render(commandBuffer, currentFrame, &shadowMap->getVPMatrix(i));
-
-						shadowRenderList.render(commandBuffer, currentFrame, &shadowMap->getVPMatrix(i));
-
-						shadowMap->endRenderPass(commandBuffer);
-					}
-				}
-					break;
-			}
+			renderShadowMap(shadowMap, shadowRenderList, commandBuffer, currentFrame);
 
 			mesh->setProgram(pr0);
 			mesh2->setProgram(pr1);
