@@ -988,8 +988,9 @@ namespace engine {
 				animTree->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[2], 1.0f, asset->getSkeleton()->getLatency()));
 				animTree->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[1], 0.0f, asset->getSkeleton()->getLatency()));
 
-				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
-				asset->pipelineAttributesChanged();
+				asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
+					renderState.rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
+				});
 
 				////////////////////
 				glm::mat4 wtr(1.0f);
@@ -1016,8 +1017,9 @@ namespace engine {
 
 				asset->setSkeleton(mesh->graphics()->getSkeleton());
 
-				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
-				asset->pipelineAttributesChanged();
+				asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
+					renderState.rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
+				});
 
 				////////////////////
 				glm::mat4 wtr(1.0f);
@@ -1045,8 +1047,9 @@ namespace engine {
 
 					asset->setSkeleton(mesh->graphics()->getSkeleton());
 
-					asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
-					asset->pipelineAttributesChanged();
+					asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
+						renderState.rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
+					});
 
 					////////////////////
 					glm::mat4 wtr(1.0f);
@@ -1079,7 +1082,9 @@ namespace engine {
 				asset->getRenderDataAt(11)->setParamByName("u_texture", texture_v3, false);
 				asset->getRenderDataAt(13)->setParamByName("u_texture", texture_v3, false);
 
-				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE; // for stroke
+				//asset->changeRenderState([](vulkan::VulkanRenderState& renderState) { // for stroke
+				//	renderState.rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
+				//});
 
 				animTree2 = new MeshAnimationTree(0.0f, asset->getNodesCount(), asset->getSkeleton()->getLatency());
 
@@ -1114,8 +1119,9 @@ namespace engine {
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 				asset->setParamByName("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), true);
 
-				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
-				asset->pipelineAttributesChanged();
+				asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
+					renderState.rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
+				});
 
 				////////////////////
 				glm::mat4 wtr(1.0f);
@@ -1140,8 +1146,9 @@ namespace engine {
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 				asset->setParamByName("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), true);
 
-				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
-				asset->pipelineAttributesChanged();
+				asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
+					renderState.rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
+				});
 
 				////////////////////
 				glm::mat4 wtr(1.0f);
@@ -1166,8 +1173,9 @@ namespace engine {
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 				asset->setParamByName("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), true);
 
-				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
-				asset->pipelineAttributesChanged();
+				asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
+					renderState.rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
+				});
 
 				////////////////////
 				glm::mat4 wtr(1.0f);
@@ -1192,8 +1200,9 @@ namespace engine {
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 				asset->setParamByName("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), true);
 
-				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
-				asset->pipelineAttributesChanged();
+				asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
+					renderState.rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
+				});
 
 				animTreeWindMill = new MeshAnimationTree(&asset->getMeshData()->animations[0],1.0f, asset->getSkeleton()->getLatency());
 
@@ -1287,8 +1296,9 @@ namespace engine {
 				asset->setParamByName("u_texture", texture_t6, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 
-				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
-				asset->pipelineAttributesChanged();
+				asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
+					renderState.rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
+				});
 
 				/////////////////////
 				//grassMesh->setGraphics(asset);
@@ -1314,8 +1324,9 @@ namespace engine {
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 				asset->setParamByName("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), true);
 
-				asset->renderState().rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
-				asset->pipelineAttributesChanged();
+				asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
+					renderState.rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
+				});
 
 				////////////////////
 				glm::mat4 wtr(1.0f);

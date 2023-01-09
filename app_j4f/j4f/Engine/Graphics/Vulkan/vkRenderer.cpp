@@ -223,7 +223,7 @@ namespace vulkan {
 		vkCreatePipelineCache(_vulkanDevice->device, &pipelineCacheCreateInfo, nullptr, &_pipelineCache);
 
 		// setupRenderPass
-		setupRenderPass({}, {}); // todo: VkSubpassDependency parametrisation
+		setupRenderPass({}, {}, false); // todo: VkSubpassDependency parametrisation + configure storeDepthStencilResultForDefault
 
 		// setupFrameBuffers
 		std::vector<VkImageView> attachments(2);
@@ -382,18 +382,37 @@ namespace vulkan {
 		}
 	}
 
-	void VulkanRenderer::setupRenderPass(const std::vector<VkAttachmentDescription>& configuredAttachments, const std::vector<VkSubpassDependency>& configuredDependencies) {
+	void VulkanRenderer::setupRenderPass(const std::vector<VkAttachmentDescription>& configuredAttachments, const std::vector<VkSubpassDependency>& configuredDependencies, const bool storeDepthStencilResultForDefault) {
 
-		auto createDefaultAttachments = [this]()->std::vector<VkAttachmentDescription> {
+		auto createDefaultAttachments = [this, storeDepthStencilResultForDefault]()->std::vector<VkAttachmentDescription> {
 			std::vector<VkAttachmentDescription> attachments(2);
 			// color attachment
 			attachments[0] = vulkan::createAttachmentDescription(_swapChain.colorFormat, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_STORE);
 			// depth attachment
-			attachments[1] = vulkan::createAttachmentDescription(_mainDepthFormat, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_DONT_CARE);
+			if (storeDepthStencilResultForDefault) {
+				attachments[1] = vulkan::createAttachmentDescription(_mainDepthFormat, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_STORE);
+			} else {
+				attachments[1] = vulkan::createAttachmentDescription(_mainDepthFormat, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_DONT_CARE);
+			}
+			
+			return attachments;
+		};
+
+		auto createDefaultContinueAttachments = [this]()->std::vector<VkAttachmentDescription> {
+			std::vector<VkAttachmentDescription> attachments(2);
+			// color attachment
+			attachments[0] = vulkan::createAttachmentDescription(_swapChain.colorFormat, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, VK_ATTACHMENT_LOAD_OP_LOAD, VK_ATTACHMENT_STORE_OP_STORE);
+			// depth attachment
+			// если воспользуемся продолжением отрисовки - то видимо нужно хранить результат для depthStencil
+			attachments[1] = vulkan::createAttachmentDescription(_mainDepthFormat, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 
+																VK_ATTACHMENT_LOAD_OP_LOAD, VK_ATTACHMENT_STORE_OP_STORE, 
+																VK_ATTACHMENT_LOAD_OP_DONT_CARE, VK_ATTACHMENT_STORE_OP_DONT_CARE, 
+																VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 			return attachments;
 		};
 
 		const std::vector<VkAttachmentDescription>& attachments = configuredAttachments.empty() ? createDefaultAttachments () : configuredAttachments;
+		const std::vector<VkAttachmentDescription>& continueAttachments = createDefaultContinueAttachments();
 
 		if (configuredDependencies.empty()) {
 			// subpass dependencies for layout transitions
@@ -419,8 +438,10 @@ namespace vulkan {
 			dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
 			_mainRenderPass = createRenderPass(_vulkanDevice, VK_PIPELINE_BIND_POINT_GRAPHICS, dependencies, attachments);
+			_mainContinueRenderPass = createRenderPass(_vulkanDevice, VK_PIPELINE_BIND_POINT_GRAPHICS, dependencies, continueAttachments);
 		} else {
 			_mainRenderPass = createRenderPass(_vulkanDevice, VK_PIPELINE_BIND_POINT_GRAPHICS, configuredDependencies, attachments);
+			_mainContinueRenderPass = createRenderPass(_vulkanDevice, VK_PIPELINE_BIND_POINT_GRAPHICS, configuredDependencies, continueAttachments);
 		}
 	}
 
@@ -1158,6 +1179,7 @@ namespace vulkan {
 				_waitFences.clear();
 
 				_vulkanDevice->destroyRenderPass(_mainRenderPass);
+				_vulkanDevice->destroyRenderPass(_mainContinueRenderPass);
 				_frameBuffers.clear();
 
 				delete _emptyTexture;

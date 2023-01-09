@@ -5,6 +5,7 @@
 
 #include <string>
 #include <utility>
+#include <functional>
 
 namespace engine {
 
@@ -42,6 +43,11 @@ namespace engine {
 
 		inline vulkan::VulkanRenderState& renderState() { return _renderState; }
 		inline const vulkan::VulkanRenderState& renderState() const { return _renderState; }
+
+		inline void changeRenderState(std::function<void(vulkan::VulkanRenderState&)> changer) {
+			changer(_renderState);
+			pipelineAttributesChanged();
+		}
 
 		inline const RenderDescriptor& getRenderDescriptor() const { return _renderDescriptor; }
 		inline RenderDescriptor& getRenderDescriptor() { return _renderDescriptor; }

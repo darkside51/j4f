@@ -39,13 +39,13 @@ namespace vulkan {
 		vkBindImageMemory(vulkanDevice->device, image, memory, 0);
 	}
 
-	void VulkanImage::createImageView(const VkImageViewType viewType, const VkImageAspectFlagBits aspectFlags) {
+	void VulkanImage::createImageView(const VkImageViewType viewType, const VkImageAspectFlagBits aspectFlags, const VkComponentMapping components) {
 		VkImageViewCreateInfo imageViewCI{};
 		imageViewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		imageViewCI.viewType = (viewType == VK_IMAGE_VIEW_TYPE_MAX_ENUM ? static_cast<VkImageViewType>(imageType) : viewType);
 		imageViewCI.image = image;
 		imageViewCI.format = format;
-		imageViewCI.components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
+		imageViewCI.components = components;
 		imageViewCI.subresourceRange.baseMipLevel = 0;
 		imageViewCI.subresourceRange.levelCount = mipLevels;
 		imageViewCI.subresourceRange.baseArrayLayer = 0;

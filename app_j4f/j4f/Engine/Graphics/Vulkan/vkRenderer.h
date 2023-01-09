@@ -441,7 +441,7 @@ namespace vulkan {
 		void createSwapChain(const engine::IRenderSurfaceInitialiser* initialiser, const bool useVsync);
 		void init();
 
-		void setupRenderPass(const std::vector<VkAttachmentDescription>& configuredAttachments, const std::vector<VkSubpassDependency>& configuredDependencies);
+		void setupRenderPass(const std::vector<VkAttachmentDescription>& configuredAttachments, const std::vector<VkSubpassDependency>& configuredDependencies, const bool storeDepthStencilResultForDefault);
 		VkResult setupDescriptorPool(const std::vector<VkDescriptorPoolSize>& descriptorPoolCfg);
 
 		void waitWorkComplete() const;
@@ -466,10 +466,11 @@ namespace vulkan {
 		inline VulkanCommandBuffer& getRenderCommandBuffer() { return _mainRenderCommandBuffers[_currentFrame]; }
 		inline VulkanCommandBuffer& getSupportCommandBuffer() { return _mainSupportCommandBuffers[_currentFrame]; }
 
-		inline const VulkanFrameBuffer& getFrameBuffer() const { return _frameBuffers[_currentFrame]; }
+		inline const VulkanFrameBuffer& getFrameBuffer() const noexcept { return _frameBuffers[_currentFrame]; }
 
-		inline uint32_t getCurrentFrame() const { return _currentFrame; }
-		inline VkRenderPass getMainRenderPass() const { return _mainRenderPass; }
+		inline uint32_t getCurrentFrame() const noexcept { return _currentFrame; }
+		inline VkRenderPass getMainRenderPass() const noexcept { return _mainRenderPass; }
+		inline VkRenderPass getMainContinueRenderPass() const noexcept { return _mainContinueRenderPass; }
 
 		//VkDescriptorPool getGlobalDescriptorPool() const { return _globalDescriptorPool; }
 
@@ -550,6 +551,7 @@ namespace vulkan {
 
 		VkCommandPool _commandPool;
 		VkRenderPass _mainRenderPass;
+		VkRenderPass _mainContinueRenderPass;
 		std::vector<VulkanFrameBuffer> _frameBuffers;
 
 		VkQueue _mainQueue = VK_NULL_HANDLE;

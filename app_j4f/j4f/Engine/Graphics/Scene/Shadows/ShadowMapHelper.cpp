@@ -28,7 +28,6 @@ namespace engine {
 					//mesh->render(commandBuffer, currentFrame, &shadowMap->getVPMatrix(i));
 					//mesh2->render(commandBuffer, currentFrame, &shadowMap->getVPMatrix(i));
 					//mesh3->render(commandBuffer, currentFrame, &shadowMap->getVPMatrix(i));
-					//sceneRenderList.render(commandBuffer, currentFrame, &shadowMap->getVPMatrix(i));
 
 					list.render(commandBuffer, currentFrame, &shadowMap->getVPMatrix(i));
 

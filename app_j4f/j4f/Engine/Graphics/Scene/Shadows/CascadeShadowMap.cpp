@@ -194,7 +194,7 @@ namespace engine {
 			VK_IMAGE_TILING_OPTIMAL
 		);
 
-		depthImage->createImageView(VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_ASPECT_DEPTH_BIT);
+		depthImage->createImageView(VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_ASPECT_DEPTH_BIT, { VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY });
 
 		auto depthSampler = renderer->getSampler(
 			VK_FILTER_LINEAR,
@@ -220,7 +220,7 @@ namespace engine {
 		switch (_technique) {
 			case ShadowMapTechnique::SMT_GEOMETRY_SH:
 			{
-				VkImageViewCreateInfo imageViewCI = {};
+				/*VkImageViewCreateInfo imageViewCI = {};
 				imageViewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 
 				imageViewCI.viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
@@ -241,6 +241,15 @@ namespace engine {
 					_cascadesCount,
 					_depthRenderPass,
 					&_cascades[0].view,
+					1
+				);*/
+				_cascades[0].frameBuffer = new vulkan::VulkanFrameBuffer(
+					renderer->getDevice(),
+					_dimension,
+					_dimension,
+					_cascadesCount,
+					_depthRenderPass,
+					&depthImage->view,
 					1
 				);
 			}

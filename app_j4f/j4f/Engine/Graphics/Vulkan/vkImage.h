@@ -64,6 +64,6 @@ namespace vulkan {
 		VulkanImage& operator= (const VulkanImage& img) = delete;
 
 		void destroy();
-		void createImageView(const VkImageViewType viewType = VK_IMAGE_VIEW_TYPE_MAX_ENUM, const VkImageAspectFlagBits aspectFlags = VK_IMAGE_ASPECT_FLAG_BITS_MAX_ENUM);
+		void createImageView(const VkImageViewType viewType = VK_IMAGE_VIEW_TYPE_MAX_ENUM, const VkImageAspectFlagBits aspectFlags = VK_IMAGE_ASPECT_FLAG_BITS_MAX_ENUM, const VkComponentMapping components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A });
 	};
 }

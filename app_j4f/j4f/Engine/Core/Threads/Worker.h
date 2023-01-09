@@ -67,7 +67,7 @@ namespace engine {
 					_task(static_cast<float>(durationTime), currentTime);
 
 					_frameId.fetch_add(1, std::memory_order_release); // increase frameId at the end of frame
-					std::this_thread::yield();
+					//std::this_thread::yield();
 				}
 
 				_wait.test_and_set(std::memory_order_acq_rel);
