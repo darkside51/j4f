@@ -4,9 +4,19 @@
 #include <cstdint>
 
 namespace engine {
+
+    enum class GpuType : uint8_t {
+        OTHER       = 0,
+        INTEGRATED  = 1,
+        DISCRETE    = 2,
+        VIRTUAL     = 3,
+        CPU         = 4
+    };
+
 	struct GraphicConfig {
-		bool v_sync;
-		uint8_t gpu_type;
+        GpuType gpu_type;
+		bool v_sync = true;
+        bool can_continue_main_render_pass = false;
 
         struct GPUFeatures {
             uint32_t    robustBufferAccess = 0;

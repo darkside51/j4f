@@ -135,12 +135,13 @@ namespace vulkan {
 		return set;
 	}
 
-	inline VkAttachmentDescription createAttachmentDescription(VkFormat format, VkImageLayout finalLayout,
+	inline VkAttachmentDescription createAttachmentDescription(VkFormat format,
+															VkImageLayout initialLayout,
+															VkImageLayout finalLayout,
 															VkAttachmentLoadOp loadOp,
 															VkAttachmentStoreOp storeOp,
 															VkAttachmentLoadOp stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
 															VkAttachmentStoreOp stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-															VkImageLayout initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
 															VkSampleCountFlagBits samples = VK_SAMPLE_COUNT_1_BIT,
 															VkAttachmentDescriptionFlags flags = 0
 															) {

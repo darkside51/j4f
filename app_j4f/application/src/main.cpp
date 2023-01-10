@@ -2409,7 +2409,7 @@ int main() {
 	engine::EngineConfig cfg;
 	cfg.fpsLimit = 120;
 	cfg.fpsLimitType = engine::FpsLimitType::F_DONT_CARE;
-	cfg.graphicsCfg = { true, 2, {} }; // 1 - VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU, 2 - VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
+	cfg.graphicsCfg = { engine::GpuType::DISCRETE, true, false }; // INTEGRATED, DISCRETE
 	cfg.graphicsCfg.gpu_features.geometryShader = 1;
 	// fillModeNonSolid = _config.gpu_features.fillModeNonSolid; // example to enable POLYGON_MODE_LINE or POLYGON_MODE_POINT
 	engine::Engine::getInstance().init(cfg);

@@ -148,12 +148,12 @@ namespace engine {
 		std::vector<VkAttachmentDescription> attachments(1);
 		attachments[0] = vulkan::createAttachmentDescription(
 			depthFormat,
+			VK_IMAGE_LAYOUT_UNDEFINED,
 			VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL,
 			VK_ATTACHMENT_LOAD_OP_CLEAR,
 			VK_ATTACHMENT_STORE_OP_STORE,
 			VK_ATTACHMENT_LOAD_OP_DONT_CARE,
 			VK_ATTACHMENT_STORE_OP_DONT_CARE,
-			VK_IMAGE_LAYOUT_UNDEFINED,
 			VK_SAMPLE_COUNT_1_BIT,
 			0
 		);
