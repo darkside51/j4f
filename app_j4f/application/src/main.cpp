@@ -1425,7 +1425,7 @@ namespace engine {
 			//texture_text->createSingleDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0);
 
 			bitmapFont = new BitmapFont(f, 16, 256, 256, 0);
-			bitmapFont->addSymbols("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+*/=&%#@!?<>,.()[];:@$^~_", 2, 0, 0xccccccff, 0x000000ff, 1.0f, 2, 2);
+			bitmapFont->addSymbols("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+*/=&%#@!?<>,.()[];:@$^~_", 2, 0, 0xcccccc77, 0x000000aa, 1.0f, 2, 2);
 			//bitmapFont.addSymbols("wxyzABCDEFGHIJKLMN", 2, 20, 0xffffffff, 0x000000ff, 1.0f, 2, 0);
 			//bitmapFont.addSymbols("OPQRSTUVWXYZ", 2, 40, 0xffffffff, 0x000000ff, 1.0f, 2, 0);
 			//bitmapFont.addSymbols("0123456789-+*/=", 2, 60, 0xffffffff, 0x000000ff, 1.0f, 2, 0);
@@ -1831,6 +1831,27 @@ namespace engine {
 				//// statl label
 				auto statistic = Engine::getInstance().getModule<Statistic>();
 				const bool vsync = Engine::getInstance().getModule<Graphics>()->config().v_sync;
+				const char* gpuType = "";
+
+				switch (renderer->getDevice()->gpuProperties.deviceType) {
+					case VK_PHYSICAL_DEVICE_TYPE_OTHER:
+						gpuType = "other";
+						break;
+					case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
+						gpuType = "intagrated";
+						break;
+					case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
+						gpuType = "discrete";
+						break;
+					case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
+						gpuType = "virtual";
+						break;
+					case VK_PHYSICAL_DEVICE_TYPE_CPU:
+						gpuType = "cpu";
+						break;
+					default:
+						break;
+				}
 #ifdef _DEBUG
 				const char* buildType = "debug";
 #else
@@ -1843,8 +1864,8 @@ namespace engine {
 				//std::shared_ptr<TextureFrame> frame = bitmapFont->createFrame(fmt_string("resolution: %dx%d\nv_sync: %s\ndraw calls: %d\nfps: %d\ncpu frame time: %f", width, height, vsync ? "on" : "off", statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime()));
 				std::shared_ptr<TextureFrame> frame = bitmapFont->createFrame(
 					fmt_string(
-						"system time: {:%H:%M:%S}\nbuild type: {}\ngpu: {}\nresolution: {}x{}\nv_sync: {}\ndraw calls: {}\nfps: {}\ncpu frame time: {:.3}\nspeed mult: {:.3}\n\nWASD + mouse(camera control)", 
-						time, buildType, renderer->getDevice()->gpuProperties.deviceName, width, height, vsync ? "on" : "off", statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime(), Engine::getInstance().getGameTimeMultiply()
+						"system time: {:%H:%M:%S}\nbuild type: {}\ngpu: {}({})\nresolution: {}x{}\nv_sync: {}\ndraw calls: {}\nfps: {}\ncpu frame time: {:.3}\nspeed mult: {:.3}\n\nWASD + mouse(camera control)", 
+						time, buildType, renderer->getDevice()->gpuProperties.deviceName, gpuType, width, height, vsync ? "on" : "off", statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime(), Engine::getInstance().getGameTimeMultiply()
 					)
 				);
 				TextureFrameBounds frameBounds(frame.get());
@@ -2411,7 +2432,8 @@ int main() {
 	cfg.fpsLimitType = engine::FpsLimitType::F_DONT_CARE;
 	cfg.graphicsCfg = { engine::GpuType::DISCRETE, true, false }; // INTEGRATED, DISCRETE
 	cfg.graphicsCfg.gpu_features.geometryShader = 1;
-	// fillModeNonSolid = _config.gpu_features.fillModeNonSolid; // example to enable POLYGON_MODE_LINE or POLYGON_MODE_POINT
+	//cfg.graphicsCfg.gpu_features.fillModeNonSolid = 1; // example to enable POLYGON_MODE_LINE or POLYGON_MODE_POINT
+
 	engine::Engine::getInstance().init(cfg);
 	return 123;
 }

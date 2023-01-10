@@ -41,7 +41,7 @@ namespace engine {
 
 			renderer->createDevice(enabledFeatures, enabledDeviceExtensions, static_cast<VkPhysicalDeviceType>(_config.gpu_type));
 			renderer->createSwapChain(surfaceInitialiser, _config.v_sync);
-			renderer->init();
+			renderer->init(_config);
 
 			{ // print gpu info
 				const std::string gpuTypes[5] = {

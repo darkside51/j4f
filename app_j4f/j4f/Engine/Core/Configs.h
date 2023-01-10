@@ -14,7 +14,7 @@ namespace engine {
     };
 
 	struct GraphicConfig {
-        GpuType gpu_type;
+        GpuType gpu_type = GpuType::OTHER;
 		bool v_sync = true;
         bool can_continue_main_render_pass = false;
 

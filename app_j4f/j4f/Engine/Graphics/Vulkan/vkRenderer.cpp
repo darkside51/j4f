@@ -6,6 +6,7 @@
 
 #include "vkDebugMarker.h"
 
+#include "../../Engine/Core/Configs.h"
 #include "../../Engine/Log/Log.h"
 
 #include <unordered_map>
@@ -180,7 +181,7 @@ namespace vulkan {
 		_swapChain.resize(_width, _height, useVsync);
 	}
 
-	void VulkanRenderer::init() {
+	void VulkanRenderer::init(const engine::GraphicConfig& cfg) {
 		_swapchainImagesCount = _swapChain.imageCount;
 
 		// get a graphics & present queue from the device (its eaqual i think)
@@ -223,7 +224,7 @@ namespace vulkan {
 		vkCreatePipelineCache(_vulkanDevice->device, &pipelineCacheCreateInfo, nullptr, &_pipelineCache);
 
 		// setupRenderPass
-		setupRenderPass({}, {}, false); // todo: VkSubpassDependency parametrisation + configure storeDepthStencilResultForDefault
+		setupRenderPass({}, {}, cfg.can_continue_main_render_pass); // todo: VkSubpassDependency parametrisation
 
 		// setupFrameBuffers
 		std::vector<VkImageView> attachments(2);
@@ -382,14 +383,14 @@ namespace vulkan {
 		}
 	}
 
-	void VulkanRenderer::setupRenderPass(const std::vector<VkAttachmentDescription>& configuredAttachments, const std::vector<VkSubpassDependency>& configuredDependencies, const bool storeDepthStencilResultForDefault) {
+	void VulkanRenderer::setupRenderPass(const std::vector<VkAttachmentDescription>& configuredAttachments, const std::vector<VkSubpassDependency>& configuredDependencies, const bool canContinueMainRenderPass) {
 
-		auto createDefaultAttachments = [this, storeDepthStencilResultForDefault]()->std::vector<VkAttachmentDescription> {
+		auto createDefaultAttachments = [this, canContinueMainRenderPass]()->std::vector<VkAttachmentDescription> {
 			std::vector<VkAttachmentDescription> attachments(2);
 			// color attachment
 			attachments[0] = vulkan::createAttachmentDescription(_swapChain.colorFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_STORE);
 			// depth attachment
-			if (storeDepthStencilResultForDefault) {
+			if (canContinueMainRenderPass) {
 				attachments[1] = vulkan::createAttachmentDescription(_mainDepthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_STORE);
 			} else {
 				attachments[1] = vulkan::createAttachmentDescription(_mainDepthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_DONT_CARE);
