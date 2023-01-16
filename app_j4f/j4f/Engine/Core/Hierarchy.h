@@ -42,20 +42,25 @@ namespace engine {
 			invalidateLinks();
 		}
 
-		Hierarchy(Hierarchy&& h) noexcept : _value(std::move(h._value)), _children(std::move(h._children)), _parent(h._parent), _next(h._next) {
+		Hierarchy(Hierarchy&& h) noexcept : _value(std::move(h._value)), _children(std::move(h._children)), _parent(h._parent), _next(h._next), _prev(h._prev) {
 			h._parent = nullptr;
 			h._next = nullptr;
+			h._prev = nullptr;
 			h._children.clear();
 		}
 
 		const Hierarchy& operator= (Hierarchy&& h) noexcept {
+			if (&h == this) return *this;
+
 			_value = std::move(h._value);
 			_children = std::move(h._children);
 			_parent = h._parent;
 			_next = h._next;
+			_prev = h._prev;
 
 			h._parent = nullptr;
 			h._next = nullptr;
+			h._prev = nullptr;
 			h._children.clear();
 
 			return *this;
@@ -106,6 +111,31 @@ namespace engine {
 				}
 				_children.erase(it, _children.end());
 			}
+		}
+
+		void removeChild(const T* child) {
+			auto it = std::remove_if(_children.begin(), _children.end(), [child](const children_type& ch) {
+				return &(ch->_value) == child;
+				});
+			if (it != _children.end()) {
+				children_type& c = *it;
+				if constexpr (std::is_pointer<children_type>()) {
+					delete c;
+				} else {
+					c->invalidateLinks();
+				}
+				_children.erase(it, _children.end());
+			}
+		}
+
+		children_type getChildFromPtr(const T* child) {
+			auto it = std::find_if(_children.begin(), _children.end(), [child](const children_type& ch) {
+				return &(ch->_value) == child;
+				});
+			if (it != _children.end()) {
+				return *it;
+			}
+			return nullptr;
 		}
 
 		const std::vector<children_type>& children() const { return _children; }

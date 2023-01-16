@@ -1411,7 +1411,7 @@ namespace engine {
 				});
 
 			/////// freeType test
-			FontLoadingParams font_loading_params("resources/assets/fonts/Roboto/Roboto-Regular.ttf");
+			FontLoadingParams font_loading_params("resources/assets/fonts/Quivira.otf");
 			Font* f = assm->loadAsset<Font*>(font_loading_params);
 
 			//FontRenderer fr(256, 256, 100);
@@ -1644,12 +1644,26 @@ namespace engine {
 			}
 
 			////
+
+			if (mesh3) {
+				if (auto&& nm3 = mesh3->getNode()) {
+					static uint32_t mesh3RemoveTest = 0;
+					if (++mesh3RemoveTest == 1000) {
+						meshUpdateSystem.unregisterObject(mesh3);
+						auto node = rootNode->getChildFromPtr(nm3);
+						shadowCastNodes.erase(std::remove(shadowCastNodes.begin(), shadowCastNodes.end(), node), shadowCastNodes.end());
+						rootNode->removeChild(node);
+						mesh3 = nullptr;
+					}
+				}
+			}
+
 			if (animTree) {
 				animTree->updateAnimation(dt, mesh->graphics()->getSkeleton());
 				//mesh->graphics()->getSkeleton()->updateAnimation(delta, animTree);
 			}
 
-			if (animTree2) {
+			if (animTree2 && mesh3) {
 				animTree2->updateAnimation(dt, mesh3->graphics()->getSkeleton());
 				//mesh3->graphics()->getSkeleton()->updateAnimation(delta, animTree2);
 			}
@@ -1673,6 +1687,7 @@ namespace engine {
 				//grassNode->setLocalMatrix(glm::mat4(t));
 			}
 
+
 			reloadRenderList(sceneRenderList, rootNode, cameraMatrixChanged, 0, engine::FrustumVisibleChecker(camera->getFrustum()));
 			reloadRenderList(shadowRenderList, shadowCastNodes.data(), shadowCastNodes.size(), false, 0, engine::FrustumVisibleChecker(camera->getFrustum()));
 			cameraMatrixChanged = false;
@@ -1693,7 +1708,7 @@ namespace engine {
 			//////// shadow pass
 			auto&& pr0 = mesh->setProgram(program_mesh_skin_shadow, shadowMap->getRenderPass());
 			auto&& pr1 = mesh2->setProgram(program_mesh_skin_shadow, shadowMap->getRenderPass());
-			auto&& pr2 = mesh3->setProgram(program_mesh_skin_shadow, shadowMap->getRenderPass());
+			auto&& pr2 = mesh3 ? mesh3->setProgram(program_mesh_skin_shadow, shadowMap->getRenderPass()) : nullptr;
 			auto&& pr3 = mesh4->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
 			auto&& pr4 = mesh5->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
 			auto&& pr5 = mesh6->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
@@ -1715,7 +1730,9 @@ namespace engine {
 
 			mesh->setProgram(pr0);
 			mesh2->setProgram(pr1);
-			mesh3->setProgram(pr2);
+			if (mesh3) {
+				mesh3->setProgram(pr2);
+			}
 			mesh4->setProgram(pr3);
 			mesh5->setProgram(pr4);
 			mesh6->setProgram(pr5);
