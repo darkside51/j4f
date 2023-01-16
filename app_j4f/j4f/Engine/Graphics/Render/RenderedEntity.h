@@ -6,6 +6,7 @@
 #include <string>
 #include <utility>
 #include <functional>
+#include <unordered_map>
 
 namespace engine {
 
@@ -36,6 +37,10 @@ namespace engine {
 			}
 		}
 
+		const vulkan::GPUParamLayoutInfo* getParamLayout(const std::string& name) const {
+			return _renderDescriptor.renderData[0]->getLayout(name);
+		}
+
 		inline vulkan::RenderData* getRenderDataAt(const uint16_t n) const {
 			if (_renderDescriptor.renderDataCount <= n) return nullptr;
 			return _renderDescriptor.renderData[n];
@@ -54,9 +59,19 @@ namespace engine {
 
 		void setPipeline(vulkan::VulkanPipeline* p) {
 			if (_renderDescriptor.renderData[0]->pipeline == nullptr || _renderDescriptor.renderData[0]->pipeline->program != p->program) {
-				for (auto&& l : _fixedGpuLayouts) {
-					l.first = p->program->getGPUParamLayoutByName(l.second);
-				}
+				if (auto it = _pipelinesLayoutsMap.find(p); it != _pipelinesLayoutsMap.end()) {
+					uint16_t layoutIdx = 0;
+					for (auto&& l : _fixedGpuLayouts) {
+						l.first = it->second[layoutIdx++];
+					}
+				} else {
+					std::vector<const vulkan::GPUParamLayoutInfo*> layouts;
+					for (auto&& l : _fixedGpuLayouts) {
+						l.first = p->program->getGPUParamLayoutByName(l.second);
+						layouts.push_back(l.first);
+					}
+					_pipelinesLayoutsMap[p] = std::move(layouts);
+				}				
 			}
 
 			_renderDescriptor.setCameraMatrix(_fixedGpuLayouts[0].first);
@@ -94,6 +109,7 @@ namespace engine {
 		vulkan::VulkanRenderState _renderState;
 		std::vector<VkVertexInputAttributeDescription> _vertexInputAttributes;
 		std::vector<std::pair<const vulkan::GPUParamLayoutInfo*, std::string>> _fixedGpuLayouts;
+		std::unordered_map<vulkan::VulkanPipeline*, std::vector<const vulkan::GPUParamLayoutInfo*>> _pipelinesLayoutsMap;
 	};
 
 }
