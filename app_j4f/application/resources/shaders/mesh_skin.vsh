@@ -23,7 +23,8 @@ layout (set = 2, binding = 0) uniform shadowUBO {
 	vec3 camera_position;
 } u_shadow;
 
-layout (set = 4, binding = 0) uniform UBO {
+layout(set = 4, binding = 0) uniform UBO {
+	float lighting;
 	vec4 color;
 	mat4 skin_matrixes[192];
 } u_ubo;

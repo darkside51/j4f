@@ -23,6 +23,7 @@ layout (set = 2, binding = 0) uniform shadowUBO {
 } u_shadow;
 
 layout (set = 3, binding = 0) uniform UBO {
+	float lighting;
 	vec4 color;
 } u_ubo;
 

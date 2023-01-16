@@ -26,6 +26,7 @@ layout (set = 2, binding = 0) uniform shadowUBO {
 } u_shadow;
 
 layout (set = 3, binding = 0) uniform UBO {
+	float lighting;
 	vec4 color;
 } u_ubo;
 
@@ -57,7 +58,7 @@ void main() {
 		vec3 normal = calculateNormal(in_tbn, tangentNormal);
 
 		const float light = max(dot((gl_FrontFacing ? normal : -normal), -u_constants.lightDirection), 0.0);
-		color.rgb *= clamp(u_constants.lightMinMax.y * light, u_constants.lightMinMax.x, u_constants.lightMinMax.y);
+		color.rgb *= clamp(u_ubo.lighting + light, u_constants.lightMinMax.x, u_constants.lightMinMax.y);
 
 		float spec = pow(max(dot((gl_FrontFacing ? normal : -normal), in_halfwayDir) * metallicRoughness.b, 0.0), 100.0);
 		color.rgb += spec;

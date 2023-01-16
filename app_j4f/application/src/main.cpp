@@ -929,7 +929,6 @@ namespace engine {
 			mesh_params_forestTree.graphicsBuffer = meshesGraphicsBuffer;
 			////////
 
-
 			mesh = new NodeRenderer<Mesh>();
 			mesh2 = new NodeRenderer<Mesh>();
 			mesh3 = new NodeRenderer<Mesh>();
@@ -958,7 +957,7 @@ namespace engine {
 			grassUpdateSystem.registerObject(grassMesh2);
 			instanceMeshUpdateSystem.registerObject(forest);
 
-			////
+			///////////
 			{
 				skyBox = new NodeRenderer<SkyBoxRenderer>();
 				skyBoxUpdateSystem.registerObject(skyBox);
@@ -983,6 +982,7 @@ namespace engine {
 				asset->setParamByName("u_texture", texture_zombi, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 				asset->setParamByName("color", glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), true);
+				asset->setParamByName("lighting", 0.5f, true);
 
 				animTree = new MeshAnimationTree(0.0f, asset->getNodesCount(), asset->getSkeleton()->getLatency());
 				animTree->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[2], 1.0f, asset->getSkeleton()->getLatency()));
@@ -992,7 +992,7 @@ namespace engine {
 					renderState.rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
 				});
 
-				////////////////////
+				//////////////////////
 				glm::mat4 wtr(1.0f);
 				scaleMatrix(wtr, glm::vec3(25.0f));
 				rotateMatrix_xyz(wtr, glm::vec3(1.57f, 0.45f, 0.0f));
@@ -1014,6 +1014,7 @@ namespace engine {
 				asset->setParamByName("u_texture", texture_zombi, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 				asset->setParamByName("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), true);
+				asset->setParamByName("lighting", 0.5f, true);
 
 				asset->setSkeleton(mesh->graphics()->getSkeleton());
 
@@ -1044,6 +1045,7 @@ namespace engine {
 					asset->setParamByName("u_texture", texture_zombi, false);
 					asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 					asset->setParamByName("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), true);
+					asset->setParamByName("lighting", 0.5f, true);
 
 					asset->setSkeleton(mesh->graphics()->getSkeleton());
 
@@ -1074,6 +1076,7 @@ namespace engine {
 				asset->setParamByName("u_texture", texture_v, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 				asset->setParamByName("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), true);
+				asset->setParamByName("lighting", 0.5f, true);
 
 				asset->getRenderDataAt(3)->setParamByName("u_texture", texture_v3, false);
 				asset->getRenderDataAt(7)->setParamByName("u_texture", texture_v2, false); // eye
@@ -1118,6 +1121,7 @@ namespace engine {
 				asset->getRenderDataAt(1)->setParamByName("u_texture", texture_t2, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 				asset->setParamByName("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), true);
+				asset->setParamByName("lighting", 0.0f, true);
 
 				asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
 					renderState.rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
@@ -1145,6 +1149,7 @@ namespace engine {
 				asset->setParamByName("u_texture", texture_t3, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 				asset->setParamByName("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), true);
+				asset->setParamByName("lighting", 0.0f, true);
 
 				asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
 					renderState.rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
@@ -1172,6 +1177,7 @@ namespace engine {
 				asset->setParamByName("u_texture", texture_t5, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 				asset->setParamByName("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), true);
+				asset->setParamByName("lighting", 0.0f, true);
 
 				asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
 					renderState.rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
@@ -1199,6 +1205,7 @@ namespace engine {
 				asset->setParamByName("u_texture", texture_t7, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 				asset->setParamByName("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), true);
+				asset->setParamByName("lighting", 0.0f, true);
 
 				asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
 					renderState.rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
@@ -1323,6 +1330,7 @@ namespace engine {
 				asset->getRenderDataAt(1)->setParamByName("u_texture", texture_forest_tree1, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 				asset->setParamByName("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), true);
+				asset->setParamByName("lighting", 0.25f, true);
 
 				asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
 					renderState.rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
@@ -1648,7 +1656,7 @@ namespace engine {
 			if (mesh3) {
 				if (auto&& nm3 = mesh3->getNode()) {
 					static uint32_t mesh3RemoveTest = 0;
-					if (++mesh3RemoveTest == 1000) {
+					if (++mesh3RemoveTest == 10000) {
 						meshUpdateSystem.unregisterObject(mesh3);
 						auto node = rootNode->getChildFromPtr(nm3);
 						shadowCastNodes.erase(std::remove(shadowCastNodes.begin(), shadowCastNodes.end(), node), shadowCastNodes.end());
