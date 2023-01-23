@@ -40,7 +40,7 @@ namespace engine {
 		GlfwVkSurfaceInitialiser(GLFWwindow* window) : _window(window) { }
 
 		bool initRenderSurface(void* renderInstane, void* renderSurace) const override { 
-#ifdef j4f_PLATFORM_WINDOWS // windows variant
+#if defined VK_USE_PLATFORM_WIN32_KHR // windows variant
 			VkWin32SurfaceCreateInfoKHR vk_surfaceInfo;
 			vk_surfaceInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
 			vk_surfaceInfo.pNext = nullptr;
@@ -49,7 +49,11 @@ namespace engine {
 			vk_surfaceInfo.hwnd = glfwGetWin32Window(_window);
 
 			return vkCreateWin32SurfaceKHR(*(static_cast<VkInstance*>(renderInstane)), &vk_surfaceInfo, nullptr, static_cast<VkSurfaceKHR*>(renderSurace)) == VK_SUCCESS;
-#else
+#elif defined VK_USE_PLATFORM_WAYLAND_KHR
+			return false; // todo!
+#elif defined VK_USE_PLATFORM_XCB_KHR
+			return false; // todo!
+#elif defined VK_USE_PLATFORM_XLIB_KHR
 			return false; // todo!
 #endif
 		}

@@ -13,10 +13,6 @@
 #include <unordered_set>
 #include <cassert>
 
-#ifdef VK_USE_PLATFORM_WIN32_KHR
-#define VULKAN_PLATFORM_SURFACE_EXT VK_KHR_WIN32_SURFACE_EXTENSION_NAME
-#endif // VK_USE_PLATFORM_WIN32_KHR
-
 #define EXECUTE_PROC_OR_NULLIFY_AND_RETURN(x, proc, ...) if (!x->proc(__VA_ARGS__)) { delete x; return nullptr; }
 
 namespace vulkan {
@@ -42,7 +38,7 @@ namespace vulkan {
 		std::vector<VkExtensionProperties> supportedExtensions;
 		getVulkanInstanceSupportedExtensions(supportedExtensions);
 
-		std::vector<const char*> instanceExtensions = { VK_KHR_SURFACE_EXTENSION_NAME, VULKAN_PLATFORM_SURFACE_EXT };
+		std::vector<const char*> instanceExtensions = { "VK_KHR_surface" };
 
 		std::vector<VkLayerProperties> supportedLayers;
 		getVulkanInstanceSupportedLayers(supportedLayers);
@@ -59,10 +55,12 @@ namespace vulkan {
 		const bool validationEnable = false;
 #endif
 
-		auto addInstanceExtension = [&instanceExtensions, &supportedExtensions](const char* extName) {
+		auto addInstanceExtension = [&instanceExtensions, &supportedExtensions](const char* extName) -> bool {
 			if (std::find_if(supportedExtensions.begin(), supportedExtensions.end(), [extName](const VkExtensionProperties& ext) { return strcmp(ext.extensionName, extName) == 0; }) != supportedExtensions.end()) {
 				instanceExtensions.push_back(extName);
+				return true;
 			}
+			return false;
 		};
 
 		auto addInstanceLayer = [&instancelayers, &supportedLayers](const char* layerName) {
@@ -70,6 +68,17 @@ namespace vulkan {
 				instancelayers.push_back(layerName);
 			}
 		};
+
+		// https://vulkan.lunarg.com/doc/view/1.3.211.0/linux/LoaderDriverInterface.html
+		constexpr std::array<const char*, 6> instanceSurfaceExts = { 
+																"VK_KHR_win32_surface", "VK_KHR_xcb_surface", "VK_KHR_xlib_surface", 
+																"VK_KHR_wayland_surface", "VK_MVK_macos_surface", "VK_QNX_screen_surface"
+																};
+		for (const char* ext : instanceSurfaceExts) {
+			if (addInstanceExtension(ext)) {
+				break;
+			}
+		}
 
 		if (validationEnable) {
 			addInstanceExtension(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);

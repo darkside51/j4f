@@ -34,11 +34,15 @@ if(j4f_PLATFORM STREQUAL "WINDOWS")
     add_definitions(-DVK_USE_PLATFORM_WIN32_KHR=1)
     add_definitions(-DGLFW_EXPOSE_NATIVE_WIN32)
 	add_definitions(-DNOMINMAX)
+elseif(j4f_PLATFORM STREQUAL "LINUX")
+	add_definitions(-DVK_USE_PLATFORM_XCB_KHR=1)
+	# VK_USE_PLATFORM_WAYLAND_KHR
+	# VK_USE_PLATFORM_XCB_KHR
+	# VK_USE_PLATFORM_XLIB_KHR
 endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/glfw/3.3.6_win64/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/stb_image)
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/freeType/include)
 
 set(
 	ENGINE_SRC_DIRS ${ENGINE_SRC_DIRS}
@@ -110,19 +114,21 @@ list(REMOVE_DUPLICATES ENGINE_SOURCES)
 #######
 
 #######
-foreach(source IN LISTS ENGINE_SOURCES)
-	get_filename_component(source_path "${source}" PATH)
-	string(REPLACE "/" "\\" source_path_msvc "${source_path}")
-	string(REPLACE ${CMAKE_CURRENT_SOURCE_DIR}/ "Engine/" source_path_msvc "${source_path}")
-	source_group("${source_path_msvc}" FILES "${source}")
-endforeach()
+if(j4f_PLATFORM STREQUAL "WINDOWS")
+	foreach(source IN LISTS ENGINE_SOURCES)
+		get_filename_component(source_path "${source}" PATH)
+		string(REPLACE "/" "\\" source_path_msvc "${source_path}")
+		string(REPLACE ${CMAKE_CURRENT_SOURCE_DIR}/ "Engine/" source_path_msvc "${source_path}")
+		source_group("${source_path_msvc}" FILES "${source}")
+	endforeach()
 
-foreach(source IN LISTS ENGINE_HEADERS)
-	get_filename_component(source_path "${source}" PATH)
-	string(REPLACE "/" "\\" source_path_msvc "${source_path}")
-	string(REPLACE ${CMAKE_CURRENT_SOURCE_DIR}/ "Engine/" source_path_msvc "${source_path}")
-	source_group("${source_path_msvc}" FILES "${source}")
-endforeach()
+	foreach(source IN LISTS ENGINE_HEADERS)
+		get_filename_component(source_path "${source}" PATH)
+		string(REPLACE "/" "\\" source_path_msvc "${source_path}")
+		string(REPLACE ${CMAKE_CURRENT_SOURCE_DIR}/ "Engine/" source_path_msvc "${source_path}")
+		source_group("${source_path_msvc}" FILES "${source}")
+	endforeach()
+endif()
 #######
 
 #fmt library
@@ -132,12 +138,23 @@ endforeach()
 	set (FMT_LIB fmt)
 #fmt library
 
+if(j4f_PLATFORM STREQUAL "WINDOWS")
 set(
 	USED_FRAMEWORKS
 	general ${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/glfw/3.3.6_win64/lib-vc2019/glfw3_mt.lib
 	general $ENV{VULKAN_SDK}/Lib/vulkan-1.lib
 	general ${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/freeType/release_static/vs2015-2022/win64/freetype.lib
 )
+elseif(j4f_PLATFORM STREQUAL "LINUX")
+# compile glfw from sources
+# compile freetype from sources
+set(
+	USED_FRAMEWORKS
+	#glfw
+	#freetype
+	#general $ENV{VULKAN_SDK}/Lib/vulkan-1.lib - what lib for linux must be?
+)
+endif()
 
 add_library(
 	j4f_engine
