@@ -110,8 +110,13 @@ if(j4f_PLATFORM STREQUAL "WINDOWS")
 	add_custom_command(TARGET ${PROJECT_NAME}
                    POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E make_directory ${dest_dir}/shaders
-                   COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/j4f/Tools/glslToSpirv/convert_with_includes_ext.py -i ${source_dir}/shaders/ -o ${dest_dir}/shaders/)
-
+                   COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/j4f/Tools/glslToSpirv/convert_with_includes_ext.py -i ${source_dir}/shaders/ -o ${dest_dir}/shaders/ -p /Bin/glslc.exe)
+                   
+elseif(j4f_PLATFORM STREQUAL "LINUX")
+	add_custom_command(TARGET ${PROJECT_NAME}
+                   POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E make_directory ${dest_dir}/shaders
+                   COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/j4f/Tools/glslToSpirv/convert_with_includes_ext.py -i ${source_dir}/shaders/ -o ${dest_dir}/shaders/ -p /bin/glslc)
 endif()
 
 message(STATUS "!!!!!project generate complete!!!!!")
