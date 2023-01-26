@@ -41,9 +41,6 @@ elseif(j4f_PLATFORM STREQUAL "LINUX")
 	# VK_USE_PLATFORM_XLIB_KHR
 endif()
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/glfw/3.3.6_win64/include)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/stb_image)
-
 set(
 	ENGINE_SRC_DIRS ${ENGINE_SRC_DIRS}
 	
@@ -131,27 +128,39 @@ if(j4f_PLATFORM STREQUAL "WINDOWS")
 endif()
 #######
 
+#freetype library
+	message("freetype library begin")
+	add_3rdparty_project (${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/freetype ${CMAKE_BINARY_DIR}/3rd_party/freetype)
+	include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/freetype/include)
+	set(FREETYPE_LIB freetype)
+	message("freetype library end")
+#freetype library
+
 #fmt library
-	message("fmt library")
+	message("fmt library begin")
 	add_3rdparty_project (${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/fmt ${CMAKE_BINARY_DIR}/3rd_party/fmt)
 	include_directories (SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/../3rdparty/fmt/include)
 	set (FMT_LIB fmt)
+	message("fmt library end")
 #fmt library
+
+#glfw library
+	message("glfw library begin")
+	add_3rdparty_project (${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/glfw_3.3.8 ${CMAKE_BINARY_DIR}/3rd_party/glfw)
+	include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/glfw_3.3.8/include)
+	set(GLFW_LIB glfw)
+	message("glfw library end")
+#glfw library
+
 
 if(j4f_PLATFORM STREQUAL "WINDOWS")
 set(
 	USED_FRAMEWORKS
-	general ${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/glfw/3.3.6_win64/lib-vc2019/glfw3_mt.lib
 	general $ENV{VULKAN_SDK}/Lib/vulkan-1.lib
-	general ${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/freeType/release_static/vs2015-2022/win64/freetype.lib
 )
 elseif(j4f_PLATFORM STREQUAL "LINUX")
-# compile glfw from sources
-# compile freetype from sources
 set(
 	USED_FRAMEWORKS
-	#glfw
-	#freetype
 	#general $ENV{VULKAN_SDK}/Lib/vulkan-1.lib - what lib for linux must be?
 )
 endif()
@@ -166,12 +175,14 @@ add_library(
 target_link_libraries (
 	j4f_engine
 	${USED_FRAMEWORKS}
+	${FREETYPE_LIB}
 	${FMT_LIB}
+	${GLFW_LIB}
 )
 
 target_include_directories(j4f_engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Platform/GLFW)
 target_include_directories(j4f_engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/glm)
 target_include_directories(j4f_engine PUBLIC $ENV{VULKAN_SDK}/Include)
-target_include_directories(j4f_engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/freeType/include)
+target_include_directories(j4f_engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/stb_image)
 
 message(STATUS "!!!!!engine generate success!!!!!")
