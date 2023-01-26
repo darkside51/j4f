@@ -5,7 +5,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 project(app_j4f)
+
+if(j4f_PLATFORM STREQUAL "WINDOWS")
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
+endif()
 
 if(STATISTIC_ENABLED)
 	add_definitions(-DENABLE_STATISTIC)
@@ -57,12 +60,15 @@ endforeach(DIR)
 list(REMOVE_DUPLICATES APP_RESOURCES)
 
 set(APP_RESOURCES_DIRECTORY application/resources)
+
+if(j4f_PLATFORM STREQUAL "WINDOWS")
 foreach(source IN LISTS APP_RESOURCES)
 	get_filename_component(source_path "${source}" PATH)
 	string(REPLACE "/" "\\" source_path_msvc "${source_path}")
 	string(REPLACE ${CMAKE_CURRENT_SOURCE_DIR}/${APP_RESOURCES_DIRECTORY}/ "Resources/" source_path_msvc "${source_path}")
 	source_group("${source_path_msvc}" FILES "${source}")
 endforeach()
+endif()
 ######################################################################################################
 
 add_executable(${PROJECT_NAME} application/src/main.cpp ${APP_RESOURCES})
