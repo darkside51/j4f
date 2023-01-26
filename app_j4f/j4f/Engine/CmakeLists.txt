@@ -159,9 +159,16 @@ set(
 	general $ENV{VULKAN_SDK}/Lib/vulkan-1.lib
 )
 elseif(j4f_PLATFORM STREQUAL "LINUX")
+#add_library(vulkan_lib SHARED IMPORTED)
+#set_property(TARGET vulkan_lib PROPERTY IMPORTED_LOCATION $ENV{VULKAN_SDK}/lib/libvulkan.so)
+#target_link_libraries (
+#        j4f_engine
+#        vulkan_lib
+#)
+
 set(
 	USED_FRAMEWORKS
-	#general $ENV{VULKAN_SDK}/Lib/vulkan-1.lib - what lib for linux must be?
+	general $ENV{VULKAN_SDK}/lib/libvulkan.so
 )
 endif()
 
