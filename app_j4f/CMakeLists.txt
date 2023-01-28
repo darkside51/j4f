@@ -7,6 +7,10 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
+if(CMAKE_BUILD_TYPE MATCHES Debug)
+	add_definitions(-D_DEBUG)
+endif(CMAKE_BUILD_TYPE MATCHES Debug)
+
 project(app_j4f)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")

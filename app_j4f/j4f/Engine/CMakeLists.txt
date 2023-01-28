@@ -7,6 +7,13 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
+if(CMAKE_BUILD_TYPE MATCHES Debug)
+	message("debug mode")
+	add_definitions(-D_DEBUG)
+else()
+	message("release mode")
+endif(CMAKE_BUILD_TYPE MATCHES Debug)
+
 include (${CMAKE_CURRENT_SOURCE_DIR}/../Tools/cmake/utils.cmake)
 
 project(j4f_engine)
