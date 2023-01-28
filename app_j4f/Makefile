@@ -11,10 +11,22 @@ linux:
 	mkdir -p build/linux/debug
 	mkdir -p build/linux/release
 # 	cmake \
+#	-Dj4f_PLATFORM "LINUX"
 # 	-DSTATISTIC_ENABLED=true \
 # 	-DPROFILER_ENABLE=false \
 # 	-DGPU_DEBUG_MARKER_ENABLED=false \
 # 	-DGPU_VALIDATION_ENABLED=true
+
+
+linux_test:
+	mkdir -p build2/linux && cd build2/linux && \
+ 	cmake \
+	-Dj4f_PLATFORM="LINUX" \
+ 	-DSTATISTIC_ENABLED=true \
+ 	-DPROFILER_ENABLE=false \
+ 	-DGPU_DEBUG_MARKER_ENABLED=false \
+ 	-DGPU_VALIDATION_ENABLED=true
+
 
 clean:
 	rm -r build

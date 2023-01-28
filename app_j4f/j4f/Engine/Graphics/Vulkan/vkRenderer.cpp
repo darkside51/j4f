@@ -430,7 +430,7 @@ namespace vulkan {
 		auto createDefaultContinueAttachments = [this]()->std::vector<VkAttachmentDescription> {
 			std::vector<VkAttachmentDescription> attachments(2);
 			// color attachment
-			attachments[0] = vulkan::createAttachmentDescription(_swapChain.colorFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, VK_ATTACHMENT_LOAD_OP_LOAD, VK_ATTACHMENT_STORE_OP_STORE);
+			attachments[0] = vulkan::createAttachmentDescription(_swapChain.colorFormat, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, VK_ATTACHMENT_LOAD_OP_LOAD, VK_ATTACHMENT_STORE_OP_STORE);
 			// depth attachment
 			// если воспользуемся продолжением отрисовки - то видимо нужно хранить результат для depthStencil
 			attachments[1] = vulkan::createAttachmentDescription(_mainDepthFormat, 
