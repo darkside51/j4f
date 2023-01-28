@@ -35,6 +35,7 @@ namespace engine {
 		inline RenderHelper* getRenderHelper() const { return _renderHelper; }
 		inline AnimationManager* getAnimationManager() const { return _animationManager; }
 
+
 		void resize(const uint16_t w, const uint16_t h);
 
 		void beginFrame();
@@ -49,7 +50,9 @@ namespace engine {
 		inline const std::pair<uint16_t, uint16_t>& getSize() const { return _size; }
 
 	private:
+        void createRenderer();
 		void createLoaders();
+        void createRenderHelper();
 
 		GraphicConfig _config;
 		std::pair<uint16_t, uint16_t> _size;

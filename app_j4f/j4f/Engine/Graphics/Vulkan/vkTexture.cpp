@@ -1,6 +1,6 @@
 ﻿#include "vkTexture.h"
 #include "vkImage.h"
-#include "VkRenderer.h"
+#include "vkRenderer.h"
 
 namespace vulkan {
 

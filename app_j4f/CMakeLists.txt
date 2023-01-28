@@ -4,7 +4,20 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+
 project(app_j4f)
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+	set(j4f_PLATFORM "WINDOWS")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+	set(j4f_PLATFORM "LINUX")
+	set(STATISTIC_ENABLED true)
+	set(PROFILER_ENABLE false)
+	set(GPU_DEBUG_MARKER_ENABLED false)
+	set(GPU_VALIDATION_ENABLED true)
+endif()
 
 if(j4f_PLATFORM STREQUAL "WINDOWS")
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
@@ -85,7 +98,12 @@ include_directories(j4f/)
 #                ${PROJECT_BINARY_DIR}/$<CONFIG>/resources)
 
 set(source_dir "${CMAKE_CURRENT_SOURCE_DIR}/application/resources")
-set(dest_dir "${PROJECT_BINARY_DIR}/$<CONFIG>/resources")
+
+if(j4f_PLATFORM STREQUAL "WINDOWS")
+	set(dest_dir "${PROJECT_BINARY_DIR}/$<CONFIG>/resources")
+elseif(j4f_PLATFORM STREQUAL "LINUX")
+	set(dest_dir "${PROJECT_BINARY_DIR}/resources")
+endif()
 
 add_custom_command(TARGET ${PROJECT_NAME}
 	POST_BUILD

@@ -40,19 +40,19 @@ namespace engine {
 	using CommonUniqueTypeId = UniqueTypeId<CommonType>;
 
 	template <typename>
-	struct is_smart_pointer { constinit enum : bool { value = false }; };
+	struct is_smart_pointer { enum : bool { value = false }; };
 
 	template <typename T>
-	struct is_smart_pointer<std::unique_ptr<T>> { constinit enum : bool { value = true }; };
+	struct is_smart_pointer<std::unique_ptr<T>> { enum : bool { value = true }; };
 
 	template <typename T>
-	struct is_smart_pointer<std::shared_ptr<T>> { constinit enum : bool { value = true }; };
+	struct is_smart_pointer<std::shared_ptr<T>> { enum : bool { value = true }; };
 
 	template <typename T>
-	struct is_smart_pointer<linked_ptr<T>> { constinit enum : bool { value = true }; };
+	struct is_smart_pointer<linked_ptr<T>> { enum : bool { value = true }; };
 
 	template <typename T>
-	struct is_smart_pointer<linked_ext_ptr<T>> { constinit enum : bool { value = true }; };
+	struct is_smart_pointer<linked_ext_ptr<T>> { enum : bool { value = true }; };
 
 	template<typename T>
 	inline constinit bool is_smart_pointer_v = engine::is_smart_pointer<T>::value;
@@ -67,7 +67,7 @@ namespace engine {
 			static second_type ftest(...);
 			static T makeT();
 		public:
-			constinit enum : bool {
+			 enum : bool {
 				exists = sizeof(ftest(makeT())) == sizeof(first_type),
 				same_type = false
 			};
@@ -76,7 +76,7 @@ namespace engine {
 		template <typename T>
 		class Conversion<T, T> {
 		public:
-			constinit enum : bool {
+			 enum : bool {
 				exists = true,
 				same_type = true
 			};

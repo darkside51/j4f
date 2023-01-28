@@ -858,7 +858,7 @@ namespace vulkan {
 
 			for (uint8_t i = 0; i < constantCount; ++i) { // set push constants
 				if (const VulkanPushConstant* pk = pushConstants[i]) {
-					cmdPushConstants(pipeline->program->getPipeLineLayout(), pk->range.stageFlags, pk->range.offset, pk->range.size, pk->values);
+					cmdPushConstants(pipeline->program->getPipeLineLayout(), pk->range->stageFlags, pk->range->offset, pk->range->size, pk->values);
 				}
 			}
 
@@ -896,7 +896,7 @@ namespace vulkan {
 
 			for (uint8_t i = 0; i < constantCount; ++i) { // set push constants
 				if (const VulkanPushConstant* pk = pushConstants[i]) {
-					cmdPushConstants(pipeline->program->getPipeLineLayout(), pk->range.stageFlags, pk->range.offset, pk->range.size, pk->values);
+					cmdPushConstants(pipeline->program->getPipeLineLayout(), pk->range->stageFlags, pk->range->offset, pk->range->size, pk->values);
 				}
 			}
 
@@ -920,7 +920,7 @@ namespace vulkan {
 			const VkDescriptorSet* externalSets				// дополнительные сеты, которые хочется привязать
 		) {
 			if constexpr (stated) { // use this?
-				const std::array<state_type::NeedBindDescriptors, 8> needBind = state.bindDescriptorSets(
+				const std::array<typename state_type::NeedBindDescriptors, 8> needBind = state.bindDescriptorSets(
 					frame,
 					VK_PIPELINE_BIND_POINT_GRAPHICS,
 					pipeline,

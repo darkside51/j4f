@@ -120,7 +120,7 @@ namespace vulkan {
 
 		if (vk_physicalDevices.empty()) { return false; }
 
-		extensions.push_back(VK_KHR_MAINTENANCE1_EXTENSION_NAME); // for negative viewPort height
+//		extensions.push_back(VK_KHR_MAINTENANCE1_EXTENSION_NAME); // for negative viewPort height
 
 		auto checkGPU = [features, &extensions](vulkan::VulkanDevice* device) -> bool {
 			// device->gpuFeatures check (some hack :( )	
@@ -142,20 +142,39 @@ namespace vulkan {
 			return true;
 		};
 
+        constinit static std::array<uint8_t, 5> deviceTypePrioritets = {
+                4, // VK_PHYSICAL_DEVICE_TYPE_OTHER = 0
+                1, // VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU = 1
+                0, // VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU = 2
+                3, // VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU = 3
+                2  // VK_PHYSICAL_DEVICE_TYPE_CPU = 4
+        };
+
 		if (vk_physicalDevicesCount > 1) {
 			for (VkPhysicalDevice gpu : vk_physicalDevices) {
 				// check support features + extensions 
 				// get desired deviceType if exist and it ok
 				vulkan::VulkanDevice* condidate = new vulkan::VulkanDevice(gpu);
 				if (checkGPU(condidate)) {
-					if (_vulkanDevice) {
-						delete _vulkanDevice;
-						_vulkanDevice = nullptr;
-					}
-					_vulkanDevice = condidate;
 					if (condidate->gpuProperties.deviceType == deviceType) {
+                        if (_vulkanDevice) {
+                            delete _vulkanDevice;
+                        }
+
+                        _vulkanDevice = condidate;
 						break;
 					}
+
+                    if (_vulkanDevice == nullptr ||
+                        deviceTypePrioritets[_vulkanDevice->gpuProperties.deviceType] > deviceTypePrioritets[condidate->gpuProperties.deviceType]) {
+                        if (_vulkanDevice) {
+                            delete _vulkanDevice;
+                        }
+                        _vulkanDevice = condidate;
+                    } else {
+                        delete condidate;
+                    }
+
 				} else {
 					delete condidate;
 				}
@@ -517,10 +536,10 @@ namespace vulkan {
 			_globalDescriptorPools.push_back(pool);
 
 			//LOG_TAG_LEVEL(engine::LogLevel::L_CUSTOM, GRAPHICS, "VulkanRenderer allocate descriptorPool(maxSets = {}), descriptorPools size = {}", descriptorPoolInfo.maxSets, _globalDescriptorPools.size());
-			LOG_TAG_LEVEL(engine::LogLevel::L_CUSTOM, GRAPHICS, "VulkanRenderer allocate descriptorPool(maxSets = %d), descriptorPools size = %d", descriptorPoolInfo.maxSets, _globalDescriptorPools.size());
+            LOG_TAG_LEVEL(engine::LogLevel::L_CUSTOM, GRAPHICS, "VulkanRenderer allocate descriptorPool(maxSets = %d), descriptorPools size = %d", descriptorPoolInfo.maxSets, _globalDescriptorPools.size());
 		} else {
 			//LOG_TAG_LEVEL(engine::LogLevel::L_ERROR, GRAPHICS, "VulkanRenderer allocate descriptorPool(maxSets = {}), descriptorPools size = {} error: {}", descriptorPoolInfo.maxSets, _globalDescriptorPools.size(), result);
-			LOG_TAG_LEVEL(engine::LogLevel::L_ERROR, GRAPHICS, "VulkanRenderer allocate descriptorPool(maxSets = %d), descriptorPools size = %d error: %d", descriptorPoolInfo.maxSets, _globalDescriptorPools.size(), result);
+            LOG_TAG_LEVEL(engine::LogLevel::L_ERROR, GRAPHICS, "VulkanRenderer allocate descriptorPool(maxSets = %d), descriptorPools size = %d error: %d", descriptorPoolInfo.maxSets, _globalDescriptorPools.size(), result);
 		}
 
 		return result;
@@ -659,7 +678,7 @@ namespace vulkan {
 		}
 
 		if (result != VK_SUCCESS) {
-			LOG_TAG_LEVEL(engine::LogLevel::L_ERROR, GRAPHICS, "allocate descriptor set error: %d", result);
+            LOG_TAG_LEVEL(engine::LogLevel::L_ERROR, GRAPHICS, "allocate descriptor set error: %d", result);
 		}
 
 		return result;

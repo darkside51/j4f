@@ -20,6 +20,12 @@ std::string getCurrentDirectory() {
 	engine::stringReplace(result, "\\", "/");
 	return result;
 }
+#elif defined(j4f_PLATFORM_LINUX)
+std::string getCurrentDirectory() {
+    char buff[FILENAME_MAX];
+    getcwd( buff, FILENAME_MAX );
+    return std::string(buff) + "/";
+}
 #endif
 
 namespace engine {

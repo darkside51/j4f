@@ -139,7 +139,7 @@ namespace engine {
 			return loader;
 		}
 
-		template<typename T, typename ALP = typename AssetLoadingParams<typename raw_type_name<T>>, typename Callback = AssetLoadingCallback<T>>
+		template<typename T, typename ALP = AssetLoadingParams<raw_type_name<T>>, typename Callback = AssetLoadingCallback<T>>
 		inline T loadAsset(ALP&& params, Callback&& callback = nullptr) const {
 			if (const IAssetLoader* loader = getLoader<T>()) {
 				T value;

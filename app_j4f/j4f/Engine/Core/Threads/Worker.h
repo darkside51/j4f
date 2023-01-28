@@ -6,6 +6,7 @@
 #include <memory>
 #include <functional>
 #include <chrono>
+#include <condition_variable>
 
 #include "../../Log/Log.h"
 #include "Synchronisations.h"

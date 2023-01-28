@@ -1,7 +1,8 @@
 #pragma once
 
 #include <chrono>
-#include <time.h>
+#include <ctime>
+#include <cstdlib>
 
 namespace engine {
 
@@ -27,6 +28,7 @@ namespace engine {
 	}
 
 	inline uint64_t unixUTCTime() {
+#ifdef j4f_PLATFORM_WINDOWS
 		// https://stackoverflow.com/questions/20370920/convert-current-time-from-windows-to-unix-timestamp-in-c-or-c
 		// c++20 introduced a guarantee that time_since_epoch is relative to the UNIX epoch (but c++20)
 
@@ -37,5 +39,8 @@ namespace engine {
 		gmtime_s(&timeinfo, &ltime); /* Convert to UTC */
 
 		return static_cast<uint64_t>(mktime(&timeinfo));
+#elif defined(j4f_PLATFORM_LINUX)
+        return systemTime();
+#endif
 	}
 }

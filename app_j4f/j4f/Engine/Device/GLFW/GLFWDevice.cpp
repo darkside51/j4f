@@ -8,6 +8,11 @@
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 #include <vulkan/vulkan.h>
+#include <thread>
+
+#ifdef VK_USE_PLATFORM_XCB_KHR
+#include <dlfcn.h>
+#endif
 
 namespace engine {
 
@@ -52,7 +57,20 @@ namespace engine {
 #elif defined VK_USE_PLATFORM_WAYLAND_KHR
 			return false; // todo!
 #elif defined VK_USE_PLATFORM_XCB_KHR
-			return false; // todo!
+            using xcbConnectionGetter = xcb_connection_t* (*)(Display*);
+            auto x11handle = dlopen("libX11-xcb.so.1", RTLD_LAZY | RTLD_LOCAL);
+            auto getXCBConnection = (xcbConnectionGetter)dlsym(x11handle, "XGetXCBConnection");
+            xcb_connection_t* connection = getXCBConnection(glfwGetX11Display());
+            dlclose(x11handle);
+
+            VkXcbSurfaceCreateInfoKHR vk_surfaceInfo;
+            vk_surfaceInfo.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
+            vk_surfaceInfo.pNext = nullptr;
+            vk_surfaceInfo.flags = 0;
+            vk_surfaceInfo.connection = connection;
+            vk_surfaceInfo.window = glfwGetX11Window(_window);
+
+            return vkCreateXcbSurfaceKHR(*(static_cast<VkInstance*>(renderInstane)), &vk_surfaceInfo, nullptr, static_cast<VkSurfaceKHR*>(renderSurace));
 #elif defined VK_USE_PLATFORM_XLIB_KHR
 			return false; // todo!
 #endif
@@ -234,8 +252,17 @@ namespace engine {
 	}
 
 	GLFWDevice::~GLFWDevice() {
+        if (_window) {
+            glfwDestroyWindow(_window);
+            _window = nullptr;
+        }
+
+        if (_surfaceInitialiser) {
+            delete _surfaceInitialiser;
+            _surfaceInitialiser = nullptr;
+        }
+
 		glfwTerminate();
-		delete _surfaceInitialiser;
 	}
 
 	void GLFWDevice::setFullscreen(const bool fullscreen) {
@@ -290,10 +317,6 @@ namespace engine {
 	void GLFWDevice::stop() {
 		delete statObserver; // todo remove stat observer from this code
 		Engine::getInstance().deviceDestroyed();
-		if (_window) {
-			glfwDestroyWindow(_window);
-		}
-
-		Engine::getInstance().destroy();		
+		Engine::getInstance().destroy();
 	}
 }

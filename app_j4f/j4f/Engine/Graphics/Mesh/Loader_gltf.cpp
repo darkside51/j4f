@@ -82,7 +82,7 @@ namespace gltf {
 			biggestIndex = 3;
 		}
 
-		const float biggestVal = std::sqrtf(fourBiggestSquaredMinus1 + 1.0f) * 0.5f;
+		const float biggestVal = sqrtf(fourBiggestSquaredMinus1 + 1.0f) * 0.5f;
 		const float mult = 0.25f / biggestVal;
 
 		vec4 r;
@@ -151,9 +151,9 @@ namespace gltf {
 			matrix[2][0] = (*matrixJs)[8]; matrix[2][1] = (*matrixJs)[9]; matrix[2][2] = (*matrixJs)[10]; matrix[2][3] = (*matrixJs)[11];
 			matrix[3][0] = (*matrixJs)[12]; matrix[3][1] = (*matrixJs)[13]; matrix[3][2] = (*matrixJs)[14]; matrix[3][3] = (*matrixJs)[15];
 
-			node.scale.x = std::sqrtf(matrix[0][0] * matrix[0][0] + matrix[0][1] * matrix[0][1] + matrix[0][2] * matrix[0][2]);
-			node.scale.y = std::sqrtf(matrix[1][0] * matrix[1][0] + matrix[1][1] * matrix[1][1] + matrix[1][2] * matrix[1][2]);
-			node.scale.z = std::sqrtf(matrix[2][0] * matrix[2][0] + matrix[2][1] * matrix[2][1] + matrix[2][2] * matrix[2][2]);
+			node.scale.x = sqrtf(matrix[0][0] * matrix[0][0] + matrix[0][1] * matrix[0][1] + matrix[0][2] * matrix[0][2]);
+			node.scale.y = sqrtf(matrix[1][0] * matrix[1][0] + matrix[1][1] * matrix[1][1] + matrix[1][2] * matrix[1][2]);
+			node.scale.z = sqrtf(matrix[2][0] * matrix[2][0] + matrix[2][1] * matrix[2][1] + matrix[2][2] * matrix[2][2]);
 
 			node.translation.x = matrix[3][0];
 			node.translation.y = matrix[3][1];

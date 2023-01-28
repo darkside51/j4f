@@ -96,8 +96,8 @@ namespace engine {
 		Graphics* _graphics = nullptr;
 		Application* _application = nullptr;
 		Looper* _looper = nullptr;
-		std::unique_ptr<WorkerThread> _renderThread = nullptr;
-		std::unique_ptr<WorkerThread> _updateThread = nullptr;
+		std::unique_ptr<WorkerThread> _renderThread;
+		std::unique_ptr<WorkerThread> _updateThread;
 
 		float _gameTimeMultiply = 1.0f;
 	};

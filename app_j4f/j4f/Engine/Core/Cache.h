@@ -49,7 +49,7 @@ namespace engine {
 
 		template <typename KEY = K, typename F, typename ...Args>
 		inline const V& getValueOrCreate(KEY&& key, F&& f, Args&&... args) {
-			if (auto value = _map.getValue(key)) {
+			if (auto& value = _map.getValue(key)) {
 				return value;
 			} else {
 				return _map.getOrCreate(key, std::forward<F>(f), std::forward<Args>(args)...);
@@ -65,7 +65,7 @@ namespace engine {
 		~CacheManager() = default;
 
 		template<typename K, typename V>
-		inline bool hasCache() const {
+		inline bool hasCache() {
 			using key_type = no_const_no_reference_type<K>;
 			const uint16_t key = getUniqueIdTypes<key_type, V>();
 			return _caches.hasValue(key);
@@ -101,7 +101,7 @@ namespace engine {
 		inline auto load(K&& key, F&& f, Args&&... args) {
 			using key_type = no_const_no_reference_type<K>;
 			Cache<key_type, V>* cache = getCache<key_type, V>();
-			return cache->getValueOrCreate(std::forward<K>(key), std::forward<F>(f), std::forward<Args>(args)...);
+            return cache->getValueOrCreate(std::forward<K>(key), std::forward<F>(f), std::forward<Args>(args)...);
 		}
 
 	private:

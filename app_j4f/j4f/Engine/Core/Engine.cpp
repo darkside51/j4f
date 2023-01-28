@@ -24,7 +24,7 @@
 
 namespace engine {
 
-	Engine::Engine() {
+	Engine::Engine() : _renderThread(nullptr), _updateThread(nullptr) {
 #ifdef _DEBUG
 		enableMemoryLeaksDebugger();
 #endif
@@ -46,8 +46,8 @@ namespace engine {
 		setModule<FileManager>();
 		setModule<AssetManager>(2);
 		setModule<Input>();
+        setModule<Graphics>(cfg.graphicsCfg);
 		setModule<Device>();
-		setModule<Graphics>(cfg.graphicsCfg);
 		setModule<Bus>();
 		
 		_statistic = getModule<Statistic>();

@@ -62,19 +62,19 @@ namespace engine {
     }
 
     inline bool compare(const glm::vec2& v1, const glm::vec2& v2, const float eps) noexcept {
-        return (std::fabsf(v1.x - v2.x) > eps) || (std::fabsf(v1.y - v2.y) > eps);
+        return (fabsf(v1.x - v2.x) > eps) || (fabsf(v1.y - v2.y) > eps);
     }
 
     inline bool compare(const glm::vec3& v1, const glm::vec3& v2, const float eps) noexcept {
-        return (std::fabsf(v1.x - v2.x) > eps) || (std::fabsf(v1.y - v2.y) > eps) || (std::fabsf(v1.z - v2.z) > eps);
+        return (fabsf(v1.x - v2.x) > eps) || (fabsf(v1.y - v2.y) > eps) || (fabsf(v1.z - v2.z) > eps);
     }
 
     inline bool compare(const glm::vec4& v1, const glm::vec4& v2, const float eps) noexcept {
-        return (std::fabsf(v1.x - v2.x) > eps) || (std::fabsf(v1.y - v2.y) > eps) || (std::fabsf(v1.z - v2.z) > eps) || (std::fabsf(v1.w - v2.w) > eps);
+        return (fabsf(v1.x - v2.x) > eps) || (fabsf(v1.y - v2.y) > eps) || (fabsf(v1.z - v2.z) > eps) || (fabsf(v1.w - v2.w) > eps);
     }
 
     inline bool compare(const glm::quat& q1, const glm::quat& q2, const float eps) noexcept {
-        return (std::fabsf(q1.w - q2.w) > eps) || (std::fabsf(q1.x - q2.x) > eps) || (std::fabsf(q1.y - q2.y) > eps) || (std::fabsf(q1.z - q2.z) > eps);
+        return (fabsf(q1.w - q2.w) > eps) || (fabsf(q1.x - q2.x) > eps) || (fabsf(q1.y - q2.y) > eps) || (fabsf(q1.z - q2.z) > eps);
     }
 
     enum class RotationsOrder : uint8_t {

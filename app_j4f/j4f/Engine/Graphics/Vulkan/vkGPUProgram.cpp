@@ -2,7 +2,7 @@
 #include "vkGPUProgram.h"
 #include "vkDevice.h"
 #include "vkHelper.h"
-#include "VkRenderer.h"
+#include "vkRenderer.h"
 #include "vkDebugMarker.h"
 
 #include "../../Core/Cache.h"
