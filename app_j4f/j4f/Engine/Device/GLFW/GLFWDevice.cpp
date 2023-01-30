@@ -4,6 +4,7 @@
 #include "../../Core/Engine.h"
 #include "../../Input/Input.h"
 #include "../../Utils/Statistic.h"
+#include "../../Log/Log.h"
 
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
@@ -93,16 +94,18 @@ namespace engine {
 		GLFWwindow* _window = nullptr;
 	};
 
-	void glfwOnWindowResize(GLFWwindow*, int w, int h) {
+	void glfwOnWindowResize(GLFWwindow* window, int w, int h) {
+//        LOG_TAG_LEVEL(LogLevel::L_MESSAGE, DEVICE, "resize %d x %d", w, h);
 		const uint16_t uw = static_cast<uint16_t>(w);
 		const uint16_t uh = static_cast<uint16_t>(h);
 		Engine::getInstance().getModule<GLFWDevice>()->setSize(uw, uh);
 	}
 
 	void glfwOnFrameBufferResize(GLFWwindow*, int w, int h) {
-		//const uint16_t uw = static_cast<uint16_t>(w);
-		//const uint16_t uh = static_cast<uint16_t>(h);
-		//Engine::getInstance().getModule<GLFWDevice>()->setSize(uw, uh);
+//        LOG_TAG_LEVEL(LogLevel::L_MESSAGE, DEVICE, "resize %d x %d", w, h);
+		const uint16_t uw = static_cast<uint16_t>(w);
+		const uint16_t uh = static_cast<uint16_t>(h);
+		Engine::getInstance().getModule<GLFWDevice>()->setSize(uw, uh);
 	}
 
 	void glfwOnWindowIconify(GLFWwindow*, int iconified) {
@@ -246,8 +249,8 @@ namespace engine {
 		_window = glfwCreateWindow(_width, _height, "j4f (vulkan)", nullptr, nullptr);
 		//_window = glfwCreateWindow(_width, _height, "j4f (vulkan)", monitor, nullptr);
 
-		//glfwSetFramebufferSizeCallback(_window, &glfwOnFrameBufferResize);
-		glfwSetWindowSizeCallback(_window, &glfwOnWindowResize);
+		glfwSetFramebufferSizeCallback(_window, &glfwOnFrameBufferResize);
+		//glfwSetWindowSizeCallback(_window, &glfwOnWindowResize);
 		glfwSetWindowIconifyCallback(_window, &glfwOnWindowIconify);
 
 		// input callbacks
@@ -313,9 +316,10 @@ namespace engine {
 		while (!glfwWindowShouldClose(_window)) {
 			//if (_width != 0 && _height != 0) {
 				//Engine::getInstance().nextFrame();
-			//} 
-			std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(pollEventsDeltaTimeMilliseconds));
-			glfwPollEvents();
+			//}
+            //glfwPollEvents();
+            glfwWaitEvents();
+            std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(pollEventsDeltaTimeMilliseconds));
 		}
 
 		stop();

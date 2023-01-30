@@ -6,14 +6,14 @@ namespace engine {
 	class ApplicationCustomData;
 	class Application {
 	public:
-		Application();
+		Application() noexcept;
 		~Application() { freeCustomData(); }
 		void update(const float delta);
 		void nextFrame(const float delta);
 		void resize(const uint16_t w, const uint16_t h);
 		void deviceDestroyed() { freeCustomData(); }
-		void freeCustomData();
 	private:
+        void freeCustomData();
 		ApplicationCustomData* _customData = nullptr;
 	};
 

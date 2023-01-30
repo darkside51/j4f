@@ -38,7 +38,8 @@ namespace vulkan {
 		void connect(VkInstance instance, VulkanDevice* vkDevice, const engine::IRenderSurfaceInitialiser* initialiser);
 
 		inline VkResult acquireNextImage(VkSemaphore presentCompleteSemaphore, uint32_t* imageIndex) {
-			return vkAcquireNextImageKHR(_device, swapChain, UINT64_MAX, presentCompleteSemaphore, (VkFence)nullptr, imageIndex);
+			return vkAcquireNextImageKHR(_device, swapChain, UINT64_MAX,
+                                         presentCompleteSemaphore, nullptr, imageIndex);
 		}
 
 		inline VkResult queuePresent(VkQueue queue, uint32_t imageIndex, VkSemaphore waitSemaphore = VK_NULL_HANDLE) {
@@ -55,7 +56,7 @@ namespace vulkan {
 			return vkQueuePresentKHR(queue, &_presentInfo);
 		}
 
-		void resize(uint32_t width, uint32_t height, const bool vsync = false);
+		void resize(const uint32_t width, const uint32_t height, const bool vsync = false);
 
 		inline void clear() {
 			if (swapChain != VK_NULL_HANDLE) {

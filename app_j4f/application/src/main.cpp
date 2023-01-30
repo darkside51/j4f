@@ -2251,7 +2251,7 @@ namespace engine {
 
 	};
 
-	Application::Application() {
+	Application::Application() noexcept {
 		_customData = new ApplicationCustomData();
 	}
 

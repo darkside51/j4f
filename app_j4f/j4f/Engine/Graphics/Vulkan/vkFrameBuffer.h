@@ -52,7 +52,7 @@ namespace vulkan {
 
 		VulkanFrameBuffer(VulkanDevice* vulkanDevice, const uint32_t w, const uint32_t h,
 			const uint32_t layers, VkRenderPass renderPass,
-			const VkImageView* imageViews, const uint32_t imageViewsCount, const VkAllocationCallbacks* pAllocator = nullptr) :
+			const VkImageView* imageViews, const uint32_t imageViewsCount, const VkAllocationCallbacks* pAllocator = nullptr, VkResult* result = nullptr) :
 			m_vulkanDevice(vulkanDevice), m_allocator(pAllocator) {
 			VkFramebufferCreateInfo frameBufferCreateInfo = {};
 			frameBufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -64,7 +64,11 @@ namespace vulkan {
 			frameBufferCreateInfo.height = h;
 			frameBufferCreateInfo.layers = layers;
 			// create the framebuffer
-			vkCreateFramebuffer(m_vulkanDevice->device, &frameBufferCreateInfo, m_allocator, &m_framebuffer);
+            if (result) {
+                *result = vkCreateFramebuffer(m_vulkanDevice->device, &frameBufferCreateInfo, m_allocator, &m_framebuffer);
+            } else {
+                vkCreateFramebuffer(m_vulkanDevice->device, &frameBufferCreateInfo, m_allocator, &m_framebuffer);
+            }
 		}
 
 		/*VulkanFrameBuffer(VulkanDevice* vulkanDevice, const uint32_t w, const uint32_t h,

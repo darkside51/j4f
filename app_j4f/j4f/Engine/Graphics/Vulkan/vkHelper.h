@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
+#include <vulkan/vk_enum_string_helper.h>
 #include <vector>
 #include <cstdint>
 #include <assert.h>
@@ -96,9 +97,17 @@ namespace vulkan {
 		vkDestroyFence(device, fence, pAllocator);
 	}
 
-	inline void waitFenceAndReset(VkDevice device, const VkFence& fence, VkBool32 waitAll = VK_TRUE) {
-		vkWaitForFences(device, 1, &fence, waitAll, UINT64_MAX);
-		vkResetFences(device, 1, &fence);
+	inline VkResult waitFenceAndReset(VkDevice device, const VkFence& fence, VkBool32 waitAll = VK_TRUE) {
+		const VkResult waitResult = vkWaitForFences(device, 1, &fence, waitAll, UINT64_MAX);
+
+        switch (waitResult) {
+            case VK_SUCCESS:
+                break;
+            default:
+                return waitResult;
+        }
+
+		return vkResetFences(device, 1, &fence);
 	}
 
 	inline VkWriteDescriptorSet initWriteDescriptorSet(VkDescriptorType type, const uint32_t count, const uint32_t binding, VkDescriptorSet targetSet, const void* descriptor, const uint32_t targetElement = 0) {

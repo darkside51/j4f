@@ -539,7 +539,7 @@ namespace vulkan {
             LOG_TAG_LEVEL(engine::LogLevel::L_CUSTOM, GRAPHICS, "VulkanRenderer allocate descriptorPool(maxSets = %d), descriptorPools size = %d", descriptorPoolInfo.maxSets, _globalDescriptorPools.size());
 		} else {
 			//LOG_TAG_LEVEL(engine::LogLevel::L_ERROR, GRAPHICS, "VulkanRenderer allocate descriptorPool(maxSets = {}), descriptorPools size = {} error: {}", descriptorPoolInfo.maxSets, _globalDescriptorPools.size(), result);
-            LOG_TAG_LEVEL(engine::LogLevel::L_ERROR, GRAPHICS, "VulkanRenderer allocate descriptorPool(maxSets = %d), descriptorPools size = %d error: %d", descriptorPoolInfo.maxSets, _globalDescriptorPools.size(), result);
+            LOG_TAG_LEVEL(engine::LogLevel::L_ERROR, GRAPHICS, "VulkanRenderer allocate descriptorPool(maxSets = %d), descriptorPools size = %d error: %s", descriptorPoolInfo.maxSets, _globalDescriptorPools.size(), string_VkResult(result));
 		}
 
 		return result;
@@ -678,7 +678,7 @@ namespace vulkan {
 		}
 
 		if (result != VK_SUCCESS) {
-            LOG_TAG_LEVEL(engine::LogLevel::L_ERROR, GRAPHICS, "allocate descriptor set error: %d", result);
+            LOG_TAG_LEVEL(engine::LogLevel::L_ERROR, GRAPHICS, "allocate descriptor set error: %s", string_VkResult(result));
 		}
 
 		return result;
@@ -842,7 +842,15 @@ namespace vulkan {
 
 			for (size_t i = 0; i < _swapchainImagesCount; ++i) {
 				attachments[0] = _swapChain.images[i].view; // color attachment is the view of the swapchain image
-				_frameBuffers.emplace_back(_vulkanDevice, _width, _height, 1, _mainRenderPass, attachments.data(), attachments.size());
+                VkResult result;
+				_frameBuffers.emplace_back(_vulkanDevice, _width, _height, 1,
+                                           _mainRenderPass, attachments.data(),
+                                           attachments.size(), nullptr,
+                                           &result);
+
+                if (result != VK_SUCCESS) {
+                    LOG_TAG_LEVEL(engine::LogLevel::L_ERROR, GRAPHICS, "VulkanRenderer: VulkanFrameBuffer create result = %s", string_VkResult(result));
+                }
 			}
 
 			// createCommandBuffers
@@ -873,7 +881,10 @@ namespace vulkan {
 
 	void VulkanRenderer::beginFrame() {
 		// use a fence to wait until the command buffer has finished execution before using it again
-		vulkan::waitFenceAndReset(_vulkanDevice->device, _waitFences[_currentFrame].fence);
+		if (auto result = vulkan::waitFenceAndReset(_vulkanDevice->device, _waitFences[_currentFrame].fence); result != VK_SUCCESS) {
+            LOG_TAG_LEVEL(engine::LogLevel::L_ERROR, GRAPHICS, "VulkanRenderer: waitFenceAndReset result = %s", string_VkResult(result));
+            return;
+        }
 
 		if (_mainSupportCommandBuffers[_currentFrame].begin() == VK_SUCCESS) {
 			for (auto it = _dinamicGPUBuffers.begin(); it != _dinamicGPUBuffers.end(); ++it) {
@@ -882,7 +893,6 @@ namespace vulkan {
 
 			// clear tmp frame data
 			if (!_tmpBuffers.empty()) {
-
 				std::vector<VulkanBuffer*> tmpBuffers;
 				//std::vector<std::pair<VulkanTexture*, VulkanBuffer*>> defferedTextureToGenerate;
 				std::vector<std::tuple<VulkanTexture*, VulkanBuffer*, uint32_t, uint32_t>> defferedTextureToGenerate;
@@ -901,7 +911,6 @@ namespace vulkan {
 					addTmpBuffer(buffer);
 				}
 			}
-
 		}
 	}
 
@@ -910,13 +919,14 @@ namespace vulkan {
 
 		uint32_t aciquireImageIndex = 0;
 		const VkResult result = _swapChain.acquireNextImage(_presentCompleteSemaphores[_currentFrame].semaphore, &aciquireImageIndex);
-		if (result != VK_SUCCESS) { // acquire failed - skip this frame to present
+		if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) { // acquire failed - skip this frame to present
 			const VkResult fenceStatus = vkGetFenceStatus(_vulkanDevice->device, _waitFences[_currentFrame].fence);
 			if (fenceStatus != VK_SUCCESS) {
 				_waitFences[_currentFrame].destroy();
 				_waitFences[_currentFrame] = vulkan::VulkanFence(_vulkanDevice->device, VK_FENCE_CREATE_SIGNALED_BIT);
 			}
 			_currentFrame = (_currentFrame + 1) % _swapchainImagesCount;
+            LOG_TAG_LEVEL(engine::LogLevel::L_ERROR, GRAPHICS, "VulkanRenderer: swapChain acquireNextImage result = %s", string_VkResult(result));
 			return;
 		}
 
@@ -925,15 +935,27 @@ namespace vulkan {
 		submitInfos[0] = _mainSupportCommandBuffers.prepareToSubmit(_currentFrame);
 		submitInfos[1] = _mainRenderCommandBuffers.prepareToSubmit(_currentFrame);
 
-		vkQueueSubmit(_mainQueue, 2, &submitInfos[0], _waitFences[_currentFrame].fence);
+        const VkResult queueResult = vkQueueSubmit(_mainQueue, 2, &submitInfos[0], _waitFences[_currentFrame].fence);
 
-		// present the current buffer to the swap chain
-		// pass the semaphore signaled by the command buffer submission from the submit info as the wait semaphore for swap chain presentation
-		// this ensures that the image is not presented to the windowing system until all commands have been submitted
-		VkResult present = _swapChain.queuePresent(_presentQueue, aciquireImageIndex, _mainRenderCommandBuffers.m_completeSemaphores[_currentFrame].semaphore);
-		if (!((present == VK_SUCCESS) || (present == VK_SUBOPTIMAL_KHR))) {
-			//VK_CHECK_RESULT(present);
-		}
+        switch (queueResult) {
+            case VK_ERROR_DEVICE_LOST:
+                LOG_TAG_LEVEL(engine::LogLevel::L_ERROR, GRAPHICS, "VulkanRenderer: device lost!!!!");
+                return;
+            default:
+                LOG_TAG_LEVEL(engine::LogLevel::L_ERROR, GRAPHICS, "VulkanRenderer: vkQueueSubmit result = %s", string_VkResult(queueResult));
+            case VK_SUCCESS:
+            {
+                // present the current buffer to the swap chain
+                // pass the semaphore signaled by the command buffer submission from the submit info as the wait semaphore for swap chain presentation
+                // this ensures that the image is not presented to the windowing system until all commands have been submitted
+                const VkResult presentResult = _swapChain.queuePresent(_presentQueue, aciquireImageIndex,
+                                                                       _mainRenderCommandBuffers.m_completeSemaphores[_currentFrame].semaphore);
+                if (!((presentResult == VK_SUCCESS) || (presentResult == VK_SUBOPTIMAL_KHR))) {
+                    LOG_TAG_LEVEL(engine::LogLevel::L_ERROR, GRAPHICS, "VulkanRenderer: _swapChain queuePresent = %s", string_VkResult(presentResult));
+                }
+            }
+                break;
+        }
 
 		_currentFrame = (_currentFrame + 1) % _swapchainImagesCount;
 	}

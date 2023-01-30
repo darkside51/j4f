@@ -47,7 +47,7 @@ namespace vulkan {
 		}
 	}
 
-	void VulkanSwapChain::resize(uint32_t width, uint32_t height, const bool vsync) {
+	void VulkanSwapChain::resize(const uint32_t width, const uint32_t height, const bool vsync) {
 		const bool isPresentSupport = _vkDevice->checkPresentSupport(surface);
 		assert(isPresentSupport);
 
@@ -65,10 +65,11 @@ namespace vulkan {
 		std::vector<VkPresentModeKHR> presentModes(presentModeCount);
 		vkGetPhysicalDeviceSurfacePresentModesKHR(_physicalDevice, surface, &presentModeCount, &presentModes[0]);
 
-		const uint32_t fixedWidth = std::max(surfCaps.minImageExtent.width, std::min(width, surfCaps.maxImageExtent.width));
-		const uint32_t fixedHeight = std::max(surfCaps.minImageExtent.height, std::min(height, surfCaps.maxImageExtent.height));
-
-		VkExtent2D swapchainExtent = { fixedWidth , fixedHeight };
+		//const uint32_t fixedWidth = std::max(surfCaps.minImageExtent.width, std::min(width, surfCaps.maxImageExtent.width));
+		//const uint32_t fixedHeight = std::max(surfCaps.minImageExtent.height, std::min(height, surfCaps.maxImageExtent.height));
+		//const VkExtent2D swapchainExtent = { fixedWidth , fixedHeight };
+        // hmm...
+        const VkExtent2D swapchainExtent = { width, height };
 
 		// select a present mode for the swapchain
 
@@ -112,7 +113,7 @@ namespace vulkan {
 		// find a supported composite alpha format (not all devices support alpha opaque)
 		VkCompositeAlphaFlagBitsKHR compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 		// select the first composite alpha format available
-		const std::vector<VkCompositeAlphaFlagBitsKHR> compositeAlphaFlags = {
+		const std::array<VkCompositeAlphaFlagBitsKHR, 4> compositeAlphaFlags = {
 			VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
 			VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR,
 			VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR,
@@ -134,7 +135,7 @@ namespace vulkan {
 		swapchainCI.minImageCount = desiredSwapchainImagesCount;
 		swapchainCI.imageFormat = colorFormat;
 		swapchainCI.imageColorSpace = colorSpace;
-		swapchainCI.imageExtent = {swapchainExtent.width, swapchainExtent.height};
+		swapchainCI.imageExtent = swapchainExtent;
 		swapchainCI.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 		swapchainCI.preTransform = static_cast<VkSurfaceTransformFlagBitsKHR>(preTransform);
 		swapchainCI.imageArrayLayers = 1;
@@ -147,7 +148,7 @@ namespace vulkan {
 		// setting clipped to VK_TRUE allows the implementation to discard rendering outside of the surface area
 		swapchainCI.clipped = VK_TRUE;
 		swapchainCI.compositeAlpha = compositeAlpha;
-		
+
 		// enable transfer source on swap chain images if supported ???????????????????????
 		if (surfCaps.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_SRC_BIT) {
 			swapchainCI.imageUsage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
