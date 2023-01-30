@@ -29,8 +29,8 @@ namespace engine {
 		vertexDescription.attributesCount = static_cast<uint32_t>(vertexInputAttributs.size());
 		vertexDescription.attributes = vertexInputAttributs.data();
 
-		VulkanPrimitiveTopology primitiveTopology = { TRIANGLE_LIST , false };
-		VulkanRasterizationState rasterisation(CULL_MODE_NONE, POLYGON_MODE_FILL);
+		VulkanPrimitiveTopology primitiveTopology = { PrimitiveTopology::TRIANGLE_LIST , false };
+		VulkanRasterizationState rasterisation(CullMode::CULL_MODE_NONE, PoligonMode::POLYGON_MODE_FILL);
 		VulkanDepthState depthState(true, true, VK_COMPARE_OP_LESS);
 		VulkanStencilState stencilState(false);
 
@@ -344,9 +344,9 @@ namespace engine {
 			for (uint32_t i = 1; i < 8; ++i) { frustumCenter += frustumCorners[i]; }
 			frustumCenter /= 8.0f;
 
-			// для вычисления радиуса достаточно взять наибольшее расстояние от центра до вершин пирамиды
-			// т.к. пирамида расширяется, а оп построению frustumCenter в середине - до достаточно взять расстояние
-			// от центра до последней вершины пирамиды
+			// пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+			// пїЅ.пїЅ. пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ frustumCenter пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ - пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+			// пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 			const float radius = vec_length(frustumCorners[7] - frustumCenter) * _frustumRadiusLambda;
 
 			glm::mat4 lightViewMatrix = glm::lookAt(frustumCenter - _lightDirection * radius * _cascadeLigthLambda, frustumCenter, glm::vec3(0.0f, 1.0f, 0.0f));

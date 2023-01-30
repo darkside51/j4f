@@ -53,13 +53,15 @@ namespace engine {
 			vk_surfaceInfo.hinstance = GetModuleHandle(nullptr);
 			vk_surfaceInfo.hwnd = glfwGetWin32Window(_window);
 
-			return vkCreateWin32SurfaceKHR(*(static_cast<VkInstance*>(renderInstane)), &vk_surfaceInfo, nullptr, static_cast<VkSurfaceKHR*>(renderSurace)) == VK_SUCCESS;
+			return vkCreateWin32SurfaceKHR(*(static_cast<VkInstance*>(renderInstane)), &vk_surfaceInfo,
+                                           nullptr, static_cast<VkSurfaceKHR*>(renderSurace)) == VK_SUCCESS;
 #elif defined VK_USE_PLATFORM_WAYLAND_KHR
+            // https://github.com/googlesamples/vulkan-basic-samples/blob/master/Sample-Programs/Hologram/ShellWayland.cpp
 			return false; // todo!
 #elif defined VK_USE_PLATFORM_XCB_KHR
             using xcbConnectionGetter = xcb_connection_t* (*)(Display*);
             auto x11handle = dlopen("libX11-xcb.so.1", RTLD_LAZY | RTLD_LOCAL);
-            auto getXCBConnection = (xcbConnectionGetter)dlsym(x11handle, "XGetXCBConnection");
+            auto getXCBConnection = reinterpret_cast<xcbConnectionGetter>(dlsym(x11handle, "XGetXCBConnection"));
             xcb_connection_t* connection = getXCBConnection(glfwGetX11Display());
             dlclose(x11handle);
 
@@ -70,9 +72,18 @@ namespace engine {
             vk_surfaceInfo.connection = connection;
             vk_surfaceInfo.window = glfwGetX11Window(_window);
 
-            return vkCreateXcbSurfaceKHR(*(static_cast<VkInstance*>(renderInstane)), &vk_surfaceInfo, nullptr, static_cast<VkSurfaceKHR*>(renderSurace));
+            return vkCreateXcbSurfaceKHR(*(static_cast<VkInstance*>(renderInstane)), &vk_surfaceInfo,
+                                         nullptr, static_cast<VkSurfaceKHR*>(renderSurace));
 #elif defined VK_USE_PLATFORM_XLIB_KHR
-			return false; // todo!
+            VkXlibSurfaceCreateInfoKHR vk_surfaceInfo;
+            vk_surfaceInfo.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
+            vk_surfaceInfo.pNext = nullptr;
+            vk_surfaceInfo.flags = 0;
+            vk_surfaceInfo.dpy = glfwGetX11Display();
+            vk_surfaceInfo.window = glfwGetX11Window(_window);
+
+			return vkCreateXlibSurfaceKHR(*(static_cast<VkInstance*>(renderInstane)), &vk_surfaceInfo,
+                                          nullptr, static_cast<VkSurfaceKHR*>(renderSurace));
 #endif
 		}
 

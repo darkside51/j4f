@@ -30,7 +30,7 @@ namespace engine {
 
 namespace vulkan {
 
-	enum PrimitiveTopology : uint8_t {
+	enum class PrimitiveTopology : uint8_t {
 		POINT_LIST = 0,
 		LINE_LIST = 1,
 		LINE_STRIP = 2,
@@ -44,25 +44,25 @@ namespace vulkan {
 		PATCH_LIST = 10
 	};
 
-	enum PoligonMode : uint8_t {
+	enum class PoligonMode : uint8_t {
 		POLYGON_MODE_FILL = 0,
 		POLYGON_MODE_LINE = 1,
 		POLYGON_MODE_POINT = 2
 	};
 
-	enum CullMode : uint8_t {
+	enum class CullMode : uint8_t {
 		CULL_MODE_NONE = 0,
 		CULL_MODE_FRONT = 1,
 		CULL_MODE_BACK = 2,
 		CULL_MODE_FRONT_AND_BACK = 3
 	};
 
-	enum FaceOrientation : uint8_t {
+	enum class FaceOrientation : uint8_t {
 		FACE_COUNTER_CLOCKWISE = 0,
 		FACE_CLOCKWISE = 1
 	};
 
-	enum BlendFactor : uint8_t {
+	enum class BlendFactor : uint8_t {
 		BLEND_FACTOR_ZERO = 0,
 		BLEND_FACTOR_ONE = 1,
 		BLEND_FACTOR_SRC_COLOR = 2,
@@ -76,7 +76,7 @@ namespace vulkan {
 		BLEND_FACTOR_SRC_ALPHA_SATURATE = 10
 	};
 
-	enum BlendFunction : uint8_t {
+	enum class BlendFunction : uint8_t {
 		BLEND_FUNC_ADD = 0,
 		BLEND_FUNC_MIN = 1,
 		BLEND_FUNC_MAX = 2,
@@ -97,7 +97,10 @@ namespace vulkan {
 		FaceOrientation faceOrientation : 1;
 		bool discardEnable : 1;
 
-		VulkanRasterizationState(CullMode cm, PoligonMode pm = POLYGON_MODE_FILL, FaceOrientation fo = FACE_COUNTER_CLOCKWISE, bool depthClampOn = false, bool discardOn = false, bool depthBiasOn = false) :
+		VulkanRasterizationState(CullMode cm, PoligonMode pm = PoligonMode::POLYGON_MODE_FILL,
+                                 FaceOrientation fo = FaceOrientation::FACE_COUNTER_CLOCKWISE,
+                                 bool depthClampOn = false, bool discardOn = false,
+                                 bool depthBiasOn = false) :
 			poligonMode(pm), cullmode(cm), faceOrientation(fo), discardEnable(discardOn) { }
 
 		inline VkPipelineRasterizationStateCreateInfo rasterisationInfo() const {
@@ -105,9 +108,9 @@ namespace vulkan {
 			rasterizationState.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 			rasterizationState.lineWidth = 1.0f;
 
-			rasterizationState.polygonMode = VkPolygonMode(poligonMode);
-			rasterizationState.cullMode = VkCullModeFlags(cullmode);
-			rasterizationState.frontFace = VkFrontFace(faceOrientation);
+			rasterizationState.polygonMode = static_cast<VkPolygonMode>(poligonMode);
+			rasterizationState.cullMode = static_cast<VkCullModeFlags>(cullmode);
+			rasterizationState.frontFace = static_cast<VkFrontFace>(faceOrientation);
 			rasterizationState.rasterizerDiscardEnable = discardEnable;
 
 			rasterizationState.depthClampEnable = VK_FALSE;
@@ -119,7 +122,10 @@ namespace vulkan {
 			return rasterizationState;
 		}
 
-		inline uint8_t operator()() const { return (poligonMode << 0) | (cullmode << 2) | (faceOrientation << 4) | (discardEnable << 5); } // 6 bit
+		inline uint8_t operator()() const { return (static_cast<uint8_t>(poligonMode) << 0) |
+                                                    (static_cast<uint8_t>(cullmode) << 2) |
+                                                    (static_cast<uint8_t>(faceOrientation) << 4) |
+                                                    (static_cast<uint8_t>(discardEnable) << 5); } // 6 bit
 	};
 
 	struct BlendParameters {
@@ -131,76 +137,60 @@ namespace vulkan {
 		uint8_t srcAlphaBlendFactor : 5;
 		uint8_t dstAlphaBlendFactor : 5;
 
-		BlendParameters(uint8_t useBlending, BlendFactor srcColor, BlendFactor dstColor, BlendFactor srcAlpha, BlendFactor dstAlpha, BlendFunction rgbFunction, BlendFunction alphaFunction) :
+        constexpr BlendParameters(const uint8_t useBlending, const BlendFactor srcColor, const BlendFactor dstColor,
+                        const BlendFactor srcAlpha, const BlendFactor dstAlpha,
+                        const BlendFunction rgbFunction, const BlendFunction alphaFunction) :
 			useBlending(useBlending),
-			blendFunctionRGB(rgbFunction),
-			blendFunctionAlpha(alphaFunction),
-			srcBlendFactor(srcColor),
-			dstBlendFactor(dstColor),
-			srcAlphaBlendFactor(srcAlpha),
-			dstAlphaBlendFactor(dstAlpha) {}
+			blendFunctionRGB(static_cast<uint8_t>(rgbFunction)),
+			blendFunctionAlpha(static_cast<uint8_t>(alphaFunction)),
+			srcBlendFactor(static_cast<uint8_t>(srcColor)),
+			dstBlendFactor(static_cast<uint8_t>(dstColor)),
+			srcAlphaBlendFactor(static_cast<uint8_t>(srcAlpha)),
+			dstAlphaBlendFactor(static_cast<uint8_t>(dstAlpha)) {}
 
-		BlendParameters(BlendFactor srcColor, BlendFactor dstColor, BlendFactor srcAlpha, BlendFactor dstAlpha) :
+        constexpr BlendParameters(const BlendFactor srcColor, const BlendFactor dstColor,
+                        const BlendFactor srcAlpha, const BlendFactor dstAlpha) :
 			useBlending(1),
-			blendFunctionRGB(BLEND_FUNC_ADD),
-			blendFunctionAlpha(BLEND_FUNC_ADD),
-			srcBlendFactor(srcColor),
-			dstBlendFactor(dstColor),
-			srcAlphaBlendFactor(srcAlpha),
-			dstAlphaBlendFactor(dstAlpha) {}
+			blendFunctionRGB(static_cast<uint8_t>(BlendFunction::BLEND_FUNC_ADD)),
+			blendFunctionAlpha(static_cast<uint8_t>(BlendFunction::BLEND_FUNC_ADD)),
+			srcBlendFactor(static_cast<uint8_t>(srcColor)),
+			dstBlendFactor(static_cast<uint8_t>(dstColor)),
+			srcAlphaBlendFactor(static_cast<uint8_t>(srcAlpha)),
+			dstAlphaBlendFactor(static_cast<uint8_t>(dstAlpha)) {}
 
-		BlendParameters(BlendFactor src, BlendFactor dst) :
+        constexpr BlendParameters(const BlendFactor src, const BlendFactor dst) :
 			useBlending(1),
-			blendFunctionRGB(BLEND_FUNC_ADD),
-			blendFunctionAlpha(BLEND_FUNC_ADD),
-			srcBlendFactor(src),
-			dstBlendFactor(dst),
-			srcAlphaBlendFactor(src),
-			dstAlphaBlendFactor(dst) {}
-
-		const BlendParameters& operator = (const BlendParameters& other) {
-			useBlending = other.useBlending;
-			blendFunctionRGB = other.blendFunctionRGB;
-			blendFunctionAlpha = other.blendFunctionAlpha;
-			srcBlendFactor = other.srcBlendFactor;
-			dstBlendFactor = other.dstBlendFactor;
-			srcAlphaBlendFactor = other.srcAlphaBlendFactor;
-			dstAlphaBlendFactor = other.dstAlphaBlendFactor;
-			return *this;
-		}
-
-		//BlendParameters(const BlendParameters& other) = delete;
-		//BlendParameters(BlendParameters&& other) = delete;
-
-		BlendParameters(const BlendParameters& other) :
-			useBlending(other.useBlending),
-			blendFunctionRGB(other.blendFunctionRGB),
-			blendFunctionAlpha(other.blendFunctionAlpha),
-			srcBlendFactor(other.srcBlendFactor),
-			dstBlendFactor(other.dstBlendFactor),
-			srcAlphaBlendFactor(other.srcAlphaBlendFactor),
-			dstAlphaBlendFactor(other.dstAlphaBlendFactor) {}
+			blendFunctionRGB(static_cast<uint8_t>(BlendFunction::BLEND_FUNC_ADD)),
+			blendFunctionAlpha(static_cast<uint8_t>(BlendFunction::BLEND_FUNC_ADD)),
+			srcBlendFactor(static_cast<uint8_t>(src)),
+			dstBlendFactor(static_cast<uint8_t>(dst)),
+			srcAlphaBlendFactor(static_cast<uint8_t>(src)),
+			dstAlphaBlendFactor(static_cast<uint8_t>(dst)) {}
 	};
 
 	union VulkanBlendMode {
-		VulkanBlendMode(const uint32_t mode = 0) : _blendMode(mode) {};
-		VulkanBlendMode(VulkanBlendMode&& mode) noexcept : _blendMode(std::move(mode._blendMode)) {};
-		VulkanBlendMode(const VulkanBlendMode& mode) : _blendMode(mode._blendMode) {};
-		VulkanBlendMode(const BlendParameters& parameters) : _parameters(parameters) {};
-		VulkanBlendMode(BlendParameters&& parameters) noexcept : _parameters(std::move(parameters)) {};
+        constexpr VulkanBlendMode(const uint8_t mode = 0) noexcept : _blendMode(mode) {};
+        constexpr VulkanBlendMode(VulkanBlendMode&& mode) noexcept : _blendMode(mode._blendMode) {};
+        constexpr VulkanBlendMode(const VulkanBlendMode& mode) : _blendMode(mode._blendMode) {};
+        constexpr VulkanBlendMode(const BlendParameters& parameters) : _parameters(parameters) {};
+        constexpr VulkanBlendMode(BlendParameters&& parameters) noexcept : _parameters(std::move(parameters)) {};
 
 		template <class ...Args>
-		VulkanBlendMode(Args&&...args) : _parameters(std::forward<Args&&>(args)...) {
-			constexpr uint32_t mask = 0x07ffffff; // 5 старших бит забиваем нулями (32 - 27 = 5)
-			_blendMode = _blendMode & mask;
-		};
+		static inline constexpr VulkanBlendMode makeBlendMode(Args&&...args) {
+            return VulkanBlendMode(BlendParameters(std::forward<Args&&>(args)...));
+        }
 
 		VulkanBlendMode& operator=(const VulkanBlendMode& m) {
 			_blendMode = m._blendMode;
 			return *this;
 		}
 
-		inline uint32_t operator()() const { return _blendMode; }
+        VulkanBlendMode& operator=(VulkanBlendMode&& m) noexcept {
+            _blendMode = m._blendMode;
+            return *this;
+        }
+
+		inline constexpr uint32_t operator()() const noexcept { return _blendMode; }
 
 		inline std::vector<VkPipelineColorBlendAttachmentState> blendState() const {
 			std::vector<VkPipelineColorBlendAttachmentState> blendAttachmentState(1);
@@ -220,46 +210,46 @@ namespace vulkan {
 		}
 
 	private:
-		static inline VkBlendFactor convertBlendFactor(const BlendFactor f) {
+		static inline constexpr VkBlendFactor convertBlendFactor(const BlendFactor f) noexcept {
 			switch (f) {
-				case BLEND_FACTOR_ZERO:
+                case BlendFactor::BLEND_FACTOR_ZERO:
 					return VK_BLEND_FACTOR_ZERO;
-				case BLEND_FACTOR_ONE:
+				case BlendFactor::BLEND_FACTOR_ONE:
 					return VK_BLEND_FACTOR_ONE;
-				case BLEND_FACTOR_SRC_COLOR:
+				case BlendFactor::BLEND_FACTOR_SRC_COLOR:
 					return VK_BLEND_FACTOR_SRC_COLOR;
-				case BLEND_FACTOR_ONE_MINUS_SRC_COLOR:
+				case BlendFactor::BLEND_FACTOR_ONE_MINUS_SRC_COLOR:
 					return VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR;
-				case BLEND_FACTOR_SRC_ALPHA:
+				case BlendFactor::BLEND_FACTOR_SRC_ALPHA:
 					return VK_BLEND_FACTOR_SRC_ALPHA;
-				case BLEND_FACTOR_ONE_MINUS_SRC_ALPHA:
+				case BlendFactor::BLEND_FACTOR_ONE_MINUS_SRC_ALPHA:
 					return VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-				case BLEND_FACTOR_DST_ALPHA:
+				case BlendFactor::BLEND_FACTOR_DST_ALPHA:
 					return VK_BLEND_FACTOR_DST_ALPHA;
-				case BLEND_FACTOR_ONE_MINUS_DST_ALPHA:
+				case BlendFactor::BLEND_FACTOR_ONE_MINUS_DST_ALPHA:
 					return VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA;
-				case BLEND_FACTOR_DST_COLOR:
+				case BlendFactor::BLEND_FACTOR_DST_COLOR:
 					return VK_BLEND_FACTOR_DST_COLOR;
-				case BLEND_FACTOR_ONE_MINUS_DST_COLOR:
+				case BlendFactor::BLEND_FACTOR_ONE_MINUS_DST_COLOR:
 					return VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR;
-				case BLEND_FACTOR_SRC_ALPHA_SATURATE:
+				case BlendFactor::BLEND_FACTOR_SRC_ALPHA_SATURATE:
 					return VK_BLEND_FACTOR_SRC_ALPHA_SATURATE;
 				default:
 					return VK_BLEND_FACTOR_ZERO;
 			}
 		}
 
-		static inline VkBlendOp convertBlendOp(const BlendFunction f) {
+		static inline constexpr VkBlendOp convertBlendOp(const BlendFunction f) noexcept {
 			switch (f) {
-				case BLEND_FUNC_ADD:
+                case BlendFunction::BLEND_FUNC_ADD:
 					return VK_BLEND_OP_ADD;
-				case BLEND_FUNC_MIN:
+				case BlendFunction::BLEND_FUNC_MIN:
 					return VK_BLEND_OP_MIN;
-				case BLEND_FUNC_MAX:
+				case BlendFunction::BLEND_FUNC_MAX:
 					return VK_BLEND_OP_MAX;
-				case BLEND_FUNC_SUBTRACT:
+				case BlendFunction::BLEND_FUNC_SUBTRACT:
 					return VK_BLEND_OP_SUBTRACT;
-				case BLEND_FUNC_REVERSE_SUBTRACT:
+				case BlendFunction::BLEND_FUNC_REVERSE_SUBTRACT:
 					return VK_BLEND_OP_REVERSE_SUBTRACT;
 				default:
 					return VK_BLEND_OP_ADD;
@@ -270,11 +260,11 @@ namespace vulkan {
 		uint32_t _blendMode = 0;
 	};
 
-	struct CommonBlendModes {
+	namespace CommonBlendModes {
 		inline static VulkanBlendMode blend_none	= VulkanBlendMode(uint32_t(0));
-		inline static VulkanBlendMode blend_alpha	= VulkanBlendMode(BlendFactor::BLEND_FACTOR_SRC_ALPHA, BlendFactor::BLEND_FACTOR_ONE_MINUS_SRC_ALPHA);
-		inline static VulkanBlendMode blend_add		= VulkanBlendMode(BlendFactor::BLEND_FACTOR_SRC_ALPHA, BlendFactor::BLEND_FACTOR_ONE);
-		inline static VulkanBlendMode blend_mult	= VulkanBlendMode(BlendFactor::BLEND_FACTOR_DST_COLOR, BlendFactor::BLEND_FACTOR_ZERO);
+		inline static VulkanBlendMode blend_alpha	= VulkanBlendMode::makeBlendMode(BlendFactor::BLEND_FACTOR_SRC_ALPHA, BlendFactor::BLEND_FACTOR_ONE_MINUS_SRC_ALPHA);
+		inline static VulkanBlendMode blend_add		= VulkanBlendMode::makeBlendMode(BlendFactor::BLEND_FACTOR_SRC_ALPHA, BlendFactor::BLEND_FACTOR_ONE);
+		inline static VulkanBlendMode blend_multipy	= VulkanBlendMode::makeBlendMode(BlendFactor::BLEND_FACTOR_DST_COLOR, BlendFactor::BLEND_FACTOR_ZERO);
 	};
 
 	struct VulkanStencilState {
@@ -308,7 +298,7 @@ namespace vulkan {
 			reference(ref)
 		{ }
 
-		inline bool operator == (const VulkanStencilState& other) const {
+		inline bool operator == (const VulkanStencilState& other) const noexcept {
 			return (enabled == other.enabled)		&&
 				(failOp == other.failOp)			&&
 				(passOp == other.passOp)			&&
@@ -319,7 +309,7 @@ namespace vulkan {
 				(reference == other.reference);
 		}
 
-		bool operator < (const VulkanStencilState& other) const {
+		bool operator < (const VulkanStencilState& other) const noexcept {
 			return (enabled < other.enabled)		||
 				(failOp < other.failOp)				||
 				(passOp < other.passOp)				||
@@ -353,13 +343,13 @@ namespace vulkan {
 	};
 
 	struct VulkanRenderState {
-		VulkanRenderState() : depthState(false, false), rasterisationState(CULL_MODE_BACK) {}
+		VulkanRenderState() : depthState(false, false), rasterizationState(CullMode::CULL_MODE_BACK) {}
 
 		VertexDescription vertexDescription;
 		VulkanDepthState depthState;
 		VulkanStencilState stencilState;
 		VulkanBlendMode blendMode;
-		VulkanRasterizationState rasterisationState;
+		VulkanRasterizationState rasterizationState;
 		VulkanPrimitiveTopology topology;
 	};
 
@@ -405,16 +395,16 @@ namespace vulkan {
 		void beginFrame();
 		void endFrame();
 
-		inline const VulkanDevice* getDevice() const { return _vulkanDevice; }
-		inline VulkanDevice* getDevice() { return _vulkanDevice; }
+		inline const VulkanDevice* getDevice() const noexcept { return _vulkanDevice; }
+		inline VulkanDevice* getDevice() noexcept { return _vulkanDevice; }
 
-		inline VkCommandPool getCommandPool() { return _commandPool; }
-		inline const VkCommandPool getCommandPool() const { return _commandPool; }
+		inline VkCommandPool getCommandPool() noexcept { return _commandPool; }
+		inline const VkCommandPool getCommandPool() const noexcept { return _commandPool; }
 
-		inline VkQueue getMainQueue() { return _mainQueue; }
-		inline const VkQueue getMainQueue() const { return _mainQueue; }
+		inline VkQueue getMainQueue() noexcept{ return _mainQueue; }
+		inline const VkQueue getMainQueue() const noexcept { return _mainQueue; }
 		 
-		inline uint32_t getSwapchainImagesCount() const { return _swapChain.imageCount; }
+		inline uint32_t getSwapchainImagesCount() const noexcept { return _swapChain.imageCount; }
 
 		void resize(const uint32_t w, const uint32_t h, const bool vSync);
 
@@ -428,7 +418,7 @@ namespace vulkan {
 		VulkanPipeline* getGraphicsPipeline(
 			const VertexDescription& vertexDescription,
 			const VulkanPrimitiveTopology& topology,
-			const VulkanRasterizationState& rasterisation,
+			const VulkanRasterizationState& rasterization,
 			const VulkanBlendMode& blendMode,
 			const VulkanDepthState& depthState,
 			const VulkanStencilState& stencilState,

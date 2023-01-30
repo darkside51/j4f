@@ -947,7 +947,7 @@ namespace vulkan {
 		return getGraphicsPipeline(
 			renderState.vertexDescription,
 			renderState.topology,
-			renderState.rasterisationState,
+			renderState.rasterizationState,
 			renderState.blendMode,
 			renderState.depthState,
 			renderState.stencilState,
@@ -960,7 +960,7 @@ namespace vulkan {
 	VulkanPipeline* VulkanRenderer::getGraphicsPipeline(
 		const VertexDescription& vertexDescription,
 		const VulkanPrimitiveTopology& topology,
-		const VulkanRasterizationState& rasterisation,
+		const VulkanRasterizationState& rasterization,
 		const VulkanBlendMode& blendMode,
 		const VulkanDepthState& depthState,
 		const VulkanStencilState& stencilState,
@@ -971,10 +971,10 @@ namespace vulkan {
 		// todo: need synchronisations for cache it
 		// get value from cache
 		const uint8_t topologyKey = static_cast<uint8_t>(topology.topology) << 0 | static_cast<uint8_t>(topology.enableRestart) << 4;																		// 5 bit
-		const uint8_t rasterisationKey = static_cast<uint8_t>(rasterisation.poligonMode)		<< 0 | 
-										 static_cast<uint8_t>(rasterisation.cullmode)			<< 2 | 
-										 static_cast<uint8_t>(rasterisation.faceOrientation)	<< 4 | 
-										 static_cast<uint8_t>(rasterisation.discardEnable)		<< 5;																										// 6 bit
+		const uint8_t rasterisationKey = static_cast<uint8_t>(rasterization.poligonMode)		<< 0 |
+										 static_cast<uint8_t>(rasterization.cullmode)			<< 2 |
+										 static_cast<uint8_t>(rasterization.faceOrientation)	<< 4 |
+										 static_cast<uint8_t>(rasterization.discardEnable)		<< 5;																										// 6 bit
 		const uint16_t depthKey = static_cast<uint16_t>(depthState.compareOp) << 0 | static_cast<uint16_t>(depthState.depthTestEnabled) << 3 | static_cast<uint16_t>(depthState.depthWriteEnabled) << 4;	// 5 bit																																							// 16 bit
 		const uint16_t programId = program->getId();																																						// 16 bit
 
@@ -1094,7 +1094,7 @@ namespace vulkan {
 		pipeline->renderPass = currentRenderPass;
 		pipeline->subpass = subpass;
 
-		VkPipelineRasterizationStateCreateInfo rasterisationInfo = rasterisation.rasterisationInfo();
+		VkPipelineRasterizationStateCreateInfo rasterizationInfo = rasterization.rasterisationInfo();
 		std::vector<VkPipelineColorBlendAttachmentState> blendAttachmentState = blendMode.blendState();
 
 		VkPipelineColorBlendStateCreateInfo colorBlendInfo = {};
@@ -1110,10 +1110,9 @@ namespace vulkan {
 		pipelineCreateInfo.pMultisampleState	= &multisampleState;
 
 		pipelineCreateInfo.pInputAssemblyState	= &inputAssemblyState;
-		pipelineCreateInfo.pRasterizationState	= &rasterisationInfo;
+		pipelineCreateInfo.pRasterizationState	= &rasterizationInfo;
 		pipelineCreateInfo.pColorBlendState		= &colorBlendInfo;
 		pipelineCreateInfo.pDepthStencilState	= &depthStencilState;
-
 		pipelineCreateInfo.pVertexInputState	= &vertexInputState;
 
 		// set pipeline shader stage info

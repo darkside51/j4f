@@ -46,9 +46,9 @@ if(j4f_PLATFORM STREQUAL "WINDOWS")
 	add_definitions(-DNOMINMAX)
 elseif(j4f_PLATFORM STREQUAL "LINUX")
 	add_definitions(-DVK_USE_PLATFORM_XCB_KHR=1)
+#	add_definitions(-DVK_USE_PLATFORM_XLIB_KHR=1)
+#	add_definitions(-DVK_USE_PLATFORM_WAYLAND_KHR=1)
 	add_definitions(-DGLFW_EXPOSE_NATIVE_X11)
-	# VK_USE_PLATFORM_WAYLAND_KHR
-	# VK_USE_PLATFORM_XLIB_KHR
 endif()
 
 set(

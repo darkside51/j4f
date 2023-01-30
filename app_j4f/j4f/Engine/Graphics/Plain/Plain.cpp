@@ -86,8 +86,8 @@ namespace engine {
 		_renderDescriptor.renderDataCount = 1;
 
 		_renderState.vertexDescription.bindings_strides.push_back(std::make_pair(0, sizeof(TexturedVertex)));
-		_renderState.topology = { vulkan::TRIANGLE_LIST, false };
-		_renderState.rasterisationState = vulkan::VulkanRasterizationState(vulkan::CULL_MODE_NONE, vulkan::POLYGON_MODE_FILL);
+		_renderState.topology = { vulkan::PrimitiveTopology::TRIANGLE_LIST, false };
+		_renderState.rasterizationState = vulkan::VulkanRasterizationState(vulkan::CullMode::CULL_MODE_NONE, vulkan::PoligonMode::POLYGON_MODE_FILL);
 		_renderState.blendMode = vulkan::CommonBlendModes::blend_none;
 		_renderState.depthState = vulkan::VulkanDepthState(true, true, VK_COMPARE_OP_LESS);
 		_renderState.stencilState = vulkan::VulkanStencilState(false);

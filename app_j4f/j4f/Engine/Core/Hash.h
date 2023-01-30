@@ -4,25 +4,25 @@
 
 namespace engine {
 	template <class T>
-	inline void hash_combine(std::size_t& s, const T& v) { // https://stackoverflow.com/questions/19195183/how-to-properly-hash-the-custom-struct
+	inline void hash_combine(std::size_t& s, const T& v) noexcept { // https://stackoverflow.com/questions/19195183/how-to-properly-hash-the-custom-struct
 		std::hash<T> h;
 		s ^= h(v) + 0x9e3779b9 + (s << 6) + (s >> 2);
 	}
 
 	///////
 	template <typename T>
-	inline void hash_combo(size_t& hash, const T& v) {
+	inline void hash_combo(size_t& hash, const T& v) noexcept {
 		hash_combine(hash, v);
 	}
 
 	template <typename T, typename... Args>
-	inline void hash_combo(size_t& hash, const T& v, Args&&... args) {
+	inline void hash_combo(size_t& hash, const T& v, Args&&... args) noexcept {
 		hash_combine(hash, v);
 		hash_combo(hash, std::forward<Args>(args)...);
 	}
 
 	template <typename... Args>
-	inline size_t hash_combine(Args&&... args) {
+	inline size_t hash_combine(Args&&... args) noexcept {
 		size_t hash = 0;
 		hash_combo(hash, std::forward<Args>(args)...);
 		return hash;

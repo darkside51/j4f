@@ -59,8 +59,8 @@ namespace engine {
 		vertexDescription.attributesCount = static_cast<uint32_t>(vertexInputAttributs.size());
 		vertexDescription.attributes = vertexInputAttributs.data();
 
-		VulkanPrimitiveTopology primitiveTopology = { LINE_LIST , false };
-		VulkanRasterizationState rasterisation(CULL_MODE_NONE, POLYGON_MODE_FILL);
+		VulkanPrimitiveTopology primitiveTopology = { PrimitiveTopology::LINE_LIST , false };
+		VulkanRasterizationState rasterisation(CullMode::CULL_MODE_NONE, PoligonMode::POLYGON_MODE_FILL);
 		VulkanDepthState depthState(true, true, VK_COMPARE_OP_LESS);
 		VulkanStencilState stencilState(false);
 
@@ -74,7 +74,7 @@ namespace engine {
 			programColored
 		);
 
-		primitiveTopology.topology = TRIANGLE_LIST;
+		primitiveTopology.topology = PrimitiveTopology::TRIANGLE_LIST;
 		_commonPipelines[static_cast<uint8_t>(CommonPipelines::COMMON_PIPELINE_COLORED_PLAINS)] = _renderer->getGraphicsPipeline(
 			vertexDescription,
 			primitiveTopology,
@@ -219,7 +219,7 @@ namespace engine {
 			vulkan::VulkanPushConstant pushConstats;
 			const_cast<vulkan::VulkanGpuProgram*>(pipeline->program)->setValueToLayout(mvp_layout, &transform, &pushConstats);
 			//commandBuffer.renderIndexed(pipeline, currentFrame, &pushConstats, 0, 0, nullptr, 0, nullptr, vBuffer, iBuffer, 0, 24, 0, 1, 0, vOffset, iOffset);
-			commandBuffer.renderIndexed(pipeline, currentFrame, &pushConstats, 0, 0, nullptr, 0, nullptr, vBuffer, iBuffer, iOffset / sizeof(uint32_t), 24, 0, 1, 0, vOffset, 0); // не будет переключения индексного буффера
+			commandBuffer.renderIndexed(pipeline, currentFrame, &pushConstats, 0, 0, nullptr, 0, nullptr, vBuffer, iBuffer, iOffset / sizeof(uint32_t), 24, 0, 1, 0, vOffset, 0); // пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 		}
 	}
 

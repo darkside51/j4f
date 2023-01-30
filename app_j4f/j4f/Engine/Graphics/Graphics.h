@@ -2,6 +2,7 @@
 
 #include "../Core/EngineModule.h"
 #include "../Core/Configs.h"
+#include <Platform_inc.h>
 #include <cstdint>
 #include <utility>
 
@@ -16,25 +17,16 @@ namespace engine {
 	class RenderHelper;
 	class AnimationManager;
 
-	enum class Render_Type : uint8_t {
-		VULKAN = 0
-	};
-
 	class Graphics : public IEngineModule {
 	public:
-		using render_type = vulkan::VulkanRenderer;
-
-		//inline static Render_Type render_type = Render_Type::VULKAN;
-
 		Graphics(const GraphicConfig& cfg);
 		~Graphics();
 
-		inline auto getRenderer() const { return static_cast<render_type*>(_renderer); }
+		inline auto getRenderer() const { return _renderer; }
 		inline GpuProgramsManager* getGpuProgramsManager() const { return _gpuProgramManager; }
 		inline FontsManager* getFontsManager() const { return _fontsManager; }
 		inline RenderHelper* getRenderHelper() const { return _renderHelper; }
 		inline AnimationManager* getAnimationManager() const { return _animationManager; }
-
 
 		void resize(const uint16_t w, const uint16_t h);
 
@@ -57,7 +49,7 @@ namespace engine {
 		GraphicConfig _config;
 		std::pair<uint16_t, uint16_t> _size;
 
-		void* _renderer;
+		Renderer* _renderer;
 		GpuProgramsManager* _gpuProgramManager;
 		FontsManager* _fontsManager;
 		RenderHelper* _renderHelper;

@@ -14,22 +14,22 @@
 #define offset_of(type, p) (reinterpret_cast<size_t>(&((reinterpret_cast<type*>(0))->p)))
 
 namespace engine {
-	inline uint32_t alignValue(const uint32_t value, const uint32_t align) {
+	inline uint32_t alignValue(const uint32_t value, const uint32_t align) noexcept {
 		return (value + align - 1) & ~(align - 1);
 	}
 
 	template<typename T>
-	inline uint16_t getUniqueId() {
+	inline uint16_t getUniqueId() noexcept {
 		static std::atomic_uint16_t staticId = 0;
-		const uint16_t newId = staticId.fetch_add(1, std::memory_order_release);
+		const uint16_t newId = staticId.fetch_add(1, std::memory_order_relaxed);
 		return newId;
 	}
 
 	template<typename MainType>
 	struct UniqueTypeId {
 		template<typename T>
-		static inline uint16_t getUniqueId() {
-			static const uint16_t newId = staticId.fetch_add(1, std::memory_order_release);
+		static inline uint16_t getUniqueId() noexcept {
+			static const uint16_t newId = staticId.fetch_add(1, std::memory_order_relaxed);
 			return newId;
 		}
 	private:

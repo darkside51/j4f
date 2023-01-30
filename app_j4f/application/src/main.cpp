@@ -172,8 +172,8 @@ namespace engine {
 			_renderDescriptor.renderDataCount = renderDataCount;
 
 			_renderState.vertexDescription.bindings_strides.push_back(std::make_pair(0, sizeof(SkyBoxVertex)));
-			_renderState.topology = { vulkan::TRIANGLE_LIST, false };
-			_renderState.rasterisationState = vulkan::VulkanRasterizationState(vulkan::CULL_MODE_NONE, vulkan::POLYGON_MODE_FILL);
+			_renderState.topology = { vulkan::PrimitiveTopology::TRIANGLE_LIST, false };
+			_renderState.rasterizationState = vulkan::VulkanRasterizationState(vulkan::CullMode::CULL_MODE_NONE, vulkan::PoligonMode::POLYGON_MODE_FILL);
 			_renderState.blendMode = vulkan::CommonBlendModes::blend_none;
 			_renderState.depthState = vulkan::VulkanDepthState(true, true, VK_COMPARE_OP_LESS);
 			_renderState.stencilState = vulkan::VulkanStencilState(false);
@@ -989,7 +989,7 @@ namespace engine {
 				animTree->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[1], 0.0f, asset->getSkeleton()->getLatency()));
 
 				asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
-					renderState.rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
+					renderState.rasterizationState.cullmode = vulkan::CullMode::CULL_MODE_NONE;
 				});
 
 				//////////////////////
@@ -1019,7 +1019,7 @@ namespace engine {
 				asset->setSkeleton(mesh->graphics()->getSkeleton());
 
 				asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
-					renderState.rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
+					renderState.rasterizationState.cullmode = vulkan::CullMode::CULL_MODE_NONE;
 				});
 
 				////////////////////
@@ -1050,7 +1050,7 @@ namespace engine {
 					asset->setSkeleton(mesh->graphics()->getSkeleton());
 
 					asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
-						renderState.rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
+						renderState.rasterizationState.cullmode = vulkan::CullMode::CULL_MODE_NONE;
 					});
 
 					////////////////////
@@ -1086,7 +1086,7 @@ namespace engine {
 				asset->getRenderDataAt(13)->setParamByName("u_texture", texture_v3, false);
 
 				//asset->changeRenderState([](vulkan::VulkanRenderState& renderState) { // for stroke
-				//	renderState.rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
+				//	renderState.rasterizationState.cullmode = vulkan::CULL_MODE_NONE;
 				//});
 
 				animTree2 = new MeshAnimationTree(0.0f, asset->getNodesCount(), asset->getSkeleton()->getLatency());
@@ -1124,7 +1124,7 @@ namespace engine {
 				asset->setParamByName("lighting", 0.0f, true);
 
 				asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
-					renderState.rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
+					renderState.rasterizationState.cullmode = vulkan::CullMode::CULL_MODE_NONE;
 				});
 
 				////////////////////
@@ -1152,7 +1152,7 @@ namespace engine {
 				asset->setParamByName("lighting", 0.0f, true);
 
 				asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
-					renderState.rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
+					renderState.rasterizationState.cullmode = vulkan::CullMode::CULL_MODE_NONE;
 				});
 
 				////////////////////
@@ -1180,7 +1180,7 @@ namespace engine {
 				asset->setParamByName("lighting", 0.0f, true);
 
 				asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
-					renderState.rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
+					renderState.rasterizationState.cullmode = vulkan::CullMode::CULL_MODE_NONE;
 				});
 
 				////////////////////
@@ -1208,7 +1208,7 @@ namespace engine {
 				asset->setParamByName("lighting", 0.0f, true);
 
 				asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
-					renderState.rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
+					renderState.rasterizationState.cullmode = vulkan::CullMode::CULL_MODE_NONE;
 				});
 
 				animTreeWindMill = new MeshAnimationTree(&asset->getMeshData()->animations[0],1.0f, asset->getSkeleton()->getLatency());
@@ -1304,7 +1304,7 @@ namespace engine {
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 
 				asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
-					renderState.rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
+					renderState.rasterizationState.cullmode = vulkan::CullMode::CULL_MODE_NONE;
 				});
 
 				/////////////////////
@@ -1333,7 +1333,7 @@ namespace engine {
 				asset->setParamByName("lighting", 0.25f, true);
 
 				asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
-					renderState.rasterisationState.cullmode = vulkan::CULL_MODE_NONE;
+					renderState.rasterizationState.cullmode = vulkan::CullMode::CULL_MODE_NONE;
 				});
 
 				////////////////////
@@ -1928,8 +1928,8 @@ namespace engine {
 				psiCTextured.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/texture.psh.spv");
 				vulkan::VulkanGpuProgram* programTextured = reinterpret_cast<vulkan::VulkanGpuProgram*>(gpuProgramManager->getProgram(psiCTextured));
 
-				vulkan::VulkanPrimitiveTopology primitiveTopology = { vulkan::TRIANGLE_LIST, false };
-				vulkan::VulkanRasterizationState rasterisation(vulkan::CULL_MODE_NONE, vulkan::POLYGON_MODE_FILL);
+				vulkan::VulkanPrimitiveTopology primitiveTopology = { vulkan::PrimitiveTopology::TRIANGLE_LIST, false };
+				vulkan::VulkanRasterizationState rasterisation(vulkan::CullMode::CULL_MODE_NONE, vulkan::PoligonMode::POLYGON_MODE_FILL);
 				vulkan::VulkanDepthState depthState(true, false, VK_COMPARE_OP_LESS);
 				vulkan::VulkanStencilState stencilState(false);
 
@@ -1994,8 +1994,8 @@ namespace engine {
 				psiCTextured.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/texture.psh.spv");
 				vulkan::VulkanGpuProgram* programTextured = reinterpret_cast<vulkan::VulkanGpuProgram*>(gpuProgramManager->getProgram(psiCTextured));
 
-				vulkan::VulkanPrimitiveTopology primitiveTopology = { vulkan::TRIANGLE_LIST, false };
-				vulkan::VulkanRasterizationState rasterisation(vulkan::CULL_MODE_NONE, vulkan::POLYGON_MODE_FILL);
+				vulkan::VulkanPrimitiveTopology primitiveTopology = { vulkan::PrimitiveTopology::TRIANGLE_LIST, false };
+				vulkan::VulkanRasterizationState rasterisation(vulkan::CullMode::CULL_MODE_NONE, vulkan::PoligonMode::POLYGON_MODE_FILL);
 				vulkan::VulkanDepthState depthState(false, false, VK_COMPARE_OP_LESS);
 				vulkan::VulkanStencilState stencilState(false);
 

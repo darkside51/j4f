@@ -13,17 +13,13 @@
 #include "Scene/Shadows/CascadeShadowMap.h"
 #include "Animation/AnimationManager.h"
 
-#include "../Log/Log.h"
-
-#include <Platform_inc.h>
-
 #include <cstdint>
-#include <string>
 
 namespace engine {
 
 	Graphics::Graphics(const GraphicConfig& cfg) :
     _config(cfg),
+    _renderer(new Renderer()),
     _gpuProgramManager(new GpuProgramsManager()),
     _fontsManager(new FontsManager()),
     _animationManager(new AnimationManager())
@@ -36,7 +32,7 @@ namespace engine {
 		delete _fontsManager;
 		delete _gpuProgramManager;
 		delete _animationManager;
-		delete static_cast<render_type*>(_renderer);
+		delete _renderer;
 	}
 
     void Graphics::createRenderer() {
@@ -50,15 +46,14 @@ namespace engine {
             memcpy(&enabledFeatures, &_config.gpu_features, sizeof(VkPhysicalDeviceFeatures));
             std::vector<const char*> &enabledDeviceExtensions = _config.gpu_extensions;
 
-            VulkanRenderer* renderer = new vulkan::VulkanRenderer();
-            renderer->createInstance({}, {});
+            _renderer->createInstance({}, {});
 
             auto sz = sizeof(VkPhysicalDeviceFeatures);
             auto sz2 = sizeof(GraphicConfig::GPUFeatures);
 
-            renderer->createDevice(enabledFeatures, enabledDeviceExtensions, static_cast<VkPhysicalDeviceType>(_config.gpu_type));
-            renderer->createSwapChain(surfaceInitialiser, _config.v_sync);
-            renderer->init(_config);
+            _renderer->createDevice(enabledFeatures, enabledDeviceExtensions, static_cast<VkPhysicalDeviceType>(_config.gpu_type));
+            _renderer->createSwapChain(surfaceInitialiser, _config.v_sync);
+            _renderer->init(_config);
 
             { // print gpu info
                 const char* gpuTypes[5] = {
@@ -69,17 +64,15 @@ namespace engine {
                         "device_type_cpu"
                 };
 
-                const auto& gpuProperties = renderer->getDevice()->gpuProperties;
+                const auto& gpuProperties = _renderer->getDevice()->gpuProperties;
                 //LOG_TAG(GRAPHICS, "gpu: {}({}, driver: {})", gpuProperties.deviceName, gpuTypes[static_cast<uint8_t>(gpuProperties.deviceType)].c_str(), gpuProperties.driverVersion);
                 LOG_TAG(GRAPHICS, "gpu: %s(%s, driver: %d)", gpuProperties.deviceName, gpuTypes[static_cast<uint8_t>(gpuProperties.deviceType)], gpuProperties.driverVersion);
             }
 
             //render_type = Render_Type::VULKAN;
-            const uint64_t wh = renderer->getWH();
+            const uint64_t wh = _renderer->getWH();
             _size.first = static_cast<uint16_t>(wh >> 0);
             _size.second = static_cast<uint16_t>(wh >> 32);
-
-            _renderer = renderer;
         }
     }
 
@@ -90,7 +83,7 @@ namespace engine {
 	}
 
     void Graphics::createRenderHelper() {
-        _renderHelper = new RenderHelper(static_cast<render_type*>(_renderer), _gpuProgramManager);
+        _renderHelper = new RenderHelper(_renderer, _gpuProgramManager);
         _renderHelper->initCommonPipelines();
     }
 
@@ -103,23 +96,21 @@ namespace engine {
 	}
 
 	void Graphics::deviceDestroyed() {
-		static_cast<render_type*>(_renderer)->waitWorkComplete();
+		_renderer->waitWorkComplete();
 	}
 
 	void Graphics::resize(const uint16_t w, const uint16_t h) {
 		_size.first = w; _size.second = h;
-		static_cast<render_type*>(_renderer)->resize(w, h, _config.v_sync);
+		_renderer->resize(w, h, _config.v_sync);
 		_renderHelper->onResize();
 	}
 
 	void Graphics::beginFrame() {
-		render_type* renderer = static_cast<render_type*>(_renderer);
-		renderer->beginFrame();
+        _renderer->beginFrame();
 		_renderHelper->updateFrame();
 	}
 
 	void Graphics::endFrame() {
-		render_type* renderer = static_cast<render_type*>(_renderer);
-		renderer->endFrame();
+        _renderer->endFrame();
 	}
 }
