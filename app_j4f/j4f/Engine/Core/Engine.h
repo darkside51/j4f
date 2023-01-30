@@ -81,7 +81,7 @@ namespace engine {
 		void run();
 
 		inline void setGameTimeMultiply(const float m) { _gameTimeMultiply = m; }
-		inline float getGameTimeMultiply() const { return _gameTimeMultiply; }
+		[[nodiscard]] inline float getGameTimeMultiply() const noexcept { return _gameTimeMultiply; }
 
 	private:
 		Engine();

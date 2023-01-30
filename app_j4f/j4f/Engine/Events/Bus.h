@@ -9,8 +9,6 @@
 
 namespace engine {
 
-    class Bus;
-
 	class IEventObserver {
 	public:
 		virtual ~IEventObserver() = default;
@@ -19,7 +17,7 @@ namespace engine {
 	template <typename T>
 	class EventObserverImpl : public IEventObserver {
 	public:
-		~EventObserverImpl() = default;
+		~EventObserverImpl() override = default;
 		virtual bool processEvent(const T& evt) = 0;
 	};
 
@@ -29,46 +27,11 @@ namespace engine {
     };
 
     template <typename T>
-    class EventSubscriber : public IEventSubscriber {
-        friend class Bus;
-    public:
-        using Callback = std::function<bool(const T&)>;
-
-        EventSubscriber() = default;
-        ~EventSubscriber() {
-            if (_bus && _callback) {
-                _bus->removeSubscriber(this);
-            }
-            _bus = nullptr;
-        }
-
-        EventSubscriber(Callback&& callback) : _callback(std::move(callback)) {}
-        EventSubscriber(const Callback& callback) : _callback(callback) {}
-
-        EventSubscriber(EventSubscriber&& e) noexcept : _callback(std::move(e._callback)), _bus(e._bus) { e._callback = nullptr; e._bus = nullptr; }
-        EventSubscriber(const EventSubscriber& e) : _callback(e.callback), _bus(e._bus) {}
-
-        const EventSubscriber& operator= (EventSubscriber&& e) noexcept {
-            _callback = std::move(e._callback);
-            e._callback = nullptr;
-            return *this;
-        }
-
-        const EventSubscriber& operator= (const EventSubscriber& e) {
-            _callback = e._callback;
-            return *this;
-        }
-
-        inline bool processEvent(const T& event) const { return _callback(event); }
-
-    private:
-        Callback _callback = nullptr;
-        Bus* _bus = nullptr;
-    };
+    class EventSubscriber;
 
 	class Bus : public IEngineModule {
 	public:
-		~Bus() = default;
+		~Bus() override = default;
 
         template <typename EVENT>
         inline void addObserver(EventObserverImpl<EVENT>* o) {
@@ -98,7 +61,7 @@ namespace engine {
         inline void addSubscriber(const EventSubscriber<EVENT>& s) {
             const uint16_t observer_type_id = UniqueTypeId<IEventObserver>::getUniqueId<EVENT>();
             std::vector<IEventSubscriber*>& subscribers = _eventSubscribers[observer_type_id];
-            EventSubscriber<EVENT>& ref = const_cast<EventSubscriber<EVENT>&>(s);
+            auto&& ref = const_cast<EventSubscriber<EVENT>&>(s);
             ref._bus = const_cast<Bus*>(this);
             subscribers.push_back(&(ref));
         }
@@ -128,8 +91,8 @@ namespace engine {
         }
 
         template <typename EVENT>
-        inline bool sendEvent(EVENT&& evt) { // отправка событий обсерверам,
-            // отправка событий сейчас непосредственная, т.е. происходит в том месте, где произошел вызов, возможно лучше было бы централизованно отправлять, например из Bus::update, но пока не могу точно сказать
+        inline bool sendEvent(EVENT&& evt) { // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ,
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅ.пїЅ. пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ Bus::update, пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 
             using simple_event_type = typename std::remove_const<typename std::remove_reference<EVENT>::type>::type;
             const uint16_t observer_type_id = UniqueTypeId<IEventObserver>::getUniqueId<simple_event_type>();
@@ -153,11 +116,52 @@ namespace engine {
             return result;
         }
 
-        void update(const float delta) {}
+        void update(const float /*delta*/) {}
 
 	private:
 		std::unordered_map<size_t, std::vector<IEventObserver*>> _eventObservers;
         std::unordered_map<size_t, std::vector<IEventSubscriber*>> _eventSubscribers;
 	};
+
+    template <typename T>
+    class EventSubscriber : public IEventSubscriber {
+        friend class Bus;
+    public:
+        using Callback = std::function<bool(const T&)>;
+
+        EventSubscriber() = default;
+        ~EventSubscriber() override {
+            if (_bus && _callback) {
+                _bus->removeSubscriber(this);
+            }
+            _bus = nullptr;
+        }
+
+        explicit EventSubscriber(Callback&& callback) : _callback(std::move(callback)) {}
+        explicit EventSubscriber(const Callback& callback) : _callback(callback) {}
+
+        EventSubscriber(EventSubscriber&& e) noexcept : _callback(std::move(e._callback)), _bus(e._bus) { e._callback = nullptr; e._bus = nullptr; }
+        EventSubscriber(const EventSubscriber& e) : _callback(e.callback), _bus(e._bus) {}
+
+        EventSubscriber& operator= (EventSubscriber&& e) noexcept {
+            _callback = std::move(e._callback);
+            e._callback = nullptr;
+            return *this;
+        }
+
+        EventSubscriber& operator= (const EventSubscriber& e) {
+            if (&e != this) {
+                _callback = e._callback;
+            }
+            return *this;
+        }
+
+        inline bool processEvent(const T& event) const { return _callback(event); }
+
+    private:
+        Callback _callback = nullptr;
+        Bus* _bus = nullptr;
+    };
+
 
 }

@@ -20,10 +20,10 @@ namespace engine {
 		virtual ~RenderObject() { _descriptor = nullptr; };
 
 		RenderObject() = default;
-		RenderObject(RenderDescriptor* d) : _descriptor(d) {}
-		inline RenderDescriptor* getRenderDescriptor() const noexcept { return _descriptor; }
+		explicit RenderObject(RenderDescriptor* d) noexcept : _descriptor(d) {}
+		[[nodiscard]] inline RenderDescriptor* getRenderDescriptor() const noexcept { return _descriptor; }
 		inline void setNeedUpdate(const bool value) noexcept { _needUpdateData = value; }
-		inline bool getNeedUpdate() const noexcept { return _needUpdateData; }
+        [[nodiscard]] inline bool getNeedUpdate() const noexcept { return _needUpdateData; }
 
 	protected:
 		RenderDescriptor* _descriptor = nullptr;
@@ -33,7 +33,7 @@ namespace engine {
 	class NodeRenderObject : public RenderObject {
 		friend class Node;
 	public:
-		virtual ~NodeRenderObject() {
+        ~NodeRenderObject() override {
 			_node = nullptr;
 		}
 
@@ -49,7 +49,7 @@ namespace engine {
 		v.getRenderDescriptor();
 		v.updateRenderData(glm::mat4(), bool());
 		v.updateModelMatrixChanged(bool());
-		v.setProgram([]()->vulkan::VulkanGpuProgram* {}(), VkRenderPass()); // wow!, it work :)
+		v.setProgram([]()->vulkan::VulkanGpuProgram* { return nullptr; }(), VkRenderPass()); // wow!, it work :)
 	};
 
 	template <typename T> requires IsGraphicsType<T>
@@ -57,7 +57,7 @@ namespace engine {
 	public:
 		using type = T*;
 
-		~NodeRenderer() {
+		~NodeRenderer() override {
 			if (_graphics && _isGraphicsOwner) {
 				delete _graphics;
 			}
@@ -66,7 +66,7 @@ namespace engine {
 		}
 
 		NodeRenderer() = default;
-		NodeRenderer(type g) : RenderObject(&g->getRenderDescriptor()), _graphics(g) {}
+		explicit NodeRenderer(type g) : RenderObject(&g->getRenderDescriptor()), _graphics(g) {}
 
 		inline type replaceGraphics(type g, const bool own = true) {
 			type oldGraphics = _graphics;
@@ -109,11 +109,11 @@ namespace engine {
 			return nullptr;
 		}
 
-		inline type& operator->() { return _graphics; }
-		inline const type& operator->() const { return _graphics; }
+		inline type operator->() { return _graphics; }
+		inline type operator->() const { return _graphics; }
 
 		inline type graphics() { return _graphics; }
-		inline const type graphics() const { return _graphics; }
+		inline type graphics() const { return _graphics; }
 
 	private:
 		bool _isGraphicsOwner = true;
