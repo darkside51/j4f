@@ -9,7 +9,7 @@ namespace engine {
         MemoryChunk<T> chunk;
         MemoryChunkChain* next;
 
-        MemoryChunkChain(const size_t sz) : chunk(sz), next(nullptr) {}
+        explicit MemoryChunkChain(const size_t sz) : chunk(sz), next(nullptr) {}
 
         ~MemoryChunkChain() {
             next = nullptr;
@@ -20,7 +20,7 @@ namespace engine {
     class ChunkedMemoryPool final {
         using Chunk = MemoryChunkChain<T>;
     public:
-        ChunkedMemoryPool(const size_t sz) : _chunksCount(1), _chunksMemSize(sz), _first(new Chunk(sz)), _used(_first) {}
+        explicit ChunkedMemoryPool(const size_t sz) : _chunksCount(1), _chunksMemSize(sz), _first(new Chunk(sz)), _used(_first) {}
         ~ChunkedMemoryPool() {
             _used = _first;
             while (_used) {
@@ -55,7 +55,7 @@ namespace engine {
         uint16_t _chunksCount;
         size_t _chunksMemSize;
         Chunk* _first;
-        Chunk* _used; // будем запоминать последний, в котором происходили какие - либо операции, чтоб начинать следующие действия с него
+        Chunk* _used; // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ - пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅ
     };
 
 }

@@ -1,7 +1,6 @@
 #include "Engine.h"
 
 #include "Application.h"
-#include "EngineModule.h"
 
 #include <Platform_inc.h>
 #include "Cache.h"
@@ -20,7 +19,6 @@
 
 #include <cstdint>
 #include <chrono>
-#include <algorithm>
 
 namespace engine {
 
@@ -108,7 +106,10 @@ namespace engine {
 				_renderThread->pause();
 
 				_graphics->resize(w, h);
-				_application->resize(w, h);
+
+                if (_application) {
+                    _application->resize(w, h);
+                }
 
 				if (w > 0 && h > 0) {
 					_renderThread->resume();
@@ -119,7 +120,11 @@ namespace engine {
 			} else {
 				if (w > 0 && h > 0) {
 					_graphics->resize(w, h);
-					_application->resize(w, h);
+
+                    if (_application) {
+                        _application->resize(w, h);
+                    }
+
 					_renderThread->resume();
 					getModule<ThreadPool2>()->resume();
 				} else {
@@ -128,7 +133,10 @@ namespace engine {
 			}
 		} else {
 			_graphics->resize(w, h);
-			_application->resize(w, h);
+
+            if (_application) {
+                _application->resize(w, h);
+            }
 
 			if (w > 0 && h > 0) {
 				getModule<ThreadPool2>()->resume();
@@ -150,16 +158,24 @@ namespace engine {
 		getModule<ThreadPool2>()->stop();
 		getModule<AssetManager>()->deviceDestroyed();
 		_graphics->deviceDestroyed();
-		_application->deviceDestroyed();
+
+        if (_application) {
+            _application->deviceDestroyed();
+        }
 	}
 
-	void Engine::update(const float delta, const std::chrono::steady_clock::time_point& currentTime) {
-		_application->update(delta);
+	void Engine::update(const float delta, const std::chrono::steady_clock::time_point& /*currentTime*/) {
+        if (_application) {
+            _application->update(delta);
+        }
 	}
 
 	void Engine::nextFrame(const float delta, const std::chrono::steady_clock::time_point& currentTime) {
 		_graphics->beginFrame();
-		_application->nextFrame(delta);
+
+        if (_application) {
+            _application->nextFrame(delta);
+        }
 
 		_looper->nextFrame(delta);
 

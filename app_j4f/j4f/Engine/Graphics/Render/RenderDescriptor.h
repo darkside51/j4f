@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../Vulkan/vkRenderData.h"
-#include "../../Core/Math/math.h"
+#include "../../Core/Math/mathematic.h"
 #include <cstdint>
 
 namespace engine {
@@ -49,7 +49,7 @@ namespace engine {
 			}
 		}
 
-		inline void setRawDataForLayout(const vulkan::GPUParamLayoutInfo* info, void* value, const bool copyData, const size_t valueSize) {
+		inline void setRawDataForLayout(const vulkan::GPUParamLayoutInfo* info, void* value, const bool copyData, const size_t valueSize) const {
 			for (uint32_t i = 0; i < renderDataCount; ++i) {
 				vulkan::RenderData* r_data = renderData[i];
 				if (r_data == nullptr || r_data->pipeline == nullptr) continue;

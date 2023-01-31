@@ -5,7 +5,7 @@
 #include <cstdint>
 
 namespace engine {
-	class IRenderSurfaceInitialiser;
+	class IRenderSurfaceInitializer;
 }
 
 namespace vulkan {
@@ -35,7 +35,7 @@ namespace vulkan {
 		uint32_t imageCount = 0;
 		std::vector<VulkanSwapChainImage> images;
 
-		void connect(VkInstance instance, VulkanDevice* vkDevice, const engine::IRenderSurfaceInitialiser* initialiser);
+		void connect(VkInstance instance, VulkanDevice* vkDevice, const engine::IRenderSurfaceInitializer* initializer);
 
 		inline VkResult acquireNextImage(VkSemaphore presentCompleteSemaphore, uint32_t* imageIndex) {
 			return vkAcquireNextImageKHR(_device, swapChain, UINT64_MAX,

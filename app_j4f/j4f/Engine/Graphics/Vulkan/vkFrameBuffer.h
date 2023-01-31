@@ -45,8 +45,8 @@ namespace vulkan {
 	};*/
 
 	struct VulkanFrameBuffer {
-		VulkanDevice* m_vulkanDevice;
-		VkFramebuffer m_framebuffer;
+		VulkanDevice* m_vulkanDevice = nullptr;
+		VkFramebuffer m_framebuffer = VK_NULL_HANDLE;
 		//std::vector<VkImageView> m_imageViews;
 		const VkAllocationCallbacks* m_allocator;
 

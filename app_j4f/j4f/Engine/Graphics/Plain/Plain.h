@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../Core/Math/math.h"
+#include "../../Core/Math/mathematic.h"
 #include "../Render/RenderedEntity.h"
 #include "../Render/CommonVertexTypes.h"
 #include "../Render/TextureFrame.h"

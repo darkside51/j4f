@@ -5,7 +5,7 @@
 
 namespace engine {
 
-	inline static const void* __null_pointer = nullptr;
+	inline static const void* m_null_pointer = nullptr;
 
 	template<typename K, typename V, typename H = std::hash<K>, typename E = std::equal_to<K>>
 	class TsUnorderedMap {
@@ -37,7 +37,7 @@ namespace engine {
 
 			_readers.sub();
 			if constexpr (std::is_pointer<V>::value) {
-				return (const V&)(__null_pointer); // c - style cast, how convert this with c++ cast?
+				return (const V&)(m_null_pointer); // c - style cast, how convert this with c++ cast?
 			} else {
 				static const V empty(0);
 				return empty;

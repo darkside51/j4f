@@ -5,7 +5,7 @@
 #include <future>
 #include <cstdint>
 #include <string>
-#include <assert.h>
+#include <cassert>
 
 namespace engine {
 

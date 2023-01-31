@@ -98,8 +98,8 @@ namespace engine {
 			}
 		}
 
-		inline bool isActive() const { return !_paused.test(std::memory_order_acquire); }
-		inline bool isAlive() const { return !_stop.test(std::memory_order_acquire); }
+		[[nodiscard]] inline bool isActive() const noexcept { return !_paused.test(std::memory_order_acquire); }
+        [[nodiscard]] inline bool isAlive() const noexcept { return !_stop.test(std::memory_order_acquire); }
 
 		inline void resume() {
 			requestResume();
@@ -154,7 +154,7 @@ namespace engine {
 			_fpsLimitType = t;
 		}
 
-		inline uint16_t getFrameId() const { return _frameId.load(std::memory_order_consume); }
+		[[nodiscard]] inline uint16_t getFrameId() const noexcept { return _frameId.load(std::memory_order_consume); }
 
 	private:
 		inline void sleep() {

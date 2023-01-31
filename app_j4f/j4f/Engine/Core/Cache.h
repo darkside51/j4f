@@ -24,7 +24,7 @@ namespace engine {
 		using key_type = K;
 		using value_type = V;
 	public:
-		~Cache() = default;
+		~Cache() override = default;
 
 		template <typename KEY = K, typename VAL = V>
 		inline void setValue(KEY&& key, VAL&& value) { _map.setValue(key, value); }
@@ -62,7 +62,7 @@ namespace engine {
 
 	class CacheManager final : public IEngineModule {
 	public:
-		~CacheManager() = default;
+		~CacheManager() override = default;
 
 		template<typename K, typename V>
 		inline bool hasCache() {

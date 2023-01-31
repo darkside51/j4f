@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "math.h"
+#include "mathematic.h"
 #include <vector>
 #include <queue>
 #include <utility>
@@ -34,11 +34,11 @@ namespace engine {
 
         d[start] = 0.0f;
         std::priority_queue <std::pair<float, int>> q;
-        q.push(std::make_pair(0, start));
+        q.emplace(0, start);
 
         size_t st = 0;
         while (!q.empty()) {
-            const size_t v = static_cast<size_t>(q.top().second);
+            const auto v = static_cast<size_t>(q.top().second);
             q.pop();
 
             if (v == finish) { break; } // ранний выход
@@ -52,7 +52,7 @@ namespace engine {
                     p[num] = v;
 
                     const float priority = cost + (num == start ? vec_length(startV - finishV) : (num == finish ? 0.0f : HEURISTIC::execute(vertexes, num, finishV))); //HEURISTIC::execute(vertexes, num, finishV);
-                    q.push(std::make_pair(-priority, num));
+                    q.emplace(-priority, num);
                 }
             }
             ++st;

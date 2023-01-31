@@ -14,14 +14,14 @@ namespace engine {
             STOP = 2
         };
     public:
-        ThreadPool2(const size_t threads_count) : _state(TPoolState::RUN), _threads_count(threads_count), _queues(threads_count), _currentTasks(threads_count) {
+        explicit ThreadPool2(const size_t threads_count) : _state(TPoolState::RUN), _threads_count(threads_count), _queues(threads_count), _currentTasks(threads_count) {
             _workers.reserve(_threads_count);
             for (size_t i = 0; i < _threads_count; ++i) {
                 _workers.emplace_back(&ThreadPool2::threadFunction, this, i);
             }
         }
 
-        ~ThreadPool2() {
+        ~ThreadPool2() override {
             stop();
         }
 
@@ -32,7 +32,7 @@ namespace engine {
                     q.stop();
                 }
 
-                cancelTasks(0b11111111); // cancelTasks для всех задач, независимо от типа
+                cancelTasks(0b11111111); // cancelTasks пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ
 
                 for (auto& q : _queues) {
                     q.notify();

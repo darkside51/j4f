@@ -9,14 +9,14 @@ namespace engine {
 
 	class GpuProgramKey {
 	public:
-		GpuProgramKey(const std::vector<ProgramStageInfo>& s) : _stages(s) {
+		explicit GpuProgramKey(const std::vector<ProgramStageInfo>& s) : _stages(s) {
 			_hash = 0;
-			for (size_t i = 0, sz = _stages.size(); i < sz; ++i) {
-				engine::hash_combo(_hash, _stages[i].stage, _stages[i].pass, _stages[i].specialization);
+			for (auto&& stage : _stages) {
+				engine::hash_combo(_hash, stage.stage, stage.pass, stage.specialization);
 			}
 		}
 
-		inline size_t hash() const { return _hash; }
+        [[nodiscard]] inline size_t hash() const noexcept { return _hash; }
 
 		inline bool operator == (const GpuProgramKey& r) const noexcept {
 			const size_t sz = _stages.size();

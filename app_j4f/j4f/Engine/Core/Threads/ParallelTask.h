@@ -1,9 +1,10 @@
 #pragma once
 
 #include "Task.h"
+#include "ThreadPool.h"
+#include <vector>
 
 namespace engine {
-    class ThreadPool;
 
     template <typename T>
     class ParallelTask final {
@@ -51,7 +52,7 @@ namespace engine {
             }
         }
 
-        inline bool valid() const noexcept {
+        [[nodiscard]] inline bool valid() const noexcept {
             for (auto&& t : _tasks) {
                 if (t.valid()) return true;
             }
@@ -74,8 +75,8 @@ namespace engine {
             _tasks[taskId].cancel();
         }
 
-        inline TaskState state(const uint16_t taskId) const {
-            if (taskId >= _tasks.size()) return;
+        [[nodiscard]] inline TaskState state(const uint16_t taskId) const {
+            if (taskId >= _tasks.size()) return TaskState::COMPLETE;
             return _tasks[taskId].state();
         }
 

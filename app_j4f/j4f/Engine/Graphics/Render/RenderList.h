@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../Vulkan/vkCommandBuffer.h"
-#include "../../Core/Math/math.h"
+#include "../../Core/Math/mathematic.h"
 #include <vector>
 #include <cstdint>
 

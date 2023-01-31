@@ -27,9 +27,9 @@ namespace vulkan {
 
 	struct RenderData {
 		struct RenderPart {
-			uint32_t firstIndex;					// номер первого индекса
-			uint32_t indexCount;					// количество индексов
-			uint32_t vertexCount;					// количество вершин
+			uint32_t firstIndex = 0;				// номер первого индекса
+			uint32_t indexCount = 0;				// количество индексов
+			uint32_t vertexCount = 0;				// количество вершин
 			uint32_t firstVertex = 0;				// номер первой вершины
 			uint32_t instanceCount = 1;				// количество инстансов
 			uint32_t firstInstance = 0;				// номер первого инстанса
@@ -53,19 +53,22 @@ namespace vulkan {
 		uint8_t renderPartsCount = 0;
 		bool visible = true;
 
-		RenderData() : pipeline(nullptr), renderParts(nullptr), params(std::make_shared<engine::GpuProgramParams>()) {
-		}
+		RenderData() : pipeline(nullptr), renderParts(nullptr), params(std::make_shared<engine::GpuProgramParams>()) { }
 
-		RenderData(VulkanPipeline* p) : pipeline(p), renderParts(nullptr), params(std::make_shared<engine::GpuProgramParams>()) {
+		explicit RenderData(VulkanPipeline* p) : pipeline(p), renderParts(nullptr), params(std::make_shared<engine::GpuProgramParams>()) {
 			prepareLayouts();
 		}
 
-		RenderData(const RenderDataGpuParamsType& gpu_params) : pipeline(nullptr), renderParts(nullptr), params(gpu_params) {
-		}
+        explicit RenderData(const RenderDataGpuParamsType& gpu_params) : pipeline(nullptr), renderParts(nullptr), params(gpu_params) { }
+        explicit RenderData(RenderDataGpuParamsType&& gpu_params) : pipeline(nullptr), renderParts(nullptr), params(std::move(gpu_params)) { }
 
 		RenderData(VulkanPipeline* p, const RenderDataGpuParamsType& gpu_params) : pipeline(p), renderParts(nullptr), params(gpu_params) {
 			prepareLayouts();
 		}
+
+        RenderData(VulkanPipeline* p, RenderDataGpuParamsType&& gpu_params) : pipeline(p), renderParts(nullptr), params(std::move(gpu_params)) {
+            prepareLayouts();
+        }
 
 		~RenderData() {
 			pipeline = VK_NULL_HANDLE;
@@ -118,7 +121,7 @@ namespace vulkan {
 			renderParts = parts;
 		}
 
-		inline const GPUParamLayoutInfo* getLayout(const std::string& name) const {
+		[[nodiscard]] inline const GPUParamLayoutInfo* getLayout(const std::string& name) const {
 			return pipeline->program->getGPUParamLayoutByName(name);
 		}
 
@@ -181,13 +184,10 @@ namespace vulkan {
 			uint16_t externalDescriptorsSetsCount = 0;
 
 			for (GPUParamLayoutInfo* l : programParamLayouts) {
-				auto& pair = layouts.emplace_back(l, 0);
+				//auto& pair = layouts.emplace_back(l, 0);
+                layouts.emplace_back(l, 0);
 				switch (l->type) {
-					case GPUParamLayoutType::UNIFORM_BUFFER_DYNAMIC: // full buffer
-					{
-						++dynamicOffsetsCount;
-					}
-						break;
+                    case GPUParamLayoutType::UNIFORM_BUFFER_DYNAMIC: // full buffer
 					case GPUParamLayoutType::STORAGE_BUFFER_DYNAMIC: // full buffer
 					{
 						++dynamicOffsetsCount;
@@ -224,7 +224,7 @@ namespace vulkan {
 		uint32_t prepareRender(/*VulkanCommandBuffer& commandBuffer*/) {
 			using namespace vulkan;
 
-			VulkanGpuProgram* program = const_cast<VulkanGpuProgram*>(pipeline->program);
+			auto* program = const_cast<VulkanGpuProgram*>(pipeline->program);
 			uint32_t increasedBuffers = 0;
 			uint8_t externalSetNum = 0;
 			uint32_t result = 0;
@@ -237,7 +237,7 @@ namespace vulkan {
 					case GPUParamLayoutType::UNIFORM_BUFFER_DYNAMIC: // full buffer
 					case GPUParamLayoutType::STORAGE_BUFFER_DYNAMIC: // full buffer
 					{
-						VulkanDynamicBuffer* buffer = reinterpret_cast<VulkanDynamicBuffer*>(l->data);
+						auto* buffer = reinterpret_cast<VulkanDynamicBuffer*>(l->data);
 
 						if (value) {
 							p.second = buffer->encrease();
@@ -252,7 +252,7 @@ namespace vulkan {
 					case GPUParamLayoutType::BUFFER_DYNAMIC_PART: // dynamic buffer part
 					{
 						if (value) {
-							VulkanDynamicBuffer* buffer = reinterpret_cast<VulkanDynamicBuffer*>(l->parentLayout->data);
+							auto* buffer = reinterpret_cast<VulkanDynamicBuffer*>(l->parentLayout->data);
 							if ((increasedBuffers & (uint64_t(1) << l->parentLayout->dynamcBufferIdx)) == 0) {
 								increasedBuffers |= (uint64_t(1) << l->parentLayout->dynamcBufferIdx);
 								p.second = buffer->encrease();
@@ -291,8 +291,8 @@ namespace vulkan {
 					case GPUParamLayoutType::COMBINED_IMAGE_SAMPLER: // image sampler
 					{
 						if (value) {
-							const VulkanTexture* texture = static_cast<const VulkanTexture*>(value);
-							const VkDescriptorSet set = texture->getSingleDescriptor();
+							const auto* texture = static_cast<const VulkanTexture*>(value);
+                            VkDescriptorSet set = texture->getSingleDescriptor();
 
 							if (set != VK_NULL_HANDLE) {
 								externalDescriptorsSets[externalSetNum++] = set;

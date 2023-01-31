@@ -2,9 +2,6 @@
 
 #include "../../Core/Engine.h"
 #include "../../Core/Cache.h"
-#include "../../Core/AssetManager.h"
-#include "../../Core/Threads/ThreadPool.h"
-#include "../../Core/Threads/Synchronisations.h"
 #include "../../File/FileManager.h"
 #include "../Graphics.h"
 #include "../Vulkan/vkTexture.h"
@@ -41,7 +38,7 @@ namespace engine {
 		if (params.texData) {
 			texture = new vulkan::VulkanTexture(renderer, params.texData->width(), params.texData->height(), 1);
 		} else {
-			FileManager* fm = engine.getModule<engine::FileManager>();
+			auto* fm = engine.getModule<engine::FileManager>();
 			int width, height, channels;
 			TextureData::getInfo(fm->getFullPath(params.files[0]).c_str(), &width, &height, &channels); // texture dimensions + channels without load
 
@@ -147,7 +144,8 @@ namespace engine {
 						cacheKey += f;
 					}
 
-					if (v = cache->getValue(cacheKey)) {
+                    v = cache->getValue(cacheKey);
+                    if (v) {
 						if (callback) {
 							switch (v->generationState()) {
 							case vulkan::VulkanTextureCreationState::NO_CREATED:
@@ -168,7 +166,8 @@ namespace engine {
 						return createTexture(params, callback);
 						}, params, callback);
 				} else {
-					if (v = cache->getValue(params.files[0])) {
+                    v = cache->getValue(params.files[0]);
+                    if (v) {
 						if (callback) {
 							switch (v->generationState()) {
 							case vulkan::VulkanTextureCreationState::NO_CREATED:
@@ -190,7 +189,8 @@ namespace engine {
 						}, params, callback);
 				}
 			} else {
-				if (v = cache->getValue(params.cacheName)) {
+                v = cache->getValue(params.cacheName);
+                if (v) {
 					if (callback) {
 						switch (v->generationState()) {
 						case vulkan::VulkanTextureCreationState::NO_CREATED:

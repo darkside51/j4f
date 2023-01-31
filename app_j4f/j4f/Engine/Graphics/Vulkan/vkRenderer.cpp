@@ -1,7 +1,7 @@
 ﻿#include "vkRenderer.h"
 #include "vkHelper.h"
 
-#include "../RenderSurfaceInitialisez.h"
+#include "../RenderSurfaceInitializer.h"
 #include "vkTexture.h"
 
 #include "vkDebugMarker.h"
@@ -203,9 +203,9 @@ namespace vulkan {
 		return res == VK_SUCCESS;
 	}
 
-	void VulkanRenderer::createSwapChain(const engine::IRenderSurfaceInitialiser* initialiser, const bool useVsync) {
+	void VulkanRenderer::createSwapChain(const engine::IRenderSurfaceInitializer* initializer, const bool useVsync) {
 		_vSync = useVsync;
-		_swapChain.connect(_instance, _vulkanDevice, initialiser);
+		_swapChain.connect(_instance, _vulkanDevice, initializer);
 		_swapChain.resize(_width, _height, useVsync);
 	}
 
@@ -1016,16 +1016,15 @@ namespace vulkan {
 
 		const uint32_t blendKey = blendMode();
 
-		VkRenderPass currentRenderPass = (renderPass == VK_NULL_HANDLE) ? _mainRenderPass : renderPass;
+		const VkRenderPass currentRenderPass = (renderPass == VK_NULL_HANDLE) ? _mainRenderPass : renderPass;
 
-		GraphicsPipelineCacheKey cacheKey(composite_key, stencil_key, blendKey, currentRenderPass);
+		const GraphicsPipelineCacheKey cacheKey(composite_key, stencil_key, blendKey, currentRenderPass);
 		auto it = _graphicsPipelinesCache.find(cacheKey);
 		if (it != _graphicsPipelinesCache.end()) {
 			return it->second;
 		}
 
 		///////////////// create new value and cache it
-
 		// viewport state sets the number of viewports and scissor used in this pipeline
 		// this is actually overridden by the dynamic states (see below)
 		VkPipelineViewportStateCreateInfo viewportState = {};
@@ -1115,8 +1114,8 @@ namespace vulkan {
 		pipeline->renderPass = currentRenderPass;
 		pipeline->subpass = subpass;
 
-		VkPipelineRasterizationStateCreateInfo rasterizationInfo = rasterization.rasterizationInfo();
-		std::vector<VkPipelineColorBlendAttachmentState> blendAttachmentState = blendMode.blendState();
+		const VkPipelineRasterizationStateCreateInfo rasterizationInfo = rasterization.rasterizationInfo();
+		const std::vector<VkPipelineColorBlendAttachmentState> blendAttachmentState = blendMode.blendState();
 
 		VkPipelineColorBlendStateCreateInfo colorBlendInfo = {};
 		colorBlendInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;

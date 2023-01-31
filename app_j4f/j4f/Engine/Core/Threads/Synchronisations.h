@@ -23,7 +23,7 @@ namespace engine {
 
 	class AtomicLock {
 	public:
-		AtomicLock(std::atomic_bool& l) : _lock(l) {
+		explicit AtomicLock(std::atomic_bool& l) : _lock(l) {
 			bool free = false;
 			while (!_lock.compare_exchange_weak(free, true, std::memory_order_release, std::memory_order_relaxed)) {
 				free = false;
@@ -47,7 +47,7 @@ namespace engine {
 
 	class AtomicLockF {
 	public:
-		AtomicLockF(std::atomic_flag& l) : _lock(l) {
+		explicit AtomicLockF(std::atomic_flag& l) : _lock(l) {
 			while (_lock.test_and_set(std::memory_order_release)) {
 				std::this_thread::yield();
 			}
@@ -69,7 +69,7 @@ namespace engine {
 
 	class AtomicInc {
 	public:
-		AtomicInc(std::atomic_uint16_t& c) : _counter(c) {
+		explicit AtomicInc(std::atomic_uint16_t& c) : _counter(c) {
 			_counter.fetch_add(1, std::memory_order_release);
 		}
 

@@ -28,7 +28,7 @@ namespace engine {
 			TextureFlags flags;
 
 			TextureLoadingFlags() : mask(0b00000010) {}
-			TextureLoadingFlags(const uint8_t f) : mask(f) {}
+			explicit TextureLoadingFlags(const uint8_t f) : mask(f) {}
 
 			TextureFlags* operator->() { return &flags; }
 			const TextureFlags* operator->() const { return &flags; }
@@ -44,7 +44,7 @@ namespace engine {
 
 		TextureLoadingFlags textureFlags;
 
-		std::string cacheName = "";
+		std::string cacheName;
 	};
 
 	using TextureLoadingParams = AssetLoadingParams<vulkan::VulkanTexture>;

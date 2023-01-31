@@ -27,7 +27,7 @@ namespace engine {
 		}
 
 		void addDependTask(ITaskHandlerPtr& handler) {
-			if (FlowTaskFamily* flowTask = dynamic_cast<FlowTaskFamily*>(handler.get())) {
+			if (auto* flowTask = dynamic_cast<FlowTaskFamily*>(handler.get())) {
 				flowTask->_dependency.fetch_add(1, std::memory_order_release);
 			}
 

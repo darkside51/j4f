@@ -6,17 +6,14 @@
 #include "vkDebugMarker.h"
 
 #include "../../Core/Cache.h"
-#include "../../Core/Engine.h"
 #include "../../File/FileManager.h"
-#include "../../Utils/StringHelper.h"
 
 // reflect
 #include "spirv/spirv_reflect.h"
 
 // some
-#include <fstream>
 #include <cstdint>
-#include <assert.h>
+#include <cassert>
 #include <array>
 
 namespace vulkan {
@@ -37,7 +34,7 @@ namespace vulkan {
 				//(member->type_flags & SPV_REFLECT_TYPE_FLAG_BOOL)	? sizeof(bool) :
 				//(member->traits.numeric.scalar.width / 8); // размер элемента данных в байтах
 
-			uint32_t size = 0;
+			uint32_t size;
 			switch (member->op) {
 				case SpvOpTypeMatrix:
 				{
@@ -65,8 +62,6 @@ namespace vulkan {
 							elementOffset = engine::alignValue(elementOffset, 8);
 							break;
 						case 3:
-							elementOffset = engine::alignValue(elementOffset, 16);
-							break;
 						case 4:
 							elementOffset = engine::alignValue(elementOffset, 16);
 							break;
@@ -76,14 +71,8 @@ namespace vulkan {
 					size = member->traits.numeric.vector.component_count * oneElementSize;
 					break;
 				case SpvOpTypeBool:
-					size = oneElementSize;
-					break;
 				case SpvOpTypeFloat:
-					size = oneElementSize;
-					break;
 				case SpvOpTypeInt:
-					size = oneElementSize;
-					break;
 				default:
 					size = oneElementSize;
 					break;
@@ -97,11 +86,11 @@ namespace vulkan {
 		}
 
 		resultDescriptorSize = elementOffset;
-	};
+	}
 
 	VulkanShaderCode VulkanShaderModule::loadSpirVCode(const char* pass) {
 		using namespace engine;
-		FileManager* fm = Engine::getInstance().getModule<FileManager>();
+		auto* fm = Engine::getInstance().getModule<FileManager>();
 
 		VulkanShaderCode code;
 		code.shaderCode = fm->readFile(pass, code.shaderSize);
@@ -129,17 +118,17 @@ namespace vulkan {
 
 	void VulkanShaderModule::reflectShaderCode(VulkanRenderer* renderer, const VulkanShaderCode& code) {
 	
-		SpvReflectShaderModule module;
-		SpvReflectResult result = spvReflectCreateShaderModule(code.shaderSize, code.shaderCode, &module);
+		SpvReflectShaderModule reflectedModule;
+		SpvReflectResult result = spvReflectCreateShaderModule(code.shaderSize, code.shaderCode, &reflectedModule);
 		if (result != SPV_REFLECT_RESULT_SUCCESS) {
 			assert(false);
 		}
 
 		// список юниформов
 		uint32_t setsCount = 0;
-		spvReflectEnumerateDescriptorSets(&module, &setsCount, nullptr);
+		spvReflectEnumerateDescriptorSets(&reflectedModule, &setsCount, nullptr);
 		std::vector<SpvReflectDescriptorSet*> sets(setsCount);
-		spvReflectEnumerateDescriptorSets(&module, &setsCount, sets.data());
+		spvReflectEnumerateDescriptorSets(&reflectedModule, &setsCount, sets.data());
 
 		m_descriptorSetLayoutBindings.resize(setsCount);
 
@@ -163,7 +152,7 @@ namespace vulkan {
 					layoutBinding.stageFlags = stage;
 					layoutBinding.pImmutableSamplers = nullptr;
 
-					VulkanDescriptorSetLayoutBindingDescription* bindingDescription = new VulkanDescriptorSetLayoutBindingDescription();
+					auto* bindingDescription = new VulkanDescriptorSetLayoutBindingDescription();
 					bindingDescription->binding = layoutBinding;
 					bindingDescription->set = setInfo->set;
 					bindingDescription->name = binding->name;
@@ -199,15 +188,10 @@ namespace vulkan {
 							}
 						}
 							break;
-						case SpvDimRect: 
-							assert(false); 
-							break;
-						case SpvDimBuffer: 
-							assert(false); 
-							break;
+						case SpvDimRect:
+						case SpvDimBuffer:
 						case SpvDimSubpassData: 
-							assert(false); 
-							break;
+							assert(false);
 						default:
 							break;
 					}
@@ -216,11 +200,8 @@ namespace vulkan {
 				}
 					break;
 				case SPV_REFLECT_DESCRIPTOR_TYPE_SAMPLED_IMAGE: // = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE
-					break;
 				case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_IMAGE: // = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE
-					break;
 				case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER: // = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER
-					break;
 				case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER: // = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER
 					break;
 				case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER: // = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
@@ -236,7 +217,7 @@ namespace vulkan {
 					layoutBinding.stageFlags = stage;
 					layoutBinding.pImmutableSamplers = nullptr;
 
-					VulkanDescriptorSetLayoutBindingDescription* bindingDescription = new VulkanDescriptorSetLayoutBindingDescription();
+					auto* bindingDescription = new VulkanDescriptorSetLayoutBindingDescription();
 					bindingDescription->binding = layoutBinding;
 					bindingDescription->set = setInfo->set;
 					bindingDescription->name = binding->name;
@@ -246,7 +227,7 @@ namespace vulkan {
 					uint32_t sizeInBytes = 0;
 					parseBuffer(binding, bindingDescription, sizeInBytes);
 
-					const uint32_t minUboAlignment = static_cast<uint32_t>(renderer->getDevice()->gpuProperties.limits.minUniformBufferOffsetAlignment);
+					const auto minUboAlignment = static_cast<uint32_t>(renderer->getDevice()->gpuProperties.limits.minUniformBufferOffsetAlignment);
 					if (minUboAlignment > 0) {
 						sizeInBytes = engine::alignValue(sizeInBytes, minUboAlignment);
 					}
@@ -264,7 +245,7 @@ namespace vulkan {
 					layoutBinding.stageFlags = stage;
 					layoutBinding.pImmutableSamplers = nullptr;
 
-					VulkanDescriptorSetLayoutBindingDescription* bindingDescription = new VulkanDescriptorSetLayoutBindingDescription();
+					auto* bindingDescription = new VulkanDescriptorSetLayoutBindingDescription();
 					bindingDescription->binding = layoutBinding;
 					bindingDescription->set = setInfo->set;
 					bindingDescription->name = binding->name;
@@ -295,7 +276,7 @@ namespace vulkan {
 					layoutBinding.stageFlags = stage;
 					layoutBinding.pImmutableSamplers = nullptr;
 
-					VulkanDescriptorSetLayoutBindingDescription* bindingDescription = new VulkanDescriptorSetLayoutBindingDescription();
+					auto* bindingDescription = new VulkanDescriptorSetLayoutBindingDescription();
 					bindingDescription->binding = layoutBinding;
 					bindingDescription->set = setInfo->set;
 					bindingDescription->name = binding->name;
@@ -305,7 +286,7 @@ namespace vulkan {
 					uint32_t sizeInBytes = 0;
 					parseBuffer(binding, bindingDescription, sizeInBytes);
 
-					const uint32_t minUboAlignment = static_cast<uint32_t>(renderer->getDevice()->gpuProperties.limits.minUniformBufferOffsetAlignment);
+					const auto minUboAlignment = static_cast<uint32_t>(renderer->getDevice()->gpuProperties.limits.minUniformBufferOffsetAlignment);
 					if (minUboAlignment > 0) {
 						sizeInBytes = engine::alignValue(sizeInBytes, minUboAlignment);
 					}
@@ -323,7 +304,7 @@ namespace vulkan {
 					layoutBinding.stageFlags = stage;
 					layoutBinding.pImmutableSamplers = nullptr;
 
-					VulkanDescriptorSetLayoutBindingDescription* bindingDescription = new VulkanDescriptorSetLayoutBindingDescription();
+					auto* bindingDescription = new VulkanDescriptorSetLayoutBindingDescription();
 					bindingDescription->binding = layoutBinding;
 					bindingDescription->set = setInfo->set;
 					bindingDescription->name = binding->name;
@@ -342,9 +323,7 @@ namespace vulkan {
 				}
 					break;
 				case SPV_REFLECT_DESCRIPTOR_TYPE_INPUT_ATTACHMENT: // = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT
-					break;
 				case SPV_REFLECT_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR:  // = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR
-					break;
 				default:
 					break;
 				}
@@ -353,9 +332,9 @@ namespace vulkan {
 
 		// push константы
 		uint32_t pushConstantsCount = 0;
-		spvReflectEnumeratePushConstantBlocks(&module, &pushConstantsCount, nullptr);
+		spvReflectEnumeratePushConstantBlocks(&reflectedModule, &pushConstantsCount, nullptr);
 		std::vector<SpvReflectBlockVariable*> pushConstants(pushConstantsCount);
-		spvReflectEnumeratePushConstantBlocks(&module, &pushConstantsCount, pushConstants.data());
+		spvReflectEnumeratePushConstantBlocks(&reflectedModule, &pushConstantsCount, pushConstants.data());
 
 		m_pushConstantsRange.resize(pushConstantsCount);
 
@@ -383,7 +362,7 @@ namespace vulkan {
 		}
 
 		// destroy the reflection data when no longer required
-		spvReflectDestroyShaderModule(&module);
+		spvReflectDestroyShaderModule(&reflectedModule);
 	}
 
 	VulkanGpuProgram::VulkanGpuProgram(VulkanRenderer* renderer, std::vector<ShaderStageInfo>& stages) : m_id(engine::getUniqueId<VulkanGpuProgram>()), m_renderer(renderer) {
@@ -454,13 +433,13 @@ namespace vulkan {
 
 		auto&& parseParamLayoutChilds = [](uint8_t &paramId, GPUParamLayoutInfo* parentInfo, std::unordered_map<std::string, GPUParamLayoutInfo*>& paramLayouts, const std::vector<VulkanUniformInfo>& childInfos, const GPUParamLayoutType type) {
 			for (const VulkanUniformInfo& childInfo : childInfos) {
-				GPUParamLayoutInfo* info = new GPUParamLayoutInfo{ paramId++, parentInfo->set, childInfo.offset, childInfo.sizeInBytes, nullptr, nullptr, type, 0 };
+				auto* info = new GPUParamLayoutInfo{ paramId++, parentInfo->set, childInfo.offset, childInfo.sizeInBytes, nullptr, nullptr, type, 0 };
 				info->parentLayout = parentInfo;
 				paramLayouts[childInfo.name] = info;
 			}
 		};
 
-		std::array<VulkanDescriptorSetLayoutBindingDescription*, 8> found_sets; // расчитываем на 8 sets max
+		std::array<VulkanDescriptorSetLayoutBindingDescription*, 8> found_sets{}; // расчитываем на 8 sets max
 		uint8_t sets_map = 0;
 		uint8_t paramId = 0;
 		for (VulkanShaderModule* module : modules) {
@@ -504,7 +483,7 @@ namespace vulkan {
 							parseParamLayoutChilds(paramId, info, m_paramLayouts, layoutDescription->childInfos, GPUParamLayoutType::BUFFER_DYNAMIC_PART);
 						}
 							break;
-						case SPV_REFLECT_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
+						case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
 						{
 							info = new GPUParamLayoutInfo{ paramId++, layoutDescription->set, 0, layoutDescription->sizeInBytes, &(layoutDescription->binding), nullptr, GPUParamLayoutType::COMBINED_IMAGE_SAMPLER };
 							info->imageType = layoutDescription->imageType;
@@ -521,7 +500,7 @@ namespace vulkan {
 
 			size_t i = 0;
 			for (VulkanPushConstantRangeInfo& ri : module->m_pushConstantsRange) {
-				GPUParamLayoutInfo* info = new GPUParamLayoutInfo{ paramId++, 0, ri.range.offset, ri.range.size, nullptr, &ri.range, GPUParamLayoutType::PUSH_CONSTANT, static_cast<uint32_t>(i) };
+				auto* info = new GPUParamLayoutInfo{ paramId++, 0, ri.range.offset, ri.range.size, nullptr, &ri.range, GPUParamLayoutType::PUSH_CONSTANT, static_cast<uint32_t>(i) };
 				parseParamLayoutChilds(paramId, info, m_paramLayouts, ri.childInfos, GPUParamLayoutType::PUSH_CONSTANT_PART);
 				m_pushConstantsRanges[i] = &ri.range;
 				m_paramLayouts[ri.name] = info;
@@ -532,9 +511,10 @@ namespace vulkan {
 		// create sorted layouts vector
 		const size_t paramsCount = m_paramLayouts.size();
 		m_paramLayoutsVec.reserve(paramsCount);
-		for (auto it = m_paramLayouts.begin(); it != m_paramLayouts.end(); ++it) {
-			m_paramLayoutsVec.push_back(it->second);
-		}
+
+        for (auto&& [name, layout] : m_paramLayouts) {
+            m_paramLayoutsVec.push_back(layout);
+        }
 
 		// сортировка m_paramLayoutsVec нужна для случая, когда в RenderData::prepareRender идет перебор layouts, 
 		// чтобы для случаев полных буфферов(full buffer) не нужно было делать проверки вида if ((increasedBuffers & (uint64_t(1) << l->dynamcBufferIdx)) == 0),
@@ -707,32 +687,32 @@ namespace vulkan {
 		switch (paramLayout->type) {
 			case GPUParamLayoutType::UNIFORM_BUFFER_DYNAMIC: // full buffer
 			{
-				VulkanDynamicBuffer* buffer = reinterpret_cast<VulkanDynamicBuffer*>(paramLayout->data);
+				auto* buffer = reinterpret_cast<VulkanDynamicBuffer*>(paramLayout->data);
 				result = m_renderer->updateDynamicBufferData(buffer, value, allBuffers, knownOffset, knownSize);
 			}
 				break;
 			case GPUParamLayoutType::STORAGE_BUFFER_DYNAMIC: // full buffer
 			{
-				VulkanDynamicBuffer* buffer = reinterpret_cast<VulkanDynamicBuffer*>(paramLayout->data);
+                auto* buffer = reinterpret_cast<VulkanDynamicBuffer*>(paramLayout->data);
 				result = m_renderer->updateDynamicBufferData(buffer, value, allBuffers, knownOffset, knownSize);
 			}
 				break;
 			case GPUParamLayoutType::BUFFER_DYNAMIC_PART: // part of dynamic buffer
 			{
-				VulkanDynamicBuffer* buffer = reinterpret_cast<VulkanDynamicBuffer*>(paramLayout->parentLayout->data);
+                auto* buffer = reinterpret_cast<VulkanDynamicBuffer*>(paramLayout->parentLayout->data);
 				result = m_renderer->updateDynamicBufferData(buffer, value, paramLayout->offset, (knownSize == UNDEFINED ? paramLayout->sizeInBytes : knownSize), allBuffers, knownOffset);
 			}
 				break;
 			case GPUParamLayoutType::PUSH_CONSTANT: // full constant
 			{
-				VkPushConstantRange* constant = reinterpret_cast<VkPushConstantRange*>(paramLayout->data);
+                auto* constant = reinterpret_cast<VkPushConstantRange*>(paramLayout->data);
 				pConstant->range = constant;
 				memcpy(pConstant->values, value, paramLayout->sizeInBytes);
 			}
 				break;
 			case GPUParamLayoutType::PUSH_CONSTANT_PART: // part of constant
 			{
-				VkPushConstantRange* constant = reinterpret_cast<VkPushConstantRange*>(paramLayout->parentLayout->data);
+                auto* constant = reinterpret_cast<VkPushConstantRange*>(paramLayout->parentLayout->data);
 				pConstant->range = constant;
 				memcpy(reinterpret_cast<void*>(reinterpret_cast<size_t>(pConstant->values) + paramLayout->offset), value, paramLayout->sizeInBytes);
 			}
@@ -743,7 +723,7 @@ namespace vulkan {
 				break;
 			case GPUParamLayoutType::UNIFORM_BUFFER: // full buffer
 			{
-				vulkan::VulkanBuffer* buffer = reinterpret_cast<vulkan::VulkanBuffer*>(paramLayout->data);
+                auto* buffer = reinterpret_cast<vulkan::VulkanBuffer*>(paramLayout->data);
 				void* memory = buffer->map(buffer->m_size);
 				memcpy(reinterpret_cast<void*>(reinterpret_cast<size_t>(memory) + (knownOffset == UNDEFINED ? paramLayout->offset : knownOffset)), value, (knownSize == UNDEFINED ? paramLayout->sizeInBytes : knownSize));
 				buffer->unmap();
@@ -751,7 +731,7 @@ namespace vulkan {
 				break;
 			case GPUParamLayoutType::STORAGE_BUFFER: // full buffer
 			{
-				vulkan::VulkanBuffer* buffer = reinterpret_cast<vulkan::VulkanBuffer*>(paramLayout->data);
+                auto* buffer = reinterpret_cast<vulkan::VulkanBuffer*>(paramLayout->data);
 				void* memory = buffer->map(buffer->m_size);
 				memcpy(reinterpret_cast<void*>(reinterpret_cast<size_t>(memory) + (knownOffset == UNDEFINED ? paramLayout->offset : knownOffset)), value, (knownSize == UNDEFINED ? paramLayout->sizeInBytes : knownSize));
 				buffer->unmap();
@@ -759,7 +739,7 @@ namespace vulkan {
 				break;
 			case GPUParamLayoutType::BUFFER_PART: // part of buffer
 			{
-				vulkan::VulkanBuffer* buffer = reinterpret_cast<vulkan::VulkanBuffer*>(paramLayout->parentLayout->data);
+                auto* buffer = reinterpret_cast<vulkan::VulkanBuffer*>(paramLayout->parentLayout->data);
 				void* memory = buffer->map(buffer->m_size);
 				memcpy(reinterpret_cast<void*>(reinterpret_cast<size_t>(memory) + (knownOffset == UNDEFINED ? paramLayout->offset : knownOffset)), value, (knownSize == UNDEFINED ? paramLayout->sizeInBytes : knownSize));
 				buffer->unmap();

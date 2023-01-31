@@ -429,7 +429,7 @@ namespace vulkan {
 
 		bool createInstance(const std::vector<VkExtensionProperties>& desiredInstanceExtensions, const std::vector<VkLayerProperties>& desiredLayers);
 		bool createDevice(const VkPhysicalDeviceFeatures features, std::vector<const char*>& extensions, const VkPhysicalDeviceType deviceType = VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU);
-		void createSwapChain(const engine::IRenderSurfaceInitialiser* initialiser, const bool useVsync);
+		void createSwapChain(const engine::IRenderSurfaceInitializer* initializer, const bool useVsync);
 		void init(const engine::GraphicConfig& cfg);
 
 		void setupRenderPass(const std::vector<VkAttachmentDescription>& configuredAttachments, const std::vector<VkSubpassDependency>& configuredDependencies, const bool canContinueMainRenderPass);

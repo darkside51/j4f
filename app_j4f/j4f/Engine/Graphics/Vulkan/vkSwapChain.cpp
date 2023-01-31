@@ -2,19 +2,19 @@
 #include "vkDevice.h"
 #include <cassert>
 
-#include "../RenderSurfaceInitialisez.h"
+#include "../RenderSurfaceInitializer.h"
 
 namespace vulkan {
 
-	void VulkanSwapChain::connect(VkInstance instance, VulkanDevice* vkDevice, const engine::IRenderSurfaceInitialiser* initialiser) {
+	void VulkanSwapChain::connect(VkInstance instance, VulkanDevice* vkDevice, const engine::IRenderSurfaceInitializer* initializer) {
 		_instance = instance;
 		_vkDevice = vkDevice;
 		_physicalDevice = vkDevice->gpu;
 		_device = vkDevice->device;
 
-		_desiredImagesCount = initialiser->getDesiredImageCount();
+		_desiredImagesCount = initializer->getDesiredImageCount();
 
-		initialiser->initRenderSurface(&_instance, &surface);
+		initializer->initRenderSurface(&_instance, &surface);
 
 		uint32_t formatCount;
 		if (vkGetPhysicalDeviceSurfaceFormatsKHR(_physicalDevice, surface, &formatCount, nullptr) != VkResult::VK_SUCCESS) {

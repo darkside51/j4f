@@ -13,13 +13,13 @@ namespace engine {
 
 	class Looper : public IEngineModule {
 	public:
-		Looper() { }
-		~Looper() {
+		Looper() = default;
+		~Looper() override {
 			AtomicLockF l(_lock);
 			_tasks.clear();
 		}
 		
-		void nextFrame(const float delta) {
+		void nextFrame(const float /*delta*/) {
 			if (_tasks.empty()) return;
 
 			std::vector<LooperTask> tasks;

@@ -27,18 +27,18 @@ namespace vulkan {
 
 	class VulkanDevice {
 	public:
-		VkPhysicalDevice gpu;
-		VkPhysicalDeviceProperties gpuProperties;
-		VkPhysicalDeviceFeatures gpuFeatures;
-		VkPhysicalDeviceMemoryProperties gpuMemoryProperties;
-		std::vector<VkQueueFamilyProperties> gpuQueueFamilyProperties;
-		std::vector<std::string> supportedExtensions;
+		VkPhysicalDevice gpu = VK_NULL_HANDLE;
+		VkPhysicalDeviceProperties gpuProperties = {};
+		VkPhysicalDeviceFeatures gpuFeatures = {};
+		VkPhysicalDeviceMemoryProperties gpuMemoryProperties = {};
+		std::vector<VkQueueFamilyProperties> gpuQueueFamilyProperties = {};
+		std::vector<std::string> supportedExtensions = {};
 
 		VkDevice device = VK_NULL_HANDLE;
-		VkPhysicalDeviceFeatures enabledFeatures;
-		GPUQueueFamilyIndices queueFamilyIndices;
+		VkPhysicalDeviceFeatures enabledFeatures = {};
+		GPUQueueFamilyIndices queueFamilyIndices = {};
 
-		VkCommandPool cmdPools[3];
+		VkCommandPool cmdPools[3] = {};
 
 		explicit VulkanDevice(VkPhysicalDevice physicalDevice);
 		~VulkanDevice() {
@@ -50,9 +50,9 @@ namespace vulkan {
 
 		bool checkPresentSupport(VkSurfaceKHR vkSurface); // check divece support present
 
-		inline bool extensionSupported(std::string extension) const { return (std::find(supportedExtensions.begin(), supportedExtensions.end(), extension) != supportedExtensions.end()); }
+		[[nodiscard]] inline bool extensionSupported(std::string_view extension) const { return (std::find(supportedExtensions.begin(), supportedExtensions.end(), extension) != supportedExtensions.end()); }
 
-		bool checkImageFormatSupported(const VkFormat format) {
+        [[nodiscard]] bool checkImageFormatSupported(const VkFormat format) const {
 			const VkFormatFeatureFlags dstFeatures = VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT;
 
 			VkFormatProperties formatProperties;
@@ -61,10 +61,11 @@ namespace vulkan {
 			return (formatProperties.optimalTilingFeatures & dstFeatures) == dstFeatures;
 		}
 
-		VkFormat getSupportedDepthFormat(const uint8_t minBits, bool samplingSupport = false) const {
+        [[nodiscard]] VkFormat getSupportedDepthFormat(const uint8_t minBits, bool samplingSupport = false) const {
 			constexpr uint8_t formatsCount = 5;
 			std::array<VkFormat, formatsCount> depthFormats = { VK_FORMAT_D16_UNORM, VK_FORMAT_D16_UNORM_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT, VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT };
 			uint8_t i = 0;
+
 			switch (minBits) {
 				case 16:
 					break;
@@ -77,6 +78,7 @@ namespace vulkan {
 				default:
 					return VK_FORMAT_UNDEFINED;
 			}
+
 			for (; i < formatsCount; ++i) {
 				auto&& format = depthFormats[i];
 				VkFormatProperties formatProperties;
@@ -91,15 +93,15 @@ namespace vulkan {
 			return VK_FORMAT_UNDEFINED;
 		}
 
-		VkCommandPool createCommandPool(const uint32_t queueFamilyIndex, const VkCommandPoolCreateFlags createFlags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT) const;
+        [[nodiscard]] VkCommandPool createCommandPool(const uint32_t queueFamilyIndex, const VkCommandPoolCreateFlags createFlags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT) const;
 		inline void destroyCommandPool(VkCommandPool pool) const {
 			if (pool != VK_NULL_HANDLE) {
 				vkDestroyCommandPool(device, pool, nullptr);
 			}
 		}
 
-		inline VkCommandPool getCommandPool(const GPUQueueFamily f) const { return cmdPools[static_cast<uint8_t>(f)]; }
-		inline VkCommandPool getCommandPool(const uint32_t queueFamilyIndex) const {
+        [[nodiscard]] inline VkCommandPool getCommandPool(const GPUQueueFamily f) const { return cmdPools[static_cast<uint8_t>(f)]; }
+        [[nodiscard]] inline VkCommandPool getCommandPool(const uint32_t queueFamilyIndex) const {
 			if (queueFamilyIndex == queueFamilyIndices.graphics) {
 				return cmdPools[static_cast<uint8_t>(GPUQueueFamily::F_GRAPHICS)];
 			} else if (queueFamilyIndex == queueFamilyIndices.compute) {
@@ -118,7 +120,7 @@ namespace vulkan {
 		VulkanCommandBufferEx<STATE> createVulkanCommandBuffer(VkCommandBufferLevel level, VkCommandPool pool) const { return VulkanCommandBufferEx<STATE>(device, pool, level); }
 
 		template<typename STATE = VulkanCommandBufferState>
-		VulkanCommandBuffer createVulkanCommandBuffer(VkCommandBufferLevel level, const GPUQueueFamily f) const { return VulkanCommandBufferEx<STATE>(device, getCommandPool(f), level); }
+        [[nodiscard]] VulkanCommandBuffer createVulkanCommandBuffer(VkCommandBufferLevel level, const GPUQueueFamily f) const { return VulkanCommandBufferEx<STATE>(device, getCommandPool(f), level); }
 		////
 
 		// sharing mode must be VK_SHARING_MODE_EXCLUSIVE for only one GPUQueueFamily use or VK_SHARING_MODE_CONCURRENT for other
@@ -126,17 +128,17 @@ namespace vulkan {
 		void createBuffer(const VkSharingMode sharingMode, const VkBufferUsageFlags usageFlags, const VkMemoryPropertyFlags memoryPropertyFlags, VulkanBuffer* buffer, const VkDeviceSize size) const;
 		void createBuffer(const VkSharingMode sharingMode, const VkBufferUsageFlags usageFlags, const VkMemoryPropertyFlags memoryPropertyFlags, VulkanDeviceBuffer* buffer, const VkDeviceSize size0, const VkDeviceSize size1 = VK_WHOLE_SIZE) const;
 
-		inline VkResult waitIdle() const { return vkDeviceWaitIdle(device); }
+        [[nodiscard]] inline VkResult waitIdle() const { return vkDeviceWaitIdle(device); }
 
 		uint32_t getMemoryType(uint32_t typeBits, VkMemoryPropertyFlags properties, VkBool32* memTypeFound = nullptr) const;
 
-		uint32_t getQueueFamilyIndex(VkQueueFlagBits queueFlags) const;
-		uint32_t getQueueFamilyCount(VkQueueFlagBits queueFlags) const;
+        [[nodiscard]] uint32_t getQueueFamilyIndex(VkQueueFlagBits queueFlags) const;
+        [[nodiscard]] uint32_t getQueueFamilyCount(VkQueueFlagBits queueFlags) const;
 
 		VkResult createDevice(VkPhysicalDeviceFeatures enabledFeatures, std::vector<const char*> enabledExtensions, void* pNextChain, bool useSwapChain = true, VkQueueFlags requestedQueueTypes = VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT);
 
-		VkQueue getQueue(const GPUQueueFamily gpuQueue, const uint32_t idx) const;
-		VkQueue getPresentQueue() const;
+        [[nodiscard]] VkQueue getQueue(const GPUQueueFamily gpuQueue, const uint32_t idx) const;
+        [[nodiscard]] VkQueue getPresentQueue() const;
 
 		VkShaderModule createShaderModule(const VulkanShaderCode& code, const VkAllocationCallbacks* pAllocator = nullptr) const;
 		void destroyShaderModule(VkShaderModule module, const VkAllocationCallbacks* pAllocator = nullptr) const;

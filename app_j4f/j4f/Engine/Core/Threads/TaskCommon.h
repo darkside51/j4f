@@ -14,8 +14,8 @@ namespace engine {
 
     enum class TaskType : uint8_t { // max value is 7 (using with 1 << TaskType)
         COMMON = 0,
-        USER_CONTROL = 1, // cancel будет вызван только на стороне использующей стороны, сам ThreadPool сможет отменить такую задачу только при остановке в stop()
-        _MAX_VALUE = 8
+        USER_CONTROL = 1, // cancel пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ ThreadPool пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ stop()
+        MAX_VALUE = 8
     };
 
     class CancellationToken final {
@@ -24,7 +24,7 @@ namespace engine {
         friend class ITaskHandler;
         friend class TaskBase;
     public:
-        inline operator bool() const noexcept {
+        inline explicit operator bool() const noexcept {
             return _cancellation_token.test(std::memory_order_relaxed);
         }
     private:

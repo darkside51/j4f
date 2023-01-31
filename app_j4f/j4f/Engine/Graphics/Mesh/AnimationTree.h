@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../Core/Math/math.h"
+#include "../../Core/Math/mathematic.h"
 #include "../../Core/Hierarchy.h"
 #include "MeshData.h"
 #include "Mesh.h"
@@ -11,10 +11,10 @@ namespace engine {
 	public:
 		struct Transform {
 			uint8_t mask = 0;
-			uint16_t target_node;
-			glm::vec3 scale;
-			glm::quat rotation;
-			glm::vec3 translation;
+			uint16_t target_node = 0;
+			glm::vec3 scale = glm::vec3(1.0f);
+			glm::quat rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+			glm::vec3 translation = glm::vec3(0.0f);
 		};
 
 		MeshAnimator(float weight, const size_t transformsCount, const uint8_t latency) :
@@ -56,23 +56,22 @@ namespace engine {
 			_frameTimes[i] = _animation->start + _time;
 		}
 
-		inline float getCurrentTime(const uint8_t i) const {
+		[[nodiscard]] inline float getCurrentTime(const uint8_t i) const {
 			if (_animation == nullptr) return 0.0f;
 			return _frameTimes[i];
 		}
 
-		inline void operator()(const float time, const uint8_t i) {
+		inline void operator()(const float time, const uint8_t n) {
 			if (_animation == nullptr) return;
 
 			constexpr float epsilon = 1e-4f;
 
-			size_t channelNum = 0;
 			for (const auto& channel : _animation->channels) {
 				if (channel.sampler == 0xffff || channel.target_node == 0xffff) {
 					continue;
 				}
 
-				Transform& transform = _transforms[i][channel.target_node - _animation->minTargetNodeId];
+				Transform& transform = _transforms[n][channel.target_node - _animation->minTargetNodeId];
 				transform.target_node = channel.target_node;
 				const Mesh_Animation::AnimationSampler& sampler = _animation->samplers[channel.sampler];
 
@@ -161,23 +160,22 @@ namespace engine {
 		}
 
 		inline std::vector<Transform>& getTransforms(const uint8_t i) { return _transforms[i]; }
-		inline const std::vector<Transform>& getTransforms(const uint8_t i) const { return _transforms[i]; }
+        [[nodiscard]] inline const std::vector<Transform>& getTransforms(const uint8_t i) const { return _transforms[i]; }
 
-		inline float getWeight() const { return _weight; }
+        [[nodiscard]] inline float getWeight() const noexcept { return _weight; }
 		inline void setWeight(const float w) { _weight = w; }
 
-		inline float getSpeed() const { return _speed; }
+        [[nodiscard]] inline float getSpeed() const noexcept { return _speed; }
 		inline void setSpeed(const float s) { _speed = s; }
 
 		inline void resetTime() { _time = 0.0f; }
 
-		inline const Mesh_Animation* getAnimation() const { return _animation; }
+        [[nodiscard]] inline const Mesh_Animation* getAnimation() const noexcept { return _animation; }
 
 		inline void applyToSkeleton(MeshSkeleton* skeleton, const uint8_t updateFrame) {
 			auto& transforms = _transforms[updateFrame];
 
-			for (size_t i = 0, trs = transforms.size(); i < trs; ++i) {
-				Transform& transform = transforms[i];
+			for (auto& transform : transforms) {
 				Mesh_Node& target = skeleton->getNode(updateFrame, transform.target_node);
 
 				switch (transform.mask) {
@@ -314,8 +312,8 @@ namespace engine {
 			delete _animator;
 		}
 
-		inline AnimatorType* getAnimator() { return _animator; }
-		inline const AnimatorType* getAnimator() const { return _animator; }
+		inline AnimatorType* getAnimator() noexcept { return _animator; }
+		[[nodiscard]] inline const AnimatorType* getAnimator() const noexcept { return _animator; }
 
 	private:
 		AnimatorType* _animator;

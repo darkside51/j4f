@@ -47,7 +47,7 @@ namespace engine {
 			Flags flags;
 
 			LoadingFlags() : mask(0) {}
-			LoadingFlags(const uint8_t f) : mask(f) {}
+			explicit LoadingFlags(const uint8_t f) : mask(f) {}
 
 			Flags* operator->() { return &flags; }
 			const Flags* operator->() const { return &flags; }
@@ -75,7 +75,7 @@ namespace engine {
 			using type = typename Loader::asset_type;
 			using params_type = AssetLoadingParams<raw_type_name<type>>;
 			type& value = *static_cast<type*>(data);
-			const params_type& params = static_cast<const params_type&>(p);
+			const auto& params = static_cast<const params_type&>(p);
 			const AssetLoadingCallback<type>& callback = *(static_cast<const AssetLoadingCallback<type>*>(loadingCallback));
 			Loader::loadAsset(value, params, callback);
 		}
@@ -92,13 +92,14 @@ namespace engine {
 		*/
 
 	public:
-		AssetManager(const uint8_t loaderThreadsCount) : _loaderPool(new ThreadPool(loaderThreadsCount)) {
+		explicit AssetManager(const uint8_t loaderThreadsCount) noexcept :
+        _loaderPool(new ThreadPool(loaderThreadsCount)) {
 		}
 
-		~AssetManager() {
-			for (auto it = _loaders.begin(); it != _loaders.end(); ++it) {
-				delete it->second;
-			}
+		~AssetManager() override {
+            for (auto&& [id, loader] : _loaders) {
+                delete loader;
+            }
 			_loaders.clear();
 
 			_loaderPool->stop();

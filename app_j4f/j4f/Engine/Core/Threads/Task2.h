@@ -15,12 +15,12 @@ namespace engine {
         using counter_type = std::atomic_uint32_t;
 
     public:
-        inline uint32_t _decrease_counter() { return __counter.fetch_sub(1, std::memory_order_release) - 1; }
-        inline uint32_t _increase_counter() { return __counter.fetch_add(1, std::memory_order_release) + 1; }
-        inline uint32_t _use_count() const { return __counter.load(std::memory_order_consume); }
+        inline uint32_t _decrease_counter() noexcept { return m_counter.fetch_sub(1, std::memory_order_release) - 1; }
+        inline uint32_t _increase_counter() noexcept { return m_counter.fetch_add(1, std::memory_order_release) + 1; }
+        [[nodiscard]] inline uint32_t _use_count() const noexcept { return m_counter.load(std::memory_order_consume); }
 
     private:
-        std::atomic_uint32_t __counter = 0;
+        std::atomic_uint32_t m_counter = 0;
     };
 
     using Locker = SpinLock;
@@ -38,7 +38,7 @@ namespace engine {
             cancel();
         }
 
-        inline TaskState state() const noexcept {
+        [[nodiscard]] inline TaskState state() const noexcept {
             return _state.load(std::memory_order_acquire);
         }
 
@@ -65,7 +65,7 @@ namespace engine {
         template<class F, typename... Args>
         TaskBase(const TaskType type, F&& f, Args&&...args) : _type(type) {
             using return_type = typename std::invoke_result_t<std::decay_t<F>, const CancellationToken&, std::decay_t<Args>...>;
-            _function = [this, f = std::move(f), args...]() {
+            _function = [this, f = std::forward<F>(f), args...]() {
                 TaskState state = TaskState::IDLE;
                 if (_state.compare_exchange_strong(state, TaskState::RUN, std::memory_order_release, std::memory_order_relaxed)) {
                     if constexpr (std::is_same_v<return_type, void>) {
@@ -84,7 +84,7 @@ namespace engine {
             };
         }
 
-        inline operator bool() const noexcept { return _function != nullptr; }
+        inline explicit operator bool() const noexcept { return _function != nullptr; }
         inline void operator()() const noexcept { _function(); }
 
     private:
@@ -103,7 +103,7 @@ namespace engine {
         friend class TaskBase;
     public:
         template<class F, typename... Args>
-        Task2(F&& f, Args&&...args) : TaskBase(std::forward<F>(f), std::forward<Args>(args)...) { }
+        explicit Task2(F&& f, Args&&...args) : TaskBase(std::forward<F>(f), std::forward<Args>(args)...) { }
     private:
         std::optional<T> _result;
     };
@@ -112,6 +112,6 @@ namespace engine {
     class Task2<void> : public TaskBase {
     public:
         template<class F, typename... Args>
-        Task2(F&& f, Args&&...args) : TaskBase(std::forward<F>(f), std::forward<Args>(args)...) { }
+        explicit Task2(F&& f, Args&&...args) : TaskBase(std::forward<F>(f), std::forward<Args>(args)...) { }
     };
 }

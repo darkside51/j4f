@@ -25,10 +25,10 @@ namespace engine {
 		using children_type = typename HierarchyChildrenType<T, C>::type;
 	public:
 		template <typename... Args>
-		Hierarchy(Args&&... args) : _value(std::forward<Args>(args)...) {}
+		explicit Hierarchy(Args&&... args) : _value(std::forward<Args>(args)...) {}
 
-		Hierarchy(T&& v) : _value(std::move(v)) {}
-		Hierarchy(const T& v) : _value(v) {}
+		explicit Hierarchy(T&& v) noexcept : _value(std::move(v)) {}
+		explicit Hierarchy(const T& v) : _value(v) {}
 
 		~Hierarchy() {
 			if constexpr (std::is_pointer<children_type>()) {
@@ -49,7 +49,7 @@ namespace engine {
 			h._children.clear();
 		}
 
-		const Hierarchy& operator= (Hierarchy&& h) noexcept {
+        Hierarchy& operator= (Hierarchy&& h) noexcept {
 			if (&h == this) return *this;
 
 			_value = std::move(h._value);

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../../Core/Hierarchy.h"
-#include "../../Core/Math/math.h"
+#include "../../Core/Math/mathematic.h"
 #include "../../Core/BitMask.h"
 
 #include "BoundingVolume.h"
@@ -61,7 +61,7 @@ namespace engine {
 		glm::mat4 _model = glm::mat4(1.0f);
 		NodeRenderObject* _graphics = nullptr;
 		const BoundingVolume* _boundingVolume = nullptr;
-		BitMask64 _visibleMask; // маска видимости (предполагается, что объект может быть видимым или нет с нескольких источников, для сохранения видимости с каждого можно использовать BitMask64)
+		BitMask64 _visibleMask; // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ BitMask64)
 	};
 
 	using H_Node = HierarchyRaw<Node>;

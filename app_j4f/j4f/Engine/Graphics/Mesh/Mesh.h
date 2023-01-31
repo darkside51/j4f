@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../Core/Math/math.h"
+#include "../../Core/Math/mathematic.h"
 #include "../../Core/Hierarchy.h"
 #include "../../Core/Threads/ThreadPool.h"
 #include "../../Core/Threads/ThreadPool2.h"
@@ -102,9 +102,9 @@ namespace engine {
 		void loadNode(const Mesh_Data* mData, const uint16_t nodeId, HierarchyRaw<Mesh_Node>* parent, const uint8_t h);
 
 		Mesh_Node& getNode(const uint8_t updateFrame, const uint16_t nodeId) { return _nodes[updateFrame][nodeId]->value(); }
-		const Mesh_Node& getNode(const uint8_t updateFrame, const uint16_t nodeId) const { return _nodes[updateFrame][nodeId]->value(); }
+		[[nodiscard]] const Mesh_Node& getNode(const uint8_t updateFrame, const uint16_t nodeId) const { return _nodes[updateFrame][nodeId]->value(); }
 
-		inline uint8_t getUpdateFrame() const noexcept { return _updateFrameNum; }
+        [[nodiscard]] inline uint8_t getUpdateFrame() const noexcept { return _updateFrameNum; }
 
 		void updateAnimation(const float time, const Mesh_Animation* animation, float& currentAnimTime); // simple animation update
 		void updateAnimation(const float time, MeshAnimationTree* animTree); // advanced animation update
@@ -118,8 +118,8 @@ namespace engine {
 			}
 		}
 
-		inline uint8_t getLatency() const noexcept { return _latency; }
-		inline bool dirtySkins() const noexcept { return _dirtySkins; }
+        [[nodiscard]] inline uint8_t getLatency() const noexcept { return _latency; }
+        [[nodiscard]] inline bool dirtySkins() const noexcept { return _dirtySkins; }
 
 	private:
 		void updateSkins(const uint8_t updateFrame);
@@ -183,7 +183,7 @@ namespace engine {
 
 	class Mesh : public RenderedEntity {
 	public:
-		~Mesh();
+		~Mesh() override;
 
 		void createWithData(Mesh_Data* mData, const uint16_t semantic_mask, const uint8_t latency);
 

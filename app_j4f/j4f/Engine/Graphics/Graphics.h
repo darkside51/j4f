@@ -19,14 +19,14 @@ namespace engine {
 
 	class Graphics : public IEngineModule {
 	public:
-		Graphics(const GraphicConfig& cfg);
-		~Graphics();
+		explicit Graphics(const GraphicConfig& cfg);
+		~Graphics() override;
 
-		inline auto getRenderer() const { return _renderer; }
-		inline GpuProgramsManager* getGpuProgramsManager() const { return _gpuProgramManager; }
-		inline FontsManager* getFontsManager() const { return _fontsManager; }
-		inline RenderHelper* getRenderHelper() const { return _renderHelper; }
-		inline AnimationManager* getAnimationManager() const { return _animationManager; }
+        [[nodiscard]] inline auto getRenderer() const { return _renderer; }
+		[[nodiscard]] inline GpuProgramsManager* getGpuProgramsManager() const { return _gpuProgramManager; }
+        [[nodiscard]] inline FontsManager* getFontsManager() const { return _fontsManager; }
+        [[nodiscard]] inline RenderHelper* getRenderHelper() const { return _renderHelper; }
+        [[nodiscard]] inline AnimationManager* getAnimationManager() const { return _animationManager; }
 
 		void resize(const uint16_t w, const uint16_t h);
 
@@ -37,9 +37,9 @@ namespace engine {
 
 		void onEngineInitComplete();
 
-		inline const GraphicConfig& config() const { return _config; }
+        [[nodiscard]] inline const GraphicConfig& config() const noexcept { return _config; }
 
-		inline const std::pair<uint16_t, uint16_t>& getSize() const { return _size; }
+        [[nodiscard]] inline const std::pair<uint16_t, uint16_t>& getSize() const noexcept { return _size; }
 
 	private:
         void createRenderer();
@@ -49,11 +49,11 @@ namespace engine {
 		GraphicConfig _config;
 		std::pair<uint16_t, uint16_t> _size;
 
-		Renderer* _renderer;
-		GpuProgramsManager* _gpuProgramManager;
-		FontsManager* _fontsManager;
-		RenderHelper* _renderHelper;
-		AnimationManager* _animationManager;
+		Renderer* _renderer = nullptr;
+		GpuProgramsManager* _gpuProgramManager = nullptr;
+		FontsManager* _fontsManager = nullptr;
+		RenderHelper* _renderHelper = nullptr;
+		AnimationManager* _animationManager = nullptr;
 	};
 
 }

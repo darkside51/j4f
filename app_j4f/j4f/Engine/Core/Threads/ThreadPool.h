@@ -30,7 +30,7 @@ namespace engine {
         };
 
     public:
-        ThreadPool(uint8_t threads_count) : _threads_count(threads_count), _state(TPoolState::RUN) {
+        explicit ThreadPool(uint8_t threads_count) : _threads_count(threads_count), _state(TPoolState::RUN) {
             //log("create ThreadPool with {} threads", threads_count);
             log("create ThreadPool with %d threads", threads_count);
             _current_worker_tasks.resize(_threads_count);
@@ -40,7 +40,7 @@ namespace engine {
             }
         }
 
-        ~ThreadPool() {
+        ~ThreadPool() override {
             stop();
         }
 
@@ -85,9 +85,9 @@ namespace engine {
         }
 
         void cancelTasks(const uint8_t typeMask) {
-            for (auto it = _tasks_map.begin(); it != _tasks_map.end(); ++it) {
-                for (ITaskHandlerPtr& task : it->second) {
-                    const uint8_t taskType = static_cast<uint8_t>(task->_type);
+            for (auto&& [priority, deque] : _tasks_map) {
+                for (ITaskHandlerPtr& task : deque) {
+                    const auto taskType = static_cast<uint8_t>(task->_type);
                     if (typeMask & (1 << taskType)) {
                         task->cancel();
                     }
@@ -96,7 +96,7 @@ namespace engine {
 
             for (auto&& task : _current_worker_tasks) {
                 if (task) {
-                    const uint8_t taskType = static_cast<uint8_t>(task->_type);
+                    const auto taskType = static_cast<uint8_t>(task->_type);
                     if (typeMask & (1 << taskType)) {
                         task->cancel();
                     }
@@ -173,8 +173,8 @@ namespace engine {
             _condition.notify_one();
         }
 
-        inline uint8_t capacity() const { return _threads_count; }
-        inline TPoolState state() const { return _state; }
+        [[nodiscard]] inline uint8_t capacity() const noexcept { return _threads_count; }
+        [[nodiscard]] inline TPoolState state() const noexcept { return _state; }
 
     private:
         inline void threadFunction(const uint8_t threadId) {

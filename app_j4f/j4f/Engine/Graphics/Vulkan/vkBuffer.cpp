@@ -1,7 +1,6 @@
 #include "vkBuffer.h"
 #include "vkDevice.h"
-
-#include <assert.h>
+#include <cassert>
 
 namespace vulkan {
 

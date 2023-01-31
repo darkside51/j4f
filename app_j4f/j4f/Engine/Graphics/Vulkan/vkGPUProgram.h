@@ -33,7 +33,7 @@ namespace vulkan {
 
 		VulkanShaderCode(VulkanShaderCode&& code) noexcept {
 			shaderSize = code.shaderSize;
-			shaderCode = std::move(code.shaderCode);
+			shaderCode = code.shaderCode;
 			code.shaderCode = nullptr;
 		}
 
@@ -43,6 +43,7 @@ namespace vulkan {
 		}
 
 		VulkanShaderCode& operator=(const VulkanShaderCode& code) {
+            if (&code == this) return *this;
 			shaderSize = code.shaderSize;
 			shaderCode = code.shaderCode;
 			return *this;
@@ -50,7 +51,7 @@ namespace vulkan {
 
 		VulkanShaderCode& operator=(VulkanShaderCode&& code) noexcept {
 			shaderSize = code.shaderSize;
-			shaderCode = std::move(code.shaderCode);
+			shaderCode = code.shaderCode;
 			code.shaderCode = nullptr;
 			return *this;
 		}
@@ -77,17 +78,17 @@ namespace vulkan {
 	};
 
 	struct GPUParamLayout {
-		uint32_t offset;
-		uint32_t sizeInBytes;
-		uint32_t set;
-		uint32_t descriptorSetBinding;
-		uint32_t pushConstant;
-		GPUParamLayoutType type;
-		uint32_t dynamcBufferIdx;
-		void* data;
+		uint32_t offset = 0;
+		uint32_t sizeInBytes = 0;
+		uint32_t set = 0;
+		uint32_t descriptorSetBinding = 0;
+		uint32_t pushConstant = 0;
+		GPUParamLayoutType type = GPUParamLayoutType::PUSH_CONSTANT;
+		uint32_t dynamcBufferIdx = 0;
+		void* data = nullptr;
 		const GPUParamLayout* parentLayout = nullptr;
 
-		const void* getData() const {
+		[[nodiscard]] const void* getData() const {
 			if (parentLayout) { return parentLayout->getData(); }
 			return data;
 		}
@@ -135,24 +136,23 @@ namespace vulkan {
 	};
 
 	struct GPUParamLayoutInfo {
-		uint8_t id;
-		uint32_t set;
-		uint32_t offset;
-		uint32_t sizeInBytes;
-		VkDescriptorSetLayoutBinding* descriptorSetLayoutBinding;
-		VkPushConstantRange* pcRange;
-		GPUParamLayoutType type;
-		uint32_t push_constant_number;
-		uint32_t dynamcBufferIdx; // для смещения в нужном dynamic буффере при установке значения
+		uint8_t id = 0;
+		uint32_t set = 0;
+		uint32_t offset = 0;
+		uint32_t sizeInBytes = 0;
+		VkDescriptorSetLayoutBinding* descriptorSetLayoutBinding = nullptr;
+		VkPushConstantRange* pcRange = nullptr;
+		GPUParamLayoutType type = GPUParamLayoutType::PUSH_CONSTANT;
+		uint32_t push_constant_number = 0;
+		uint32_t dynamcBufferIdx = 0; // для смещения в нужном dynamic буффере при установке значения
 		ImageType imageType = ImageType::undefined;
 		void* data = nullptr;
 		const GPUParamLayoutInfo* parentLayout = nullptr;
 
-		inline const void* getData() const {
+		[[nodiscard]] inline const void* getData() const {
 			if (parentLayout) { 
 				return parentLayout->getData();
 			}
-
 			return data;
 		}
 	};
@@ -190,8 +190,8 @@ namespace vulkan {
 
 		inline uint16_t getId() const { return m_id; }
 
-		VulkanDescriptorSet* allocateDescriptorSet(const bool add);
-		VulkanPushConstant* allocatePushConstants(const bool add);
+//		VulkanDescriptorSet* allocateDescriptorSet(const bool add);
+//		VulkanPushConstant* allocatePushConstants(const bool add);
 		
 		inline const VulkanDescriptorSet* getDescriptorSet(const uint32_t i) const {
 			if (m_descriptorSets.empty()) return nullptr;

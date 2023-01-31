@@ -13,11 +13,11 @@ namespace vulkan {
 		VkDeviceMemory memory = VK_NULL_HANDLE;
 		VulkanDevice* vulkanDevice = nullptr;
 
-		VkImageUsageFlags usage;
-		VkImageType imageType;
-		VkFormat format;
-		uint32_t mipLevels;
-		uint32_t arrayLayers;
+		VkImageUsageFlags usage = VK_IMAGE_USAGE_FLAG_BITS_MAX_ENUM;
+		VkImageType imageType = VK_IMAGE_TYPE_MAX_ENUM;
+		VkFormat format = VK_FORMAT_MAX_ENUM;
+		uint32_t mipLevels = 0;
+		uint32_t arrayLayers = 0;
 
 		VulkanImage() = default;
 
@@ -32,7 +32,7 @@ namespace vulkan {
 
 		~VulkanImage();
 
-		VulkanImage(VulkanImage&& img) noexcept : vulkanDevice(img.vulkanDevice), image(std::move(img.image)), view(std::move(img.view)), memory(std::move(img.memory)),
+		VulkanImage(VulkanImage&& img) noexcept : vulkanDevice(img.vulkanDevice), image(img.image), view(img.view), memory(img.memory),
 			usage(img.usage), imageType(img.imageType), format(img.format), mipLevels(img.mipLevels), arrayLayers(img.arrayLayers) {
 			img.vulkanDevice = nullptr;
 			img.view = VK_NULL_HANDLE;
@@ -42,9 +42,9 @@ namespace vulkan {
 
 		VulkanImage& operator= (VulkanImage&& img) noexcept {
 			vulkanDevice = img.vulkanDevice;
-			image = std::move(img.image);
-			view = std::move(img.view);
-			memory = std::move(img.memory);
+			image = img.image;
+			view = img.view;
+			memory = img.memory;
 
 			usage = img.usage;
 			imageType = img.imageType;

@@ -37,7 +37,7 @@ namespace engine {
     inline float inv_sqrt(const float x) { // "квадратный корень Крамака"(алгоритм Ньютона)
         const float xhalf = 0.5f * x;
         union {
-            float x;
+            float x = 0.0f;
             int32_t i;
         } u;
 

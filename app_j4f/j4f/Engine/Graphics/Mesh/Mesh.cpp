@@ -1,15 +1,9 @@
 ﻿// ♣♠♦♥
 #include "Mesh.h"
-
 #include "MeshData.h"
 #include "Loader_gltf.h"
-
-#include "../../Core/Engine.h"
-#include "../Graphics.h"
 #include "../Render/RenderHelper.h"
-#include "../Vulkan/vkRenderer.h"
 #include "AnimationTree.h"
-
 #include <limits>
 
 namespace engine {
@@ -183,7 +177,7 @@ namespace engine {
 
 		mNode.skinIndex = node.skin;
 
-		HierarchyRaw<Mesh_Node>* nodesHierarchy = new HierarchyRaw<Mesh_Node>(std::move(mNode));
+		auto* nodesHierarchy = new HierarchyRaw<Mesh_Node>(std::move(mNode));
 		if (parent) {
 			parent->addChild(nodesHierarchy);
 		} else {
@@ -322,7 +316,7 @@ namespace engine {
 
 		_renderDescriptor.renderDataCount = renderDataCount;
 
-		_renderState.vertexDescription.bindings_strides.push_back(std::make_pair(0, sizeOfVertex()));
+		_renderState.vertexDescription.bindings_strides.emplace_back(0, sizeOfVertex());
 		_renderState.topology = { vulkan::PrimitiveTopology::TRIANGLE_LIST, false };
 		_renderState.rasterizationState = vulkan::VulkanRasterizationState(vulkan::CullMode::CULL_MODE_BACK, vulkan::PoligonMode::POLYGON_MODE_FILL);
 		_renderState.blendMode = vulkan::CommonBlendModes::blend_none;

@@ -18,7 +18,7 @@ namespace engine {
 	struct TMemoryPool : public IMemoryPool {
 		ChunkedMemoryPool<T> pool;
 
-		TMemoryPool(const size_t sz) : pool(sz) {}
+		explicit TMemoryPool(const size_t sz) : pool(sz) {}
 
 		inline void destroyObject(void* object) override {
 			pool.destroyObject(static_cast<T*>(object));
@@ -27,9 +27,9 @@ namespace engine {
 
 	class MemoryManager : public IEngineModule {
 	public:
-		~MemoryManager() {
-			for (auto it = _pools.begin(); it != _pools.end(); ++it) {
-				delete it->second;
+		~MemoryManager() override {
+            for (auto&& [id, pool] : _pools) {
+				delete pool;
 			}
 			_pools.clear();
 		}
@@ -40,7 +40,7 @@ namespace engine {
 		template <typename T>
 		inline T* allocOnHeap(const size_t size) const { return static_cast<T*>(malloc(size)); }
 
-		inline void freeMemory(void* m) const { free(m); }
+		inline static void freeMemory(void* m) { free(m); }
 
 		template <typename T, typename... Args>
 		inline T* createFromPool(Args&&... args) {
@@ -59,7 +59,7 @@ namespace engine {
 		}
 
 		template <typename T>
-		inline void destroyObjectStrict(T* object) { // если тип точный
+		inline void destroyObjectStrict(T* object) { // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 			constexpr uint16_t type_id = getUniqueId<T>();
 			auto it = _pools.find(type_id);
 			if (it != _pools.end()) {
@@ -68,7 +68,7 @@ namespace engine {
 		}
 
 		template <typename T>
-		inline void destroyObjectVirtual(T* object) { // если у класса есть функция rtti() и тип, возможно наследуемый
+		inline void destroyObjectVirtual(T* object) { // пїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ rtti() пїЅ пїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 			const uint16_t type_id = object->rtti();
 			auto it = _pools.find(type_id);
 			if (it != _pools.end()) {

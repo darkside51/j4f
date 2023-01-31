@@ -21,7 +21,7 @@ namespace engine {
 		static void getInfo(const char* file, int* w, int* h, int* c);
 
 		TextureData() = default;
-		TextureData(const std::string& path, const TextureFormatType ft = TextureFormatType::UNORM);
+		explicit TextureData(const std::string& path, const TextureFormatType ft = TextureFormatType::UNORM);
 		TextureData(const unsigned char* buffer, const size_t size, const TextureFormatType ft = TextureFormatType::UNORM);
 		~TextureData();
 
@@ -43,15 +43,15 @@ namespace engine {
 			return *this;
 		}
 
-		inline operator bool() const { return _data != nullptr; }
-		inline const unsigned char* data() const { return _data; }
+		inline explicit operator bool() const noexcept { return _data != nullptr; }
+		[[nodiscard]] inline const unsigned char* data() const noexcept { return _data; }
 
-		inline uint8_t bpp() const { return _bpp; }
-		inline VkFormat format() const { return _format; }
+        [[nodiscard]] inline uint8_t bpp() const noexcept { return _bpp; }
+        [[nodiscard]] inline VkFormat format() const noexcept { return _format; }
 
-		inline int width() const { return _width; }
-		inline int height() const { return _height; }
-		inline int channels() const { return _channels; }
+        [[nodiscard]] inline int width() const noexcept { return _width; }
+        [[nodiscard]] inline int height() const noexcept { return _height; }
+        [[nodiscard]] inline int channels() const noexcept { return _channels; }
 
 	private:
 		unsigned char* _data = nullptr;

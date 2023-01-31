@@ -14,12 +14,9 @@ namespace engine {
 		inline void setStep(const uint16_t step) { _step.store(step, std::memory_order_release); }
 		inline void setTotalSteps(const uint16_t steps) { _totalSteps.store(steps, std::memory_order_release); }
 
-		inline uint16_t getCurrentStep() const { return _step.load(std::memory_order_consume); }
-		inline uint16_t getTotalSteps() const { return _totalSteps.load(std::memory_order_consume); }
-
-		float getProgress() const {
-			return static_cast<float>(getCurrentStep()) / getTotalSteps();
-		}
+		[[nodiscard]] inline uint16_t getCurrentStep() const noexcept { return _step.load(std::memory_order_consume); }
+        [[nodiscard]] inline uint16_t getTotalSteps() const noexcept { return _totalSteps.load(std::memory_order_consume); }
+        [[nodiscard]] float getProgress() const { return static_cast<float>(getCurrentStep()) / static_cast<float>(getTotalSteps()); }
 
 	protected:
 		std::atomic_uint16_t _totalSteps;
@@ -52,7 +49,7 @@ namespace engine {
 			return *this;
 		}
 
-		const CommonProgressionTask& getProgress() const { return _progress; }
+		[[nodiscard]] const CommonProgressionTask& getProgress() const { return _progress; }
 		CommonProgressionTask& getProgress() { return _progress; }
 
 	private:
@@ -74,7 +71,7 @@ namespace engine {
 	// helper methods
 	template<class T>
 	static inline const CommonProgressionTask* getTaskProgressionConst(const TaskResult<T>& task) {
-		if (const ProgressionTask<T>* progression = dynamic_cast<const ProgressionTask<T>*>(task.getHandler().get())) {
+		if (const auto* progression = dynamic_cast<const ProgressionTask<T>*>(task.getHandler().get())) {
 			return &(progression->getProgress());
 		}
 		return nullptr;
@@ -82,7 +79,7 @@ namespace engine {
 
 	template<class T>
 	static inline CommonProgressionTask* getTaskProgression(const TaskResult<T>& task) {
-		if (ProgressionTask<T>* progression = const_cast<ProgressionTask<T>*>(dynamic_cast<const ProgressionTask<void>*>(task.getHandler().get()))) {
+		if (auto* progression = const_cast<ProgressionTask<T>*>(dynamic_cast<const ProgressionTask<void>*>(task.getHandler().get()))) {
 			return &(progression->getProgress());
 		}
 		return nullptr;

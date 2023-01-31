@@ -80,9 +80,9 @@ namespace engine {
 
         inline bool destroyObject(T* object) {
             if (object >= &_memory[0] && object < &_memory[_last]) {
-                const size_t i = static_cast<size_t>(object - &_memory[0]);
+                const auto i = static_cast<size_t>(object - &_memory[0]);
 
-                if (_holesMap[i]) { return false; } // если там дырка - то не делаем ничего
+                if (_holesMap[i]) { return false; } // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ - пїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 
                 object->~T(); // destructor call
                 _holes[_holesCount++] = i; // holes
@@ -94,9 +94,9 @@ namespace engine {
             return false;
         }
 
-        inline size_t count() const { return _last - _holesCount;} // количество объектов, без дырок
+        [[nodiscard]] inline size_t count() const noexcept { return _last - _holesCount;} // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 
-        inline size_t size() const { return _last; } // количество объектов, включая дырки
+        [[nodiscard]] inline size_t size() const noexcept { return _last; } // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 
         inline T* operator[] (const size_t i) const {
             return (i >= _last || _holesMap[i]) ? nullptr : at(i);
@@ -114,6 +114,6 @@ namespace engine {
         alignas(T) T* _memory;
 
         std::vector<size_t> _holes;
-        std::vector<bool> _holesMap; // для определения дырка или объект по индексу
+        std::vector<bool> _holesMap; // пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 	};
 }

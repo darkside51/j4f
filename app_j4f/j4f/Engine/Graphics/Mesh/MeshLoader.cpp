@@ -1,13 +1,10 @@
 #include "MeshLoader.h"
-
 #include "../../Core/Engine.h"
 #include "../../Core/Cache.h"
-#include "../../Core/Threads/Synchronisations.h"
 #include "../../Core/Threads/Looper.h"
 #include "../Graphics.h"
 #include "MeshData.h"
 #include "Mesh.h"
-#include "../Vulkan/vkRenderer.h"
 #include "../../Utils/Debug/Profiler.h"
 
 namespace engine {
@@ -34,7 +31,7 @@ namespace engine {
 
 	void MeshLoader::addCallback(Mesh_Data* md, Mesh* mesh, const MeshLoadingCallback& c, uint16_t mask, uint8_t l) {
 		AtomicLock lock(_callbacksLock);
-		_callbacks[md].emplace_back(DataLoadingCallback(mesh, c, mask, l));
+		_callbacks[md].emplace_back(mesh, c, mask, l);
 	}
 
 	void MeshLoader::executeCallbacks(Mesh_Data* m, const AssetLoadingResult result) {
@@ -133,91 +130,6 @@ namespace engine {
 
 			return mData;
 		}, v, params, callback);
-
-		/*
-		
-		if (Mesh_Data* mData = meshDataCache->getValue(params.file)) {
-			v->createWithData(mData, params.semanticMask, params.latency);
-			if (callback) { callback(v, AssetLoadingResult::LOADING_SUCCESS); }
-			return;
-		}
-		
-		if (params.flags->async == 0) {
-			Mesh_Data* mData = meshDataCache->getOrSetValue(params.file, [](const MeshLoadingParams& params) {
-				PROFILE_TIME_SCOPED_M(meshDataLoading, params.file)
-				using namespace gltf;
-				const Layout layout = Parser::loadModel(params.file);
-
-				std::vector<AttributesSemantic> allowedAttributes;
-
-				for (uint8_t i = 0; i < 16; ++i) {
-					if (params.semanticMask & (1 << i)) {
-						allowedAttributes.emplace_back(static_cast<AttributesSemantic>(i));
-					}
-				}
-
-				const bool useOffsetsInRenderData = false; // parameter used with none zero vbOffset or ibOffset for fill correct renderData values
-
-				Mesh_Data* mData = new Mesh_Data();
-				mData->loadMeshes(layout, allowedAttributes, params.graphicsBuffer->vbOffset, params.graphicsBuffer->ibOffset, useOffsetsInRenderData);
-				mData->loadSkins(layout);
-				mData->loadAnimations(layout);
-				mData->loadNodes(layout);
-
-				mData->uploadGpuData(params.graphicsBuffer->vb, params.graphicsBuffer->ib, params.graphicsBuffer->vbOffset, params.graphicsBuffer->ibOffset);
-				params.graphicsBuffer->vbOffset += mData->vertexSize * mData->vertexCount * sizeof(float);
-				params.graphicsBuffer->ibOffset += mData->indexCount * sizeof(uint32_t);
-
-				return mData;
-				}, params);
-
-			v->createWithData(mData, params.semanticMask, params.latency);
-			mData->fillGpuData(); // call for render thread
-
-			if (callback) { callback(v, AssetLoadingResult::LOADING_SUCCESS); }
-		} else {
-			engine.getModule<AssetManager>()->getThreadPool()->enqueue(TaskType::COMMON, 0, [](const CancellationToken& token, Mesh* v, const MeshLoadingParams params, const MeshLoadingCallback callback) {
-				auto&& engine = Engine::getInstance();
-				auto&& meshDataCache = engine.getModule<CacheManager>()->getCache<std::string, Mesh_Data*>();
-				Mesh_Data* mData = meshDataCache->getOrSetValue(params.file, [](const MeshLoadingParams& params) {
-					PROFILE_TIME_SCOPED_M(meshDataLoading, params.file)
-					using namespace gltf;
-					const Layout layout = Parser::loadModel(params.file);
-
-					std::vector<AttributesSemantic> allowedAttributes;
-
-					for (uint8_t i = 0; i < 16; ++i) {
-						if (params.semanticMask & (1 << i)) {
-							allowedAttributes.emplace_back(static_cast<AttributesSemantic>(i));
-						}
-					}
-
-					const bool useOffsetsInRenderData = false; // parameter used with none zero vbOffset or ibOffset for fill correct renderData values
-
-					Mesh_Data* mData = new Mesh_Data();
-					mData->loadMeshes(layout, allowedAttributes, params.graphicsBuffer->vbOffset, params.graphicsBuffer->ibOffset, useOffsetsInRenderData);
-					mData->loadSkins(layout);
-					mData->loadAnimations(layout);
-					mData->loadNodes(layout);
-
-					mData->uploadGpuData(params.graphicsBuffer->vb, params.graphicsBuffer->ib, params.graphicsBuffer->vbOffset, params.graphicsBuffer->ibOffset);
-					params.graphicsBuffer->vbOffset += mData->vertexSize * mData->vertexCount * sizeof(float);
-					params.graphicsBuffer->ibOffset += mData->indexCount * sizeof(uint32_t);
-
-					return mData;
-					}, params);
-
-				v->createWithData(mData, params.semanticMask, params.latency);
-
-				// call from render thread
-				engine.getModule<Looper>()->pushTask([mData, callback, v]() {
-					mData->fillGpuData();
-					if (callback) { callback(v, AssetLoadingResult::LOADING_SUCCESS); }
-				});
-				// call from render thread
-
-			}, v, params, callback);
-		}*/
 	}
 
 }

@@ -4,7 +4,7 @@
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <atomic>
-#include <assert.h>
+#include <cassert>
 
 namespace vulkan {
 
@@ -18,7 +18,7 @@ namespace vulkan {
 			offset.store(0, std::memory_order_relaxed);
 		}
 
-		inline uint32_t getCurrentOffset() const {
+		[[nodiscard]] inline uint32_t getCurrentOffset() const noexcept {
 			return offset.load(std::memory_order_consume);
 		}
 
@@ -41,8 +41,8 @@ namespace vulkan {
 		}
 
 		inline void unmap() const {
-			for (size_t i = 0, sz = buffers.size(); i < sz; ++i) {
-				buffers[i].unmap();
+			for (auto&& buffer : buffers) {
+				buffer.unmap();
 			}
 		}
 	};

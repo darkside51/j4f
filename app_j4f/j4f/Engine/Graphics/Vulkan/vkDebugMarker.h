@@ -119,4 +119,4 @@ namespace vulkan::debugMarker {
 #define	GPU_DEBUG_MARKER_BEGIN_REGION(cmdbuffer, markerName, r, g, b, a) 
 #define	GPU_DEBUG_MARKER_INSERT(cmdbuffer, markerName, r, g, b, a) 
 #define	GPU_DEBUG_MARKER_END_REGION(cmdbuffer) 
-#endif // DEBUG
+#endif // GPU_DEBUG_MARKER_ENABLED

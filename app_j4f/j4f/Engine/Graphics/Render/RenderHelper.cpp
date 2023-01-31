@@ -7,7 +7,7 @@
 #include "../Vulkan/vkHelper.h"
 #include "AutoBatchRender.h"
 
-#include "../../Core/Math/math.h"
+#include "../../Core/Math/mathematic.h"
 
 namespace engine {
 

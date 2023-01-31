@@ -6,14 +6,14 @@
 struct GLFWwindow;
 
 namespace engine {
-	class IRenderSurfaceInitialiser;
+	class IRenderSurfaceInitializer;
 
 	class GLFWDevice : public IEngineModule {
 	public:
 		GLFWDevice();
-		~GLFWDevice();
+		~GLFWDevice() override;
 
-		const IRenderSurfaceInitialiser* getSurfaceInitialiser() const;
+		[[nodiscard]] const IRenderSurfaceInitializer* getSurfaceInitializer() const;
 		void start();
 		void stop();
 		void leaveMainLoop();
@@ -22,14 +22,14 @@ namespace engine {
 		GLFWwindow* getWindow() { return _window; }
 
 		void setFullscreen(const bool fullscreen);
-		bool isFullscreen() const;
+        [[nodiscard]] bool isFullscreen() const;
 
 	private:
-		GLFWwindow* _window;
-		IRenderSurfaceInitialiser* _surfaceInitialiser;
+		GLFWwindow* _window = nullptr;
+		IRenderSurfaceInitializer* _surfaceInitializer = nullptr;
 
-		uint16_t _width;
-		uint16_t _height;
+		uint16_t _width = 0;
+		uint16_t _height = 0;
 		bool _fullscreen = false;
 	};
 }

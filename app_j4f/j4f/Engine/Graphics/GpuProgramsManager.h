@@ -42,7 +42,7 @@ namespace engine {
 
 	class GpuProgramsManager {
 	public:
-		GpuProgram* getProgram(const std::vector<ProgramStageInfo>& stages) const;
+        [[nodiscard]] GpuProgram* getProgram(const std::vector<ProgramStageInfo>& stages) const;
 	private:
 	};
 

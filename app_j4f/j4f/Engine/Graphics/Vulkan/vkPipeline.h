@@ -49,12 +49,12 @@ namespace vulkan {
 			}
 		}
 
-		const VkDescriptorSet& getDescriptorSet(const uint32_t frameNum, const uint32_t setNum = 0) const {
+		[[nodiscard]] const VkDescriptorSet& getDescriptorSet(const uint32_t frameNum, const uint32_t setNum = 0) const {
 			if (const VulkanDescriptorSet* set = program->getDescriptorSet(setNum)) {
 				return set->operator[](frameNum);
 			}
 
-			static const VkDescriptorSet nullSet = VK_NULL_HANDLE;
+			static VkDescriptorSet nullSet = VK_NULL_HANDLE;
 			return nullSet;
 		}
 	};

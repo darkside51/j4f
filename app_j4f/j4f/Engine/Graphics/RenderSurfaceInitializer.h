@@ -3,10 +3,10 @@
 #include <cstdint>
 
 namespace engine {
-	class IRenderSurfaceInitialiser {
+	class IRenderSurfaceInitializer {
 	public:
-		virtual ~IRenderSurfaceInitialiser() = default;
+		virtual ~IRenderSurfaceInitializer() = default;
 		virtual bool initRenderSurface(void* renderInstane, void* renderSurace) const = 0;
-		virtual uint32_t getDesiredImageCount() const = 0;
+		[[nodiscard]] virtual uint32_t getDesiredImageCount() const = 0;
 	};
 }

@@ -1,10 +1,10 @@
 #include "GLFWDevice.h"
-#include "../../Graphics/RenderSurfaceInitialisez.h"
+#include "../../Graphics/RenderSurfaceInitializer.h"
 
 #include "../../Core/Engine.h"
 #include "../../Input/Input.h"
 #include "../../Utils/Statistic.h"
-#include "../../Log/Log.h"
+//#include "../../Log/Log.h"
 
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
@@ -19,13 +19,13 @@ namespace engine {
 
 	class GlfwStatObserver : public IStatisticObserver {
 	public:
-		GlfwStatObserver(GLFWwindow* window) : _window(window) {
+		explicit GlfwStatObserver(GLFWwindow* window) : _window(window) {
 			if (auto&& stat = Engine::getInstance().getModule<Statistic>()) {
 				stat->addObserver(this);
 			}
 		}
 
-		~GlfwStatObserver() {
+		~GlfwStatObserver() override {
 			if (auto&& stat = Engine::getInstance().getModule<Statistic>()) {
 				stat->removeObserver(this);
 			}
@@ -41,9 +41,9 @@ namespace engine {
 		GLFWwindow* _window = nullptr;
 	};
 
-	class GlfwVkSurfaceInitialiser : public IRenderSurfaceInitialiser {
+	class GlfwVkSurfaceInitializer : public IRenderSurfaceInitializer {
 	public:
-		GlfwVkSurfaceInitialiser(GLFWwindow* window) : _window(window) { }
+		explicit GlfwVkSurfaceInitializer(GLFWwindow* window) : _window(window) { }
 
 		bool initRenderSurface(void* renderInstane, void* renderSurace) const override { 
 #if defined VK_USE_PLATFORM_WIN32_KHR // windows variant
@@ -88,51 +88,55 @@ namespace engine {
 #endif
 		}
 
-		uint32_t getDesiredImageCount() const override { return 3; }
+        [[nodiscard]] uint32_t getDesiredImageCount() const override { return 3; }
 
 	private:
 		GLFWwindow* _window = nullptr;
 	};
 
-	void glfwOnWindowResize(GLFWwindow* window, int w, int h) {
+	void glfwOnWindowResize(GLFWwindow* /*window*/, int w, int h) {
 //        LOG_TAG_LEVEL(LogLevel::L_MESSAGE, DEVICE, "resize %d x %d", w, h);
-		const uint16_t uw = static_cast<uint16_t>(w);
-		const uint16_t uh = static_cast<uint16_t>(h);
+		const auto uw = static_cast<uint16_t>(w);
+		const auto uh = static_cast<uint16_t>(h);
 		Engine::getInstance().getModule<GLFWDevice>()->setSize(uw, uh);
 	}
 
-	void glfwOnFrameBufferResize(GLFWwindow*, int w, int h) {
-//        LOG_TAG_LEVEL(LogLevel::L_MESSAGE, DEVICE, "resize %d x %d", w, h);
-		const uint16_t uw = static_cast<uint16_t>(w);
-		const uint16_t uh = static_cast<uint16_t>(h);
-		Engine::getInstance().getModule<GLFWDevice>()->setSize(uw, uh);
-	}
+//	void glfwOnFrameBufferResize(GLFWwindow*, int w, int h) {
+////        LOG_TAG_LEVEL(LogLevel::L_MESSAGE, DEVICE, "resize %d x %d", w, h);
+//		const auto uw = static_cast<uint16_t>(w);
+//		const auto uh = static_cast<uint16_t>(h);
+//		Engine::getInstance().getModule<GLFWDevice>()->setSize(uw, uh);
+//	}
 
-	void glfwOnWindowIconify(GLFWwindow*, int iconified) {
+	void glfwOnWindowIconify(GLFWwindow*, int /*iconified*/) {
 		//iconified ? printf("iconify window\n") : printf("restore window\n");
 	}
 
 	void glfwOnMouseMove(GLFWwindow* window, double x, double y) {
 		int w, h;
 		glfwGetWindowSize(window, &w, &h);
-		Engine::getInstance().getModule<Input>()->onPointerEvent(PointerEvent(PointerButton::PBUTTON_NONE, InputEventState::IES_NONE, x, h - y));
+		Engine::getInstance().getModule<Input>()->onPointerEvent(PointerEvent(PointerButton::PBUTTON_NONE,
+                                                                              InputEventState::IES_NONE,
+                                                                              static_cast<float>(x), static_cast<float>(h) - static_cast<float>(y)));
 	}
 
-	void glfwOnMouseButton(GLFWwindow* window, int button, int action, int mods) {
+	void glfwOnMouseButton(GLFWwindow* window, int button, int action, int /*mods*/) {
 		double x, y;
 		int w, h;
 		glfwGetCursorPos(window, &x, &y);
 		glfwGetWindowSize(window, &w, &h);
-		Engine::getInstance().getModule<Input>()->onPointerEvent(PointerEvent(static_cast<PointerButton>(button), (action == 0 ? InputEventState::IES_RELEASE : InputEventState::IES_PRESS), x, h - y));
+		Engine::getInstance().getModule<Input>()->onPointerEvent(PointerEvent(static_cast<PointerButton>(button),
+                                                                              (action == 0 ? InputEventState::IES_RELEASE : InputEventState::IES_PRESS),
+                                                                              static_cast<float>(x), static_cast<float>(h) - static_cast<float>(y)));
 	}
 
-	void glfwOnScroll(GLFWwindow* window, double xoffset, double yoffset) { // mouse wheel
-		Engine::getInstance().getModule<Input>()->onWheelEvent(xoffset, yoffset);
+	void glfwOnScroll(GLFWwindow* /*window*/, double xoffset, double yoffset) { // mouse wheel
+		Engine::getInstance().getModule<Input>()->onWheelEvent(static_cast<float>(xoffset), static_cast<float>(yoffset));
 	}
 
-	void glfwOnKeyboard(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	void glfwOnKeyboard(GLFWwindow* /*window*/, int key, int /*scancode*/, int action, int /*mods*/) {
 
-		KeyboardKey k = KeyboardKey::K_UNKNOWN;
+		KeyboardKey k;
 		uint8_t specialMask = 0;
 
 		if (key >= GLFW_KEY_0 && key <= GLFW_KEY_9) {
@@ -203,6 +207,7 @@ namespace engine {
 					k = KeyboardKey::K_GRAVE_ACCENT;
 					break;
 				default:
+                    k = KeyboardKey::K_UNKNOWN;
 					action = 255; // for no call onKeyEvent
 					break;
 			}
@@ -226,11 +231,11 @@ namespace engine {
 		}
 	}
 
-	void glfwOnChar(GLFWwindow* window, unsigned int codepoint) {
+	void glfwOnChar(GLFWwindow* /*window*/, unsigned int codepoint) {
 		Engine::getInstance().getModule<Input>()->onCharEvent(codepoint);
 	}
 
-	static GlfwStatObserver* statObserver; // todo remove stat observer from this code
+	static GlfwStatObserver* statObserver = nullptr; // todo remove stat observer from this code
 
 	GLFWDevice::GLFWDevice() {
 		glfwInit();
@@ -241,16 +246,16 @@ namespace engine {
 		_width = 1024;
 		_height = 768;
 
-		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+		//GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+		//const GLFWvidmode* mode = glfwGetVideoMode(monitor);
 		//_width = mode->width;
 		//_height = mode->height;
 
 		_window = glfwCreateWindow(_width, _height, "j4f (vulkan)", nullptr, nullptr);
 		//_window = glfwCreateWindow(_width, _height, "j4f (vulkan)", monitor, nullptr);
 
-		glfwSetFramebufferSizeCallback(_window, &glfwOnFrameBufferResize);
-		//glfwSetWindowSizeCallback(_window, &glfwOnWindowResize);
+		//glfwSetFramebufferSizeCallback(_window, &glfwOnFrameBufferResize);
+		glfwSetWindowSizeCallback(_window, &glfwOnWindowResize);
 		glfwSetWindowIconifyCallback(_window, &glfwOnWindowIconify);
 
 		// input callbacks
@@ -260,7 +265,7 @@ namespace engine {
 		glfwSetKeyCallback(_window, &glfwOnKeyboard);
 		glfwSetCharCallback(_window, &glfwOnChar);
 
-		_surfaceInitialiser = new GlfwVkSurfaceInitialiser(_window);
+		_surfaceInitializer = new GlfwVkSurfaceInitializer(_window);
 
 		//statObserver = new GlfwStatObserver(_window); // todo remove stat observer from this code
 	}
@@ -271,9 +276,9 @@ namespace engine {
             _window = nullptr;
         }
 
-        if (_surfaceInitialiser) {
-            delete _surfaceInitialiser;
-            _surfaceInitialiser = nullptr;
+        if (_surfaceInitializer) {
+            delete _surfaceInitializer;
+            _surfaceInitializer = nullptr;
         }
 
 		glfwTerminate();
@@ -306,8 +311,8 @@ namespace engine {
 		Engine::getInstance().resize(w, h);
 	}
 
-	const IRenderSurfaceInitialiser* GLFWDevice::getSurfaceInitialiser() const {
-		return _surfaceInitialiser;
+	const IRenderSurfaceInitializer* GLFWDevice::getSurfaceInitializer() const {
+		return _surfaceInitializer;
 	}
 
 	void GLFWDevice::start() {

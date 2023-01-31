@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../../../Core/Common.h"
-#include "../../../Core/Math/math.h"
+#include "../../Core/Math/mathematic.h"
 #include "../../Vulkan/vkCommandBuffer.h"
 #include "../../Vulkan/vkFrameBuffer.h"
 #include "../../Vulkan/vkDebugMarker.h"
@@ -47,7 +47,7 @@ namespace engine {
 				delete frameBuffer;
 			}
 
-			vulkan::VulkanFrameBuffer* frameBuffer; // нужен ли отдельный под каждый swapchain image?
+			vulkan::VulkanFrameBuffer* frameBuffer; // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ swapchain image?
 			VkImageView view;
 		};
 

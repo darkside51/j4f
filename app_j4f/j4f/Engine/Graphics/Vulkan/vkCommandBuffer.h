@@ -15,7 +15,7 @@
 #include <array>
 #include <type_traits>
 #include <algorithm>
-#include <assert.h>
+#include <cassert>
 
 namespace vulkan {
 
@@ -38,17 +38,17 @@ namespace vulkan {
 			std::unordered_map<VkPipelineLayout, Descriptors*> layoutDescriptors;
 
 			~BindingSets() {
-				for (auto it = layoutDescriptors.begin(); it != layoutDescriptors.end(); ++it) {
-					delete it->second;
+                for (auto&& [pipelineLayout, descriptors] : layoutDescriptors) {
+					delete descriptors;
 				}
 			}
 
 			inline void invalidate() {
-				for (auto it = layoutDescriptors.begin(); it != layoutDescriptors.end(); ++it) {
-					for (uint8_t i = 0; i < descriptor_sets_max_count; ++i) {
-						it->second->descriptorSets[i] = VK_NULL_HANDLE;
-						it->second->dynamicOffsetCount = 0;
+                for (auto&& [pipelineLayout, descriptors] : layoutDescriptors) {
+					for (auto&& descriptorSet : descriptors->descriptorSets) {
+                        descriptorSet = VK_NULL_HANDLE;
 					}
+                    descriptors->dynamicOffsetCount = 0;
 				}
 			}
 		};
@@ -66,16 +66,16 @@ namespace vulkan {
 				firstSet(rvalue.firstSet),
 				setsCount(rvalue.setsCount),
 				dynamicOffsetsCount(rvalue.dynamicOffsetsCount),
-				dynamicOffsets(std::move(rvalue.dynamicOffsets)),
-				sets(std::move(rvalue.sets)) {
+				dynamicOffsets(rvalue.dynamicOffsets),
+				sets(rvalue.sets) {
 			}
 
 			NeedBindDescriptors& operator= (NeedBindDescriptors&& rvalue) noexcept {
 				firstSet = rvalue.firstSet;
 				setsCount = rvalue.setsCount;
 				dynamicOffsetsCount = rvalue.dynamicOffsetsCount;
-				dynamicOffsets = std::move(rvalue.dynamicOffsets);
-				sets = std::move(rvalue.sets);
+				dynamicOffsets = rvalue.dynamicOffsets;
+				sets = rvalue.sets;
 				return *this;
 			}
 
@@ -311,7 +311,7 @@ namespace vulkan {
 			BindingSets& bindSet = m_bindSets[bindSetNum];
 			BindingSets::Descriptors* descriptors;
 
-			const VkPipelineLayout layout = pipeline->program->getPipeLineLayout();
+            VkPipelineLayout layout = pipeline->program->getPipeLineLayout();
 
 			auto it = bindSet.layoutDescriptors.find(layout);
 			if (it != bindSet.layoutDescriptors.end()) {
@@ -676,7 +676,7 @@ namespace vulkan {
 			cmdBindIndexBuffer(indices.m_buffer, offset, type);
 		}
 
-		inline void cmdDrawIndexed(const uint32_t indexCount, const uint32_t firstIndex = 0, const uint32_t instanceCount = 1, const uint32_t vertexOffset = 0, const uint32_t firstInstance = 0) const {
+		inline void cmdDrawIndexed(const uint32_t indexCount, const uint32_t firstIndex = 0, const uint32_t instanceCount = 1, const int32_t vertexOffset = 0, const uint32_t firstInstance = 0) const {
 			vkCmdDrawIndexed(m_commandBuffer, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
 			STATISTIC_ADD_DRAW_CALL
 		}
@@ -708,13 +708,13 @@ namespace vulkan {
 			if (imageSubresourceRange != nullptr) {
 				vkCmdClearColorImage(m_commandBuffer, image, layout, &clearColor, rangeCount, imageSubresourceRange);
 			} else {
-				VkImageSubresourceRange imageSubresourceRange;
-				imageSubresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-				imageSubresourceRange.baseMipLevel = 0;
-				imageSubresourceRange.levelCount = 1;
-				imageSubresourceRange.baseArrayLayer = 0;
-				imageSubresourceRange.layerCount = 1;
-				vkCmdClearColorImage(m_commandBuffer, image, layout, &clearColor, rangeCount, &imageSubresourceRange);
+				VkImageSubresourceRange newImageSubresourceRange;
+                newImageSubresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+                newImageSubresourceRange.baseMipLevel = 0;
+                newImageSubresourceRange.levelCount = 1;
+                newImageSubresourceRange.baseArrayLayer = 0;
+                newImageSubresourceRange.layerCount = 1;
+				vkCmdClearColorImage(m_commandBuffer, image, layout, &clearColor, rangeCount, &newImageSubresourceRange);
 			}			
 		}
 
@@ -1051,7 +1051,7 @@ namespace vulkan {
 		std::vector<std::vector<VkSemaphore>> m_signalSemaphores;
 		std::vector<VulkanSemaphore> m_completeSemaphores;
 		std::vector<VulkanCommandBufferEx<STATE>> m_commands;
-		VkPipelineStageFlags m_waitStageMask;
+		VkPipelineStageFlags m_waitStageMask = VK_PIPELINE_STAGE_FLAG_BITS_MAX_ENUM;
 
 		VulkanCommandBuffersArrayEx() = default;
 

@@ -19,7 +19,7 @@ namespace vulkan {
 			std::vector<VkExtensionProperties> extensions(extCount);
 			if (vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extCount, &extensions.front()) == VK_SUCCESS) {
 				for (auto&& ext : extensions) {
-					supportedExtensions.push_back(ext.extensionName);
+					supportedExtensions.emplace_back(ext.extensionName);
 				}
 			}
 		}
@@ -66,7 +66,7 @@ namespace vulkan {
 	}
 
 	uint32_t VulkanDevice::getQueueFamilyIndex(VkQueueFlagBits queueFlags) const {
-		uint32_t i = 0;
+		uint32_t i;
 		// try to find a queue family index that supports compute but not graphics
 		if (queueFlags & VK_QUEUE_COMPUTE_BIT) {
 			i = 0;
@@ -188,7 +188,7 @@ namespace vulkan {
 		}
 
 		// create the logical device representation
-		std::vector<const char*> deviceExtensions(enabledExtensions);
+		std::vector<const char*> deviceExtensions(std::move(enabledExtensions));
 		if (useSwapChain) {
 			// if the device will be used for presenting to a display via a swapchain we need to request the swapchain extension
 			deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
@@ -396,8 +396,8 @@ namespace vulkan {
 		return shaderModule;
 	}
 
-	void VulkanDevice::destroyShaderModule(VkShaderModule module, const VkAllocationCallbacks* pAllocator) const {
-		vkDestroyShaderModule(device, module, pAllocator);
+    void VulkanDevice::destroyShaderModule(VkShaderModule module, const VkAllocationCallbacks* pAllocator) const {
+		vkDestroyShaderModule(device,module, pAllocator);
 	}
 
 	VkDescriptorSetLayout VulkanDevice::createDescriptorSetLayout(const std::vector<VkDescriptorSetLayoutBinding>& bindings, const VkAllocationCallbacks* pAllocator) const {

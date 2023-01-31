@@ -4,7 +4,7 @@
 #include "../Vulkan/vkPipeline.h"
 #include "../Vulkan/vkCommandBuffer.h"
 
-#include "../../Core/Math/math.h"
+#include "../../Core/Math/mathematic.h"
 
 #include "CommonVertexTypes.h"
 

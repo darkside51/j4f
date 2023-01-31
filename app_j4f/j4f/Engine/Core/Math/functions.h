@@ -1,7 +1,7 @@
 ﻿#pragma once
 // ♣♠♦♥
 
-#include "math.h"
+#include "mathematic.h"
 
 #include <limits>
 #include <vector>
@@ -32,11 +32,11 @@ namespace engine {
         const float pC = a * e - d * b;
 
         const float pD = -p1.x * pA - p1.y * pB - p1.z * pC;
-        return glm::vec4(pA, pB, pC, pD);
+        return { pA, pB, pC, pD };
     }
 
     inline glm::vec4 plainForm(const glm::vec3& normal, const glm::vec3& point) { // общее уравнение плоскости из нормали и точки
-        return glm::vec4(normal.x, normal.y, normal.z, -glm::dot(normal, point));
+        return { normal.x, normal.y, normal.z, -glm::dot(normal, point) };
     }
 
     inline float lenFromPointToLine(const glm::vec3& begin, const glm::vec3& end, const glm::vec3& p) { // расстояние от точки до линии
@@ -76,7 +76,7 @@ namespace engine {
     inline glm::vec3 intersectionLinePlane(const glm::vec3& a, const glm::vec3& b, const glm::vec4& plain) { // точка пересеченя прямой и плоскости
         const glm::vec3 d = as_normalized(b - a);
         const float t = -(plain.x * a.x + plain.y * a.y + plain.z * a.z + plain.w) / (plain.x * d.x + plain.y * d.y + plain.z * d.z);
-        return glm::vec3(a.x + d.x * t, a.y + d.y * t, a.z + d.z * t);;
+        return { a.x + d.x * t, a.y + d.y * t, a.z + d.z * t };
     }
 
     inline glm::vec3 crossingLinesPoint(const glm::vec3& a, const glm::vec3& b, const glm::vec3& c, const glm::vec3& d, const float eps) { // точка "скрещивания" прямых (это точка на прямой ab в моменте скрещивания с прямой bc, такие штуки иногда полезны, например при определении различных попаданий)
@@ -92,7 +92,7 @@ namespace engine {
     }
 
     inline float triangleSquare(const float a, const float b, const float c) { // формула Герона
-        const float p = (a + b + c) * 0.5;
+        const float p = (a + b + c) * 0.5f;
         const float sqrtv = 1.0f / inv_sqrt(p * (p - a) * (p - b) * (p - c));
         return sqrtv;
     }

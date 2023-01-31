@@ -35,7 +35,7 @@ namespace vulkan {
 				hasColor = true;
 			}
 			++attachmentIndex;
-		};
+		}
 
 		VkSubpassDescription description;
 		description.flags = flags;

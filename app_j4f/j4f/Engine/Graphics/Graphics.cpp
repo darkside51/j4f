@@ -36,8 +36,10 @@ namespace engine {
 	}
 
     void Graphics::createRenderer() {
+        if (!_renderer) return;
+
         auto&& device = Engine::getInstance().getModule<Device>();
-        const IRenderSurfaceInitialiser* surfaceInitialiser = device->getSurfaceInitialiser();
+        const IRenderSurfaceInitializer* surfaceInitialiser = device->getSurfaceInitializer();
 
         {
             using namespace vulkan;
@@ -47,10 +49,6 @@ namespace engine {
             std::vector<const char*> &enabledDeviceExtensions = _config.gpu_extensions;
 
             _renderer->createInstance({}, {});
-
-            auto sz = sizeof(VkPhysicalDeviceFeatures);
-            auto sz2 = sizeof(GraphicConfig::GPUFeatures);
-
             _renderer->createDevice(enabledFeatures, enabledDeviceExtensions, static_cast<VkPhysicalDeviceType>(_config.gpu_type));
             _renderer->createSwapChain(surfaceInitialiser, _config.v_sync);
             _renderer->init(_config);
@@ -96,21 +94,36 @@ namespace engine {
 	}
 
 	void Graphics::deviceDestroyed() {
-		_renderer->waitWorkComplete();
+        if (_renderer) {
+            _renderer->waitWorkComplete();
+        }
 	}
 
 	void Graphics::resize(const uint16_t w, const uint16_t h) {
 		_size.first = w; _size.second = h;
-		_renderer->resize(w, h, _config.v_sync);
-		_renderHelper->onResize();
+
+        if (_renderer) {
+            _renderer->resize(w, h, _config.v_sync);
+        }
+
+        if (_renderHelper) {
+            _renderHelper->onResize();
+        }
 	}
 
 	void Graphics::beginFrame() {
-        _renderer->beginFrame();
-		_renderHelper->updateFrame();
+        if (_renderer) {
+            _renderer->beginFrame();
+        }
+
+        if (_renderHelper) {
+            _renderHelper->updateFrame();
+        }
 	}
 
 	void Graphics::endFrame() {
-        _renderer->endFrame();
+        if (_renderer) {
+            _renderer->endFrame();
+        }
 	}
 }

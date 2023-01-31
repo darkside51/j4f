@@ -1,13 +1,12 @@
 #include "RenderDescriptor.h"
 #include "RenderHelper.h"
 #include "AutoBatchRender.h"
-#include "../../Core/Engine.h"
 #include "../Vulkan/vkDebugMarker.h"
 
 namespace engine {
 
 	void RenderDescriptor::render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const glm::mat4* cameraMatrix) {
-		GPU_DEBUG_MARKER_INSERT(commandBuffer.m_commandBuffer, " j4f renderDescriptor render", 0.5f, 0.5f, 0.5f, 1.0f);
+		GPU_DEBUG_MARKER_INSERT(commandBuffer.m_commandBuffer, " j4f renderDescriptor render", 0.5f, 0.5f, 0.5f, 1.0f)
 
 		auto&& renderHelper = Engine::getInstance().getModule<Graphics>()->getRenderHelper();
 		auto&& autoBatcher = renderHelper->getAutoBatchRenderer();
@@ -19,7 +18,7 @@ namespace engine {
 
 				for (uint32_t i = 0; i < renderDataCount; ++i) {
 					vulkan::RenderData* r_data = renderData[i];
-					if (r_data == nullptr || r_data->pipeline == nullptr || r_data->visible == false) continue;
+					if (r_data == nullptr || r_data->pipeline == nullptr || !r_data->visible) continue;
 
 					if (cameraMatrix && camera_matrix) {
 						r_data->setRawDataForLayout(camera_matrix, const_cast<glm::mat4*>(cameraMatrix), false, sizeof(glm::mat4));
@@ -34,7 +33,7 @@ namespace engine {
 			{
 				for (uint32_t i = 0; i < renderDataCount; ++i) {
 					vulkan::RenderData* r_data = renderData[i];
-					if (r_data == nullptr || r_data->pipeline == nullptr || r_data->visible == false) continue;
+					if (r_data == nullptr || r_data->pipeline == nullptr || !r_data->visible) continue;
 
 					if (cameraMatrix && camera_matrix) {
 						r_data->setRawDataForLayout(camera_matrix, const_cast<glm::mat4*>(cameraMatrix), false, sizeof(glm::mat4));

@@ -31,12 +31,12 @@ namespace engine {
 
         if constexpr (std::is_same_v<typename randomTypeAcessor<T>::value, int>) {
             std::uniform_int_distribution<T> distribution(min, max);
-            return distribution(*generator.get());
+            return distribution(*generator);
         }
 
         if constexpr (std::is_same_v<typename randomTypeAcessor<T>::value, float>) {
             std::uniform_real_distribution<T> distribution(min, max);
-            return distribution(*generator.get());
+            return distribution(*generator);
         }
 
         return T(0);

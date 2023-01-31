@@ -13,7 +13,7 @@ namespace engine {
 		inline static constexpr uint8_t count_bits = sizeof(element_type) * 8;
 
 	public:
-		BitMaskImpl() = default; // не стал ресайзить маску в конструкторе, в теории может оказаться и совсем пустой
+		BitMaskImpl() = default; // пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 		~BitMaskImpl() = default;
 
 		BitMaskImpl(const BitMaskImpl& mask) {
@@ -32,8 +32,8 @@ namespace engine {
 		inline bool checkBit(const INTEGER_TYPE bit) const {
 			static_assert(std::is_integral_v<INTEGER_TYPE>, "type not integer");
 
-			const uint32_t innerBit = static_cast<uint32_t>(bit);
-			const uint32_t bitsCount = static_cast<uint32_t>(_mask.size()) * count_bits;
+			const auto innerBit = static_cast<uint32_t>(bit);
+			const auto bitsCount = static_cast<uint32_t>(_mask.size()) * count_bits;
 			if (innerBit < bitsCount) {
 				const uint32_t num = innerBit / count_bits;
 				return _mask[num] & (1 << (innerBit - (count_bits * num)));
@@ -46,8 +46,8 @@ namespace engine {
 		inline void setBit(const INTEGER_TYPE bit, const uint8_t value) {
 			static_assert(std::is_integral_v<INTEGER_TYPE>, "type not integer");
 
-			const uint32_t sz = static_cast<uint32_t>(_mask.size());
-			const uint32_t innerBit = static_cast<uint32_t>(bit);
+			const auto sz = static_cast<uint32_t>(_mask.size());
+			const auto innerBit = static_cast<uint32_t>(bit);
 			const uint32_t num = innerBit / count_bits;
 
 			if (sz <= num) { _mask.resize(num + 1, 0); }
@@ -62,20 +62,20 @@ namespace engine {
 			}
 		}
 
-		inline bool checkMaskBits(const BitMaskImpl& outerBM) const { // проверяет, что в маске outerBM взведены как минимум те же биты, что и в _mask
+		inline bool checkMaskBits(const BitMaskImpl& outerBM) const { // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ outerBM пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅ пїЅ _mask
 			const size_t selfSize = _mask.size();
 			const size_t outerSize = outerBM._mask.size();
 
 			const size_t minSize = std::min(selfSize, outerSize);
 
 			for (size_t i = 0; i < minSize; ++i) {
-				if ((_mask[i] & outerBM._mask[i]) != _mask[i]) { // в outerBM могут быть взведены и другие биты, но те, что _mask точно должны быть взведены
+				if ((_mask[i] & outerBM._mask[i]) != _mask[i]) { // пїЅ outerBM пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ, пїЅпїЅ пїЅпїЅ, пїЅпїЅпїЅ _mask пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 					return false;
 				}
 			}
 
 			if (selfSize > outerSize) {
-				// случай, когда в текущей маске зарезервировано больше бит, но возможен вариант, что все биты, не входящие в outerBM нулевые
+				// пїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ, пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ, пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ outerBM пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 				for (size_t i = outerSize; i < selfSize; ++i) {
 					if (_mask[i]) return false;
 				}
@@ -93,14 +93,14 @@ namespace engine {
 			return (memcmp(&_mask[0], &bm._mask[0], sz * sizeof(element_type)) == 0);
 		}
 
-		inline const BitMaskImpl& operator= (const BitMaskImpl& bm) {
+		inline BitMaskImpl& operator= (const BitMaskImpl& bm) {
 			const size_t sz = bm._mask.size();
 			_mask.resize(sz);
 			memcpy(&_mask[0], &bm._mask[0], sz * sizeof(element_type));
 			return *this;
 		}
 
-		inline const BitMaskImpl& operator= (BitMaskImpl&& bm) noexcept {
+		inline BitMaskImpl& operator= (BitMaskImpl&& bm) noexcept {
 			const size_t sz = bm._mask.size();
 			_mask.resize(sz);
 			_mask = std::move(bm._mask);

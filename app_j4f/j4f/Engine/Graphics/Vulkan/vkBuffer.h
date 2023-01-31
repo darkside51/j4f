@@ -24,11 +24,13 @@ namespace vulkan {
 			void* memory = nullptr;
 			vkMapMemory(m_device, m_memory, static_cast<VkDeviceSize>(offset), static_cast<VkDeviceSize>(size), 0, &memory);
 			memcpy(memory, data, size);
-			if (flushBuffer) { flush(size, offset); } // need when host write to non coherent memory
+			if (flushBuffer) {
+                const auto result = flush(size, offset);
+            } // need when host write to non coherent memory
 			vkUnmapMemory(m_device, m_memory);
 		}
 		
-		void* map(const size_t size, const size_t offset = 0) const {
+		[[nodiscard]] void* map(const size_t size, const size_t offset = 0) const {
 			void* memory = nullptr;
 			vkMapMemory(m_device, m_memory, static_cast<VkDeviceSize>(offset), static_cast<VkDeviceSize>(size), 0, &memory);
 			return memory;
@@ -36,7 +38,7 @@ namespace vulkan {
 
 		void unmap() const { vkUnmapMemory(m_device, m_memory); }
 
-		inline VkResult flush(const VkDeviceSize size = VK_WHOLE_SIZE, const VkDeviceSize offset = 0) const {
+        [[nodiscard]] inline VkResult flush(const VkDeviceSize size = VK_WHOLE_SIZE, const VkDeviceSize offset = 0) const {
 			VkMappedMemoryRange mappedRange;
 			mappedRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
 			mappedRange.pNext = nullptr;
@@ -46,7 +48,7 @@ namespace vulkan {
 			return vkFlushMappedMemoryRanges(m_device, 1, &mappedRange);
 		}
 
-		inline VkResult invalidate(const VkDeviceSize size = VK_WHOLE_SIZE, const VkDeviceSize offset = 0) const {
+        [[nodiscard]] inline VkResult invalidate(const VkDeviceSize size = VK_WHOLE_SIZE, const VkDeviceSize offset = 0) const {
 			VkMappedMemoryRange mappedRange = {};
 			mappedRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
 			mappedRange.memory = m_memory;
@@ -67,7 +69,7 @@ namespace vulkan {
 			}
 		}
 
-		inline bool isValid() const {
+        [[nodiscard]] inline bool isValid() const noexcept {
 			return (m_buffer != VK_NULL_HANDLE) && (m_memory != VK_NULL_HANDLE);
 		}
 	};
@@ -83,11 +85,13 @@ namespace vulkan {
 			void* memory = nullptr;
 			vkMapMemory(m_stageBuffer.m_device, m_stageBuffer.m_memory, static_cast<VkDeviceSize>(offset), static_cast<VkDeviceSize>(size), 0, &memory);
 			memcpy(memory, data, size);
-			if (flushBuffer) { m_stageBuffer.flush(size, offset); } // need when host write to non coherent memory
+			if (flushBuffer) {
+                const auto result = m_stageBuffer.flush(size, offset);
+            } // need when host write to non coherent memory
 			vkUnmapMemory(m_stageBuffer.m_device, m_stageBuffer.m_memory);
 		}
 
-		void* map(const size_t size, const size_t offset = 0) const {
+        [[nodiscard]] void* map(const size_t size, const size_t offset = 0) const {
 			if (!m_stageBuffer.isValid()) return nullptr;
 
 			void* memory = nullptr;

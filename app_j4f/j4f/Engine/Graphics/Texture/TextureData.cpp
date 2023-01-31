@@ -16,7 +16,7 @@ namespace engine {
 	}
 
 	inline unsigned char* loadImageDataFromBuffer(const unsigned char* buffer, const size_t size, int* w, int* h, int* c) {
-		return stbi_load_from_memory(buffer, size, w, h, c, 4);
+		return stbi_load_from_memory(buffer, static_cast<int>(size), w, h, c, 4);
 	}
 
 	inline void freeImageData(unsigned char* img) {
@@ -26,7 +26,7 @@ namespace engine {
 
 	TextureData::TextureData(const std::string& path, const TextureFormatType ft) {
 		auto&& engine = Engine::getInstance();
-		FileManager* fm = engine.getModule<engine::FileManager>();
+		auto* fm = engine.getModule<engine::FileManager>();
 
 		size_t fsize;
 		

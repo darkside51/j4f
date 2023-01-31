@@ -19,11 +19,10 @@ namespace engine {
 				w = v.getWeight();
 				if (w > 0.0f) { // get first none zero weight value
 					firstNoneZeroWeightChild = n;
-					const auto anim = v.getAnimation();
 					const std::vector<TreeAnimator::Transform>& ch_transforms = v.getTransforms(i);
 
-					for (size_t idx = 0, trs = ch_transforms.size(); idx < trs; ++idx) {
-						memcpy(&transforms[ch_transforms[idx].target_node], &ch_transforms[idx], sizeof(TreeAnimator::Transform));
+                    for (auto&& ch_transform : ch_transforms) {
+						memcpy(&transforms[ch_transform.target_node], &ch_transform, sizeof(TreeAnimator::Transform));
 					}
 
 					break;
@@ -37,13 +36,12 @@ namespace engine {
 
 					if (w2 <= 0.0f) continue; // skip calculate for weight <= 0.0f
 
-					const auto anim = v.getAnimation();
 					std::vector<TreeAnimator::Transform>& ch_transforms = v.getTransforms(i);
 					const float mix = w * 1.0f / (w + w2);
 
-					for (size_t idx = 0, trs = ch_transforms.size(); idx < trs; ++idx) {
-						TreeAnimator::Transform& tr0 = transforms[ch_transforms[idx].target_node];
-						TreeAnimator::Transform& tr1 = ch_transforms[idx];
+                    for (auto&& ch_transform : ch_transforms) {
+						TreeAnimator::Transform& tr0 = transforms[ch_transform.target_node];
+						TreeAnimator::Transform& tr1 = ch_transform;
 
 						switch (tr1.mask) {
 							case 0b00000001:
@@ -119,11 +117,10 @@ namespace engine {
 				w = v.getWeight();
 				if (w > 0.0f) { // get first none zero weight value
 					firstNoneZeroWeightChild = n;
-					const auto anim = v.getAnimation();
 					const std::vector<TreeAnimator::Transform>& ch_transforms = v.getTransforms(i);
 
-					for (size_t idx = 0, trs = ch_transforms.size(); idx < trs; ++idx) {
-						memcpy(&transforms[ch_transforms[idx].target_node], &ch_transforms[idx], sizeof(TreeAnimator::Transform));
+                    for (auto&& ch_transform : ch_transforms) {
+						memcpy(&transforms[ch_transform.target_node], &ch_transform, sizeof(TreeAnimator::Transform));
 					}
 
 					break;
@@ -137,13 +134,12 @@ namespace engine {
 
 					if (w2 <= 0.0f) continue; // skip calculate for weight <= 0.0f
 
-					const auto anim = v.getAnimation();
 					std::vector<TreeAnimator::Transform>& ch_transforms = v.getTransforms(i);
 					const float mix = w * 1.0f / (w + w2);
 
-					for (size_t idx = 0, trs = ch_transforms.size(); idx < trs; ++idx) {
-						TreeAnimator::Transform& tr0 = transforms[ch_transforms[idx].target_node];
-						TreeAnimator::Transform& tr1 = ch_transforms[idx];
+                    for (auto&& ch_transform : ch_transforms) {
+						TreeAnimator::Transform& tr0 = transforms[ch_transform.target_node];
+						TreeAnimator::Transform& tr1 = ch_transform;
 
 						switch (tr1.mask) {
 							case 0b00000001:
