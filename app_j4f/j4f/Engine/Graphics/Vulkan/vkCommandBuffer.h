@@ -586,7 +586,7 @@ namespace vulkan {
 			return false;
 		}
 
-		inline bool cmdSetScissor(const int32_t x, const int32_t y, const int32_t w, const int32_t h) {
+		inline bool cmdSetScissor(const int32_t x, const int32_t y, const uint32_t w, const uint32_t h) {
 			VkRect2D scissor = {};
 			scissor.offset.x = x;
 			scissor.offset.y = y;
@@ -1155,7 +1155,7 @@ namespace vulkan {
 			m_completeSemaphores.clear();
 		}
 
-		VkSubmitInfo prepareToSubmit(const int32_t commandBufferNum) const {
+		[[nodiscard]] VkSubmitInfo prepareToSubmit(const uint32_t commandBufferNum) const {
 			const uint32_t frameNum = commandBufferNum % m_commands.size();
 			return m_commands[frameNum].prepareToSubmit(&m_waitStageMask, static_cast<uint32_t>(m_waitSemaphores[frameNum].size()), m_waitSemaphores[frameNum].data(), static_cast<uint32_t>(m_signalSemaphores[frameNum].size()), m_signalSemaphores[frameNum].data());
 		}

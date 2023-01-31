@@ -35,7 +35,7 @@ namespace vulkan {
 			}
 		}
 
-		~VulkanRenderTarget() { }
+		~VulkanRenderTarget() = default;
 
 	};
 

@@ -1,6 +1,6 @@
 #include "vkSwapChain.h"
 #include "vkDevice.h"
-#include <assert.h>
+#include <cassert>
 
 #include "../RenderSurfaceInitialisez.h"
 
@@ -17,7 +17,7 @@ namespace vulkan {
 		initialiser->initRenderSurface(&_instance, &surface);
 
 		uint32_t formatCount;
-		if (vkGetPhysicalDeviceSurfaceFormatsKHR(_physicalDevice, surface, &formatCount, NULL) != VkResult::VK_SUCCESS) {
+		if (vkGetPhysicalDeviceSurfaceFormatsKHR(_physicalDevice, surface, &formatCount, nullptr) != VkResult::VK_SUCCESS) {
 			// some reaction...
 		}
 
@@ -32,12 +32,12 @@ namespace vulkan {
 		} else {
 			// iterate over the list of available surface format and
 			// check for the presence of VK_FORMAT_B8G8R8A8_UNORM
-			bool has_B8G8R8A8_UNORM = false;
+			//bool has_B8G8R8A8_UNORM = false;
 			for (auto&& surfaceFormat : surfaceFormats) {
 				if (surfaceFormat.format == VK_FORMAT_B8G8R8A8_UNORM) {
 					colorFormat = surfaceFormat.format;
 					colorSpace = surfaceFormat.colorSpace;
-					has_B8G8R8A8_UNORM = true;
+					//has_B8G8R8A8_UNORM = true;
 					break;
 				} else if (colorFormat == VkFormat::VK_FORMAT_UNDEFINED) {
 					colorFormat = surfaceFormat.format;
@@ -58,13 +58,6 @@ namespace vulkan {
 		VkSurfaceCapabilitiesKHR surfCaps;
 		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_physicalDevice, surface, &surfCaps);
 
-		// get available present modes
-		uint32_t presentModeCount;
-		vkGetPhysicalDeviceSurfacePresentModesKHR(_physicalDevice, surface, &presentModeCount, NULL);
-
-		std::vector<VkPresentModeKHR> presentModes(presentModeCount);
-		vkGetPhysicalDeviceSurfacePresentModesKHR(_physicalDevice, surface, &presentModeCount, &presentModes[0]);
-
 		//const uint32_t fixedWidth = std::max(surfCaps.minImageExtent.width, std::min(width, surfCaps.maxImageExtent.width));
 		//const uint32_t fixedHeight = std::max(surfCaps.minImageExtent.height, std::min(height, surfCaps.maxImageExtent.height));
 		//const VkExtent2D swapchainExtent = { fixedWidth , fixedHeight };
@@ -80,6 +73,13 @@ namespace vulkan {
 		// if v-sync is not requested, try to find a mailbox mode
 		// it's the lowest latency non-tearing present mode available
 		if (!vsync) {
+            // get available present modes
+            uint32_t presentModeCount;
+            vkGetPhysicalDeviceSurfacePresentModesKHR(_physicalDevice, surface, &presentModeCount, nullptr);
+
+            std::vector<VkPresentModeKHR> presentModes(presentModeCount);
+            vkGetPhysicalDeviceSurfacePresentModesKHR(_physicalDevice, surface, &presentModeCount, &presentModes[0]);
+
 			for (size_t i = 0; i < presentModeCount; ++i) {
 				switch (presentModes[i]) {
 					case VK_PRESENT_MODE_MAILBOX_KHR:
@@ -127,39 +127,39 @@ namespace vulkan {
 			};
 		}
 
-		VkSwapchainCreateInfoKHR swapchainCI;
-		swapchainCI.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-		swapchainCI.pNext = nullptr;
-		swapchainCI.flags = 0;
-		swapchainCI.surface = surface;
-		swapchainCI.minImageCount = desiredSwapchainImagesCount;
-		swapchainCI.imageFormat = colorFormat;
-		swapchainCI.imageColorSpace = colorSpace;
-		swapchainCI.imageExtent = swapchainExtent;
-		swapchainCI.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-		swapchainCI.preTransform = static_cast<VkSurfaceTransformFlagBitsKHR>(preTransform);
-		swapchainCI.imageArrayLayers = 1;
-		swapchainCI.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		swapchainCI.queueFamilyIndexCount = 1;
-		swapchainCI.pQueueFamilyIndices = &_vkDevice->queueFamilyIndices.present;
-		swapchainCI.presentMode = swapchainPresentMode;
+		VkSwapchainCreateInfoKHR swapchainCreateInfo = {};
+        swapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+        swapchainCreateInfo.pNext = nullptr;
+        swapchainCreateInfo.flags = 0;
+        swapchainCreateInfo.surface = surface;
+        swapchainCreateInfo.minImageCount = desiredSwapchainImagesCount;
+        swapchainCreateInfo.imageFormat = colorFormat;
+        swapchainCreateInfo.imageColorSpace = colorSpace;
+        swapchainCreateInfo.imageExtent = swapchainExtent;
+        swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+        swapchainCreateInfo.preTransform = static_cast<VkSurfaceTransformFlagBitsKHR>(preTransform);
+        swapchainCreateInfo.imageArrayLayers = 1;
+        swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        swapchainCreateInfo.queueFamilyIndexCount = 1;
+        swapchainCreateInfo.pQueueFamilyIndices = &_vkDevice->queueFamilyIndices.present;
+        swapchainCreateInfo.presentMode = swapchainPresentMode;
 		// setting oldSwapChain to the saved handle of the previous swapchain aids in resource reuse and makes sure that we can still present already acquired images
-		swapchainCI.oldSwapchain = oldSwapchain;
+		swapchainCreateInfo.oldSwapchain = oldSwapchain;
 		// setting clipped to VK_TRUE allows the implementation to discard rendering outside of the surface area
-		swapchainCI.clipped = VK_TRUE;
-		swapchainCI.compositeAlpha = compositeAlpha;
+		swapchainCreateInfo.clipped = VK_TRUE;
+        swapchainCreateInfo.compositeAlpha = compositeAlpha;
 
 		// enable transfer source on swap chain images if supported ???????????????????????
 		if (surfCaps.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_SRC_BIT) {
-			swapchainCI.imageUsage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+            swapchainCreateInfo.imageUsage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 		}
 
 		// enable transfer destination on swap chain images if supported ???????????????????????
 		if (surfCaps.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_DST_BIT) {
-			swapchainCI.imageUsage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+            swapchainCreateInfo.imageUsage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 		}
 
-		if (vkCreateSwapchainKHR(_device, &swapchainCI, nullptr, &swapChain) != VkResult::VK_SUCCESS) {
+		if (vkCreateSwapchainKHR(_device, &swapchainCreateInfo, nullptr, &swapChain) != VkResult::VK_SUCCESS) {
 			assert(false);
 			// reaction...
 		}
@@ -174,7 +174,7 @@ namespace vulkan {
 			vkDestroySwapchainKHR(_device, oldSwapchain, nullptr);
 		}
 
-		vkGetSwapchainImagesKHR(_device, swapChain, &imageCount, NULL);
+		vkGetSwapchainImagesKHR(_device, swapChain, &imageCount, nullptr);
 
 		// get the swap chain images
 		std::vector<VkImage> vk_images(imageCount);

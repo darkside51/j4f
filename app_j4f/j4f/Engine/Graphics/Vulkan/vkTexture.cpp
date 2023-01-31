@@ -80,7 +80,7 @@ namespace vulkan {
 			);
 		}
 
-		VulkanBuffer* staging = new VulkanBuffer();
+		auto* staging = new VulkanBuffer();
 		_renderer->getDevice()->createBuffer(
 			VK_SHARING_MODE_EXCLUSIVE,
 			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
@@ -157,8 +157,8 @@ namespace vulkan {
 		barrier.subresourceRange.layerCount = _arrayLayers;
 		barrier.subresourceRange.levelCount = 1;
 
-		int32_t mipWidth = _width;
-		int32_t mipHeight = _height;
+		auto mipWidth = static_cast<int32_t>(_width);
+		auto mipHeight = static_cast<int32_t>(_height);
 
 		for (uint32_t i = 1; i < _img->mipLevels; ++i) {
 			barrier.subresourceRange.baseMipLevel = i - 1;
@@ -220,7 +220,7 @@ namespace vulkan {
 		);
 	}
 
-	const VkImageView VulkanTexture::getImageView() const { return _img->view; }
+    VkImageView VulkanTexture::getImageView() const { return _img->view; }
 
 	void VulkanTexture::createSingleDescriptor(const VkImageLayout imageLayout, const uint32_t binding) {
 		if (_generationState.load(std::memory_order_consume) == VulkanTextureCreationState::CREATION_COMPLETE) {

@@ -47,12 +47,12 @@ namespace vulkan {
 
 #ifdef _DEBUG
 #ifdef GPU_VALIDATION_ENABLED
-		const bool validationEnable = true;
+		constexpr bool validationEnable = true;
 #else
-		const bool validationEnable = false;
+        constexpr bool validationEnable = false;
 #endif // GPU_VALIDATION_ENABLED
 #else
-		const bool validationEnable = false;
+        constexpr bool validationEnable = false;
 #endif
 
 		auto addInstanceExtension = [&instanceExtensions, &supportedExtensions](const char* extName) -> bool {
@@ -80,7 +80,7 @@ namespace vulkan {
 			}
 		}
 
-		if (validationEnable) {
+		if constexpr (validationEnable) {
 			addInstanceExtension(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 			addInstanceLayer("VK_LAYER_KHRONOS_validation");
 		}
@@ -154,7 +154,7 @@ namespace vulkan {
 			for (VkPhysicalDevice gpu : vk_physicalDevices) {
 				// check support features + extensions 
 				// get desired deviceType if exist and it ok
-				vulkan::VulkanDevice* condidate = new vulkan::VulkanDevice(gpu);
+				auto* condidate = new vulkan::VulkanDevice(gpu);
 				if (checkGPU(condidate)) {
 					if (condidate->gpuProperties.deviceType == deviceType) {
                         if (_vulkanDevice) {
@@ -180,7 +180,7 @@ namespace vulkan {
 				}
 			}
 		} else {
-			vulkan::VulkanDevice* condidate = new vulkan::VulkanDevice(vk_physicalDevices[0]);
+			auto* condidate = new vulkan::VulkanDevice(vk_physicalDevices[0]);
 			if (checkGPU(condidate)) {
 				_vulkanDevice = condidate;
 			} else {
@@ -228,7 +228,7 @@ namespace vulkan {
 		// ensures that the image is displayed before we start submitting new commands to the queue
 		_presentCompleteSemaphores.reserve(_swapchainImagesCount);
 		for (size_t i = 0; i < _swapchainImagesCount; ++i) {
-			_presentCompleteSemaphores.emplace_back(vulkan::VulkanSemaphore(_vulkanDevice->device));
+			_presentCompleteSemaphores.emplace_back(_vulkanDevice->device);
 			_mainSupportCommandBuffers.addWaitSemaphore(_presentCompleteSemaphores[i].semaphore, i);
 		}
 
@@ -236,7 +236,7 @@ namespace vulkan {
 
 		// wait fences to sync command buffer access
 		for (uint32_t i = 0; i < _swapchainImagesCount; ++i) {
-			_waitFences.emplace_back(vulkan::VulkanFence(_vulkanDevice->device, VK_FENCE_CREATE_SIGNALED_BIT));
+			_waitFences.emplace_back(_vulkanDevice->device, VK_FENCE_CREATE_SIGNALED_BIT);
 		}
 
 		// find a suitable depth format
@@ -551,7 +551,7 @@ namespace vulkan {
 		std::vector<uint64_t> constantsCharacterVec(constantsCount);
 
 		for (size_t i = 0; i < constantsCount; ++i) {
-			const uint8_t stageFlags = static_cast<uint8_t>(pushConstantsRanges[i]->stageFlags);
+			const auto stageFlags = static_cast<uint8_t>(pushConstantsRanges[i]->stageFlags);
 			uint16_t offset = pushConstantsRanges[i]->offset;
 			uint16_t size = pushConstantsRanges[i]->size;
 			const uint64_t characteristic = static_cast<uint64_t>(stageFlags) << 0 |
@@ -570,9 +570,9 @@ namespace vulkan {
 
 			for (size_t i = 0; i < bindingsCount; ++i) {
 				const uint8_t binding = bindings[i]->binding;
-				const uint8_t descriptorType = static_cast<uint8_t>(bindings[i]->descriptorType);
+				const auto descriptorType = static_cast<uint8_t>(bindings[i]->descriptorType);
 				const uint8_t descriptorCount = bindings[i]->descriptorCount;
-				const uint8_t stageFlags = static_cast<uint8_t>(bindings[i]->stageFlags);
+				const auto stageFlags = static_cast<uint8_t>(bindings[i]->stageFlags);
 				const uint32_t characteristic = static_cast<uint32_t>(binding) << 0 |
 												static_cast<uint32_t>(descriptorType) << 8 |
 												static_cast<uint32_t>(descriptorCount) << 16 |
@@ -628,8 +628,8 @@ namespace vulkan {
 		}
 
 		std::vector<VkPushConstantRange> pushConstants(constantsCount); // попробуем с временным копированием, чтоб не хранить копии постоянно
-		for (size_t i = 0; i < constantsCount; ++i) {
-			pushConstants[i] = *(pushConstantsRanges[i]);
+		for (size_t j = 0; j < constantsCount; ++j) {
+			pushConstants[j] = *(pushConstantsRanges[j]);
 		}
 
 		VkPipelineLayout pipelineLayout;
@@ -639,7 +639,7 @@ namespace vulkan {
 			_vulkanDevice->createPipelineLayout(&pipelineLayout, descriptorSetLayouts.size(), &descriptorSetLayouts[0], constantsCount, &pushConstants[0]);
 		}
 
-		CachedDescriptorLayouts* layout = new CachedDescriptorLayouts(std::move(bindingsCharacterVec), std::move(constantsCharacterVec), { pipelineLayout, descriptorSetLayouts }, descriptorSetLayoutsHandled);
+		auto* layout = new CachedDescriptorLayouts(std::move(bindingsCharacterVec), std::move(constantsCharacterVec), { pipelineLayout, descriptorSetLayouts }, descriptorSetLayoutsHandled);
 		_descriptorLayoutsCache.push_back(layout);
 		return layout->layout;
 	}
@@ -665,7 +665,7 @@ namespace vulkan {
 					}
 				}
 
-				if (allocateFromExistingPool == false) {
+				if (!allocateFromExistingPool) {
 					if (setupDescriptorPool(_descriptorPoolCustomConfig) == VK_SUCCESS) { // allocate new pool
 						allocInfo.descriptorPool = _globalDescriptorPools[_currentDescriptorPool];
 						result = vkAllocateDescriptorSets(_vulkanDevice->device, &allocInfo, set);
@@ -687,7 +687,7 @@ namespace vulkan {
 	VulkanDescriptorSet* VulkanRenderer::allocateDescriptorSetFromGlobalPool(const VkDescriptorSetLayout descriptorSetLayout, const uint32_t count) {
 		const uint32_t setsCount = count == 0 ? _swapchainImagesCount : count;
 	
-		VulkanDescriptorSet* descriptorSet = new VulkanDescriptorSet(setsCount);
+		auto* descriptorSet = new VulkanDescriptorSet(setsCount);
 		std::vector<VkDescriptorSetLayout> layouts(setsCount, descriptorSetLayout);
 
 		VkDescriptorSetAllocateInfo allocInfo = {};
@@ -718,7 +718,7 @@ namespace vulkan {
 		allocInfo.pSetLayouts = &descriptorSetLayout;
 
 		allocateDescriptorSetsFromGlobalPool(allocInfo, &descriptorSet);
-		return std::pair<VkDescriptorSet, uint32_t>(descriptorSet, _currentDescriptorPool);
+		return { descriptorSet, _currentDescriptorPool };
 	}
 
 	void VulkanRenderer::bindBufferToDescriptorSet(
@@ -729,7 +729,7 @@ namespace vulkan {
 		const uint32_t alignedSize,
 		const uint32_t offset
 	) const {
-		const uint32_t setsCount = static_cast<uint32_t>(descriptorSet->set.size());
+		const auto setsCount = static_cast<uint32_t>(descriptorSet->set.size());
 		std::vector<VkWriteDescriptorSet> writeDescriptorSet(setsCount);
 
 		for (size_t i = 0; i < setsCount; ++i) {
@@ -747,7 +747,7 @@ namespace vulkan {
 		const VkImageLayout imageLayout,
 		const uint32_t binding
 	) const {
-		const uint32_t setsCount = static_cast<uint32_t>(descriptorSet->set.size());
+		const auto setsCount = static_cast<uint32_t>(descriptorSet->set.size());
 		std::vector<VkWriteDescriptorSet> writeDescriptorSet(setsCount);
 
 		VkDescriptorImageInfo textureDescriptor;
@@ -812,12 +812,11 @@ namespace vulkan {
 					_tmpBuffers.clear();
 				}
 
-				for (size_t i = 0, sz = tmpBuffers.size(); i < sz; ++i) {
-					for (VulkanBuffer* buffer : tmpBuffers[i]) {
-						delete buffer;
-					}
-				}
-				
+                for (auto&& buffers : tmpBuffers) {
+                    for (VulkanBuffer* buffer : buffers) {
+                        delete buffer;
+                    }
+                }
 			}
 
 			if (_width == 0 || _height == 0) { 
@@ -859,7 +858,7 @@ namespace vulkan {
 
 			_presentCompleteSemaphores.reserve(_swapchainImagesCount);
 			for (size_t i = 0; i < _swapchainImagesCount; ++i) {
-				auto&& semaphore = _presentCompleteSemaphores.emplace_back(vulkan::VulkanSemaphore(_vulkanDevice->device));
+				auto&& semaphore = _presentCompleteSemaphores.emplace_back(_vulkanDevice->device);
 				_mainSupportCommandBuffers.addWaitSemaphore(semaphore.semaphore, i);
 			}
 
@@ -868,7 +867,7 @@ namespace vulkan {
 			_waitFences.reserve(_swapchainImagesCount);
 			// wait fences to sync command buffer access
 			for (uint32_t i = 0; i < _swapchainImagesCount; ++i) {
-				_waitFences.emplace_back(vulkan::VulkanFence(_vulkanDevice->device, VK_FENCE_CREATE_SIGNALED_BIT));
+				_waitFences.emplace_back(_vulkanDevice->device, VK_FENCE_CREATE_SIGNALED_BIT);
 			}
 
 			buildDefaultMainRenderCommandBuffer();
@@ -887,9 +886,9 @@ namespace vulkan {
         }
 
 		if (_mainSupportCommandBuffers[_currentFrame].begin() == VK_SUCCESS) {
-			for (auto it = _dinamicGPUBuffers.begin(); it != _dinamicGPUBuffers.end(); ++it) {
-				it->second->resetOffset();
-			}
+            for (auto&& [size, buffer] : _dinamicGPUBuffers) {
+                buffer->resetOffset();
+            }
 
 			// clear tmp frame data
 			if (!_tmpBuffers.empty()) {
@@ -993,7 +992,7 @@ namespace vulkan {
 		// todo: need synchronisations for cache it
 		// get value from cache
 		const uint8_t topologyKey = static_cast<uint8_t>(topology.topology) << 0 | static_cast<uint8_t>(topology.enableRestart) << 4;																		// 5 bit
-		const uint8_t rasterisationKey = static_cast<uint8_t>(rasterization.poligonMode)		<< 0 |
+		const uint8_t rasterizationKey = static_cast<uint8_t>(rasterization.poligonMode)		<< 0 |
 										 static_cast<uint8_t>(rasterization.cullmode)			<< 2 |
 										 static_cast<uint8_t>(rasterization.faceOrientation)	<< 4 |
 										 static_cast<uint8_t>(rasterization.discardEnable)		<< 5;																										// 6 bit
@@ -1001,7 +1000,7 @@ namespace vulkan {
 		const uint16_t programId = program->getId();																																						// 16 bit
 
 		const uint64_t composite_key = static_cast<uint64_t>(topologyKey)		<< 0 |
-									   static_cast<uint64_t>(rasterisationKey)	<< 5 |
+									   static_cast<uint64_t>(rasterizationKey)	<< 5 |
 									   static_cast<uint64_t>(depthKey)			<< 11 |
 									   static_cast<uint64_t>(programId)			<< 16 |
 									   static_cast<uint64_t>(subpass)			<< 32;																														// 40 bit
@@ -1116,7 +1115,7 @@ namespace vulkan {
 		pipeline->renderPass = currentRenderPass;
 		pipeline->subpass = subpass;
 
-		VkPipelineRasterizationStateCreateInfo rasterizationInfo = rasterization.rasterisationInfo();
+		VkPipelineRasterizationStateCreateInfo rasterizationInfo = rasterization.rasterizationInfo();
 		std::vector<VkPipelineColorBlendAttachmentState> blendAttachmentState = blendMode.blendState();
 
 		VkPipelineColorBlendStateCreateInfo colorBlendInfo = {};
@@ -1164,9 +1163,9 @@ namespace vulkan {
 			return it->second;
 		}
 
-		VulkanDynamicBuffer* newDynamicBuffer = new VulkanDynamicBuffer(size, _swapchainImagesCount, maxCount);
+		auto* newDynamicBuffer = new VulkanDynamicBuffer(size, _swapchainImagesCount, maxCount);
 
-		const uint32_t bufferSize = static_cast<uint32_t>(maxCount * size);
+		const auto bufferSize = static_cast<uint32_t>(maxCount * size);
 		for (size_t i = 0; i < _swapchainImagesCount; ++i) {
 			_vulkanDevice->createBuffer(
 				VK_SHARING_MODE_EXCLUSIVE,
@@ -1189,9 +1188,9 @@ namespace vulkan {
 		const uint32_t bufferOffset = dynamicBuffer->alignedSize * (knownOffset == 0xffffffff ? dynamicBuffer->getCurrentOffset() : knownOffset);
 		//dynamicBuffer->map();
 		if (allBuffers) {
-			for (size_t i = 0, sz = dynamicBuffer->memory.size(); i < sz; ++i) {
-				memcpy(reinterpret_cast<void*>(reinterpret_cast<size_t>(dynamicBuffer->memory[i]) + bufferOffset + offset), data, size);
-			}
+            for (auto&& memory : dynamicBuffer->memory) {
+                memcpy(reinterpret_cast<void*>(reinterpret_cast<size_t>(memory) + bufferOffset + offset), data, size);
+            }
 		} else {
 			memcpy(reinterpret_cast<void*>(reinterpret_cast<size_t>(dynamicBuffer->memory[_currentFrame]) + bufferOffset + offset), data, size);
 		}
@@ -1237,16 +1236,16 @@ namespace vulkan {
 				delete _emptyTexture;
 				delete _emptyTextureArray;
 
-				for (auto it = _dinamicGPUBuffers.begin(); it != _dinamicGPUBuffers.end(); ++it) {
-					it->second->unmap();
-					delete it->second;
-				}
+                for (auto&& [size, buffer] : _dinamicGPUBuffers) {
+                    buffer->unmap();
+                    delete buffer;
+                }
 				_dinamicGPUBuffers.clear();
 
-				for (auto it = _graphicsPipelinesCache.begin(); it != _graphicsPipelinesCache.end(); ++it) {
-					vkDestroyPipeline(_vulkanDevice->device, it->second->pipeline, nullptr);
-					delete it->second;
-				}
+                for (auto&& [key, pipeline] : _graphicsPipelinesCache) {
+                    vkDestroyPipeline(_vulkanDevice->device, pipeline->pipeline, nullptr);
+                    delete pipeline;
+                }
 				_graphicsPipelinesCache.clear();
 
 				for (auto&& cdl : _descriptorLayoutsCache) {
@@ -1277,9 +1276,8 @@ namespace vulkan {
 				}
 				_presentCompleteSemaphores.clear();
 
-
-				for (auto it = _samplers.begin(); it != _samplers.end(); ++it) {
-					vkDestroySampler(_vulkanDevice->device, it->second, nullptr);
+				for (auto&& [key, sampler] : _samplers) {
+					vkDestroySampler(_vulkanDevice->device, sampler, nullptr);
 				}
 				_samplers.clear();
 
@@ -1294,8 +1292,8 @@ namespace vulkan {
 					_defferedTextureToGenerate.clear();
 				}
 
-				for (size_t i = 0, sz = tmpBuffers.size(); i < sz; ++i) {
-					for (VulkanBuffer* buffer : tmpBuffers[i]) {
+                for (auto&& buffers : tmpBuffers) {
+					for (VulkanBuffer* buffer : buffers) {
 						delete buffer;
 					}
 				}

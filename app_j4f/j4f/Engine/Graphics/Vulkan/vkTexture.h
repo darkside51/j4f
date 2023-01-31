@@ -39,14 +39,14 @@ namespace vulkan {
 
 		void createSingleDescriptor(const VkImageLayout imageLayout, const uint32_t binding);
 
-		const VkImageView getImageView() const;
+		[[nodiscard]] VkImageView getImageView() const;
 		inline void setSampler(VkSampler sampler) { _sampler = sampler; }
-		inline const VkSampler getSampler() const { return _sampler; }
-		inline const VkDescriptorSet getSingleDescriptor() const { return _descriptor; }
+        [[nodiscard]] inline VkSampler getSampler() const { return _sampler; }
+        [[nodiscard]] inline VkDescriptorSet getSingleDescriptor() const { return _descriptor; }
 
 		void fillGpuData(VulkanBuffer* staging, VulkanCommandBuffer& cmdBuffer, const uint32_t baseLayer, const uint32_t layerCount);
 
-		inline VulkanTextureCreationState generationState() const { return _generationState.load(std::memory_order_consume); }
+        [[nodiscard]] inline VulkanTextureCreationState generationState() const { return _generationState.load(std::memory_order_consume); }
 		inline void noGenerate() { _generationState.store(VulkanTextureCreationState::NO_CREATED, std::memory_order_release); }
 
 		void setImage(VulkanImage* img) { _img = img; }
@@ -55,21 +55,21 @@ namespace vulkan {
 
 		void generateMipMaps(VulkanCommandBuffer& cmdBuffer) const;
 		
-		VulkanRenderer* _renderer;
+		VulkanRenderer* _renderer = nullptr;
 
-		uint32_t _width;
-		uint32_t _height;
-		uint32_t _depth;
+		uint32_t _width = 0;
+		uint32_t _height = 0;
+		uint32_t _depth = 0;
 
-		VulkanImage* _img;
+		VulkanImage* _img = nullptr;
 		VkSampler _sampler;
 
-		VkDescriptorSet _descriptor;
+		VkDescriptorSet _descriptor = VK_NULL_HANDLE;
 		uint32_t _descriptorPoolId = 0;
 
 		std::atomic<VulkanTextureCreationState> _generationState;
 		VkImageLayout _imageLayout;
-		uint32_t _binding;
-		uint32_t _arrayLayers;
+		uint32_t _binding = 0;
+		uint32_t _arrayLayers = 0;
 	};
 }

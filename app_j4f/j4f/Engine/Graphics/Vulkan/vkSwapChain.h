@@ -21,7 +21,7 @@ namespace vulkan {
 	public:
 		VulkanSwapChain() {
 			_presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-			_presentInfo.pNext = NULL;
+			_presentInfo.pNext = nullptr;
 			_presentInfo.swapchainCount = 1;
 			_presentInfo.pSwapchains = &swapChain;
 			_presentInfo.pResults = nullptr;
@@ -79,7 +79,7 @@ namespace vulkan {
 		VkPhysicalDevice _physicalDevice	= VK_NULL_HANDLE;
 		VkDevice _device					= VK_NULL_HANDLE;
 		VulkanDevice* _vkDevice = nullptr;
-		VkPresentInfoKHR _presentInfo;
+		VkPresentInfoKHR _presentInfo = {};
 		uint32_t _desiredImagesCount = 0;
 
 		VkSurfaceKHR surface = VK_NULL_HANDLE;

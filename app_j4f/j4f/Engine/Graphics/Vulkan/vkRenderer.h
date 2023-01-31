@@ -97,27 +97,27 @@ namespace vulkan {
 		FaceOrientation faceOrientation : 1;
 		bool discardEnable : 1;
 
-		VulkanRasterizationState(CullMode cm, PoligonMode pm = PoligonMode::POLYGON_MODE_FILL,
+		explicit VulkanRasterizationState(CullMode cm, PoligonMode pm = PoligonMode::POLYGON_MODE_FILL,
                                  FaceOrientation fo = FaceOrientation::FACE_COUNTER_CLOCKWISE,
                                  bool depthClampOn = false, bool discardOn = false,
                                  bool depthBiasOn = false) :
 			poligonMode(pm), cullmode(cm), faceOrientation(fo), discardEnable(discardOn) { }
 
-		inline VkPipelineRasterizationStateCreateInfo rasterisationInfo() const {
+		[[nodiscard]] inline VkPipelineRasterizationStateCreateInfo rasterizationInfo() const {
 			VkPipelineRasterizationStateCreateInfo rasterizationState = {};
-			rasterizationState.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-			rasterizationState.lineWidth = 1.0f;
+			rasterizationState.sType                    = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+			rasterizationState.lineWidth                = 1.0f;
 
-			rasterizationState.polygonMode = static_cast<VkPolygonMode>(poligonMode);
-			rasterizationState.cullMode = static_cast<VkCullModeFlags>(cullmode);
-			rasterizationState.frontFace = static_cast<VkFrontFace>(faceOrientation);
-			rasterizationState.rasterizerDiscardEnable = discardEnable;
+			rasterizationState.polygonMode              = static_cast<VkPolygonMode>(poligonMode);
+			rasterizationState.cullMode                 = static_cast<VkCullModeFlags>(cullmode);
+			rasterizationState.frontFace                = static_cast<VkFrontFace>(faceOrientation);
+			rasterizationState.rasterizerDiscardEnable  = discardEnable;
 
-			rasterizationState.depthClampEnable = VK_FALSE;
-			rasterizationState.depthBiasEnable = VK_TRUE;
-			rasterizationState.depthBiasConstantFactor = 0.0f;
-			rasterizationState.depthBiasClamp = 0.0f;
-			rasterizationState.depthBiasSlopeFactor = 0.0f;
+			rasterizationState.depthClampEnable         = VK_FALSE;
+			rasterizationState.depthBiasEnable          = VK_TRUE;
+			rasterizationState.depthBiasConstantFactor  = 0.0f;
+			rasterizationState.depthBiasClamp           = 0.0f;
+			rasterizationState.depthBiasSlopeFactor     = 0.0f;
 
 			return rasterizationState;
 		}
@@ -169,7 +169,7 @@ namespace vulkan {
 	};
 
 	union VulkanBlendMode {
-        constexpr VulkanBlendMode(const uint8_t mode = 0) noexcept : _blendMode(mode) {};
+        constexpr explicit VulkanBlendMode(const uint8_t mode = 0) noexcept : _blendMode(mode) {};
         constexpr VulkanBlendMode(VulkanBlendMode&& mode) noexcept : _blendMode(mode._blendMode) {};
         constexpr VulkanBlendMode(const VulkanBlendMode& mode) : _blendMode(mode._blendMode) {};
         constexpr VulkanBlendMode(const BlendParameters& parameters) : _parameters(parameters) {};
@@ -192,7 +192,7 @@ namespace vulkan {
 
 		inline constexpr uint32_t operator()() const noexcept { return _blendMode; }
 
-		inline std::vector<VkPipelineColorBlendAttachmentState> blendState() const {
+		[[nodiscard]] inline std::vector<VkPipelineColorBlendAttachmentState> blendState() const {
 			std::vector<VkPipelineColorBlendAttachmentState> blendAttachmentState(1);
 
 			blendAttachmentState[0].colorWriteMask = 0xf;
@@ -261,10 +261,10 @@ namespace vulkan {
 	};
 
 	namespace CommonBlendModes {
-		inline static VulkanBlendMode blend_none	= VulkanBlendMode(uint32_t(0));
-		inline static VulkanBlendMode blend_alpha	= VulkanBlendMode::makeBlendMode(BlendFactor::BLEND_FACTOR_SRC_ALPHA, BlendFactor::BLEND_FACTOR_ONE_MINUS_SRC_ALPHA);
-		inline static VulkanBlendMode blend_add		= VulkanBlendMode::makeBlendMode(BlendFactor::BLEND_FACTOR_SRC_ALPHA, BlendFactor::BLEND_FACTOR_ONE);
-		inline static VulkanBlendMode blend_multipy	= VulkanBlendMode::makeBlendMode(BlendFactor::BLEND_FACTOR_DST_COLOR, BlendFactor::BLEND_FACTOR_ZERO);
+        [[maybe_unused]] inline static VulkanBlendMode blend_none	    = VulkanBlendMode(uint32_t(0));
+        [[maybe_unused]] inline static VulkanBlendMode blend_alpha	    = VulkanBlendMode::makeBlendMode(BlendFactor::BLEND_FACTOR_SRC_ALPHA, BlendFactor::BLEND_FACTOR_ONE_MINUS_SRC_ALPHA);
+        [[maybe_unused]] inline static VulkanBlendMode blend_add		= VulkanBlendMode::makeBlendMode(BlendFactor::BLEND_FACTOR_SRC_ALPHA, BlendFactor::BLEND_FACTOR_ONE);
+        [[maybe_unused]] inline static VulkanBlendMode blend_multipy	= VulkanBlendMode::makeBlendMode(BlendFactor::BLEND_FACTOR_DST_COLOR, BlendFactor::BLEND_FACTOR_ZERO);
 	};
 
 	struct VulkanStencilState {
@@ -399,10 +399,10 @@ namespace vulkan {
 		inline VulkanDevice* getDevice() noexcept { return _vulkanDevice; }
 
 		inline VkCommandPool getCommandPool() noexcept { return _commandPool; }
-		inline const VkCommandPool getCommandPool() const noexcept { return _commandPool; }
+		inline VkCommandPool getCommandPool() const noexcept { return _commandPool; }
 
 		inline VkQueue getMainQueue() noexcept{ return _mainQueue; }
-		inline const VkQueue getMainQueue() const noexcept { return _mainQueue; }
+		inline VkQueue getMainQueue() const noexcept { return _mainQueue; }
 		 
 		inline uint32_t getSwapchainImagesCount() const noexcept { return _swapChain.imageCount; }
 
@@ -524,25 +524,25 @@ namespace vulkan {
 
 		void* _deviceCreatepNextChain = nullptr;
 
-		bool _useSharedMemory;
-		bool _vSync;
-		uint32_t _width, _height;
+		bool _useSharedMemory = false;
+		bool _vSync = false;
+		uint32_t _width = 0, _height = 0;
 		uint32_t _currentFrame = 0;
 		uint32_t _swapchainImagesCount = 0;
 		uint8_t _mainDepthFormatBits = 24;
 
 		VkInstance _instance = VK_NULL_HANDLE;
 		VulkanDevice* _vulkanDevice = nullptr;
-		VulkanSwapChain _swapChain;
-		VkPipelineCache _pipelineCache;
+		VulkanSwapChain _swapChain = {};
+		VkPipelineCache _pipelineCache = VK_NULL_HANDLE;
 
 		std::vector<VkDescriptorPool> _globalDescriptorPools;
 		uint32_t _currentDescriptorPool = 0xffffffff;
 		std::vector<VkDescriptorPoolSize> _descriptorPoolCustomConfig;
 
-		VkCommandPool _commandPool;
-		VkRenderPass _mainRenderPass;
-		VkRenderPass _mainContinueRenderPass;
+		VkCommandPool _commandPool = VK_NULL_HANDLE;
+		VkRenderPass _mainRenderPass = VK_NULL_HANDLE;
+		VkRenderPass _mainContinueRenderPass = VK_NULL_HANDLE;
 		std::vector<VulkanFrameBuffer> _frameBuffers;
 
 		VkQueue _mainQueue = VK_NULL_HANDLE;
@@ -557,8 +557,8 @@ namespace vulkan {
 
 		VkClearValue _mainClearValues[2];
 
-		VulkanImage _depthStencil;
-		VkFormat _mainDepthFormat;
+		VulkanImage _depthStencil = {};
+		VkFormat _mainDepthFormat = VK_FORMAT_MAX_ENUM;
 
 		//// caches
 		struct GraphicsPipelineCacheKey {
@@ -597,7 +597,7 @@ namespace vulkan {
 				return (composite_key == key.composite_key) && (stencil_key == key.stencil_key) && (blend_key == key.blend_key) && (renderPass == key.renderPass);
 			}
 
-			inline size_t hash() const { return hash_value; }
+			[[nodiscard]] inline size_t hash() const { return hash_value; }
 		};
 
 		std::vector<CachedDescriptorLayouts*> _descriptorLayoutsCache;
@@ -612,12 +612,12 @@ namespace vulkan {
 		std::unordered_map<uint16_t, VkSampler> _samplers;
 
 		// tmp frame data
-		std::atomic_bool _lockTmpData;
+		std::atomic_bool _lockTmpData = {};
 		std::vector<std::vector<VulkanBuffer*>> _tmpBuffers;
 		std::vector<std::tuple<VulkanTexture*, VulkanBuffer*, uint32_t, uint32_t>> _defferedTextureToGenerate;
 		// empty data
-		VulkanTexture* _emptyTexture;
-		VulkanTexture* _emptyTextureArray;
+		VulkanTexture* _emptyTexture = nullptr;
+		VulkanTexture* _emptyTextureArray = nullptr;
 	};
 
 }
