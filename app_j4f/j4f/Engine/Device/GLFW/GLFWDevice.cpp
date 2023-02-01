@@ -285,19 +285,23 @@ namespace engine {
 	}
 
 	void GLFWDevice::setFullscreen(const bool fullscreen) {
+        static uint16_t lastWindowWidth = 0;
+        static uint16_t lastWindowHeight = 0;
+        static int lastWindowPosX = 0;
+        static int lastWindowPosY = 0;
+
 		if (_fullscreen == fullscreen) return;
 		_fullscreen = fullscreen;
 		if (fullscreen) {
+            lastWindowWidth = _width;
+            lastWindowHeight = _height;
+            glfwGetWindowPos(_window, &lastWindowPosX, &lastWindowPosY);
 			GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 			const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-			_width = mode->width;
-			_height = mode->height;
-			glfwSetWindowMonitor(_window, glfwGetPrimaryMonitor(), 0, 0, _width, _height, GLFW_DONT_CARE);
+			glfwSetWindowMonitor(_window, glfwGetPrimaryMonitor(), 0, 0, mode->width, mode->height, GLFW_DONT_CARE);
 		} else {
-			_width = 1024;
-			_height = 768;
-			glfwSetWindowMonitor(_window, nullptr, 0, 0, _width, _height, GLFW_DONT_CARE);
-			glfwSetWindowPos(_window, 100, 100);
+			glfwSetWindowMonitor(_window, nullptr, 0, 0, lastWindowWidth, lastWindowHeight, GLFW_DONT_CARE);
+			glfwSetWindowPos(_window, lastWindowPosX, lastWindowPosY);
 		}
 	}
 
@@ -316,15 +320,16 @@ namespace engine {
 	}
 
 	void GLFWDevice::start() {
-		constexpr uint8_t pollEventsDeltaTimeMilliseconds = 32; // ~ 30fps
+		constexpr uint8_t deviceSleepMilliseconds = 32; // ~ 30fps
 
 		while (!glfwWindowShouldClose(_window)) {
 			//if (_width != 0 && _height != 0) {
 				//Engine::getInstance().nextFrame();
 			//}
-            //glfwPollEvents();
-            glfwWaitEvents();
-            std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(pollEventsDeltaTimeMilliseconds));
+            //glfwWaitEvents();
+
+            glfwPollEvents();
+            std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(deviceSleepMilliseconds));
 		}
 
 		stop();
