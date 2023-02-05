@@ -12,7 +12,7 @@ namespace engine {
 		auto&& autoBatcher = renderHelper->getAutoBatchRenderer();
 
 		switch (mode) {
-			case RenderDescritorMode::RDM_SINGLE_DRAW:
+			case RenderDescritorMode::SINGLE_DRAW:
 			{
 				autoBatcher->draw(commandBuffer, currentFrame);
 
@@ -29,7 +29,7 @@ namespace engine {
 				}
 			}
 				break;
-			case RenderDescritorMode::RDM_AUTOBATCHING:
+			case RenderDescritorMode::AUTOBATCHING:
 			{
 				for (uint32_t i = 0; i < renderDataCount; ++i) {
 					vulkan::RenderData* r_data = renderData[i];
@@ -41,17 +41,26 @@ namespace engine {
 
 					autoBatcher->addToDraw(
 						r_data->pipeline,
-						batchingParams->vertexSize,
-						batchingParams->vtxData,
-						batchingParams->vtxDataSize,
-						batchingParams->idxData,
-						batchingParams->idxDataSize,
+                        r_data->vertexSize,
+                        r_data->batchingParams->rawVertexes,
+                        r_data->batchingParams->vtxDataSize,
+						r_data->batchingParams->rawIndexes,
+                        r_data->batchingParams->idxDataSize,
 						r_data->params,
 						commandBuffer,
 						currentFrame
 					);
 				}
 			}
+                break;
+            case RenderDescritorMode::CUSTOM_DRAW:
+            {
+                if (customRenderer) {
+                    autoBatcher->draw(commandBuffer, currentFrame);
+                    customRenderer->render(commandBuffer, currentFrame, cameraMatrix);
+                }
+
+            }
 				break;
 			default:
 				break;

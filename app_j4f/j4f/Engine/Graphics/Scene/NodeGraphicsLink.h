@@ -89,7 +89,6 @@ namespace engine {
 		inline void resetGraphics() { _graphics = nullptr; _isGraphicsOwner = false; }
 
 		inline void updateRenderData() {
-
 			if (getNeedUpdate()) {
 				if (_graphics && _node) {
 					_graphics->updateRenderData(_node->model(), _node->modelChanged());

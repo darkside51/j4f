@@ -993,7 +993,7 @@ namespace vulkan {
 		// get value from cache
 		const uint8_t topologyKey = static_cast<uint8_t>(topology.topology) << 0 | static_cast<uint8_t>(topology.enableRestart) << 4;																		// 5 bit
 		const uint8_t rasterizationKey = static_cast<uint8_t>(rasterization.poligonMode)		<< 0 |
-										 static_cast<uint8_t>(rasterization.cullmode)			<< 2 |
+										 static_cast<uint8_t>(rasterization.cullMode)			<< 2 |
 										 static_cast<uint8_t>(rasterization.faceOrientation)	<< 4 |
 										 static_cast<uint8_t>(rasterization.discardEnable)		<< 5;																										// 6 bit
 		const uint16_t depthKey = static_cast<uint16_t>(depthState.compareOp) << 0 | static_cast<uint16_t>(depthState.depthTestEnabled) << 3 | static_cast<uint16_t>(depthState.depthWriteEnabled) << 4;	// 5 bit																																							// 16 bit

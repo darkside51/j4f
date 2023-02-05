@@ -77,6 +77,8 @@ set(
 	Graphics/Mesh
 	Graphics/Text
 	Graphics/Plain
+	Graphics/UI
+	Graphics/UI/ImGui
 
 	Events
 	File
@@ -91,6 +93,8 @@ set(
 	Utils
 	Utils/Debug
 	Utils/Json
+
+	../3rd_party/imgui
 )
 
 ####### для каждого заданного пути
@@ -199,7 +203,13 @@ target_link_libraries (
 
 target_include_directories(j4f_engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Platform/GLFW)
 target_include_directories(j4f_engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/glm)
-target_include_directories(j4f_engine PUBLIC $ENV{VULKAN_SDK}/Include)
+target_include_directories(j4f_engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/imgui)
 target_include_directories(j4f_engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/stb_image)
+
+if(j4f_PLATFORM STREQUAL "WINDOWS")
+	target_include_directories(j4f_engine PUBLIC $ENV{VULKAN_SDK}/Include)
+elseif(j4f_PLATFORM STREQUAL "LINUX")
+	target_include_directories(j4f_engine PUBLIC $ENV{VULKAN_SDK}/include)
+endif()
 
 message(STATUS "!!!!!engine generate success!!!!!")

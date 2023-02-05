@@ -5,6 +5,7 @@
 namespace engine {
 
 	Plain::Plain(const glm::vec2& sz, const vulkan::RenderDataGpuParamsType& params) {
+        createRenderData(params);
 		_aabb[0] = glm::vec2(0.0f);
 		_aabb[1] = glm::vec2(sz);
 		
@@ -17,17 +18,17 @@ namespace engine {
 
 		_idx = { 0, 1, 2, 2, 1, 3 };
 
-		_renderDescriptor.batchingParams = new BatchingParams();
-		_renderDescriptor.batchingParams->vertexSize = sizeof(TexturedVertex);
-		_renderDescriptor.batchingParams->vtxDataSize = _vtx.size() * sizeof(TexturedVertex);
-		_renderDescriptor.batchingParams->idxDataSize = _idx.size() * sizeof(uint32_t);
-		_renderDescriptor.batchingParams->vtxData = _vtx.data();
-		_renderDescriptor.batchingParams->idxData = _idx.data();
-
-		createRenderData(params);
+        _renderDescriptor.renderData[0]->batchingParams = new vulkan::BatchingParams();
+        _renderDescriptor.renderData[0]->vertexSize = sizeof(TexturedVertex);
+        _renderDescriptor.renderData[0]->batchingParams->vtxDataSize = _vtx.size() * sizeof(TexturedVertex);
+        _renderDescriptor.renderData[0]->batchingParams->idxDataSize = _idx.size() * sizeof(uint32_t);
+        _renderDescriptor.renderData[0]->batchingParams->rawVertexes = _vtx.data();
+        _renderDescriptor.renderData[0]->batchingParams->rawIndexes = _idx.data();
 	}
 
 	Plain::Plain(const std::shared_ptr<TextureFrame>& f, const vulkan::RenderDataGpuParamsType& params) : _frame(f) {
+        createRenderData(params);
+
 		_vtx.resize(_frame->_vtx.size() / 2);
 		_idx = _frame->_idx;
 
@@ -39,14 +40,12 @@ namespace engine {
 		}
 		_frameChanged = true;
 
-		_renderDescriptor.batchingParams = new BatchingParams();
-		_renderDescriptor.batchingParams->vertexSize = sizeof(TexturedVertex);
-		_renderDescriptor.batchingParams->vtxDataSize = _vtx.size() * sizeof(TexturedVertex);
-		_renderDescriptor.batchingParams->idxDataSize = _idx.size() * sizeof(uint32_t);
-		_renderDescriptor.batchingParams->vtxData = _vtx.data();
-		_renderDescriptor.batchingParams->idxData = _idx.data();
-
-		createRenderData(params);
+        _renderDescriptor.renderData[0]->batchingParams = new vulkan::BatchingParams();
+        _renderDescriptor.renderData[0]->vertexSize = sizeof(TexturedVertex);
+        _renderDescriptor.renderData[0]->batchingParams->vtxDataSize = _vtx.size() * sizeof(TexturedVertex);
+        _renderDescriptor.renderData[0]->batchingParams->idxDataSize = _idx.size() * sizeof(uint32_t);
+        _renderDescriptor.renderData[0]->batchingParams->rawVertexes = _vtx.data();
+        _renderDescriptor.renderData[0]->batchingParams->rawIndexes = _idx.data();
 	}
 
 	void Plain::setFrame(const std::shared_ptr<TextureFrame>& f) {
@@ -65,10 +64,10 @@ namespace engine {
 
 		_frameChanged = true;
 
-		_renderDescriptor.batchingParams->vtxDataSize = _vtx.size() * sizeof(TexturedVertex);
-		_renderDescriptor.batchingParams->idxDataSize = _idx.size() * sizeof(uint32_t);
-		_renderDescriptor.batchingParams->vtxData = _vtx.data();
-		_renderDescriptor.batchingParams->idxData = _idx.data();
+        _renderDescriptor.renderData[0]->batchingParams->vtxDataSize = _vtx.size() * sizeof(TexturedVertex);
+        _renderDescriptor.renderData[0]->batchingParams->idxDataSize = _idx.size() * sizeof(uint32_t);
+        _renderDescriptor.renderData[0]->batchingParams->rawVertexes = _vtx.data();
+        _renderDescriptor.renderData[0]->batchingParams->rawIndexes = _idx.data();
 
 	}
 
@@ -78,12 +77,11 @@ namespace engine {
 
 		const vulkan::RenderDataGpuParamsType gpu_params = params ? params : std::make_shared<engine::GpuProgramParams>();
 
-		_renderDescriptor.mode = RenderDescritorMode::RDM_AUTOBATCHING;
+		_renderDescriptor.mode = RenderDescritorMode::AUTOBATCHING;
 
+        _renderDescriptor.renderDataCount = 1;
 		_renderDescriptor.renderData = new vulkan::RenderData *[1];
 		_renderDescriptor.renderData[0] = new vulkan::RenderData(gpu_params);
-
-		_renderDescriptor.renderDataCount = 1;
 
 		_renderState.vertexDescription.bindings_strides.push_back(std::make_pair(0, sizeof(TexturedVertex)));
 		_renderState.topology = { vulkan::PrimitiveTopology::TRIANGLE_LIST, false };

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../Vulkan/vkRenderData.h"
-#include "../../Core/Handler.h"
+//#include "../../Core/Handler.h"
 
 #include <vector>
 #include <unordered_map>
@@ -21,8 +21,8 @@ namespace engine {
 			vulkan::VulkanPipeline* pipeline, 
 			const size_t vertexSize,
 			const void* vtxData, const uint32_t vtxDataSize, 
-			const uint32_t* idxData, const uint32_t idxDataSize,
-			const GpuParamsType& params,
+			const void* idxData, const uint32_t idxDataSize,
+            const GpuParamsType& params,
 			vulkan::VulkanCommandBuffer& commandBuffer,
 			const uint32_t frame
 		);
@@ -32,7 +32,7 @@ namespace engine {
 			const size_t vertexSize,
 			const void* vtxData,
 			const uint32_t vtxDataSize, 
-			const uint32_t* idxData,
+			const void* idxData,
 			const uint32_t idxDataSize,
 			vulkan::VulkanCommandBuffer& commandBuffer, 
 			const uint32_t frame
@@ -48,7 +48,7 @@ namespace engine {
 
 		std::unordered_map<vulkan::VulkanPipeline*, vulkan::RenderData*> _render_data_map;
 		std::vector<float> _vtx;
-		std::vector<uint32_t> _idx;
+        std::vector<uint32_t> _idx;
 	};
 
 }

@@ -25,6 +25,13 @@ namespace vulkan {
 	//using RenderDataGpuParamsType = engine::GpuProgramParams;
 	//using RenderDataGpuParamsType = engine::GpuProgramParams*;
 
+    struct BatchingParams {
+        uint32_t vtxDataSize = 0;
+        uint32_t idxDataSize = 0;
+        const void* rawVertexes = nullptr; // raw data for autobatching mechanism
+        const void* rawIndexes = nullptr;
+    };
+
 	struct RenderData {
 		struct RenderPart {
 			uint32_t firstIndex = 0;				// номер первого индекса
@@ -47,9 +54,13 @@ namespace vulkan {
 		const VulkanBuffer* vertexes = nullptr;		// вершины
 		const VulkanBuffer* indexes = nullptr;		// индексы
 
+        size_t vertexSize = 0;
+        BatchingParams* batchingParams = nullptr;
+        VkIndexType indexType = VK_INDEX_TYPE_UINT32;
+
 		std::vector<VkDescriptorSet> externalDescriptorsSets;
 
-		RenderPart* renderParts;
+		RenderPart* renderParts = nullptr;
 		uint8_t renderPartsCount = 0;
 		bool visible = true;
 
@@ -74,6 +85,11 @@ namespace vulkan {
 			pipeline = VK_NULL_HANDLE;
 			resetGpuData();
 			deleteRenderParts();
+
+            if (batchingParams) {
+                delete batchingParams;
+                batchingParams = nullptr;
+            }
 		}
 
 		inline void setPipeline(VulkanPipeline* p) {
@@ -336,7 +352,7 @@ namespace vulkan {
 						pipeline, frame, constants.data(),
 						0, dynamicOffsets.size(), dynamicOffsets.data(),
 						externalDescriptorsSets.size(), externalDescriptorsSets.data(),
-						*vertexes, *indexes, part.firstIndex, part.indexCount, part.firstVertex, part.instanceCount, part.firstInstance, part.vbOffset, part.ibOffset
+						*vertexes, *indexes, part.firstIndex, part.indexCount, part.firstVertex, part.instanceCount, part.firstInstance, part.vbOffset, part.ibOffset, indexType
 					);
 				}
 			} else {

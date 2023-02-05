@@ -49,10 +49,15 @@ namespace engine {
 		inline vulkan::VulkanRenderState& renderState() { return _renderState; }
 		inline const vulkan::VulkanRenderState& renderState() const { return _renderState; }
 
-		inline void changeRenderState(std::function<void(vulkan::VulkanRenderState&)> changer) {
+		inline void changeRenderState(const std::function<void(vulkan::VulkanRenderState&)>& changer) {
 			changer(_renderState);
 			pipelineAttributesChanged();
 		}
+
+        inline void changeRenderState(std::function<void(vulkan::VulkanRenderState&)>&& changer) {
+            changer(_renderState);
+            pipelineAttributesChanged();
+        }
 
 		inline const RenderDescriptor& getRenderDescriptor() const { return _renderDescriptor; }
 		inline RenderDescriptor& getRenderDescriptor() { return _renderDescriptor; }
@@ -74,7 +79,10 @@ namespace engine {
 				}				
 			}
 
-			_renderDescriptor.setCameraMatrix(_fixedGpuLayouts[0].first);
+            if (!_fixedGpuLayouts.empty() && _renderDescriptor.mode != RenderDescritorMode::CUSTOM_DRAW) {
+                _renderDescriptor.setCameraMatrix(_fixedGpuLayouts[0].first);
+            }
+
 			for (uint32_t i = 0; i < _renderDescriptor.renderDataCount; ++i) {
 				_renderDescriptor.renderData[i]->setPipeline(p);
 			}

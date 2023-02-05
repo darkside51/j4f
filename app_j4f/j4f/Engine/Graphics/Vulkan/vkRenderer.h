@@ -93,7 +93,7 @@ namespace vulkan {
 
 	struct VulkanRasterizationState {
 		PoligonMode poligonMode : 2;
-		CullMode cullmode : 2;
+		CullMode cullMode : 2;
 		FaceOrientation faceOrientation : 1;
 		bool discardEnable : 1;
 
@@ -101,7 +101,7 @@ namespace vulkan {
                                  FaceOrientation fo = FaceOrientation::FACE_COUNTER_CLOCKWISE,
                                  bool depthClampOn = false, bool discardOn = false,
                                  bool depthBiasOn = false) :
-			poligonMode(pm), cullmode(cm), faceOrientation(fo), discardEnable(discardOn) { }
+			poligonMode(pm), cullMode(cm), faceOrientation(fo), discardEnable(discardOn) { }
 
 		[[nodiscard]] inline VkPipelineRasterizationStateCreateInfo rasterizationInfo() const {
 			VkPipelineRasterizationStateCreateInfo rasterizationState = {};
@@ -109,7 +109,7 @@ namespace vulkan {
 			rasterizationState.lineWidth                = 1.0f;
 
 			rasterizationState.polygonMode              = static_cast<VkPolygonMode>(poligonMode);
-			rasterizationState.cullMode                 = static_cast<VkCullModeFlags>(cullmode);
+			rasterizationState.cullMode                 = static_cast<VkCullModeFlags>(cullMode);
 			rasterizationState.frontFace                = static_cast<VkFrontFace>(faceOrientation);
 			rasterizationState.rasterizerDiscardEnable  = discardEnable;
 
@@ -123,7 +123,7 @@ namespace vulkan {
 		}
 
 		inline uint8_t operator()() const { return (static_cast<uint8_t>(poligonMode) << 0) |
-                                                    (static_cast<uint8_t>(cullmode) << 2) |
+                                                    (static_cast<uint8_t>(cullMode) << 2) |
                                                     (static_cast<uint8_t>(faceOrientation) << 4) |
                                                     (static_cast<uint8_t>(discardEnable) << 5); } // 6 bit
 	};
@@ -132,10 +132,10 @@ namespace vulkan {
 		uint8_t useBlending : 1;
 		uint8_t blendFunctionRGB : 3;
 		uint8_t blendFunctionAlpha : 3;
-		uint8_t srcBlendFactor : 5;
-		uint8_t dstBlendFactor : 5;
-		uint8_t srcAlphaBlendFactor : 5;
-		uint8_t dstAlphaBlendFactor : 5;
+		uint8_t srcBlendFactor : 4;
+		uint8_t dstBlendFactor : 4;
+		uint8_t srcAlphaBlendFactor : 4;
+		uint8_t dstAlphaBlendFactor : 4;
 
         constexpr BlendParameters(const uint8_t useBlending, const BlendFactor srcColor, const BlendFactor dstColor,
                         const BlendFactor srcAlpha, const BlendFactor dstAlpha,

@@ -7,25 +7,24 @@
 namespace engine {
 
 	enum class RenderDescritorMode : uint8_t {
-		RDM_SINGLE_DRAW = 0,
-		RDM_AUTOBATCHING = 1
+		SINGLE_DRAW = 0,
+		AUTOBATCHING = 1,
+        CUSTOM_DRAW = 2
 	};
 
-	struct BatchingParams {
-		size_t vertexSize;
-		uint32_t vtxDataSize;
-		uint32_t idxDataSize;
-		void* vtxData;
-		uint32_t* idxData;
-	};
+    class IRenderDescriptorCustomRenderer {
+    public:
+        virtual ~IRenderDescriptorCustomRenderer() = default;
+        virtual void render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const glm::mat4* cameraMatrix) = 0;
+    };
 
 	struct RenderDescriptor {
 		uint32_t renderDataCount = 0;
 		vulkan::RenderData** renderData = nullptr;
-		BatchingParams* batchingParams = nullptr;
-		RenderDescritorMode mode = RenderDescritorMode::RDM_SINGLE_DRAW;
+		RenderDescritorMode mode = RenderDescritorMode::SINGLE_DRAW;
 		int16_t order = 0;
 		bool visible = true;
+        IRenderDescriptorCustomRenderer* customRenderer = nullptr;
 
 		const vulkan::GPUParamLayoutInfo* camera_matrix = nullptr;
 
@@ -41,11 +40,6 @@ namespace engine {
 
 				delete[] renderData;
 				renderDataCount = 0;
-			}
-
-			if (batchingParams) {
-				delete batchingParams;
-				batchingParams = nullptr;
 			}
 		}
 
