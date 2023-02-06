@@ -16,6 +16,7 @@
 #include <type_traits>
 #include <algorithm>
 #include <cassert>
+#include <optional>
 
 namespace vulkan {
 
@@ -165,6 +166,8 @@ namespace vulkan {
 			}
 			return false;
 		}
+
+        inline VkRect2D getCurrentScissor() const { return m_scissor; }
 
 		inline bool setDepthBias(const float depthBiasConstantFactor, const float depthBiasClamp, const float depthBiasSlopeFactor) {
 			if (m_depthBiasConstantFactor != depthBiasConstantFactor ||
@@ -1037,6 +1040,14 @@ namespace vulkan {
 				cmdDrawIndexed(indexCount, firstIndex, instanceCount, firstVertex, firstInstance);
 		};
 
+        // getters
+        std::optional<VkRect2D> getCurrentScissor() const {
+            if constexpr (stated) {
+                return state.getCurrentScissor();
+            } else {
+                return std::nullopt;
+            }
+        }
 		//// advanced commands
 
 		VkCommandPool m_pool = VK_NULL_HANDLE;

@@ -261,10 +261,17 @@ namespace vulkan {
 	};
 
 	namespace CommonBlendModes {
+        // normal modes
         [[maybe_unused]] inline static VulkanBlendMode blend_none	    = VulkanBlendMode(uint32_t(0));
         [[maybe_unused]] inline static VulkanBlendMode blend_alpha	    = VulkanBlendMode::makeBlendMode(BlendFactor::BLEND_FACTOR_SRC_ALPHA, BlendFactor::BLEND_FACTOR_ONE_MINUS_SRC_ALPHA);
         [[maybe_unused]] inline static VulkanBlendMode blend_add		= VulkanBlendMode::makeBlendMode(BlendFactor::BLEND_FACTOR_SRC_ALPHA, BlendFactor::BLEND_FACTOR_ONE);
         [[maybe_unused]] inline static VulkanBlendMode blend_multipy	= VulkanBlendMode::makeBlendMode(BlendFactor::BLEND_FACTOR_DST_COLOR, BlendFactor::BLEND_FACTOR_ZERO);
+        // premultily alpha modes
+        // https://gamedev.ru/code/articles/PremultipliedAlpha
+        // https://habr.com/ru/company/playrix/blog/336304/
+        // https://apoorvaj.io/alpha-compositing-opengl-blending-and-premultiplied-alpha/
+        [[maybe_unused]] inline static VulkanBlendMode blend_alpha_pma   = VulkanBlendMode::makeBlendMode(BlendFactor::BLEND_FACTOR_ONE, BlendFactor::BLEND_FACTOR_ONE_MINUS_SRC_ALPHA);
+        [[maybe_unused]] inline static VulkanBlendMode blend_add_pma     = VulkanBlendMode::makeBlendMode(BlendFactor::BLEND_FACTOR_ONE, BlendFactor::BLEND_FACTOR_ONE);
 	};
 
 	struct VulkanStencilState {

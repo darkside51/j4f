@@ -31,7 +31,6 @@ namespace engine {
         void createFontTexture();
         void destroyFontTexture();
         void setupKeyMap();
-        void renderGUI();
 
         std::vector<VulkanStreamBuffer> _dynamic_vertices;
         std::vector<VulkanStreamBuffer> _dynamic_indices;

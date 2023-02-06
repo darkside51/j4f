@@ -50,6 +50,7 @@
 #include <Engine/Graphics/Render/InstanceHelper.h>
 
 #include <Engine/Graphics/UI/ImGui/Imgui.h>
+#include <imgui.h>
 
 //#include <format>
 
@@ -1456,7 +1457,7 @@ namespace engine {
 			//texture_text->createSingleDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0);
 
 			bitmapFont = new BitmapFont(f, 16, 256, 256, 0);
-			bitmapFont->addSymbols("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+*/=&%#@!?<>,.()[];:@$^~_", 2, 0, 0xcccccc77, 0x000000aa, 1.0f, 2, 2);
+			bitmapFont->addSymbols("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+*/=&%#@!?<>,.()[];:@$^~_", 2, 0, 0xccccccaa, 0x000000aa, 1.0f, 2, 2);
 			//bitmapFont.addSymbols("wxyzABCDEFGHIJKLMN", 2, 20, 0xffffffff, 0x000000ff, 1.0f, 2, 0);
 			//bitmapFont.addSymbols("OPQRSTUVWXYZ", 2, 40, 0xffffffff, 0x000000ff, 1.0f, 2, 0);
 			//bitmapFont.addSymbols("0123456789-+*/=", 2, 60, 0xffffffff, 0x000000ff, 1.0f, 2, 0);
@@ -1935,6 +1936,7 @@ namespace engine {
 				}
 
                 imgui->graphics()->update(dt);
+                ImGui::ShowDemoWindow();
 				uiRenderList.render(commandBuffer, currentFrame, &camera2Matrix);
 
 				autoBatcher->draw(commandBuffer, currentFrame);

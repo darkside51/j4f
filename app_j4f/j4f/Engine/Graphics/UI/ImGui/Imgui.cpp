@@ -9,6 +9,9 @@ namespace engine {
         createRenderData();
         createFontTexture();
         setupKeyMap();
+
+        ImGuiIO& io = ImGui::GetIO();
+        io.DisplayFramebufferScale = ImVec2(1, 1);
     }
 
     ImguiGraphics::~ImguiGraphics() {
@@ -126,16 +129,16 @@ namespace engine {
 
     void ImguiGraphics::updateRenderData(const glm::mat4& /*worldMatrix*/, const bool /*worldMatrixChanged*/) { }
 
-    void ImguiGraphics::renderGUI() {
-        ImGui::ShowDemoWindow();
-    }
-
     void ImguiGraphics::update(const float delta) {
         ImGuiIO& io = ImGui::GetIO();
         io.DeltaTime = (delta > 0.0) ? delta : (1.0f / 60.0f);
+
+        const auto [width, height] = Engine::getInstance().getModule<Graphics>()->getSize();
+        io.DisplaySize = ImVec2(width, height);
+        ImGui::NewFrame();
     }
 
-    void ImguiGraphics::render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const glm::mat4*){
+    void ImguiGraphics::render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const glm::mat4*) {
         const uint8_t swapChainImagesCount = Engine::getInstance().getModule<Graphics>()->getRenderer()->getSwapchainImagesCount();
 
         if (swapChainImagesCount != _dynamic_vertices.size()) {
@@ -146,16 +149,6 @@ namespace engine {
         _dynamic_vertices[currentFrame].recreate(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
         _dynamic_indices[currentFrame].recreate(VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
 
-        const auto [width, height] = Engine::getInstance().getModule<Graphics>()->getSize();
-
-        ImGuiIO& io = ImGui::GetIO();
-        io.DisplaySize = ImVec2(width, height);
-        io.DisplayFramebufferScale = ImVec2(1, 1);
-
-        ImGui::NewFrame();
-
-        renderGUI();
-
         ImGui::Render();
 
         const ImDrawData* drawData = ImGui::GetDrawData();
@@ -165,6 +158,8 @@ namespace engine {
 
         setParamForLayout(_fixedGpuLayouts[0].first, scale.data(),true, 2);
         setParamForLayout(_fixedGpuLayouts[1].first, translate.data(),true, 2);
+
+        const auto currentScissor = commandBuffer.getCurrentScissor();
 
         size_t vOffset;
         size_t iOffset;
@@ -212,7 +207,12 @@ namespace engine {
             }
         }
 
-        commandBuffer.cmdSetScissor(0, 0, width, height);
+        if (currentScissor.has_value()) {
+            commandBuffer.cmdSetScissor(currentScissor.value());
+        } else {
+            const auto [width, height] = Engine::getInstance().getModule<Graphics>()->getSize();
+            commandBuffer.cmdSetScissor(0, 0, width, height);
+        }
     }
 
     void ImguiGraphics::setupKeyMap() {
