@@ -6,7 +6,7 @@
 namespace engine {
 
 	void RenderDescriptor::render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const glm::mat4* cameraMatrix) {
-		GPU_DEBUG_MARKER_INSERT(commandBuffer.m_commandBuffer, " j4f renderDescriptor render", 0.5f, 0.5f, 0.5f, 1.0f)
+		GPU_DEBUG_MARKER_INSERT(commandBuffer.m_commandBuffer, " j4f renderDescriptor render", 0.5f, 0.5f, 0.5f, 1.0f);
 
 		auto&& renderHelper = Engine::getInstance().getModule<Graphics>()->getRenderHelper();
 		auto&& autoBatcher = renderHelper->getAutoBatchRenderer();
