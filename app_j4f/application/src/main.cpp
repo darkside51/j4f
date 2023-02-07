@@ -61,7 +61,6 @@
 #include <mutex>
 
 namespace engine {
-    //////////////
 	vulkan::VulkanGpuProgram* grass_default = nullptr;
 
 	MeshGraphicsDataBuffer* meshesGraphicsBuffer;
