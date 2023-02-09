@@ -17,8 +17,11 @@ def convert(inDir, fileName, outDir, glslcPath):
             file2 = open(inDir + includeFileName, 'r')
             fileData2 = file2.read()
             fileData = fileData + fileData2
+            file2.close()
         else:
             fileData = fileData + line
+            
+    file.close();
 
     tmpFileName = inDir + '/tmp/' + fileName
     tmpFileName = tmpFileName.replace('.psh', '.frag')
@@ -40,7 +43,6 @@ def checkIsShaderFile(fileName):
 
 #entry point
 if __name__ == '__main__':
-
     try:
         opts, args = getopt.getopt(sys.argv[1:], "i:o:p:", ["ifolder=", "ofolder=", "glslc_path="])
     except getopt.GetoptError:
@@ -62,17 +64,18 @@ if __name__ == '__main__':
         elif opt in ("-p", "--glslc_path"):
             glslc_path = arg
 
-    if not os.path.exists(outputFolder):
-        os.mkdir(outputFolder) 
+    if (os.path.exists(inputFolder)):
+        if not os.path.exists(outputFolder):
+            os.mkdir(outputFolder)
 
-    tmpDir = inputFolder + '/tmp/'
-    if not os.path.exists(tmpDir):
-        os.mkdir(tmpDir)
+        tmpDir = inputFolder + '/tmp/'
+        if not os.path.exists(tmpDir):
+            os.mkdir(tmpDir)
 
-    for path in os.listdir(inputFolder):
-        # check if current path is a file
-        if os.path.isfile(os.path.join(inputFolder, path)) and checkIsShaderFile(path):
-            convert(inputFolder, path, outputFolder, glslc_path)
+        for path in os.listdir(inputFolder):
+            # check if current path is a file
+            if os.path.isfile(os.path.join(inputFolder, path)) and checkIsShaderFile(path):
+                convert(inputFolder, path, outputFolder, glslc_path)
 
-    os.rmdir(tmpDir)
-    print('*conversion complete*')
+        os.rmdir(tmpDir)
+        print('*conversion complete*')
