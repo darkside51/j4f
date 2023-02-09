@@ -169,11 +169,11 @@ namespace vulkan {
 	};
 
 	union VulkanBlendMode {
-        constexpr explicit VulkanBlendMode(const uint8_t mode = 0) noexcept : _blendMode(mode) {};
+        constexpr explicit VulkanBlendMode(const uint32_t mode = 0) noexcept : _blendMode(mode) {};
         constexpr VulkanBlendMode(VulkanBlendMode&& mode) noexcept : _blendMode(mode._blendMode) {};
         constexpr VulkanBlendMode(const VulkanBlendMode& mode) : _blendMode(mode._blendMode) {};
-        constexpr VulkanBlendMode(const BlendParameters& parameters) : _parameters(parameters) {};
-        constexpr VulkanBlendMode(BlendParameters&& parameters) noexcept : _parameters(std::move(parameters)) {};
+        constexpr explicit VulkanBlendMode(const BlendParameters& parameters) : _parameters(parameters) {};
+        constexpr explicit VulkanBlendMode(BlendParameters&& parameters) noexcept : _parameters(std::move(parameters)) {};
 
 		template <class ...Args>
 		static inline constexpr VulkanBlendMode makeBlendMode(Args&&...args) {
@@ -262,7 +262,7 @@ namespace vulkan {
 
 	namespace CommonBlendModes {
         // normal modes
-        [[maybe_unused]] inline static VulkanBlendMode blend_none	    = VulkanBlendMode(uint32_t(0));
+        [[maybe_unused]] inline static VulkanBlendMode blend_none	    = VulkanBlendMode(0u);
         [[maybe_unused]] inline static VulkanBlendMode blend_alpha	    = VulkanBlendMode::makeBlendMode(BlendFactor::BLEND_FACTOR_SRC_ALPHA, BlendFactor::BLEND_FACTOR_ONE_MINUS_SRC_ALPHA);
         [[maybe_unused]] inline static VulkanBlendMode blend_add		= VulkanBlendMode::makeBlendMode(BlendFactor::BLEND_FACTOR_SRC_ALPHA, BlendFactor::BLEND_FACTOR_ONE);
         [[maybe_unused]] inline static VulkanBlendMode blend_multipy	= VulkanBlendMode::makeBlendMode(BlendFactor::BLEND_FACTOR_DST_COLOR, BlendFactor::BLEND_FACTOR_ZERO);

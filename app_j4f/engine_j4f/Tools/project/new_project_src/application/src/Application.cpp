@@ -45,7 +45,7 @@ namespace engine {
             return false;
         }
 
-        bool onInpuCharEvent(const uint16_t code) override { return false; };
+        bool onInpuCharEvent(const uint16_t code) override { return false; }
 
         void update(const float delta) {
 

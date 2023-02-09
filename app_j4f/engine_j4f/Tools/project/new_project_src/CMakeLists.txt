@@ -11,7 +11,7 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
 	add_definitions(-D_DEBUG)
 endif(CMAKE_BUILD_TYPE MATCHES Debug)
 
-project(app_j4f)
+project(new_project)
 
 ########## разборки с платформой
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
@@ -43,7 +43,7 @@ if(GPU_VALIDATION_ENABLED)
 endif()
 
 ########## собираем engine
-add_subdirectory(j4f/Engine)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../engine_j4f/Engine ${CMAKE_CURRENT_BINARY_DIR}/engine_j4f/Engine)
 
 ########## собираем приложение 
 set(APP_RES_DIRS)
@@ -86,7 +86,7 @@ add_executable(${PROJECT_NAME} application/src/main.cpp application/src/Applicat
 
 ########## подключаем engine
 target_link_libraries(${PROJECT_NAME} j4f_engine)
-include_directories(j4f/)
+include_directories(../engine_j4f/)
 
 ########## ресурсы
 set(source_dir "${CMAKE_CURRENT_SOURCE_DIR}/application/resources")
@@ -102,7 +102,7 @@ add_custom_command(TARGET ${PROJECT_NAME}
 	COMMAND ${CMAKE_COMMAND}
     	-Dsrc_dir="${source_dir}/assets"
     	-Ddst_dir="${dest_dir}/assets"
-    	-P "${CMAKE_CURRENT_SOURCE_DIR}/j4f/Tools/cmake/update_directory.cmake"
+    	-P "${CMAKE_CURRENT_SOURCE_DIR}/../engine_j4f/Tools/cmake/update_directory.cmake"
 )
 
 ########## конвертация шейдеров
@@ -110,13 +110,13 @@ if(j4f_PLATFORM STREQUAL "WINDOWS")
 	add_custom_command(TARGET ${PROJECT_NAME}
                    POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E make_directory ${dest_dir}/shaders
-                   COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/j4f/Tools/glslToSpirv/convert_with_includes_ext.py -i ${source_dir}/shaders/ -o ${dest_dir}/shaders/ -p /Bin/glslc.exe)
+                   COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/../engine_j4f/Tools/glslToSpirv/convert_with_includes_ext.py -i ${source_dir}/shaders/ -o ${dest_dir}/shaders/ -p /Bin/glslc.exe)
                    
 elseif(j4f_PLATFORM STREQUAL "LINUX")
 	add_custom_command(TARGET ${PROJECT_NAME}
                    POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E make_directory ${dest_dir}/shaders
-                   COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/j4f/Tools/glslToSpirv/convert_with_includes_ext.py -i ${source_dir}/shaders/ -o ${dest_dir}/shaders/ -p /bin/glslc)
+                   COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/../engine_j4f/Tools/glslToSpirv/convert_with_includes_ext.py -i ${source_dir}/shaders/ -o ${dest_dir}/shaders/ -p /bin/glslc)
 endif()
 
 message(STATUS "!!!!!project generate complete!!!!!")

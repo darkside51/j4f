@@ -1,3 +1,3 @@
-app_j4f/build/
-app_j4f/.idea
-app_j4f/j4f/3rd_party/freetype
+app_j4f/example/build
+app_j4f/example/.idea
+app_j4f/engine_j4f/3rd_party/freetype
