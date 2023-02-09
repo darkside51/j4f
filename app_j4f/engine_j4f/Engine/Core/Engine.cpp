@@ -57,9 +57,10 @@ namespace engine {
 
 		initComplete(); // after all
 
-		// create application and run
-		_application = new Application();
+        // create application
+        _application = new Application();
 
+		// run
 		_renderThread = std::make_unique<WorkerThread>(&Engine::nextFrame, this);
 		_renderThread->setTargetFrameTime(1.0 / cfg.fpsLimit);
 		_renderThread->setFpsLimitType(cfg.fpsLimitType);

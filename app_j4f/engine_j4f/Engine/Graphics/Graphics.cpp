@@ -89,7 +89,9 @@ namespace engine {
         createRenderer();
         createLoaders();
         createRenderHelper();
-		CascadeShadowMap::initCommonData();
+        if (_config.features.cascade_shadow_map) {
+            CascadeShadowMap::initCommonData();
+        }
 		//Engine::getInstance().getModule<Device>()->swicthFullscreen(true);
 	}
 

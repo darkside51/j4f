@@ -2480,7 +2480,7 @@ int main() {
 	engine::EngineConfig cfg;
 	cfg.fpsLimit = 120;
 	cfg.fpsLimitType = engine::FpsLimitType::F_DONT_CARE;
-	cfg.graphicsCfg = { engine::GpuType::DISCRETE, true, false }; // INTEGRATED, DISCRETE
+	cfg.graphicsCfg = { { true }, engine::GpuType::DISCRETE, true, false }; // INTEGRATED, DISCRETE
 	cfg.graphicsCfg.gpu_features.geometryShader = 1;
 	//cfg.graphicsCfg.gpu_features.fillModeNonSolid = 1; // example to enable POLYGON_MODE_LINE or POLYGON_MODE_POINT
 

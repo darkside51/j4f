@@ -14,6 +14,10 @@ namespace engine {
     };
 
 	struct GraphicConfig {
+        struct Features {
+            bool cascade_shadow_map = false;
+        } features;
+
         GpuType gpu_type = GpuType::OTHER;
 		bool v_sync = true;
         bool can_continue_main_render_pass = false;
