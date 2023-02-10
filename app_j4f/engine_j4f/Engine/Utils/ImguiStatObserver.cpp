@@ -1,0 +1,139 @@
+#include "ImguiStatObserver.h"
+#include "../Core/Engine.h"
+#include "StringHelper.h"
+#include "../Graphics/Graphics.h"
+#include "../Graphics/Vulkan/vkRenderer.h"
+#include <imgui.h>
+
+namespace engine {
+
+    ImguiStatObserver::ImguiStatObserver() {
+        if (auto&& stat = Engine::getInstance().getModule<Statistic>()) {
+            stat->addObserver(this);
+        }
+    }
+
+    ImguiStatObserver::~ImguiStatObserver() {
+        if (auto&& stat = Engine::getInstance().getModule<Statistic>()) {
+            stat->removeObserver(this);
+        }
+    }
+
+    void ImguiStatObserver::statisticUpdate(const Statistic* statistic) {
+        const std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+        const auto time = fmt::localtime(now);
+
+        _timeString = fmtString("system time: {:%H:%M:%S}", time);
+
+        auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
+        const char* gpuType = "";
+
+        switch (renderer->getDevice()->gpuProperties.deviceType) {
+            case VK_PHYSICAL_DEVICE_TYPE_OTHER:
+                gpuType = "other";
+                break;
+            case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
+                gpuType = "integrated";
+                break;
+            case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
+                gpuType = "discrete";
+                break;
+            case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
+                gpuType = "virtual";
+                break;
+            case VK_PHYSICAL_DEVICE_TYPE_CPU:
+                gpuType = "cpu";
+                break;
+            default:
+                break;
+        }
+
+        const bool vsync = Engine::getInstance().getModule<Graphics>()->config().v_sync;
+#ifdef _DEBUG
+        const char* buildType = "debug";
+#else
+        const char* buildType = "release";
+#endif
+
+        auto [width, height] = Engine::getInstance().getModule<Graphics>()->getSize();
+
+        _statString = fmtString("build type: {}\ngpu: {}({})\nresolution: {}x{}\nv_sync: {}\ndraw calls: {}\n"
+                                 "fps: {}\ncpu frame time: {:.3}\nspeed mult: {:.3}",
+                                 buildType, renderer->getDevice()->gpuProperties.deviceName, gpuType,
+                                 width, height, vsync ? "on" : "off",
+                                 statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime(),
+                                 Engine::getInstance().getGameTimeMultiply());
+
+    }
+
+    void ImguiStatObserver::draw() {
+        ImGuiIO& io = ImGui::GetIO();
+        ImGuiWindowFlags window_flags = /*ImGuiWindowFlags_NoDecoration |*/ ImGuiWindowFlags_AlwaysAutoResize
+                                        | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing
+                                        | ImGuiWindowFlags_NoNav;
+
+        switch (_location) {
+            case Location::top_left:
+            case Location::top_right:
+            case Location::bottom_left:
+            case Location::bottom_right: {
+                constexpr float PAD = 4.0f;
+                const ImGuiViewport* viewport = ImGui::GetMainViewport();
+                ImVec2 work_pos = viewport->WorkPos; // use work area to avoid menu-bar/task-bar, if any!
+                ImVec2 work_size = viewport->WorkSize;
+                ImVec2 window_pos, window_pos_pivot;
+                window_pos.x = (static_cast<uint8_t>(_location) & 1) ? (work_pos.x + work_size.x - PAD) : (work_pos.x + PAD);
+                window_pos.y = (static_cast<uint8_t>(_location) & 2) ? (work_pos.y + work_size.y - PAD) : (work_pos.y + PAD);
+                window_pos_pivot.x = (static_cast<uint8_t>(_location) & 1) ? 1.0f : 0.0f;
+                window_pos_pivot.y = (static_cast<uint8_t>(_location) & 2) ? 1.0f : 0.0f;
+                ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
+                window_flags |= ImGuiWindowFlags_NoMove;
+            }
+                break;
+            case Location::center:
+                ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+            case Location::locked:
+                window_flags |= ImGuiWindowFlags_NoMove;
+                break;
+            default:
+                break;
+        }
+
+        const auto bgColor = IM_COL32(0, 0, 0, 100);
+
+        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(200, 200, 200, 200));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(50, 50, 50, 200));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(0, 0, 0, 200));
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, bgColor);
+        ImGui::PushStyleColor(ImGuiCol_TitleBg, bgColor);
+        ImGui::PushStyleColor(ImGuiCol_TitleBgCollapsed, bgColor);
+        ImGui::PushStyleColor(ImGuiCol_TitleBgActive, bgColor);
+
+        if (ImGui::Begin("##statistic:", nullptr, window_flags)) {
+            ImGui::Text(_timeString.c_str());
+            ImGui::Separator();
+            ImGui::Text(_statString.c_str());
+
+            if (ImGui::BeginPopupContextWindow()) {
+                if (ImGui::MenuItem("locked",       nullptr, _location == Location::locked))        _location = Location::locked;
+                if (ImGui::MenuItem("custom",       nullptr, _location == Location::custom))        _location = Location::custom;
+                if (ImGui::MenuItem("center",       nullptr, _location == Location::center))        _location = Location::center;
+                if (ImGui::MenuItem("top_left",     nullptr, _location == Location::top_left))      _location = Location::top_left;
+                if (ImGui::MenuItem("top_right",    nullptr, _location == Location::top_right))     _location = Location::top_right;
+                if (ImGui::MenuItem("bottom_left",  nullptr, _location == Location::bottom_left))   _location = Location::bottom_left;
+                if (ImGui::MenuItem("bottom_right", nullptr, _location == Location::bottom_right))  _location = Location::bottom_right;
+                ImGui::EndPopup();
+            }
+        }
+
+        ImGui::PopStyleColor();
+        ImGui::PopStyleColor();
+        ImGui::PopStyleColor();
+        ImGui::PopStyleColor();
+        ImGui::PopStyleColor();
+        ImGui::PopStyleColor();
+        ImGui::PopStyleColor();
+
+        ImGui::End();
+    }
+}
