@@ -1,7 +1,6 @@
 #include <Engine/Core/Application.h>
 #include <Engine/Core/Engine.h>
 #include <Engine/File/FileManager.h>
-#include <Engine/File/FileSystem.h>
 #include <Platform_inc.h>
 #include <Engine/Log/Log.h>
 
@@ -40,8 +39,8 @@
 
 #include <Engine/Graphics/Render/InstanceHelper.h>
 
+#include <Engine/Utils/ImguiStatObserver.h>
 #include <Engine/Graphics/UI/ImGui/Imgui.h>
-#include <imgui.h>
 
 //#include <format>
 
@@ -121,6 +120,8 @@ namespace engine {
 	H_Node* uiNode;
 	std::vector<H_Node*> shadowCastNodes;
 	bool cameraMatrixChanged = true;
+
+    ImguiStatObserver *statObserver = nullptr;
 
 	//constexpr bool renderBounds = false;
 	bool renderBounds = false;
@@ -503,6 +504,8 @@ namespace engine {
 
             camera->addObserver(this);
             Engine::getInstance().getModule<Input>()->addObserver(this);
+
+            statObserver = new ImguiStatObserver();
         }
 
 		ApplicationCustomData() {
@@ -516,6 +519,8 @@ namespace engine {
 
 		~ApplicationCustomData() {
 			log("~ApplicationCustomData");
+
+            delete statObserver;
 
 			delete bitmapFont;
 
@@ -1878,7 +1883,7 @@ namespace engine {
 						gpuType = "other";
 						break;
 					case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
-						gpuType = "intagrated";
+						gpuType = "integrated";
 						break;
 					case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
 						gpuType = "discrete";
@@ -1927,7 +1932,7 @@ namespace engine {
 				}
 
                 imgui->graphics()->update(dt);
-                ImGui::ShowDemoWindow();
+                statObserver->draw();
 				uiRenderList.render(commandBuffer, currentFrame, &camera2Matrix);
 
 				autoBatcher->draw(commandBuffer, currentFrame);

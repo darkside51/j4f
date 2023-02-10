@@ -159,6 +159,22 @@ endif()
 	message("fmt library end")
 #fmt library
 
+#webp library
+	message("webp library begin")
+	add_3rdparty_project (${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/libwebp-1.3.0 ${CMAKE_BINARY_DIR}/3rd_party/libwebp)
+	include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/libwebp-1.3.0/src/webp)
+	set(WEBP_LIB webp)
+	message("webp library end")
+#webp library
+
+#libpng library
+	message("libpng library begin")
+	add_3rdparty_project (${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/libpng16 ${CMAKE_BINARY_DIR}/3rd_party/libpng)
+	include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/libpng16)
+	set(PNG_LIB png_static)
+	message("libpng library end")
+#libpng library
+
 #glfw library
 	message("glfw library begin")
 	add_3rdparty_project (${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/glfw_3.3.8 ${CMAKE_BINARY_DIR}/3rd_party/glfw)
@@ -166,7 +182,6 @@ endif()
 	set(GLFW_LIB glfw)
 	message("glfw library end")
 #glfw library
-
 
 if(j4f_PLATFORM STREQUAL "WINDOWS")
 set(
@@ -199,6 +214,8 @@ target_link_libraries (
 	${USED_FRAMEWORKS}
 	${FREETYPE_LIB}
 	${FMT_LIB}
+	${WEBP_LIB}
+	${PNG_LIB}
 	${GLFW_LIB}
 )
 

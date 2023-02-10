@@ -7,10 +7,6 @@
 #include <cstdint>
 #include <utility>
 
-namespace vulkan {
-	class VulkanRenderer;
-}
-
 namespace engine {
 
 	class GpuProgramsManager;

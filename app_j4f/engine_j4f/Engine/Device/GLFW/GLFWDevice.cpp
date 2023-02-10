@@ -3,7 +3,6 @@
 
 #include "../../Core/Engine.h"
 #include "../../Input/Input.h"
-#include "../../Utils/Statistic.h"
 //#include "../../Log/Log.h"
 
 #include <GLFW/glfw3.h>
@@ -16,30 +15,6 @@
 #endif
 
 namespace engine {
-
-	class GlfwStatObserver : public IStatisticObserver {
-	public:
-		explicit GlfwStatObserver(GLFWwindow* window) : _window(window) {
-			if (auto&& stat = Engine::getInstance().getModule<Statistic>()) {
-				stat->addObserver(this);
-			}
-		}
-
-		~GlfwStatObserver() override {
-			if (auto&& stat = Engine::getInstance().getModule<Statistic>()) {
-				stat->removeObserver(this);
-			}
-		}
-
-		void statisticUpdate(const Statistic* s) override {
-			static char buffer[256];
-			snprintf(buffer, 255, "j4f (vulkan) fps: %d, cpuFrameTime : %f, dc: %d", s->fps(), s->cpuFrameTime(), s->drawCalls());
-
-			glfwSetWindowTitle(_window, buffer);
-		}
-	private:
-		GLFWwindow* _window = nullptr;
-	};
 
 	class GlfwVkSurfaceInitializer : public IRenderSurfaceInitializer {
 	public:
@@ -235,8 +210,6 @@ namespace engine {
 		Engine::getInstance().getModule<Input>()->onCharEvent(codepoint);
 	}
 
-	static GlfwStatObserver* statObserver = nullptr; // todo remove stat observer from this code
-
 	GLFWDevice::GLFWDevice() {
 		glfwInit();
 
@@ -266,8 +239,6 @@ namespace engine {
 		glfwSetCharCallback(_window, &glfwOnChar);
 
 		_surfaceInitializer = new GlfwVkSurfaceInitializer(_window);
-
-		//statObserver = new GlfwStatObserver(_window); // todo remove stat observer from this code
 	}
 
 	GLFWDevice::~GLFWDevice() {
@@ -291,8 +262,8 @@ namespace engine {
         static int lastWindowPosY = 0;
 
 		if (_fullscreen == fullscreen) return;
-		_fullscreen = fullscreen;
-		if (fullscreen) {
+
+		if (_fullscreen = fullscreen) {
             lastWindowWidth = _width;
             lastWindowHeight = _height;
             glfwGetWindowPos(_window, &lastWindowPosX, &lastWindowPosY);
@@ -320,7 +291,8 @@ namespace engine {
 	}
 
 	void GLFWDevice::start() {
-		constexpr uint8_t deviceSleepMilliseconds = 32; // ~ 30fps
+		//constexpr float kDeviceSleepMilliseconds = 33.333; // ~ 30fps
+        constexpr float kDeviceSleepMilliseconds = 16.667f; // ~ 60fps
 
 		while (!glfwWindowShouldClose(_window)) {
 			//if (_width != 0 && _height != 0) {
@@ -329,7 +301,7 @@ namespace engine {
             //glfwWaitEvents();
 
             glfwPollEvents();
-            std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(deviceSleepMilliseconds));
+            std::this_thread::sleep_for(std::chrono::duration<float, std::milli>(kDeviceSleepMilliseconds));
 		}
 
 		stop();
@@ -340,7 +312,6 @@ namespace engine {
 	}
 
 	void GLFWDevice::stop() {
-		delete statObserver; // todo remove stat observer from this code
 		Engine::getInstance().deviceDestroyed();
 		Engine::getInstance().destroy();
 	}
