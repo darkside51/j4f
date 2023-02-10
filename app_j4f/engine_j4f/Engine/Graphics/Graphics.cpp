@@ -10,7 +10,7 @@
 #include "GpuProgramsManager.h"
 #include "Text/Font.h"
 #include "Render/RenderHelper.h"
-#include "Scene/Shadows/CascadeShadowMap.h"
+#include "Features/Shadows/CascadeShadowMap.h"
 #include "Animation/AnimationManager.h"
 
 #include <cstdint>
@@ -89,11 +89,13 @@ namespace engine {
         createRenderer();
         createLoaders();
         createRenderHelper();
-        if (_config.features.cascade_shadow_map) {
-            CascadeShadowMap::initCommonData();
-        }
+        initFeatures();
 		//Engine::getInstance().getModule<Device>()->swicthFullscreen(true);
 	}
+
+    void Graphics::initFeatures() {
+        _features.initFeatures();
+    }
 
 	void Graphics::deviceDestroyed() {
         if (_renderer) {

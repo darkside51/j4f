@@ -47,6 +47,10 @@ namespace engine {
 
         bool onInpuCharEvent(const uint16_t code) override { return false; }
 
+        void onEngineInitComplete() {
+
+        }
+
         void update(const float delta) {
 
         }
@@ -65,6 +69,14 @@ namespace engine {
 
     Application::Application() noexcept {
         _customData = new ApplicationCustomData();
+    }
+
+    void Application::requestFeatures() {
+        // request features
+    }
+
+    void Application::onEngineInitComplete() {
+        _customData->onEngineInitComplete();
     }
 
     void Application::freeCustomData() {

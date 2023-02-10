@@ -2,6 +2,7 @@
 
 #include "../Core/EngineModule.h"
 #include "../Core/Configs.h"
+#include "Features/Feature.h"
 #include <Platform_inc.h>
 #include <cstdint>
 #include <utility>
@@ -41,10 +42,13 @@ namespace engine {
 
         [[nodiscard]] inline const std::pair<uint16_t, uint16_t>& getSize() const noexcept { return _size; }
 
+        Features& features() & noexcept { return _features; }
+
 	private:
         void createRenderer();
 		void createLoaders();
         void createRenderHelper();
+        void initFeatures();
 
 		GraphicConfig _config;
 		std::pair<uint16_t, uint16_t> _size;
@@ -54,6 +58,7 @@ namespace engine {
 		FontsManager* _fontsManager = nullptr;
 		RenderHelper* _renderHelper = nullptr;
 		AnimationManager* _animationManager = nullptr;
+        Features _features;
 	};
 
 }

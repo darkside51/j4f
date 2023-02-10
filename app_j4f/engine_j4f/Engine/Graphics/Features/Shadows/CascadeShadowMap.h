@@ -5,7 +5,7 @@
 #include "../../Vulkan/vkCommandBuffer.h"
 #include "../../Vulkan/vkFrameBuffer.h"
 #include "../../Vulkan/vkDebugMarker.h"
-#include "../Camera.h"
+#include "../../Scene/Camera.h"
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <unordered_map>
@@ -38,6 +38,7 @@ namespace engine {
 
 	class CascadeShadowMap {
 		friend class Graphics;
+        friend class Features;
 
 		struct CascadeFrameBuffer {
 			~CascadeFrameBuffer(); // call destroy from render->device
@@ -153,7 +154,7 @@ namespace engine {
 		static void initPipelines();
 		static void registerCommonShadowPrograms();
 
-		inline void static initCommonData() {
+		inline void static initFeatureData() {
 			initPipelines();
 			registerCommonShadowPrograms();
 		}

@@ -71,8 +71,9 @@ set(
 	Graphics/Vulkan/spirv/include/spirv/unified1
 	Graphics/Texture
 	Graphics/Scene
-	Graphics/Scene/Shadows
 	Graphics/Scene/LOD
+	Graphics/Features
+	Graphics/Features/Shadows
 	Graphics/Render
 	Graphics/Mesh
 	Graphics/Text

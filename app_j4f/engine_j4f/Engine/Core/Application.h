@@ -8,6 +8,8 @@ namespace engine {
 	public:
 		Application() noexcept;
 		~Application() { freeCustomData(); }
+        void requestFeatures();
+        void onEngineInitComplete();
 		void update(const float delta);
 		void nextFrame(const float delta);
 		void resize(const uint16_t w, const uint16_t h);

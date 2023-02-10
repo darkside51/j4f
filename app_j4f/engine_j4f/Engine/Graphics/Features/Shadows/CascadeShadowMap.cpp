@@ -1,12 +1,10 @@
 #include "CascadeShadowMap.h"
-#include "../Camera.h"
 #include "../../GpuProgramsManager.h"
 #include "../../Graphics.h"
 #include "../../Render/CommonVertexTypes.h"
 #include "../../Vulkan/vkRenderer.h"
 #include "../../Vulkan/vkHelper.h"
 #include "../../Vulkan/vkTexture.h"
-#include "../../../Core/Engine.h"
 
 // todo: read this
 // https://docs.microsoft.com/ru-ru/windows/win32/dxtecharts/common-techniques-to-improve-shadow-depth-maps

@@ -55,10 +55,11 @@ namespace engine {
 		getModule<FileManager>()->createFileSystem<DefaultFileSystem>();
 		getModule<AssetManager>()->setLoader<JsonLoader>();
 
-		initComplete(); // after all
-
         // create application
         _application = new Application();
+        _application->requestFeatures();
+
+		initComplete(); // after all
 
 		// run
 		_renderThread = std::make_unique<WorkerThread>(&Engine::nextFrame, this);
@@ -72,6 +73,7 @@ namespace engine {
 
 	void Engine::initComplete() {
 		_graphics->onEngineInitComplete();
+        _application->onEngineInitComplete();
 	}
 
 	void Engine::run() {

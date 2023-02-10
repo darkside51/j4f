@@ -13,19 +13,13 @@
 #include <Engine/Graphics/Mesh/MeshLoader.h>
 #include <Engine/Graphics/Mesh/AnimationTree.h>
 #include <Engine/Graphics/Plain/Plain.h>
-#include "Engine/Core/Math/mathematic.h"
 #include <Engine/Core/Math/functions.h>
-#include <Engine/Graphics/Vulkan/vkHelper.h>
 #include <Engine/Graphics/Scene/Camera.h>
 #include <Engine/Graphics/Render/RenderHelper.h>
 #include <Engine/Graphics/Render/AutoBatchRender.h>
 #include <Engine/Graphics/Render/RenderList.h>
-#include <Engine/Core/Memory/MemoryChunk.h>
 #include <Engine/Input/Input.h>
-#include <Engine/Core/Handler.h>
-#include <Engine/Core/Linked_ptr.h>
 #include <Engine/Utils/Debug/Profiler.h>
-//#include <Engine/Graphics/Text/TextImage.h>
 #include <Engine/Graphics/Text/FontLoader.h>
 #include <Engine/Graphics/Text/BitmapFont.h>
 
@@ -34,15 +28,12 @@
 #include <Engine/Core/Threads/Looper.h>
 
 #include <Engine/ECS/Component.h>
-#include <Engine/Core/BitMask.h>
 
-#include <Engine/Graphics/Scene/Shadows/CascadeShadowMap.h>
-#include <Engine/Graphics/Scene/Shadows/ShadowMapHelper.h>
+#include <Engine/Graphics/Features/Shadows/CascadeShadowMap.h>
+#include <Engine/Graphics/Features/Shadows/ShadowMapHelper.h>
 
 #include <Engine/Graphics/Scene/Node.h>
 #include <Engine/Graphics/Scene/NodeRenderListHelper.h>
-#include <Engine/Graphics/Scene/NodeGraphicsLink.h>
-#include <Engine/Graphics/Scene/BoundingVolume.h>
 
 #include <Engine/Events/Bus.h>
 #include <Engine/Utils/Debug/Assert.h>
@@ -506,6 +497,14 @@ namespace engine {
 			program_mesh_instance->setValueByName("camera_position", &p, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 		}
 
+        void onEngineInitComplete() {
+            initCamera();
+            create();
+
+            camera->addObserver(this);
+            Engine::getInstance().getModule<Input>()->addObserver(this);
+        }
+
 		ApplicationCustomData() {
 			PROFILE_TIME_SCOPED(ApplicationLoading)
 			log("ApplicationCustomData");
@@ -513,13 +512,6 @@ namespace engine {
 			FileManager* fm = Engine::getInstance().getModule<FileManager>();
 			auto&& fs = fm->getFileSystem<DefaultFileSystem>();
 			fm->mapFileSystem(fs);
-
-			Engine::getInstance().getModule<Input>()->addObserver(this);
-
-			initCamera();
-			create();
-
-			camera->addObserver(this);
 		}
 
 		~ApplicationCustomData() {
@@ -2280,6 +2272,10 @@ namespace engine {
 		_customData = new ApplicationCustomData();
 	}
 
+    void Application::requestFeatures() {
+        Engine::getInstance().getModule<Graphics>()->features().request<CascadeShadowMap>();
+    }
+
 	void Application::freeCustomData() {
 		if (_customData) {
 			delete _customData;
@@ -2287,6 +2283,10 @@ namespace engine {
 			LOG_TAG(Application, "finished");
 		}
 	}
+
+    void Application::onEngineInitComplete() {
+        _customData->onEngineInitComplete();
+    }
 
 	void Application::nextFrame(const float delta) {
 		_customData->draw(delta);
@@ -2480,7 +2480,7 @@ int main() {
 	engine::EngineConfig cfg;
 	cfg.fpsLimit = 120;
 	cfg.fpsLimitType = engine::FpsLimitType::F_DONT_CARE;
-	cfg.graphicsCfg = { { true }, engine::GpuType::DISCRETE, true, false }; // INTEGRATED, DISCRETE
+	cfg.graphicsCfg = { engine::GpuType::DISCRETE, true, false }; // INTEGRATED, DISCRETE
 	cfg.graphicsCfg.gpu_features.geometryShader = 1;
 	//cfg.graphicsCfg.gpu_features.fillModeNonSolid = 1; // example to enable POLYGON_MODE_LINE or POLYGON_MODE_POINT
 
