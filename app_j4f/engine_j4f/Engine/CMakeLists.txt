@@ -168,11 +168,11 @@ endif()
 #webp library
 
 #libpng library
-	message("libpng library begin")
-	add_3rdparty_project (${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/libpng16 ${CMAKE_BINARY_DIR}/3rd_party/libpng)
-	include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/libpng16)
-	set(PNG_LIB png_static)
-	message("libpng library end")
+	#message("libpng library begin")
+	#add_3rdparty_project (${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/libpng16 ${CMAKE_BINARY_DIR}/3rd_party/libpng)
+	#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/libpng16)
+	#set(PNG_LIB png_static)
+	#message("libpng library end")
 #libpng library
 
 #glfw library
@@ -215,7 +215,7 @@ target_link_libraries (
 	${FREETYPE_LIB}
 	${FMT_LIB}
 	${WEBP_LIB}
-	${PNG_LIB}
+	#${PNG_LIB}
 	${GLFW_LIB}
 )
 

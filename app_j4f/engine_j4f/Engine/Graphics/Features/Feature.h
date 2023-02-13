@@ -11,13 +11,13 @@ namespace engine {
 
     class Features {
     public:
-        template<typename T> requires IsFeature<T>
+        template<typename T>// requires IsFeature<T>
         inline void request() noexcept {
             _features.setBit(UniqueTypeId<Features>::getUniqueId<T>(), 1);
             _initializers.emplace_back([](){ T::initFeatureData();});
         }
 
-        template<typename T> requires IsFeature<T>
+        template<typename T>// requires IsFeature<T>
         inline bool enabled() const noexcept {
             return _features.checkBit(UniqueTypeId<Features>::getUniqueId<T>());
         }
