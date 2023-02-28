@@ -73,6 +73,7 @@ namespace engine {
 		);
 
 		void render(
+            const FT_Render_Mode_ renderMode,
 			const Font* font,
 			const uint8_t fontSize,
 			const char* text,

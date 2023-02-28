@@ -18,9 +18,23 @@ namespace engine {
 		std::vector<float> vtx;
 	};
 
+    enum class BitmapFontType : uint8_t {
+        Usual,
+        SDF
+    };
+
+    struct BitmapFontParams {
+        BitmapFontType type;
+        uint8_t fontSize = 0;
+        int8_t space_y = 0;
+        int8_t space_x = 0;
+        uint8_t empty_width = 0;
+    };
+
 	class BitmapFont {
 	public:
-		BitmapFont(Font* font, const uint8_t fsz, const uint16_t w, const uint16_t h, const uint8_t fillValue = 0);
+		BitmapFont(Font* font, const uint16_t w, const uint16_t h, BitmapFontParams&& params, const uint8_t fillValue = 0);
+        BitmapFont(Font* font, const uint16_t w, const uint16_t h, const BitmapFontParams& params, const uint8_t fillValue = 0);
 
 		~BitmapFont() {
 			_font = nullptr;
@@ -32,10 +46,10 @@ namespace engine {
 
 		void addSymbols(
 			const char* text,
-			int16_t x,
-			int16_t y,
+            const int16_t x = 0,
+            const int16_t y = 0,
 			const uint32_t color = 0xffffffff,
-			const uint32_t outlineColor = 0xffffffff,
+			const uint32_t outlineColor = 0x00000000,
 			const float outlineSize = 0.0f,
 			const uint8_t sx_offset = 0,
 			const uint8_t sy_offset = 0
@@ -63,7 +77,7 @@ namespace engine {
 
 	private:
 		Font* _font;
-		uint8_t _fontSize;
+        BitmapFontParams _params;
 		FontRenderer* _fontRenderer;
 		vulkan::VulkanTexture* _texture = nullptr;
 		std::unordered_map<char, std::shared_ptr<TextureFrame>> _glyphs;

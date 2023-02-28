@@ -1,0 +1,27 @@
+#version 450
+
+layout (location = 0) in vec2 inUv;
+layout (location = 0) out vec4 outFragColor;
+
+layout (binding = 0, set = 0) uniform sampler2D u_texture;
+
+const float width = 0.5;
+const float edge = 0.025;
+
+const float o_width = 0.55;
+const float o_edge = 0.1;
+
+void main() {		
+	vec3 color = vec3(0.75, 0.75, 0.75);
+	vec3 o_color = vec3(0.05, 0.05, 0.05);
+
+	float distance = 1.0 - texture(u_texture, inUv, 0.0).a;
+
+	float alpha = 1.0 - smoothstep(width, width + edge, distance);
+	float o_alpha = 1.0 - smoothstep(o_width, o_width + o_edge, distance);
+	float completeAlpha = alpha + (1.0 - alpha) * o_alpha;
+
+	vec3 completeColor = mix(o_color, color, alpha / completeAlpha);
+
+	outFragColor = vec4(completeColor, completeAlpha);
+}

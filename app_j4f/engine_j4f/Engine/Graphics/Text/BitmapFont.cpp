@@ -2,7 +2,15 @@
 
 namespace engine {
 
-	BitmapFont::BitmapFont(Font* font, const uint8_t fsz, const uint16_t w, const uint16_t h, const uint8_t fillValue) : _font(font), _fontSize(fsz), _fontRenderer(new FontRenderer(w, h, fillValue)) {}
+	BitmapFont::BitmapFont(Font* font, const uint16_t w, const uint16_t h, BitmapFontParams&& params, const uint8_t fillValue) :
+    _font(font),
+    _params(std::move(params)),
+    _fontRenderer(new FontRenderer(w, h, fillValue)) {}
+
+    BitmapFont::BitmapFont(Font* font, const uint16_t w, const uint16_t h, const BitmapFontParams& params, const uint8_t fillValue) :
+    _font(font),
+    _params(params),
+    _fontRenderer(new FontRenderer(w, h, fillValue)) {}
 
 	void BitmapFont::complete() {
 		_texture = _fontRenderer->createFontTexture();
@@ -10,15 +18,18 @@ namespace engine {
 
 	void BitmapFont::addSymbols(
 		const char* text,
-		int16_t x,
-		int16_t y,
+        const int16_t x,
+        const int16_t y,
 		const uint32_t color,
 		const uint32_t outlineColor,
 		const float outlineSize,
 		const uint8_t sx_offset,
 		const uint8_t sy_offset
 	) {
-		_fontRenderer->render(_font, _fontSize, text, x, y, color, outlineColor, outlineSize, sx_offset + outlineSize, sy_offset + outlineSize, [this](const char s, const uint16_t x, const uint16_t y, const uint16_t w, const uint16_t h, const int8_t dy) {
+		_fontRenderer->render( (_params.type == BitmapFontType::Usual ? FT_RENDER_MODE_NORMAL : FT_RENDER_MODE_SDF),
+                               _font, _params.fontSize, text, x, y, color, outlineColor, outlineSize,
+                              sx_offset + outlineSize, sy_offset + outlineSize,
+                              [this](const char s, const uint16_t x, const uint16_t y, const uint16_t w, const uint16_t h, const int8_t dy) {
 			std::shared_ptr<TextureFrame> f(new TextureFrame(
 				{
 					0.0f, float(dy),
@@ -53,7 +64,7 @@ namespace engine {
 		for (uint16_t i = 0; i < len; ++i) {
 			if (text[i] == '\n') {
 				x = 0;
-				y += _fontSize + 2;
+				y += _params.fontSize + _params.space_y;
 				continue;
 			}
 
@@ -68,10 +79,10 @@ namespace engine {
 						result->_idx[i * 6 + j] = i * 4 + f->_idx[j];
 					}
 				}
-				const float wf = f->_vtx[2] - f->_vtx[0];
+				const float wf = f->_vtx[2] - f->_vtx[0] + _params.space_x;
 				x += wf;
-			} else {
-				x += _fontSize / 4.0f;
+			} else { // if no has symbol: " " for example
+                x += _params.empty_width;
 			}
 		}
 

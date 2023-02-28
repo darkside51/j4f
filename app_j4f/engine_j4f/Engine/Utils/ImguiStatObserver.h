@@ -23,7 +23,8 @@ namespace engine {
             locked          = 6
         } _location = Location::bottom_left;
 
-        std::string _timeString;
+        std::string _timeString = "_";
+        std::string _gpuName;
         std::string _statString;
     };
 

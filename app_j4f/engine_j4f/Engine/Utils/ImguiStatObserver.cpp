@@ -49,22 +49,29 @@ namespace engine {
         }
 
         const bool vsync = Engine::getInstance().getModule<Graphics>()->config().v_sync;
-#ifdef _DEBUG
-        const char* buildType = "debug";
-#else
-        const char* buildType = "release";
-#endif
+
+        _gpuName = fmtString("gpu: {}({})", renderer->getDevice()->gpuProperties.deviceName, gpuType);
 
         auto [width, height] = Engine::getInstance().getModule<Graphics>()->getSize();
 
-        _statString = fmtString("build type: {}\ngpu: {}({})\nresolution: {}x{}\nv_sync: {}\ndraw calls: {}\n"
+        _statString = fmtString("resolution: {}x{}\nv_sync: {}\ndraw calls: {}\n"
                                  "fps: {}\ncpu frame time: {:.3}\nspeed mult: {:.3}",
-                                 buildType, renderer->getDevice()->gpuProperties.deviceName, gpuType,
                                  width, height, vsync ? "on" : "off",
                                  statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime(),
                                  Engine::getInstance().getGameTimeMultiply());
-
     }
+
+    class ImGuiStyleColorChanger {
+    public:
+        template <typename... Args>
+        inline ImGuiStyleColorChanger(Args&&... args) noexcept {
+            ImGui::PushStyleColor(std::forward<Args>(args)...);
+        }
+
+        ~ImGuiStyleColorChanger() noexcept {
+            ImGui::PopStyleColor();
+        }
+    };
 
     void ImguiStatObserver::draw() {
         ImGuiIO& io = ImGui::GetIO();
@@ -101,16 +108,22 @@ namespace engine {
 
         const auto bgColor = IM_COL32(0, 0, 0, 100);
 
-        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(200, 200, 200, 200));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(50, 50, 50, 200));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(0, 0, 0, 200));
-        ImGui::PushStyleColor(ImGuiCol_WindowBg, bgColor);
-        ImGui::PushStyleColor(ImGuiCol_TitleBg, bgColor);
-        ImGui::PushStyleColor(ImGuiCol_TitleBgCollapsed, bgColor);
-        ImGui::PushStyleColor(ImGuiCol_TitleBgActive, bgColor);
+        ImGuiStyleColorChanger _1(ImGuiCol_Text,             IM_COL32(200, 200, 200, 200));
+        ImGuiStyleColorChanger _2(ImGuiCol_ButtonActive,     IM_COL32(50, 50, 50, 200));
+        ImGuiStyleColorChanger _3(ImGuiCol_ButtonHovered,    IM_COL32(0, 0, 0, 200));
+        ImGuiStyleColorChanger _4(ImGuiCol_WindowBg,         bgColor);
+        ImGuiStyleColorChanger _5(ImGuiCol_TitleBg,          bgColor);
+        ImGuiStyleColorChanger _6(ImGuiCol_TitleBgCollapsed, bgColor);
+        ImGuiStyleColorChanger _7(ImGuiCol_TitleBgActive,    bgColor);
 
-        if (ImGui::Begin("##statistic:", nullptr, window_flags)) {
+#ifdef _DEBUG
+        if (ImGui::Begin("j4f_statistic(debug):", nullptr, window_flags)) {
+#else
+        if (ImGui::Begin("j4f_statistic(release):", nullptr, window_flags)) {
+#endif
             ImGui::Text(_timeString.c_str());
+            ImGui::Separator();
+            ImGui::Text(_gpuName.c_str());
             ImGui::Separator();
             ImGui::Text(_statString.c_str());
 
@@ -125,14 +138,6 @@ namespace engine {
                 ImGui::EndPopup();
             }
         }
-
-        ImGui::PopStyleColor();
-        ImGui::PopStyleColor();
-        ImGui::PopStyleColor();
-        ImGui::PopStyleColor();
-        ImGui::PopStyleColor();
-        ImGui::PopStyleColor();
-        ImGui::PopStyleColor();
 
         ImGui::End();
     }

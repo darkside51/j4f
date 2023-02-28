@@ -59,11 +59,11 @@ namespace engine {
         for (uint32_t j = y, q = 0; q < height; ++j, ++q) {
             for (uint32_t i = x, p = 0; p < width; ++i, ++p) {
                 if (buffer[q * width + p]) {
-
+                    const auto value = buffer[q * width + p];
                     const uint32_t r = (color >> 24) & 0xff;
                     const uint32_t g = (color >> 16) & 0xff;
                     const uint32_t b = (color >> 8) & 0xff;
-                    const uint32_t a = (color >> 0) & 0xff;
+                    const uint32_t a = (value >> 0) & 0xff;
                     const uint32_t n = (j * imgW + i) * 4;
 
                     img[n + 0] = r;
@@ -149,6 +149,7 @@ namespace engine {
 	}
 
     void FontRenderer::render(
+        const FT_Render_Mode_ renderMode,
         const Font* font,
         const uint8_t fontSize,
         const char* text,
@@ -167,84 +168,103 @@ namespace engine {
         ftcImageType.height = fontSize;
         ftcImageType.flags = FT_LOAD_DEFAULT;
 
+        const bool useOutline = (renderMode == FT_RENDER_MODE_NORMAL) && (outlineSize != 0.0f);
+
         const int16_t x0 = x;
         FT_Stroker stroker;
         FT_Error err;
-        if (outlineSize != 0.0f) {
+
+        if (useOutline) {
             err = FT_Stroker_New(font->ftcLibrary, &stroker);
             //outlineSize px outline
             FT_Stroker_Set(stroker, static_cast<FT_Fixed>(outlineSize * (1 << 6)), FT_STROKER_LINECAP_ROUND, FT_STROKER_LINEJOIN_ROUND, 0);
         }
 
-        for (size_t i = 0, sz = strlen(text); i < sz; ++i) {
-            if (text[i] == '\n') {
-                x = x0;
-                y += (fontSize) + sy_offset;
-                continue;
-            }
+        FT_Pos maxRowHeight = 0;
 
+        for (size_t i = 0, sz = strlen(text); i < sz; ++i) {
             const auto glyphIndex = FTC_CMapCache_Lookup(font->ftcCMapCache, 0, 0, text[i]);
  
             FT_Glyph glyph;
             FT_BitmapGlyph bitmapGlyph;
             bool renderGlyph = true;
 
-            if (outlineSize != 0.0f) {
+            FT_Pos glyph_width = 0;
+
+            if (useOutline) {
                 FTC_ImageCache_Lookup(font->ftcImageCache, &ftcImageType, glyphIndex, &glyph, nullptr);
                 err = FT_Glyph_StrokeBorder(&glyph, stroker, false, false);
                 err = FT_Glyph_To_Bitmap(&glyph, FT_RENDER_MODE_NORMAL, nullptr, true);
                 bitmapGlyph = reinterpret_cast<FT_BitmapGlyph>(glyph);
 
+                FT_BBox acbox;
+                FT_Glyph_Get_CBox(glyph, FT_GLYPH_BBOX_PIXELS, &acbox);
+                const auto g_height = acbox.yMax - acbox.yMin;
+                const auto g_width = acbox.xMax - acbox.xMin;
+
+                glyph_width = g_width;
+
+                maxRowHeight = std::max(maxRowHeight, g_height);
+
                 renderGlyph = fill_image(
-                    image,
-                    imgWidth,
-                    imgHeight,
-                    bitmapGlyph->bitmap.buffer,
-                    bitmapGlyph->bitmap.width,
-                    bitmapGlyph->bitmap.rows,
-                    x + bitmapGlyph->left,
-                    y + fontSize - bitmapGlyph->top,
-                    outlineColor);
+                        image,
+                        imgWidth,
+                        imgHeight,
+                        bitmapGlyph->bitmap.buffer,
+                        g_width,
+                        g_height,
+                        x,
+                        y + bitmapGlyph->top - acbox.yMax,
+                        outlineColor);
 
                 if (addGlyphCallback) {
-                    const int8_t dy = bitmapGlyph->top - bitmapGlyph->bitmap.rows + static_cast<int8_t>(outlineSize);
-                    addGlyphCallback(text[i], x + bitmapGlyph->left, y + fontSize - bitmapGlyph->top, bitmapGlyph->bitmap.width, bitmapGlyph->bitmap.rows, dy);
+                    addGlyphCallback(text[i], x, y + bitmapGlyph->top - acbox.yMax, g_width, g_height, acbox.yMax - bitmapGlyph->bitmap.rows + static_cast<int8_t>(outlineSize));
                 }
             }
 
             if (renderGlyph) {
                 FTC_ImageCache_Lookup(font->ftcImageCache, &ftcImageType, glyphIndex, &glyph, nullptr);
-                FT_Glyph_To_Bitmap(&glyph, FT_RENDER_MODE_NORMAL, nullptr, false);
+                FT_Glyph_To_Bitmap(&glyph, renderMode, nullptr, false);
+
+                FT_BBox acbox;
+                FT_Glyph_Get_CBox(glyph, FT_GLYPH_BBOX_PIXELS, &acbox);
                 bitmapGlyph = reinterpret_cast<FT_BitmapGlyph>(glyph);
+
+                const auto g_height = acbox.yMax - acbox.yMin;
+                const auto g_width = acbox.xMax - acbox.xMin;
+
+                maxRowHeight = std::max(maxRowHeight, g_height);
+                glyph_width = std::max(glyph_width, g_width);
 
                 fill_image(
                     image,
                     imgWidth,
                     imgHeight,
                     bitmapGlyph->bitmap.buffer,
-                    bitmapGlyph->bitmap.width,
-                    bitmapGlyph->bitmap.rows,
-                    x + bitmapGlyph->left,
-                    y + fontSize - bitmapGlyph->top,
+                    g_width,
+                    g_height,
+                    x + outlineSize,
+                    y + bitmapGlyph->top - acbox.yMax + outlineSize,
                     color);
 
                 if (outlineSize == 0.0f) {
                     if (addGlyphCallback) {
-                        addGlyphCallback(text[i], x + bitmapGlyph->left, y + fontSize - bitmapGlyph->top, bitmapGlyph->bitmap.width, bitmapGlyph->bitmap.rows, bitmapGlyph->top - bitmapGlyph->bitmap.rows);
+                        addGlyphCallback(text[i], x + outlineSize, y + bitmapGlyph->top - acbox.yMax + outlineSize, g_width, g_height, acbox.yMax - bitmapGlyph->bitmap.rows);
                     }
                 }
             }
 
-            x += (bitmapGlyph->bitmap.width) + sx_offset;
+            x += glyph_width + sx_offset;
 
             if (x >= imgWidth) {
                 if (x > imgWidth) --i;
                 x = x0;
-                y += (fontSize) + sy_offset;
+                y += maxRowHeight + sy_offset;
+                maxRowHeight = 0;
             }
         }
 
-        if (outlineSize != 0.0f) {
+        if (useOutline) {
             FT_Stroker_Done(stroker);
         }
     }

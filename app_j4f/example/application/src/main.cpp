@@ -1439,7 +1439,7 @@ namespace engine {
 				});
 
 			/////// freeType test
-			FontLoadingParams font_loading_params("resources/assets/fonts/Quivira.otf");
+			FontLoadingParams font_loading_params("resources/assets/fonts/Roboto/Roboto-Regular.ttf");
 			Font* f = assm->loadAsset<Font*>(font_loading_params);
 
 			//FontRenderer fr(256, 256, 100);
@@ -1452,9 +1452,15 @@ namespace engine {
 			//texture_text = fr.createFontTexture();
 			//texture_text->createSingleDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0);
 
-			bitmapFont = new BitmapFont(f, 16, 256, 256, 0);
-			bitmapFont->addSymbols("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+*/=&%#@!?<>,.()[];:@$^~_", 2, 0, 0xccccccaa, 0x000000aa, 1.0f, 2, 2);
-			//bitmapFont.addSymbols("wxyzABCDEFGHIJKLMN", 2, 20, 0xffffffff, 0x000000ff, 1.0f, 2, 0);
+//			bitmapFont = new BitmapFont(f, 384, 256, {BitmapFontType::SDF, 14, 4, -11, 5}, 0);
+//            bitmapFont->addSymbols("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+*/=&%#@!?<>,.()[];:@$^~_");
+            bitmapFont = new BitmapFont(f, 256, 256, {BitmapFontType::Usual, 16, 2, 2, 5}, 0);
+			bitmapFont->addSymbols("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+*/=&%#@!?<>,.()[];:@$^~_", 2, 0, 0xccccccaa, 0x000000aa, 2.0f, 2, 2);
+
+
+            //bitmapFont->addSymbols("abc", 2, 0, 0xccccccaa, 0x000000aa, 0.0f, 2, 2);
+
+            //bitmapFont.addSymbols("wxyzABCDEFGHIJKLMN", 2, 20, 0xffffffff, 0x000000ff, 1.0f, 2, 0);
 			//bitmapFont.addSymbols("OPQRSTUVWXYZ", 2, 40, 0xffffffff, 0x000000ff, 1.0f, 2, 0);
 			//bitmapFont.addSymbols("0123456789-+*/=", 2, 60, 0xffffffff, 0x000000ff, 1.0f, 2, 0);
 			//bitmapFont.addSymbols("&%#@!?<>,.()[];:@$^~", 2, 80, 0xffffffff, 0x000000ff, 1.0f, 2, 0);
@@ -1484,12 +1490,26 @@ namespace engine {
 
 			plainTest->graphics()->setFrame(texFrame);
 			plainTest->graphics()->setParamByName("u_texture", texture_text, false);
-			plainTest->graphics()->renderState().blendMode = vulkan::CommonBlendModes::blend_alpha;
 			plainTest->graphics()->pipelineAttributesChanged();
+
+            plainTest->graphics()->changeRenderState([](vulkan::VulkanRenderState& renderState) {
+                renderState.blendMode = vulkan::CommonBlendModes::blend_alpha;
+                renderState.depthState.depthWriteEnabled = false;
+                renderState.depthState.depthTestEnabled = false;
+            });
+
 			plainTest->getNode()->setBoundingVolume(BoundingVolume::make<CubeVolume>(glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(256, 256, 1.0f)));
 
-			plainTest->graphics()->setFrame(bitmapFont->createFrame("hello world!"));
-			plainTest->getNode()->setBoundingVolume(nullptr);
+            {
+                std::vector<engine::ProgramStageInfo> psi;
+                psi.emplace_back(ProgramStage::VERTEX, "resources/shaders/texture.vsh.spv");
+                psi.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/textureSDF.psh.spv");
+                vulkan::VulkanGpuProgram *program = gpuProgramManager->getProgram(psi);
+//                plainTest->setProgram(program);
+            }
+
+			//plainTest->graphics()->setFrame(bitmapFont->createFrame("hello world!"));
+			//plainTest->getNode()->setBoundingVolume(nullptr);
 			//const float wf = frame->_vtx[2] - frame->_vtx[0];
 			//const float hf = frame->_vtx[5] - frame->_vtx[1];
 			//plainTest->getNode()->setBoundingVolume(BoundingVolume::make<CubeVolume>(glm::vec3(0.0f, 0.0f, -0.1f), glm::vec3(wf, hf, 0.1f)));
@@ -1909,7 +1929,7 @@ namespace engine {
 				//std::shared_ptr<TextureFrame> frame = bitmapFont->createFrame(fmt_string("resolution: %dx%d\nv_sync: %s\ndraw calls: %d\nfps: %d\ncpu frame time: %f", width, height, vsync ? "on" : "off", statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime()));
 				std::shared_ptr<TextureFrame> frame = bitmapFont->createFrame(
 					fmt_string(
-						"system time: {:%H:%M:%S}\nbuild type: {}\ngpu: {}({})\nresolution: {}x{}\nv_sync: {}\ndraw calls: {}\nfps: {}\ncpu frame time: {:.3}\nspeed mult: {:.3}\n\nWASD + mouse(camera control)", 
+						"system time: {:%H:%M:%S}\nbuild type: {}\ngpu: {}({})\nresolution: {}x{}\nv_sync: {}\ndraw calls: {}\nfps: {}\ncpu frame time: {:.3}\nspeed mult: {:.3}\n\nWASD + mouse(camera control)",
 						time, buildType, renderer->getDevice()->gpuProperties.deviceName, gpuType, width, height, vsync ? "on" : "off", statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime(), Engine::getInstance().getGameTimeMultiply()
 					)
 				);
@@ -1919,6 +1939,7 @@ namespace engine {
 				plainTest->getNode()->setBoundingVolume(BoundingVolume::make<CubeVolume>(glm::vec3(frameBounds.minx, frameBounds.miny, -0.1f), glm::vec3(frameBounds.maxx, frameBounds.maxy, 0.1f)));
 
 				glm::mat4 wtr(1.0f);
+                //scaleMatrix(wtr, glm::vec3(1.25f));
 				translateMatrixTo(wtr, glm::vec3(-(width * 0.5f) + 16.0f, height * 0.5f - 30.0f, -1.0f));
 				plainTest->getNode()->setLocalMatrix(wtr);
 
