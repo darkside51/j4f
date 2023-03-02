@@ -1452,10 +1452,10 @@ namespace engine {
 			//texture_text = fr.createFontTexture();
 			//texture_text->createSingleDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0);
 
-//			bitmapFont = new BitmapFont(f, 384, 256, {BitmapFontType::SDF, 14, 4, -11, 5}, 0);
-//            bitmapFont->addSymbols("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+*/=&%#@!?<>,.()[];:@$^~_");
-            bitmapFont = new BitmapFont(f, 256, 256, {BitmapFontType::Usual, 16, 2, 2, 5}, 0);
-			bitmapFont->addSymbols("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+*/=&%#@!?<>,.()[];:@$^~_", 2, 0, 0xccccccaa, 0x000000aa, 2.0f, 2, 2);
+			bitmapFont = new BitmapFont(f, 384, 256, {BitmapFontType::SDF, 14, 4, -11, 5}, 0);
+            bitmapFont->addSymbols("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+*/=&%#@!?<>,.()[];:@$^~_");
+//            bitmapFont = new BitmapFont(f, 256, 256, {BitmapFontType::Usual, 16, 2, 2, 5}, 0);
+//			bitmapFont->addSymbols("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+*/=&%#@!?<>,.()[];:@$^~_", 2, 0, 0xccccccaa, 0x000000aa, 2.0f, 2, 2);
 
 
             //bitmapFont->addSymbols("abc", 2, 0, 0xccccccaa, 0x000000aa, 0.0f, 2, 2);
@@ -1505,7 +1505,7 @@ namespace engine {
                 psi.emplace_back(ProgramStage::VERTEX, "resources/shaders/texture.vsh.spv");
                 psi.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/textureSDF.psh.spv");
                 vulkan::VulkanGpuProgram *program = gpuProgramManager->getProgram(psi);
-//                plainTest->setProgram(program);
+                plainTest->setProgram(program);
             }
 
 			//plainTest->graphics()->setFrame(bitmapFont->createFrame("hello world!"));
@@ -2327,6 +2327,10 @@ namespace engine {
 			_customData->resize(w, h);
 		}
 	}
+
+    Version Application::version() const noexcept {
+        return Version(1, 0, 0);
+    }
 }
 
 class A1 {
@@ -2506,7 +2510,8 @@ int main() {
 	engine::EngineConfig cfg;
 	cfg.fpsLimit = 120;
 	cfg.fpsLimitType = engine::FpsLimitType::F_DONT_CARE;
-	cfg.graphicsCfg = { engine::GpuType::DISCRETE, true, false }; // INTEGRATED, DISCRETE
+	cfg.graphicsCfg = { engine::GpuType::DISCRETE, true, false,
+                        engine::Version(1, 2, 182) }; // INTEGRATED, DISCRETE
 	cfg.graphicsCfg.gpu_features.geometryShader = 1;
 	//cfg.graphicsCfg.gpu_features.fillModeNonSolid = 1; // example to enable POLYGON_MODE_LINE or POLYGON_MODE_POINT
 

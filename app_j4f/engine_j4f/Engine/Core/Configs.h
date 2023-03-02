@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Version.h"
 #include <vector>
 #include <cstdint>
 
@@ -17,6 +18,7 @@ namespace engine {
         GpuType gpu_type = GpuType::OTHER;
 		bool v_sync = true;
         bool can_continue_main_render_pass = false;
+        Version render_api_version = Version(1, 0, 0);
 
         struct GPUFeatures {
             uint32_t    robustBufferAccess = 0;

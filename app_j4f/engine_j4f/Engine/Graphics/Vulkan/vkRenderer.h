@@ -14,6 +14,7 @@
 
 #include "../../Core/Threads/Synchronisations.h"
 #include "../../Engine/Core/Hash.h"
+#include "../../Engine/Core/Version.h"
 
 #include <cstdint>
 #include <vector>
@@ -434,7 +435,12 @@ namespace vulkan {
 			const uint8_t subpass = 0
 		);
 
-		bool createInstance(const std::vector<VkExtensionProperties>& desiredInstanceExtensions, const std::vector<VkLayerProperties>& desiredLayers);
+		bool createInstance(
+                const engine::Version apiVersion,
+                const engine::Version engineVersion,
+                const engine::Version applicationVersion,
+                const std::vector<VkExtensionProperties>& desiredInstanceExtensions,
+                const std::vector<VkLayerProperties>& desiredLayers);
 		bool createDevice(const VkPhysicalDeviceFeatures features, std::vector<const char*>& extensions, const VkPhysicalDeviceType deviceType = VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU);
 		void createSwapChain(const engine::IRenderSurfaceInitializer* initializer, const bool useVsync);
 		void init(const engine::GraphicConfig& cfg);
@@ -514,6 +520,8 @@ namespace vulkan {
 
 		inline const VulkanTexture* getEmptyTexture() const { return _emptyTexture; }
 		inline const VulkanTexture* getEmptyTextureArray() const { return _emptyTextureArray; }
+
+        constexpr inline const char* getName() const noexcept { return "vulkan"; }
 
 	private:
 		VkResult allocateDescriptorSetsFromGlobalPool(VkDescriptorSetAllocateInfo& allocInfo, VkDescriptorSet* set);

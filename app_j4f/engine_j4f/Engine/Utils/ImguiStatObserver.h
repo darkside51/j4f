@@ -26,6 +26,7 @@ namespace engine {
         std::string _timeString = "_";
         std::string _gpuName;
         std::string _statString;
+        std::string _versions;
     };
 
 }

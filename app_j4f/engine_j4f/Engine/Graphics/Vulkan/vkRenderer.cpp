@@ -24,16 +24,21 @@ namespace vulkan {
 		destroy();
 	}
 
-	bool VulkanRenderer::createInstance(const std::vector<VkExtensionProperties>& desiredInstanceExtensions, const std::vector<VkLayerProperties>& desiredLayers) {
+	bool VulkanRenderer::createInstance(
+            const engine::Version apiVersion,
+            const engine::Version engineVersion,
+            const engine::Version applicationVersion,
+            const std::vector<VkExtensionProperties>& desiredInstanceExtensions,
+            const std::vector<VkLayerProperties>& desiredLayers) {
 
 		VkApplicationInfo vk_applicationInfo;
 		vk_applicationInfo.sType = VkStructureType::VK_STRUCTURE_TYPE_APPLICATION_INFO;
 		vk_applicationInfo.pNext = nullptr;
-		vk_applicationInfo.pApplicationName = "j4f_application";
-		vk_applicationInfo.applicationVersion = 1;
-		vk_applicationInfo.pEngineName = "j4f_engine";
-		vk_applicationInfo.engineVersion = 1;
-		vk_applicationInfo.apiVersion = VK_MAKE_VERSION(1, 2, 182);
+		vk_applicationInfo.pApplicationName     = "j4f_application";
+        vk_applicationInfo.pEngineName          = "j4f_engine";
+		vk_applicationInfo.applicationVersion   = applicationVersion();
+		vk_applicationInfo.engineVersion        = engineVersion();
+		vk_applicationInfo.apiVersion           = VK_MAKE_VERSION(apiVersion->major, apiVersion->minor, apiVersion->patch);
 
 		std::vector<VkExtensionProperties> supportedExtensions;
 		getVulkanInstanceSupportedExtensions(supportedExtensions);
@@ -43,7 +48,7 @@ namespace vulkan {
 		std::vector<VkLayerProperties> supportedLayers;
 		getVulkanInstanceSupportedLayers(supportedLayers);
 
-		std::vector<const char*> instancelayers;
+		std::vector<const char*> instanceLayers;
 
 #ifdef _DEBUG
 #ifdef GPU_VALIDATION_ENABLED
@@ -63,9 +68,9 @@ namespace vulkan {
 			return false;
 		};
 
-		auto addInstanceLayer = [&instancelayers, &supportedLayers](const char* layerName) {
+		auto addInstanceLayer = [&instanceLayers, &supportedLayers](const char* layerName) {
 			if (std::find_if(supportedLayers.begin(), supportedLayers.end(), [layerName](const VkLayerProperties& p) { return strcmp(p.layerName, layerName) == 0; }) != supportedLayers.end()) {
-				instancelayers.push_back(layerName);
+				instanceLayers.push_back(layerName);
 			}
 		};
 
@@ -102,12 +107,12 @@ namespace vulkan {
 		vk_instanceCreateInfo.pNext = nullptr;
 		vk_instanceCreateInfo.flags = 0;
 		vk_instanceCreateInfo.pApplicationInfo = &vk_applicationInfo;
-		vk_instanceCreateInfo.enabledLayerCount = static_cast<uint32_t>(instancelayers.size());
-		vk_instanceCreateInfo.ppEnabledLayerNames = instancelayers.data();
+		vk_instanceCreateInfo.enabledLayerCount = static_cast<uint32_t>(instanceLayers.size());
+		vk_instanceCreateInfo.ppEnabledLayerNames = instanceLayers.data();
 		vk_instanceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(instanceExtensions.size());
 		vk_instanceCreateInfo.ppEnabledExtensionNames = instanceExtensions.data();
 
-		VkResult result = vkCreateInstance(&vk_instanceCreateInfo, nullptr, &_instance);
+		const VkResult result = vkCreateInstance(&vk_instanceCreateInfo, nullptr, &_instance);
 		return result == VkResult::VK_SUCCESS;
 	}
 

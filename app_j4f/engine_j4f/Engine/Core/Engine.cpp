@@ -189,4 +189,6 @@ namespace engine {
 
 		_graphics->endFrame();
 	}
+
+    Version Engine::applicationVersion() const noexcept { return _application->version(); }
 }

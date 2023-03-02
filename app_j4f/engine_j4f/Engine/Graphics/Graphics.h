@@ -38,7 +38,8 @@ namespace engine {
 
         [[nodiscard]] inline const std::pair<uint16_t, uint16_t>& getSize() const noexcept { return _size; }
 
-        Features& features() & noexcept { return _features; }
+        inline Features& features() & noexcept { return _features; }
+        inline const Features& features() const & noexcept { return _features; }
 
 	private:
         void createRenderer();

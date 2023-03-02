@@ -17,44 +17,48 @@
 
 namespace engine {
 
-	Graphics::Graphics(const GraphicConfig& cfg) :
-    _config(cfg),
-    _renderer(new Renderer()),
-    _gpuProgramManager(new GpuProgramsManager()),
-    _fontsManager(new FontsManager()),
-    _animationManager(new AnimationManager())
-    {
+    Graphics::Graphics(const GraphicConfig &cfg) :
+            _config(cfg),
+            _renderer(new Renderer()),
+            _gpuProgramManager(new GpuProgramsManager()),
+            _fontsManager(new FontsManager()),
+            _animationManager(new AnimationManager()) {
+    }
 
-	}
-
-	Graphics::~Graphics() {
-		delete _renderHelper;
-		delete _fontsManager;
-		delete _gpuProgramManager;
-		delete _animationManager;
-		delete _renderer;
-	}
+    Graphics::~Graphics() {
+        delete _renderHelper;
+        delete _fontsManager;
+        delete _gpuProgramManager;
+        delete _animationManager;
+        delete _renderer;
+    }
 
     void Graphics::createRenderer() {
-        if (!_renderer) return;
+        if (!_renderer) {
+            return;
+        }
 
-        auto&& device = Engine::getInstance().getModule<Device>();
-        const IRenderSurfaceInitializer* surfaceInitialiser = device->getSurfaceInitializer();
+        auto &&device = Engine::getInstance().getModule<Device>();
+        const IRenderSurfaceInitializer *surfaceInitializer = device->getSurfaceInitializer();
 
         {
             using namespace vulkan;
 
             VkPhysicalDeviceFeatures enabledFeatures{};
             memcpy(&enabledFeatures, &_config.gpu_features, sizeof(VkPhysicalDeviceFeatures));
-            std::vector<const char*> &enabledDeviceExtensions = _config.gpu_extensions;
+            std::vector<const char *> &enabledDeviceExtensions = _config.gpu_extensions;
 
-            _renderer->createInstance({}, {});
-            _renderer->createDevice(enabledFeatures, enabledDeviceExtensions, static_cast<VkPhysicalDeviceType>(_config.gpu_type));
-            _renderer->createSwapChain(surfaceInitialiser, _config.v_sync);
+            _renderer->createInstance(_config.render_api_version,
+                                      Engine::getInstance().version(),
+                                      Engine::getInstance().applicationVersion(),
+                                      {}, {});
+            _renderer->createDevice(enabledFeatures, enabledDeviceExtensions,
+                                    static_cast<VkPhysicalDeviceType>(_config.gpu_type));
+            _renderer->createSwapChain(surfaceInitializer, _config.v_sync);
             _renderer->init(_config);
 
             { // print gpu info
-                const char* gpuTypes[5] = {
+                const char *gpuTypes[5] = {
                         "device_type_other",
                         "device_type_integrated_gpu",
                         "device_type_discrete_gpu",
@@ -62,9 +66,10 @@ namespace engine {
                         "device_type_cpu"
                 };
 
-                const auto& gpuProperties = _renderer->getDevice()->gpuProperties;
+                const auto &gpuProperties = _renderer->getDevice()->gpuProperties;
                 //LOG_TAG(GRAPHICS, "gpu: {}({}, driver: {})", gpuProperties.deviceName, gpuTypes[static_cast<uint8_t>(gpuProperties.deviceType)].c_str(), gpuProperties.driverVersion);
-                LOG_TAG(GRAPHICS, "gpu: %s(%s, driver: %d)", gpuProperties.deviceName, gpuTypes[static_cast<uint8_t>(gpuProperties.deviceType)], gpuProperties.driverVersion);
+                LOG_TAG(GRAPHICS, "gpu: %s(%s, driver: %d)", gpuProperties.deviceName,
+                        gpuTypes[static_cast<uint8_t>(gpuProperties.deviceType)], gpuProperties.driverVersion);
             }
 
             //render_type = Render_Type::VULKAN;
@@ -74,37 +79,38 @@ namespace engine {
         }
     }
 
-	void Graphics::createLoaders() {
-		Engine::getInstance().getModule<AssetManager>()->setLoader<TextureLoader>();
-		Engine::getInstance().getModule<AssetManager>()->setLoader<MeshLoader>();
-		Engine::getInstance().getModule<AssetManager>()->setLoader<FontLoader>();
-	}
+    void Graphics::createLoaders() {
+        Engine::getInstance().getModule<AssetManager>()->setLoader<TextureLoader>();
+        Engine::getInstance().getModule<AssetManager>()->setLoader<MeshLoader>();
+        Engine::getInstance().getModule<AssetManager>()->setLoader<FontLoader>();
+    }
 
     void Graphics::createRenderHelper() {
         _renderHelper = new RenderHelper(_renderer, _gpuProgramManager);
         _renderHelper->initCommonPipelines();
     }
 
-	void Graphics::onEngineInitComplete() {
+    void Graphics::onEngineInitComplete() {
         createRenderer();
         createLoaders();
         createRenderHelper();
         initFeatures();
-		//Engine::getInstance().getModule<Device>()->swicthFullscreen(true);
-	}
+        //Engine::getInstance().getModule<Device>()->swicthFullscreen(true);
+    }
 
     void Graphics::initFeatures() {
         _features.initFeatures();
     }
 
-	void Graphics::deviceDestroyed() {
+    void Graphics::deviceDestroyed() {
         if (_renderer) {
             _renderer->waitWorkComplete();
         }
-	}
+    }
 
-	void Graphics::resize(const uint16_t w, const uint16_t h) {
-		_size.first = w; _size.second = h;
+    void Graphics::resize(const uint16_t w, const uint16_t h) {
+        _size.first = w;
+        _size.second = h;
 
         if (_renderer) {
             _renderer->resize(w, h, _config.v_sync);
@@ -113,9 +119,9 @@ namespace engine {
         if (_renderHelper) {
             _renderHelper->onResize();
         }
-	}
+    }
 
-	void Graphics::beginFrame() {
+    void Graphics::beginFrame() {
         if (_renderer) {
             _renderer->beginFrame();
         }
@@ -123,11 +129,11 @@ namespace engine {
         if (_renderHelper) {
             _renderHelper->updateFrame();
         }
-	}
+    }
 
-	void Graphics::endFrame() {
+    void Graphics::endFrame() {
         if (_renderer) {
             _renderer->endFrame();
         }
-	}
+    }
 }

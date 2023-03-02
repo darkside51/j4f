@@ -100,4 +100,8 @@ namespace engine {
             _customData->resize(w, h);
         }
     }
+
+    Version Application::version() const noexcept {
+        return Version(1, 0, 0);
+    }
 }

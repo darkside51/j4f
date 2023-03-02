@@ -2,6 +2,7 @@
 
 #include "Common.h"
 #include "Configs.h"
+#include "Version.h"
 
 #include <vector>
 #include <cstdint>
@@ -83,6 +84,8 @@ namespace engine {
 		inline void setGameTimeMultiply(const float m) { _gameTimeMultiply = m; }
 		[[nodiscard]] inline float getGameTimeMultiply() const noexcept { return _gameTimeMultiply; }
 
+        [[nodiscard]] inline static Version version() noexcept { return Version(1, 0, 0); }
+        [[nodiscard]] Version applicationVersion() const noexcept;
 	private:
 		Engine();
 		void initComplete();

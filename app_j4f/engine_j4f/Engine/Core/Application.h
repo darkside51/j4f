@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Version.h"
 #include <cstdint>
 
 namespace engine {
@@ -14,6 +15,7 @@ namespace engine {
 		void nextFrame(const float delta);
 		void resize(const uint16_t w, const uint16_t h);
 		void deviceDestroyed() { freeCustomData(); }
+        [[nodiscard]] Version version() const noexcept;
 	private:
         void freeCustomData();
 		ApplicationCustomData* _customData = nullptr;

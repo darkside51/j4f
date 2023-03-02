@@ -1,7 +1,7 @@
 ﻿#pragma once
 // ♣♠♦♥
 
-// glm options
+// glm options for enable vectorisation
 #define GLM_FORCE_INLINE
 #define GLM_FORCE_INTRINSICS
 #define GLM_FORCE_ALIGNED
@@ -34,7 +34,7 @@ namespace engine {
     inline static const glm::vec3 emptyVec3     = glm::vec3(0.0f, 0.0f, 0.0f);
     inline static const glm::vec3 unitVec3      = glm::vec3(1.0f, 1.0f, 1.0f);
 
-    inline float inv_sqrt(const float x) { // "квадратный корень Крамака"(алгоритм Ньютона)
+    inline float inv_sqrt(const float x) { // "инверсный(1.0f/sqrt) квадратный корень Кармака"(алгоритм Ньютона)
         const float xhalf = 0.5f * x;
         union {
             float x = 0.0f;
