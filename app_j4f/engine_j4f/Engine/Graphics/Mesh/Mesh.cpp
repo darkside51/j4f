@@ -104,7 +104,7 @@ namespace engine {
 	}
 
 	void updateSkeletonAnimationTree(const CancellationToken& token, MeshSkeleton* skeleton, MeshAnimationTree* animTree, const uint8_t updateFrame) {
-		animTree->calculate(updateFrame);
+		animTree->calculate(updateFrame); // расчет scale, rotation, ranslation для нодов анимации
 		if (token) return;
 
 		animTree->applyToSkeleton(skeleton, updateFrame);

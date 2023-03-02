@@ -1701,6 +1701,8 @@ namespace engine {
 						shadowCastNodes.erase(std::remove(shadowCastNodes.begin(), shadowCastNodes.end(), node), shadowCastNodes.end());
 						rootNode->removeChild(node);
 						mesh3 = nullptr;
+                        delete animTree2;
+                        animTree2 = nullptr;
 					}
 				}
 			}
@@ -1710,7 +1712,7 @@ namespace engine {
 				//mesh->graphics()->getSkeleton()->updateAnimation(delta, animTree);
 			}
 
-			if (animTree2 && mesh3) {
+			if (animTree2) {
 				animTree2->updateAnimation(dt, mesh3->graphics()->getSkeleton());
 				//mesh3->graphics()->getSkeleton()->updateAnimation(delta, animTree2);
 			}

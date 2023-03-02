@@ -170,7 +170,7 @@ namespace vulkan {
 	};
 
 	union VulkanBlendMode {
-        constexpr explicit VulkanBlendMode(const uint32_t mode = 0) noexcept : _blendMode(mode) {};
+        constexpr explicit VulkanBlendMode(const uint32_t mode = 0u) noexcept : _blendMode(mode) {};
         constexpr VulkanBlendMode(VulkanBlendMode&& mode) noexcept : _blendMode(mode._blendMode) {};
         constexpr VulkanBlendMode(const VulkanBlendMode& mode) : _blendMode(mode._blendMode) {};
         constexpr explicit VulkanBlendMode(const BlendParameters& parameters) : _parameters(parameters) {};
@@ -263,16 +263,16 @@ namespace vulkan {
 
 	namespace CommonBlendModes {
         // normal modes
-        [[maybe_unused]] inline static VulkanBlendMode blend_none	    = VulkanBlendMode(0u);
-        [[maybe_unused]] inline static VulkanBlendMode blend_alpha	    = VulkanBlendMode::makeBlendMode(BlendFactor::BLEND_FACTOR_SRC_ALPHA, BlendFactor::BLEND_FACTOR_ONE_MINUS_SRC_ALPHA);
-        [[maybe_unused]] inline static VulkanBlendMode blend_add		= VulkanBlendMode::makeBlendMode(BlendFactor::BLEND_FACTOR_SRC_ALPHA, BlendFactor::BLEND_FACTOR_ONE);
-        [[maybe_unused]] inline static VulkanBlendMode blend_multipy	= VulkanBlendMode::makeBlendMode(BlendFactor::BLEND_FACTOR_DST_COLOR, BlendFactor::BLEND_FACTOR_ZERO);
+        [[maybe_unused]] inline const static VulkanBlendMode blend_none	    = VulkanBlendMode(0u);
+        [[maybe_unused]] inline const static VulkanBlendMode blend_alpha	= VulkanBlendMode::makeBlendMode(BlendFactor::BLEND_FACTOR_SRC_ALPHA, BlendFactor::BLEND_FACTOR_ONE_MINUS_SRC_ALPHA);
+        [[maybe_unused]] inline const static VulkanBlendMode blend_add		= VulkanBlendMode::makeBlendMode(BlendFactor::BLEND_FACTOR_SRC_ALPHA, BlendFactor::BLEND_FACTOR_ONE);
+        [[maybe_unused]] inline const static VulkanBlendMode blend_multiply	= VulkanBlendMode::makeBlendMode(BlendFactor::BLEND_FACTOR_DST_COLOR, BlendFactor::BLEND_FACTOR_ZERO);
         // premultily alpha modes
         // https://gamedev.ru/code/articles/PremultipliedAlpha
         // https://habr.com/ru/company/playrix/blog/336304/
         // https://apoorvaj.io/alpha-compositing-opengl-blending-and-premultiplied-alpha/
-        [[maybe_unused]] inline static VulkanBlendMode blend_alpha_pma   = VulkanBlendMode::makeBlendMode(BlendFactor::BLEND_FACTOR_ONE, BlendFactor::BLEND_FACTOR_ONE_MINUS_SRC_ALPHA);
-        [[maybe_unused]] inline static VulkanBlendMode blend_add_pma     = VulkanBlendMode::makeBlendMode(BlendFactor::BLEND_FACTOR_ONE, BlendFactor::BLEND_FACTOR_ONE);
+        [[maybe_unused]] inline const static VulkanBlendMode blend_alpha_pma   = VulkanBlendMode::makeBlendMode(BlendFactor::BLEND_FACTOR_ONE, BlendFactor::BLEND_FACTOR_ONE_MINUS_SRC_ALPHA);
+        [[maybe_unused]] inline const static VulkanBlendMode blend_add_pma     = VulkanBlendMode::makeBlendMode(BlendFactor::BLEND_FACTOR_ONE, BlendFactor::BLEND_FACTOR_ONE);
 	};
 
 	struct VulkanStencilState {
