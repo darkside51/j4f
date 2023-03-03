@@ -39,7 +39,7 @@ namespace engine {
 
     class AnimationManager final {
     public:
-        ~AnimationManager() {};
+        ~AnimationManager() = default;
 
         template<typename T>
         void registerAnimation(T *animation) {
@@ -59,7 +59,7 @@ namespace engine {
         }
 
         template <typename... Args>
-        inline typename std::enable_if<sizeof...(Args) == 0>::type update(const float delta) { }
+        inline typename std::enable_if<sizeof...(Args) == 0>::type update(const float /*delta*/) { }
 
         template<typename T, typename... Args>
         inline void update(const float delta) {
