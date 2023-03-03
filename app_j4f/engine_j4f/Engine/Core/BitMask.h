@@ -120,10 +120,10 @@ namespace engine {
 	////////////// some helpers
 
 	template <typename M, typename... Args>
-	typename std::enable_if<sizeof...(Args) == 0>::type fillBitMaskType(M&) { }
+    inline typename std::enable_if<sizeof...(Args) == 0>::type fillBitMaskType(M&) { }
 
 	template <typename M, typename T, typename... Args>
-	void fillBitMaskType(M& mask) {
+    inline void fillBitMaskType(M& mask) {
 		mask.setBit(T::template rtti<T>(), 1);
 		fillBitMaskType<Args...>(mask);
 	}

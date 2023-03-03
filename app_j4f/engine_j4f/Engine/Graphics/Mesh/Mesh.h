@@ -94,6 +94,7 @@ namespace engine {
 		friend class Mesh;
 		friend void updateSkeletonAnimation(const CancellationToken& token, MeshSkeleton* skeleton, const float time, const Mesh_Animation* animation, const uint8_t updateFrame);
 		friend void updateSkeletonAnimationTree(const CancellationToken& token, MeshSkeleton* skeleton, MeshAnimationTree* animTree, const uint8_t updateFrame);
+        friend void applyAnimationFrameToSkeleton(const CancellationToken& token, MeshSkeleton* skeleton, MeshAnimationTree* animTree, const uint8_t updateFrame);
 
 	public:
 		MeshSkeleton(Mesh_Data* mData, const uint8_t latency);
@@ -108,6 +109,8 @@ namespace engine {
 
 		void updateAnimation(const float time, const Mesh_Animation* animation, float& currentAnimTime); // simple animation update
 		void updateAnimation(const float time, MeshAnimationTree* animTree); // advanced animation update
+
+        void applyFrame(MeshAnimationTree* animTree); // animation another vision
 
 		inline void checkAnimCalculation(const uint8_t frame) {
 			if (_animCalculationResult[frame]) {

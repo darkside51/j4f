@@ -2,6 +2,7 @@
 
 #include "../../Core/Math/mathematic.h"
 #include "../../Core/Hierarchy.h"
+#include "../../Utils/Debug/Assert.h"
 #include "MeshData.h"
 #include "Mesh.h"
 
@@ -55,6 +56,8 @@ namespace engine {
 
 			_frameTimes[i] = _animation->start + _time;
 		}
+
+        [[nodiscard]] inline uint8_t getLatency() const { return _frameTimes.size(); }
 
 		[[nodiscard]] inline float getCurrentTime(const uint8_t i) const {
 			if (_animation == nullptr) return 0.0f;
@@ -148,6 +151,9 @@ namespace engine {
 							}
 								break;
 							case Mesh_Animation::Interpolation::CUBICSPLINE: // todo!
+                            {
+                                ENGINE_BREAK
+                            }
 								break;
 							default:
 								break;
@@ -172,7 +178,7 @@ namespace engine {
 
         [[nodiscard]] inline const Mesh_Animation* getAnimation() const noexcept { return _animation; }
 
-		inline void applyToSkeleton(MeshSkeleton* skeleton, const uint8_t updateFrame) {
+		inline void apply(MeshSkeleton* skeleton, const uint8_t updateFrame) {
 			auto& transforms = _transforms[updateFrame];
 
 			for (auto& transform : transforms) {
@@ -264,7 +270,7 @@ namespace engine {
 
 	class MeshAnimationTree {
 		using TreeAnimator = MeshAnimator;
-		using TargetType = const std::shared_ptr<MeshSkeleton>&;
+		using TargetType = MeshSkeleton*;
 	public:
 		using AnimatorType = HierarchyRaw<TreeAnimator>;
 	private:
@@ -279,7 +285,7 @@ namespace engine {
 		inline static bool skipAnimator(AnimatorType* animator) { return animator->value().getWeight() > 0.0f; }
 
 	public:
-		inline void update(const float delta, const uint8_t i) {
+		inline void update(const float delta, const uint8_t i) noexcept {
 			if (_animator->value().getWeight() >= 1.0f) {
 				_animator->value().update(delta, i);
 			} else {
@@ -297,13 +303,20 @@ namespace engine {
 			}
 		}
 
-		inline void updateAnimation(const float delta, TargetType skeleton) const {
-			skeleton->updateAnimation(delta, const_cast<MeshAnimationTree*>(this));
+		inline void updateAnimation(const float delta, TargetType target) {
+            target->updateAnimation(delta, this);
 		}
 
-		inline void applyToSkeleton(MeshSkeleton* skeleton, const uint8_t updateFrame) const {
-			_animator->value().applyToSkeleton(skeleton, updateFrame);
+		inline void apply(TargetType target, const uint8_t updateFrame) const {
+			_animator->value().apply(target, updateFrame);
 		}
+
+        inline void updateAnimation(const float delta) {
+            _updateFrameNum = (_updateFrameNum + 1) % _animator->value().getLatency();
+            if (delta == 0.0f) return;
+            update(delta, _updateFrameNum); // просто пересчет времени
+            calculate(_updateFrameNum); // расчет scale, rotation, translation для нодов анимации
+        }
 
 		MeshAnimationTree(float weight, const size_t transformsCount, const uint8_t latency) : _animator(new AnimatorType(weight, transformsCount, latency)) { }
 		MeshAnimationTree(const Mesh_Animation* animation, float weight, const uint8_t latency) : _animator(new AnimatorType(animation, weight, latency)) { }
@@ -315,7 +328,9 @@ namespace engine {
 		inline AnimatorType* getAnimator() noexcept { return _animator; }
 		[[nodiscard]] inline const AnimatorType* getAnimator() const noexcept { return _animator; }
 
+        [[nodiscard]] inline uint8_t frame() const noexcept { return _updateFrameNum; }
 	private:
 		AnimatorType* _animator;
+        uint8_t _updateFrameNum = 0;
 	};
 }

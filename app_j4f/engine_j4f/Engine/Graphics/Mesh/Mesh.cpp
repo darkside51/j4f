@@ -104,10 +104,10 @@ namespace engine {
 	}
 
 	void updateSkeletonAnimationTree(const CancellationToken& token, MeshSkeleton* skeleton, MeshAnimationTree* animTree, const uint8_t updateFrame) {
-		animTree->calculate(updateFrame); // расчет scale, rotation, ranslation для нодов анимации
+		animTree->calculate(updateFrame); // расчет scale, rotation, translation для нодов анимации
 		if (token) return;
 
-		animTree->applyToSkeleton(skeleton, updateFrame);
+		animTree->apply(skeleton, updateFrame);
 
 		if (token) return;
 
@@ -117,6 +117,18 @@ namespace engine {
 			skeleton->updateSkins(updateFrame);
 		}
 	}
+
+    void applyAnimationFrameToSkeleton(const CancellationToken& token, MeshSkeleton* skeleton, MeshAnimationTree* animTree, const uint8_t updateFrame) {
+        animTree->apply(skeleton, updateFrame);
+
+        if (token) return;
+
+        skeleton->updateTransforms(updateFrame);
+
+        if (!skeleton->_skins.empty() && !token) {
+            skeleton->updateSkins(updateFrame);
+        }
+    }
 
 	MeshSkeleton::MeshSkeleton(Mesh_Data* mData, const uint8_t latency) :
 		_skins(mData->skins), 
@@ -219,8 +231,12 @@ namespace engine {
 		_animCalculationResult[_updateFrameNum] = Engine::getInstance().getModule<ThreadPool2>()->enqueue(TaskType::COMMON, updateSkeletonAnimationTree, this, animTree, _updateFrameNum);
 	}
 
-	
-	void MeshSkeleton::updateSkins(const uint8_t updateFrame) {
+    void MeshSkeleton::applyFrame(MeshAnimationTree* animTree) {
+        _updateFrameNum = animTree->frame();
+        _animCalculationResult[_updateFrameNum] = Engine::getInstance().getModule<ThreadPool2>()->enqueue(TaskType::COMMON, updateSkeletonAnimationTree, this, animTree, _updateFrameNum);
+    }
+
+    void MeshSkeleton::updateSkins(const uint8_t updateFrame) {
 		size_t skinId = 0;
 		_dirtySkins = false;
 		for (const Mesh_Skin& s : _skins) {
