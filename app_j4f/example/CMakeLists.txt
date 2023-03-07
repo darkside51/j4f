@@ -7,16 +7,16 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
-if(CMAKE_BUILD_TYPE MATCHES Debug)
+if (CMAKE_BUILD_TYPE MATCHES Debug)
 	add_definitions(-D_DEBUG)
-endif(CMAKE_BUILD_TYPE MATCHES Debug)
+endif (CMAKE_BUILD_TYPE MATCHES Debug)
 
 project(example)
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
 	set(j4f_PLATFORM "WINDOWS")
 	#add_subdirectory(build/win64)
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
 	set(j4f_PLATFORM "LINUX")
 	set(STATISTIC_ENABLED true)
 	set(PROFILER_ENABLE false)
@@ -25,23 +25,23 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 	#add_subdirectory(build/linux)
 endif()
 
-if(j4f_PLATFORM STREQUAL "WINDOWS")
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
+if (j4f_PLATFORM STREQUAL "WINDOWS")
+	set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
 endif()
 
-if(STATISTIC_ENABLED)
+if (STATISTIC_ENABLED)
 	add_definitions(-DENABLE_STATISTIC)
 endif()
 
-if(PROFILER_ENABLE)
+if (PROFILER_ENABLE)
 	add_definitions(-DPROFILER_ENABLE)
 endif()
 
-if(GPU_DEBUG_MARKER_ENABLED)
+if (GPU_DEBUG_MARKER_ENABLED)
 	add_definitions(-DGPU_DEBUG_MARKER_ENABLED)
 endif()
 
-if(GPU_VALIDATION_ENABLED)
+if (GPU_VALIDATION_ENABLED)
 	add_definitions(-DGPU_VALIDATION_ENABLED)
 endif()
 
@@ -62,7 +62,7 @@ set(
 	application/resources/shaders
 )
 
-foreach(DIR ${APP_RES_DIRS})
+foreach (DIR ${APP_RES_DIRS})
 	message("DIR:" ${DIR})
 
 	file(GLOB
@@ -80,8 +80,8 @@ list(REMOVE_DUPLICATES APP_RESOURCES)
 
 set(APP_RESOURCES_DIRECTORY application/resources)
 
-if(j4f_PLATFORM STREQUAL "WINDOWS")
-foreach(source IN LISTS APP_RESOURCES)
+if (j4f_PLATFORM STREQUAL "WINDOWS")
+foreach (source IN LISTS APP_RESOURCES)
 	get_filename_component(source_path "${source}" PATH)
 	string(REPLACE "/" "\\" source_path_msvc "${source_path}")
 	string(REPLACE ${CMAKE_CURRENT_SOURCE_DIR}/${APP_RESOURCES_DIRECTORY}/ "Resources/" source_path_msvc "${source_path}")
@@ -123,7 +123,7 @@ add_custom_command(TARGET ${PROJECT_NAME}
 #	set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS")
 #endif()
 
-if(j4f_PLATFORM STREQUAL "WINDOWS")
+if (j4f_PLATFORM STREQUAL "WINDOWS")
 # конвертация шейдеров
 	#add_custom_command(TARGET ${PROJECT_NAME}
     #               POST_BUILD
@@ -136,11 +136,14 @@ if(j4f_PLATFORM STREQUAL "WINDOWS")
                    COMMAND ${CMAKE_COMMAND} -E make_directory ${dest_dir}/shaders
                    COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/../engine_j4f/Tools/glslToSpirv/convert_with_includes_ext.py -i ${source_dir}/shaders/ -o ${dest_dir}/shaders/ -p /Bin/glslc.exe)
                    
-elseif(j4f_PLATFORM STREQUAL "LINUX")
+elseif (j4f_PLATFORM STREQUAL "LINUX")
 	add_custom_command(TARGET ${PROJECT_NAME}
                    POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E make_directory ${dest_dir}/shaders
                    COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/../engine_j4f/Tools/glslToSpirv/convert_with_includes_ext.py -i ${source_dir}/shaders/ -o ${dest_dir}/shaders/ -p /bin/glslc)
+
+    #execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_SOURCE_DIR}/../engine_j4f/Engine ${dest_dir}/../Engine)
+    #execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_SOURCE_DIR}/application ${dest_dir}/../application)
 endif()
 
 message(STATUS "!!!!!project generate complete!!!!!")
