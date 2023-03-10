@@ -45,8 +45,8 @@ namespace engine {
 
 				while (isActive()) {
 					const auto currentTime = std::chrono::steady_clock::now();
-					const std::chrono::duration<double> duration = currentTime - _time;
-					const double durationTime = duration.count();
+					const std::chrono::duration<float> duration = currentTime - _time;
+					const float durationTime = duration.count();
 					
 					switch (_fpsLimitType) {
 						case FpsLimitType::F_STRICT:
@@ -57,7 +57,8 @@ namespace engine {
 							break;
 						case FpsLimitType::F_CPU_SLEEP:
 							if (durationTime < _targetFrameTime) {
-								std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(1000.0 * (_targetFrameTime - durationTime)));
+								std::this_thread::sleep_for(std::chrono::duration<float, std::milli>(1000.0f * (_targetFrameTime - durationTime)));
+                                continue;
 							}
 							break;
 						default:
@@ -65,7 +66,7 @@ namespace engine {
 					}
 
 					_time = currentTime;
-					_task(static_cast<float>(durationTime), currentTime);
+					_task(durationTime, currentTime);
 
 					_frameId.fetch_add(1, std::memory_order_release); // increase frameId at the end of frame
 					//std::this_thread::yield();
@@ -180,7 +181,7 @@ namespace engine {
 		std::chrono::steady_clock::time_point _time;
 		std::atomic_uint16_t _frameId = { 0 };
 
-		double _targetFrameTime = std::numeric_limits<double>::max();
+		float _targetFrameTime = std::numeric_limits<float>::max();
 		FpsLimitType _fpsLimitType = FpsLimitType::F_DONT_CARE;
 	};
 

@@ -88,8 +88,10 @@ namespace engine {
 	};
 
 	struct EngineConfig {
-		FpsLimitType fpsLimitType = FpsLimitType::F_DONT_CARE;
-		uint16_t fpsLimit = 0;
+		FpsLimitType fpsLimitTypeDraw = FpsLimitType::F_CPU_SLEEP;
+        FpsLimitType fpsLimitTypeUpdate= FpsLimitType::F_CPU_SLEEP;
+		uint16_t fpsDraw = 120;
+        uint16_t fpsUpdate = 60;
 		GraphicConfig graphicsCfg = {};
 	};
 }

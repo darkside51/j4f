@@ -63,10 +63,12 @@ namespace engine {
 
 		// run
 		_renderThread = std::make_unique<WorkerThread>(&Engine::nextFrame, this);
-		_renderThread->setTargetFrameTime(1.0 / cfg.fpsLimit);
-		_renderThread->setFpsLimitType(cfg.fpsLimitType);
+		_renderThread->setTargetFrameTime(1.0f / cfg.fpsDraw);
+		_renderThread->setFpsLimitType(cfg.fpsLimitTypeDraw);
 
-		//_updateThread = std::make_unique<WorkerThread>(&Engine::update, this);
+		_updateThread = std::make_unique<WorkerThread>(&Engine::update, this);
+        _updateThread->setTargetFrameTime(1.0f / cfg.fpsUpdate);
+        _updateThread->setFpsLimitType(cfg.fpsLimitTypeUpdate);
 
 		run();
 	}
@@ -190,5 +192,8 @@ namespace engine {
 		_graphics->endFrame();
 	}
 
-    Version Engine::applicationVersion() const noexcept { return _application->version(); }
+    Version Engine::applicationVersion() const noexcept {
+        if (!_application) return {0, 0, 0};
+        return _application->version();
+    }
 }

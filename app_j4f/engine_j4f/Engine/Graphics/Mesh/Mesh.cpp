@@ -232,8 +232,12 @@ namespace engine {
 	}
 
     void MeshSkeleton::applyFrame(MeshAnimationTree* animTree) {
-        _updateFrameNum = animTree->frame();
-        _animCalculationResult[_updateFrameNum] = Engine::getInstance().getModule<ThreadPool2>()->enqueue(TaskType::COMMON, updateSkeletonAnimationTree, this, animTree, _updateFrameNum);
+        const auto frameNum = animTree->frame();
+        if (_latency > 1 && frameNum != _updateFrameNum) {
+            _updateFrameNum = frameNum;
+            _animCalculationResult[_updateFrameNum] = Engine::getInstance().getModule<ThreadPool2>()->enqueue(
+                    TaskType::COMMON, updateSkeletonAnimationTree, this, animTree, _updateFrameNum);
+        }
     }
 
     void MeshSkeleton::updateSkins(const uint8_t updateFrame) {

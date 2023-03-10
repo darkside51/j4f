@@ -49,7 +49,7 @@ namespace engine {
 		}
 
 		template<typename T>
-		T* setModule(T* module) {
+        T* replaceModule(T* module) {
 			const uint16_t moduleId = UniqueTypeId<IEngineModule>::getUniqueId<T>();
 			T* oldModule = nullptr;
 			if (_modules.size() <= moduleId) {
@@ -84,7 +84,7 @@ namespace engine {
 		inline void setGameTimeMultiply(const float m) { _gameTimeMultiply = m; }
 		[[nodiscard]] inline float getGameTimeMultiply() const noexcept { return _gameTimeMultiply; }
 
-        [[nodiscard]] inline static Version version() noexcept { return Version(1, 0, 0); }
+        [[nodiscard]] inline static Version version() noexcept { return {0, 0, 1}; }
         [[nodiscard]] Version applicationVersion() const noexcept;
 	private:
 		Engine();

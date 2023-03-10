@@ -1636,6 +1636,76 @@ namespace engine {
 		}
 
 		void update(const float delta) { // update thread
+            // mix test
+            const float dt = delta * Engine::getInstance().getGameTimeMultiply();
+            static float mix = 0.7f;
+            static bool na = false;
+            const float step = 1.5f * dt;
+            static uint8_t animNum = 2;
+            if (!na) {
+                if (mix > -4.0f) {
+                    mix -= step;
+                } else {
+                    mix = -4.0f;
+                    na = true;
+                }
+            } else {
+                if (mix < 5.0f) {
+                    mix += step;
+                } else {
+                    mix = 5.0f;
+                    na = false;
+                    animNum = engine::random(1, 4);
+
+                    if (animTree2) {
+                        animTree2->getAnimator()->children()[animNum]->value().resetTime();
+                    }
+                }
+            }
+
+            if (animTree) {
+                const float mix_val = std::clamp(mix, 0.0f, 1.0f);
+                animTree->getAnimator()->children()[0]->value().setWeight(mix_val);
+                animTree->getAnimator()->children()[1]->value().setWeight(1.0f - mix_val);
+            }
+
+            if (animTree2) {
+                const float mix_val = std::clamp(mix, 0.0f, 1.0f);
+                animTree2->getAnimator()->children()[0]->value().setWeight(mix_val);
+                animTree2->getAnimator()->children()[animNum]->value().setWeight(1.0f - mix_val);
+            }
+
+            Engine::getInstance().getModule<Graphics>()->getAnimationManager()->update<MeshAnimationTree>(dt);
+
+            if (animTree) {
+                // v0
+                //mesh->graphics()->getSkeleton()->updateAnimation(delta, animTree);
+                // v1
+                //animTree->updateAnimation(dt, mesh->graphics()->getSkeleton().get());
+                // v2
+                //animTree->updateAnimation(dt);
+                mesh->graphics()->getSkeleton()->applyFrame(animTree);
+            }
+
+            if (animTree2) {
+                // v0
+                //mesh3->graphics()->getSkeleton()->updateAnimation(delta, animTree2);
+                // v1
+                //animTree2->updateAnimation(dt, mesh3->graphics()->getSkeleton().get());
+                // v2
+                //animTree2->updateAnimation(dt);
+                mesh3->graphics()->getSkeleton()->applyFrame(animTree2);
+            }
+
+            if (animTreeWindMill) {
+                // v0
+                //mesh7->graphics()->getSkeleton()->updateAnimation(delta, animTreeWindMill);
+                // v1
+                //animTreeWindMill->updateAnimation(dt, mesh7->graphics()->getSkeleton().get());
+                // v2
+                //animTreeWindMill->updateAnimation(dt);
+                mesh7->graphics()->getSkeleton()->applyFrame(animTreeWindMill);
+            }
 		}
 
 		void draw(const float delta) {
@@ -1660,46 +1730,6 @@ namespace engine {
 
 			shadowMap->updateShadowUniformsForRegesteredPrograms(camera->getViewTransform());
 
-			// mix test
-			static float mix = 0.7f;
-			static bool na = false;
-			const float step = 1.5f * dt;
-			static uint8_t animNum = 2;
-			if (!na) {
-				if (mix > -4.0f) {
-					mix -= step;
-				} else {
-					mix = -4.0f;
-					na = true;
-				}
-			} else {
-				if (mix < 5.0f) {
-					mix += step;
-				} else {
-					mix = 5.0f;
-					na = false;
-					animNum = engine::random(1, 4);
-
-					if (animTree2) {
-						animTree2->getAnimator()->children()[animNum]->value().resetTime();
-					}
-				}
-			}
-
-			if (animTree) {
-				const float mix_val = std::clamp(mix, 0.0f, 1.0f);
-				animTree->getAnimator()->children()[0]->value().setWeight(mix_val);
-				animTree->getAnimator()->children()[1]->value().setWeight(1.0f - mix_val);
-			}
-
-			if (animTree2) {
-				const float mix_val = std::clamp(mix, 0.0f, 1.0f);
-				animTree2->getAnimator()->children()[0]->value().setWeight(mix_val);
-				animTree2->getAnimator()->children()[animNum]->value().setWeight(1.0f - mix_val);
-			}
-
-            Engine::getInstance().getModule<Graphics>()->getAnimationManager()->update<MeshAnimationTree>(dt);
-
 			////
 
 			if (mesh3) {
@@ -1718,35 +1748,6 @@ namespace engine {
 				}
 			}
 
-			if (animTree) {
-                // v0
-                //mesh->graphics()->getSkeleton()->updateAnimation(delta, animTree);
-                // v1
-				//animTree->updateAnimation(dt, mesh->graphics()->getSkeleton().get());
-                // v2
-                //animTree->updateAnimation(dt);
-                mesh->graphics()->getSkeleton()->applyFrame(animTree);
-			}
-
-			if (animTree2) {
-                // v0
-                //mesh3->graphics()->getSkeleton()->updateAnimation(delta, animTree2);
-                // v1
-				//animTree2->updateAnimation(dt, mesh3->graphics()->getSkeleton().get());
-                // v2
-                //animTree2->updateAnimation(dt);
-                mesh3->graphics()->getSkeleton()->applyFrame(animTree2);
-			}
-
-			if (animTreeWindMill) {
-                // v0
-                //mesh7->graphics()->getSkeleton()->updateAnimation(delta, animTreeWindMill);
-                // v1
-				//animTreeWindMill->updateAnimation(dt, mesh7->graphics()->getSkeleton().get());
-                // v2
-                //animTreeWindMill->updateAnimation(dt);
-                mesh7->graphics()->getSkeleton()->applyFrame(animTreeWindMill);
-			}
 
 			////////
 			if (auto&& grassNode = grassMesh2->getNode()) {
@@ -2536,8 +2537,8 @@ int main() {
 
 	//////////////////////////////////
 	engine::EngineConfig cfg;
-	cfg.fpsLimit = 120;
-	cfg.fpsLimitType = engine::FpsLimitType::F_DONT_CARE;
+	cfg.fpsDraw = 120;
+	cfg.fpsLimitTypeDraw = engine::FpsLimitType::F_CPU_SLEEP;
 	cfg.graphicsCfg = { engine::GpuType::DISCRETE, true, false,
                         engine::Version(1, 2, 182) }; // INTEGRATED, DISCRETE
 	cfg.graphicsCfg.gpu_features.geometryShader = 1;
