@@ -147,7 +147,7 @@ namespace engine {
 			}
 		}
 
-		void setTargetFrameTime(const double t) {
+		void setTargetFrameTime(const float t) {
 			_targetFrameTime = t;
 		}
 

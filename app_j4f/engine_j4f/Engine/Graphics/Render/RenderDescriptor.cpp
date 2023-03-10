@@ -59,7 +59,6 @@ namespace engine {
                     autoBatcher->draw(commandBuffer, currentFrame);
                     customRenderer->render(commandBuffer, currentFrame, cameraMatrix);
                 }
-
             }
 				break;
 			default:
