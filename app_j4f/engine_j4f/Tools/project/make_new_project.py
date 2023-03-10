@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-#python3 make_new_project.py -n project_name
+# to create project use:
+# python3 make_new_project.py -n project_name
 
 import sys
 import getopt
