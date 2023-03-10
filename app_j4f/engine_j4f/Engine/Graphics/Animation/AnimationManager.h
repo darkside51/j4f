@@ -15,19 +15,22 @@ namespace engine {
     template<typename T>
     class AnimationUpdater final : public IAnimationUpdater {
     public:
-        inline void registerAnimation(T *animation) {
+        inline void registerAnimation(T *animation) noexcept {
             if (std::find(_animations.begin(), _animations.end(), animation) == _animations.end()) {
                 _animations.push_back(animation);
             }
         }
 
-        inline void unregisterAnimation(T *animation) {
+        inline void unregisterAnimation(T *animation) noexcept {
             _animations.erase(std::remove(_animations.begin(), _animations.end(), animation), _animations.end());
         }
 
-        inline void update(const float delta) {
+        inline void update(const float delta) noexcept {
             for (auto && anim : _animations) {
-                anim->updateAnimation(delta);
+                if (anim->getNeedUpdate()) {
+                    anim->updateAnimation(delta);
+                    // todo: call animation update observers
+                }
             }
         }
 
@@ -42,7 +45,7 @@ namespace engine {
         ~AnimationManager() = default;
 
         template<typename T>
-        void registerAnimation(T *animation) {
+        void registerAnimation(T *animation) noexcept {
             static const auto animId = UniqueTypeId<Animation>::getUniqueId<T>();
             if (_animUpdaters.size() <= animId) {
                 _animUpdaters.push_back(std::make_unique<AnimationUpdater<T>>());
@@ -51,25 +54,29 @@ namespace engine {
         }
 
         template<typename T>
-        void unregisterAnimation(T *animation) {
+        void unregisterAnimation(T *animation) noexcept {
             static const auto animId = UniqueTypeId<Animation>::getUniqueId<T>();
             if (_animUpdaters.size() > animId) {
                 static_cast<AnimationUpdater<T>*>(_animUpdaters[animId].get())->unregisterAnimation(animation);
             }
         }
 
-        template <typename... Args>
-        inline typename std::enable_if<sizeof...(Args) == 0>::type update(const float /*delta*/) { }
-
         template<typename T, typename... Args>
-        inline void update(const float delta) {
+        inline void update(const float delta) noexcept {
+            if (delta == 0.0f) { // disable update if delta is 0.0f
+                return;
+            }
+
             update_strict<T>(delta);
             update<Args...>(delta);
         }
 
     private:
+        template <typename... Args>
+        inline typename std::enable_if<sizeof...(Args) == 0>::type update(const float /*delta*/) noexcept { }
+
         template<typename T>
-        inline void update_strict(const float delta) {
+        inline void update_strict(const float delta) noexcept {
             static const auto animId = UniqueTypeId<Animation>::getUniqueId<T>();
             if (_animUpdaters.size() <= animId) {
                 _animUpdaters.push_back(std::make_unique<AnimationUpdater<T>>());

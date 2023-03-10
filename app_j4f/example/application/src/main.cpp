@@ -1675,6 +1675,7 @@ namespace engine {
                 animTree2->getAnimator()->children()[animNum]->value().setWeight(1.0f - mix_val);
             }
 
+            // check update for animation needed (object visible etc...)
             Engine::getInstance().getModule<Graphics>()->getAnimationManager()->update<MeshAnimationTree>(dt);
 
             if (animTree) {
@@ -1706,6 +1707,19 @@ namespace engine {
                 //animTreeWindMill->updateAnimation(dt);
                 mesh7->graphics()->getSkeleton()->applyFrame(animTreeWindMill);
             }
+
+            if (auto&& grassNode = grassMesh2->getNode()) {
+                static float t = 0.0f;
+                t += 2.0f * dt;
+
+                if (t > math_constants::pi2) {
+                    t -= math_constants::pi2;
+                }
+
+                grassNode->getRenderObject()->getRenderDescriptor()->setParamByName("u_time", &t, false);
+                //const_cast<glm::mat4&>(grassNode->model())[0][0] = t;
+                //grassNode->setLocalMatrix(glm::mat4(t));
+            }
 		}
 
 		void draw(const float delta) {
@@ -1731,7 +1745,6 @@ namespace engine {
 			shadowMap->updateShadowUniformsForRegesteredPrograms(camera->getViewTransform());
 
 			////
-
 			if (mesh3) {
 				if (auto&& nm3 = mesh3->getNode()) {
 					static uint32_t mesh3RemoveTest = 0;
@@ -1747,22 +1760,7 @@ namespace engine {
 					}
 				}
 			}
-
-
-			////////
-			if (auto&& grassNode = grassMesh2->getNode()) {
-				static float t = 0.0f;
-				t += 2.0f * dt;
-
-				if (t > math_constants::pi2) {
-					t -= math_constants::pi2;
-				}
-
-				grassNode->getRenderObject()->getRenderDescriptor()->setParamByName("u_time", &t, false);
-				//const_cast<glm::mat4&>(grassNode->model())[0][0] = t;
-				//grassNode->setLocalMatrix(glm::mat4(t));
-			}
-
+            ////
 
 			reloadRenderList(sceneRenderList, rootNode, cameraMatrixChanged, 0, engine::FrustumVisibleChecker(camera->getFrustum()));
 			reloadRenderList(shadowRenderList, shadowCastNodes.data(), shadowCastNodes.size(), false, 0, engine::FrustumVisibleChecker(camera->getFrustum()));

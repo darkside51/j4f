@@ -128,6 +128,13 @@ namespace engine {
 		void updateSkins(const uint8_t updateFrame);
 		void updateTransforms(const uint8_t updateFrame);
 
+        inline void setUpdatedFrameNum(const uint8_t frame) noexcept {
+            _updatedFrameNum.store(frame, std::memory_order_relaxed);
+        }
+        inline uint8_t getUpdatedFrameNum() const noexcept {
+            return _updatedFrameNum.load(std::memory_order_relaxed);
+        }
+
 		struct HierarchyMatrixUpdater {
 			inline static bool _(HierarchyRaw<Mesh_Node>* node) {
 				Mesh_Node& mNode = node->value();
@@ -182,6 +189,8 @@ namespace engine {
 		uint8_t _latency;
 		uint8_t _updateFrameNum = 0;
 		bool _dirtySkins = true;
+
+        std::atomic<uint8_t> _updatedFrameNum = {0};
 	};
 
 	class Mesh : public RenderedEntity {

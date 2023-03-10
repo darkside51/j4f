@@ -311,9 +311,11 @@ namespace engine {
 			_animator->value().apply(target, updateFrame);
 		}
 
+        inline bool getNeedUpdate() const noexcept { return _needUpdate; }
+        inline void setNeedUpdate(const bool n) noexcept { _needUpdate = n; }
+
         inline void updateAnimation(const float delta) {
             _updateFrameNum = (_updateFrameNum + 1) % _animator->value().getLatency();
-            if (delta == 0.0f) return;
             update(delta, _updateFrameNum); // просто пересчет времени
             calculate(_updateFrameNum); // расчет scale, rotation, translation для нодов анимации
         }
@@ -332,5 +334,6 @@ namespace engine {
 	private:
 		AnimatorType* _animator;
         uint8_t _updateFrameNum = 0;
+        bool _needUpdate = true;
 	};
 }

@@ -56,6 +56,8 @@ namespace engine {
 							}
 							break;
 						case FpsLimitType::F_CPU_SLEEP:
+                            // linux - ok
+                            // windows - some strange, wtf??
 							if (durationTime < _targetFrameTime) {
 								std::this_thread::sleep_for(std::chrono::duration<float, std::milli>(1000.0f * (_targetFrameTime - durationTime)));
                                 continue;
@@ -68,8 +70,7 @@ namespace engine {
 					_time = currentTime;
 					_task(durationTime, currentTime);
 
-					_frameId.fetch_add(1, std::memory_order_release); // increase frameId at the end of frame
-					//std::this_thread::yield();
+					_frameId.fetch_add(1, std::memory_order_relaxed); // increase frameId at the end of frame
 				}
 
 				_wait.test_and_set(std::memory_order_acq_rel);
@@ -155,7 +156,7 @@ namespace engine {
 			_fpsLimitType = t;
 		}
 
-		[[nodiscard]] inline uint16_t getFrameId() const noexcept { return _frameId.load(std::memory_order_consume); }
+		[[nodiscard]] inline uint16_t getFrameId() const noexcept { return _frameId.load(std::memory_order_relaxed); }
 
 	private:
 		inline void sleep() {

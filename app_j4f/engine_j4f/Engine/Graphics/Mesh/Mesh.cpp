@@ -116,6 +116,8 @@ namespace engine {
 		if (!skeleton->_skins.empty() && !token) {
 			skeleton->updateSkins(updateFrame);
 		}
+
+        skeleton->setUpdatedFrameNum(updateFrame);
 	}
 
     void applyAnimationFrameToSkeleton(const CancellationToken& token, MeshSkeleton* skeleton, MeshAnimationTree* animTree, const uint8_t updateFrame) {
@@ -233,7 +235,13 @@ namespace engine {
 
     void MeshSkeleton::applyFrame(MeshAnimationTree* animTree) {
         const auto frameNum = animTree->frame();
-        if (_latency > 1 && frameNum != _updateFrameNum) {
+        if ((_latency > 1 && frameNum != _updateFrameNum) || _latency == 1) {
+            {
+                // new vision
+                // check the target frame already complete previous work
+                checkAnimCalculation(frameNum);
+            }
+
             _updateFrameNum = frameNum;
             _animCalculationResult[_updateFrameNum] = Engine::getInstance().getModule<ThreadPool2>()->enqueue(
                     TaskType::COMMON, updateSkeletonAnimationTree, this, animTree, _updateFrameNum);
@@ -426,9 +434,12 @@ namespace engine {
 	void Mesh::draw(const glm::mat4& cameraMatrix, const glm::mat4& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame) {
 		if (!_skeleton) return;
 
-		const uint8_t renderFrameNum = (_skeleton->_updateFrameNum + 1) % _skeleton->_latency;
+        // old variant
+//		const uint8_t renderFrameNum = (_skeleton->_updateFrameNum + 1) % _skeleton->_latency;
+//		_skeleton->checkAnimCalculation(renderFrameNum);
 
-		_skeleton->checkAnimCalculation(renderFrameNum);
+        //new vision
+        const uint8_t renderFrameNum = _skeleton->getUpdatedFrameNum();
 
 		for (uint32_t i = 0; i < _renderDescriptor.renderDataCount; ++i) {
 			vulkan::RenderData* r_data = _renderDescriptor.renderData[i];
@@ -458,9 +469,13 @@ namespace engine {
 		if (!_skeleton) return;
 
 		_modelMatrixChanged |= worldMatrixChanged;
-		const uint8_t renderFrameNum = (_skeleton->_updateFrameNum + 1) % _skeleton->_latency;
 
-		_skeleton->checkAnimCalculation(renderFrameNum);
+        // old variant
+		//const uint8_t renderFrameNum = (_skeleton->_updateFrameNum + 1) % _skeleton->_latency;
+		//_skeleton->checkAnimCalculation(renderFrameNum);
+
+        // new vision
+        const uint8_t renderFrameNum = _skeleton->getUpdatedFrameNum();
 
 		for (uint32_t i = 0; i < _renderDescriptor.renderDataCount; ++i) {
 			vulkan::RenderData* r_data = _renderDescriptor.renderData[i];
