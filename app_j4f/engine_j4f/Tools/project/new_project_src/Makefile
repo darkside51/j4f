@@ -1,6 +1,7 @@
 
 win64:
 	cmake -S . -B build/win64 \
+	-DMSVC=true \
 	-DSTATISTIC_ENABLED=true \
 	-DPROFILER_ENABLE=true \
 	-DGPU_DEBUG_MARKER_ENABLED=true \

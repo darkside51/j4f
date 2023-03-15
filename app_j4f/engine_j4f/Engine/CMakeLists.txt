@@ -4,8 +4,11 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(CMAKE_CXX_FLAGS_DEBUG "-g")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+if (NOT (j4f_PLATFORM STREQUAL "WINDOWS"))
+	set(CMAKE_CXX_FLAGS_DEBUG "-g")
+	set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+	message("engine cmake flags for debug and release configured")
+endif ()
 
 if (CMAKE_BUILD_TYPE MATCHES Debug)
 	message("debug_mode")
