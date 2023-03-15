@@ -18,24 +18,32 @@ namespace engine {
         inline void registerAnimation(T *animation) noexcept {
             if (std::find(_animations.begin(), _animations.end(), animation) == _animations.end()) {
                 _animations.push_back(animation);
+                _animationsTargets.emplace_back();
             }
         }
 
         inline void unregisterAnimation(T *animation) noexcept {
+            // todo: remove _animationsTargets!
             _animations.erase(std::remove(_animations.begin(), _animations.end(), animation), _animations.end());
         }
 
         inline void update(const float delta) noexcept {
+            size_t i = 0;
             for (auto && anim : _animations) {
                 if (anim->getNeedUpdate()) {
                     anim->updateAnimation(delta);
-                    // todo: call animation update observers
+                    // update targets
+                    for (auto&& target : _animationsTargets[i]) {
+                        target->applyFrame(anim);
+                    }
                 }
+                ++i;
             }
         }
 
     private:
         std::vector<T*> _animations;
+        std::vector<std::vector<typename T::TargetType>> _animationsTargets;
     };
 
     class Animation;

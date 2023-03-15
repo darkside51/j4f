@@ -270,8 +270,8 @@ namespace engine {
 
 	class MeshAnimationTree {
 		using TreeAnimator = MeshAnimator;
-		using TargetType = MeshSkeleton*;
 	public:
+        using TargetType = MeshSkeleton*;
 		using AnimatorType = HierarchyRaw<TreeAnimator>;
 	private:
 		inline static bool updateAnimators(AnimatorType* animator, const float delta, const uint8_t i) {

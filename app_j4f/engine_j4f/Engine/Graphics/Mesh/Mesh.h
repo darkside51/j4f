@@ -112,7 +112,7 @@ namespace engine {
 
         void applyFrame(MeshAnimationTree* animTree); // animation another vision
 
-		inline void checkAnimCalculation(const uint8_t frame) {
+		inline void checkAnimCalculation(const uint8_t frame) noexcept {
 			if (_animCalculationResult[frame]) {
 				if (const auto state = _animCalculationResult[frame]->state(); (state != TaskState::COMPLETE && state != TaskState::CANCELED)) {
 					//if (_animCalculationResult[frame].valid() && _animCalculationResult[frame].wait_for(std::chrono::microseconds(0)) != std::future_status::ready) {
@@ -120,6 +120,15 @@ namespace engine {
 				}
 			}
 		}
+
+        inline bool needSkipAnimCalculation(const uint8_t frame) noexcept {
+            if (_animCalculationResult[frame]) {
+                if (const auto state = _animCalculationResult[frame]->state(); (state != TaskState::COMPLETE && state != TaskState::CANCELED)) {
+                   return true;
+                }
+            }
+            return false;
+        }
 
         [[nodiscard]] inline uint8_t getLatency() const noexcept { return _latency; }
         [[nodiscard]] inline bool dirtySkins() const noexcept { return _dirtySkins; }

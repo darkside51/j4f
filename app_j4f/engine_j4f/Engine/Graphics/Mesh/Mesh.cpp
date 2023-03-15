@@ -239,7 +239,10 @@ namespace engine {
             {
                 // new vision
                 // check the target frame already complete previous work
-                checkAnimCalculation(frameNum);
+                if (needSkipAnimCalculation(frameNum)) {
+                    // wait process complete for target frame
+                    return;
+                }
             }
 
             _updateFrameNum = frameNum;
