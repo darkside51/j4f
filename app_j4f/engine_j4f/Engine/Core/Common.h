@@ -7,8 +7,8 @@
 #include "../Utils/Debug/MemoryLeakChecker.h"
 #endif
 
-#include <cstdint>
 #include <atomic>
+#include <cstdint>
 #include <memory>
 
 #define offset_of(type, p) (reinterpret_cast<size_t>(&((reinterpret_cast<type*>(0))->p)))

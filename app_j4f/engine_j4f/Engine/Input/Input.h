@@ -184,13 +184,13 @@ namespace engine {
 
 	class Input : public IEngineModule {
 	public:
-		inline constexpr static uint8_t ALT_PRESSED_BIT = 0;
-		inline constexpr static uint8_t CTRL_PRESSED_BIT = 1;
-		inline constexpr static uint8_t SHIFT_PRESSED_BIT = 2;
-		inline constexpr static uint8_t SUPER_PRESSED_BIT = 3;
+		inline static constexpr uint8_t ALT_PRESSED_BIT = 0;
+		inline static constexpr uint8_t CTRL_PRESSED_BIT = 1;
+		inline static constexpr uint8_t SHIFT_PRESSED_BIT = 2;
+		inline static constexpr uint8_t SUPER_PRESSED_BIT = 3;
 
 		inline bool isAltPressed()		const noexcept { return (_specialMask & (1 << ALT_PRESSED_BIT))		!= 0; }
-		inline bool isCtrlPressed()		const noexcept { return (_specialMask & (1 << CTRL_PRESSED_BIT))		!= 0; }
+		inline bool isCtrlPressed()		const noexcept { return (_specialMask & (1 << CTRL_PRESSED_BIT))	!= 0; }
 		inline bool isShiftPressed()	const noexcept { return (_specialMask & (1 << SHIFT_PRESSED_BIT))	!= 0; }
 		inline bool isSuperPressed()	const noexcept { return (_specialMask & (1 << SUPER_PRESSED_BIT))	!= 0; }
 

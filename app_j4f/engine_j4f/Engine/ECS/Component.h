@@ -44,9 +44,9 @@ namespace engine {
 	template <typename T, typename Allocator, typename... Args>
 	auto allocateComponent(Allocator&& allocator, Args&&... args) -> ComponentImpl<T>* {
 		if constexpr (std::is_pointer_v<Allocator> || is_smart_pointer_v<Allocator>) {
-			return allocator->make<ComponentImpl<T>>(std::forward<Args>(args)...);
+			return allocator->template make<ComponentImpl<T>>(std::forward<Args>(args)...);
 		} else {
-			return allocator.make<ComponentImpl<T>>(std::forward<Args>(args)...);
+			return allocator.template make<ComponentImpl<T>>(std::forward<Args>(args)...);
 		}
 	}
 }

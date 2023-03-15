@@ -75,11 +75,11 @@ namespace vulkan {
 		};
 
 		// https://vulkan.lunarg.com/doc/view/1.3.211.0/linux/LoaderDriverInterface.html
-		constexpr std::array<const char*, 6> instanceSurfaceExts = { 
+		constexpr std::array<const char*, 6> instanceSurfaceExtensions = {
 																"VK_KHR_win32_surface", "VK_KHR_xcb_surface", "VK_KHR_xlib_surface", 
 																"VK_KHR_wayland_surface", "VK_MVK_macos_surface", "VK_QNX_screen_surface"
 																};
-		for (const char* ext : instanceSurfaceExts) {
+		for (const char* ext : instanceSurfaceExtensions) {
 			if (addInstanceExtension(ext)) {
 				break;
 			}

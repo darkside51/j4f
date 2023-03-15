@@ -11,6 +11,7 @@ linux:
 	mkdir -p build/linux
 	mkdir -p build/linux/debug
 	mkdir -p build/linux/release
+#
 # 	python3 j4f/Tools/project/make_linux_params.py
 # 	cmake \
 # 	-DSTATISTIC_ENABLED=true \

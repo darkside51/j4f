@@ -7,7 +7,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 if (NOT (j4f_PLATFORM STREQUAL "WINDOWS"))
 	set(CMAKE_CXX_FLAGS_DEBUG "-g")
 	set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-	message("engine cmake flags for debug and release configured")
+	message("engine cmake flags (debug+release) configured")
 endif ()
 
 if (CMAKE_BUILD_TYPE MATCHES Debug)
