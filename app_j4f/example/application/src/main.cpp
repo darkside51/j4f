@@ -2478,10 +2478,10 @@ int main() {
 		int a;
 	};
 
-	engine::ComponentHolder<A> c1;
-	engine::ComponentHolder<B> c2;
-	engine::ComponentHolder<B> c3;
-	engine::ComponentHolder<A> c4;
+	engine::ComponentImpl<A> c1;
+	engine::ComponentImpl<B> c2;
+	engine::ComponentImpl<B> c3;
+	engine::ComponentImpl<A> c4;
 
 	auto cid1 = engine::Component::rtti<A>();
 	auto cid2 = engine::Component::rtti<B>();
@@ -2495,6 +2495,10 @@ int main() {
 	auto cid15 = c5->rtti();
 
 	delete c5;
+
+	auto&& c6 = engine::allocateComponent<B>(engine::AllocatorPlaceholder(), 100);
+	auto cid16 = c6->rtti();
+	delete c6;
 
 	ENGINE_BREAK_CONDITION(true);
 

@@ -55,7 +55,7 @@ namespace engine {
 	struct is_smart_pointer<linked_ext_ptr<T>> { enum : bool { value = true }; };
 
 	template<typename T>
-	inline constinit bool is_smart_pointer_v = engine::is_smart_pointer<T>::value;
+	inline constexpr bool is_smart_pointer_v = engine::is_smart_pointer<T>::value;
 
 	namespace static_inheritance {
 		// класс для проверки возможности конвертирования T в U

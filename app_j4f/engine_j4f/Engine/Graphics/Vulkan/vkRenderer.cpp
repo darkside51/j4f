@@ -147,7 +147,7 @@ namespace vulkan {
 			return true;
 		};
 
-        constinit static std::array<uint8_t, 5> deviceTypePrioritets = {
+        constexpr static std::array<uint8_t, 5> deviceTypePrioritets = {
                 4, // VK_PHYSICAL_DEVICE_TYPE_OTHER = 0
                 1, // VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU = 1
                 0, // VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU = 2

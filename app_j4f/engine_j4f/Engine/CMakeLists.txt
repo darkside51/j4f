@@ -16,7 +16,7 @@ endif(CMAKE_BUILD_TYPE MATCHES Debug)
 
 include (${CMAKE_CURRENT_SOURCE_DIR}/../Tools/cmake/utils.cmake)
 
-project(j4f_engine)
+project(engine)
 
 set(ENGINE_SRC_DIRS)
 set(ENGINE_HEADERS)
@@ -165,7 +165,7 @@ elseif (j4f_PLATFORM STREQUAL "LINUX")
 #add_library(vulkan_lib SHARED IMPORTED)
 #set_property(TARGET vulkan_lib PROPERTY IMPORTED_LOCATION $ENV{VULKAN_SDK}/lib/libvulkan.so)
 #target_link_libraries (
-#        j4f_engine
+#        ${PROJECT_NAME}
 #        vulkan_lib
 #)
 
@@ -176,7 +176,7 @@ set(
 endif()
 
 add_library(
-	j4f_engine
+	${PROJECT_NAME}
 	STATIC
 	${ENGINE_SOURCES}
 	${ENGINE_HEADERS}
@@ -186,7 +186,7 @@ add_library(
 # freetype library
 message("freetype library begin")
 add_3rdparty_project (${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/freetype ${CMAKE_BINARY_DIR}/3rd_party/freetype)
-target_include_directories(j4f_engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/freetype/include)
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/freetype/include)
 set(FREETYPE_LIB freetype)
 message("freetype library end")
 # freetype library
@@ -194,7 +194,7 @@ message("freetype library end")
 # fmt library
 message("fmt library begin")
 add_3rdparty_project (${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/fmt ${CMAKE_BINARY_DIR}/3rd_party/fmt)
-target_include_directories(j4f_engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../3rdparty/fmt/include)
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../3rdparty/fmt/include)
 set (FMT_LIB fmt)
 message("fmt library end")
 # fmt library
@@ -202,7 +202,7 @@ message("fmt library end")
 # webp library
 message("webp library begin")
 add_3rdparty_project (${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/libwebp-1.3.0 ${CMAKE_BINARY_DIR}/3rd_party/libwebp)
-target_include_directories(j4f_engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/libwebp-1.3.0/src/webp)
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/libwebp-1.3.0/src/webp)
 set(WEBP_LIB webp)
 message("webp library end")
 # webp library
@@ -210,13 +210,13 @@ message("webp library end")
 # libpng library
 #message("libpng library begin")
 #add_3rdparty_project (${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/libpng16 ${CMAKE_BINARY_DIR}/3rd_party/libpng)
-#target_include_directories(j4f_engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/libpng16)
+#target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/libpng16)
 #set(PNG_LIB png_static)
 #message("libpng library end")
 # libpng library
 
 target_link_libraries (
-	j4f_engine
+	${PROJECT_NAME}
 	${USED_FRAMEWORKS}
 	${FREETYPE_LIB}
 	${FMT_LIB}
@@ -224,32 +224,32 @@ target_link_libraries (
 	#${PNG_LIB}
 )
 
-target_include_directories(j4f_engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/glm)
-target_include_directories(j4f_engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/imgui)
-target_include_directories(j4f_engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/stb_image)
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/glm)
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/imgui)
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/stb_image)
 
 #### platform dependency
 if (GLFW_PLATFORM)
 	# glfw library
 	message("glfw library begin")
 	add_3rdparty_project (${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/glfw_3.3.8 ${CMAKE_BINARY_DIR}/3rd_party/glfw)
-	target_include_directories(j4f_engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/glfw_3.3.8/include)
+	target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/glfw_3.3.8/include)
 	set(GLFW_LIB glfw)
 	message("glfw library end")
 	# glfw library
 
 	target_link_libraries (
-		j4f_engine
+		${PROJECT_NAME}
 		${GLFW_LIB}
 	)
-	target_include_directories(j4f_engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Platform/GLFW)
+	target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Platform/GLFW)
 endif()
 
 #### vulkan includes
 if (j4f_PLATFORM STREQUAL "WINDOWS")
-	target_include_directories(j4f_engine PUBLIC $ENV{VULKAN_SDK}/Include)
+	target_include_directories(${PROJECT_NAME} PUBLIC $ENV{VULKAN_SDK}/Include)
 elseif (j4f_PLATFORM STREQUAL "LINUX")
-	target_include_directories(j4f_engine PUBLIC $ENV{VULKAN_SDK}/include)
+	target_include_directories(${PROJECT_NAME} PUBLIC $ENV{VULKAN_SDK}/include)
 endif()
 
 message(STATUS "!!!!!engine generate success!!!!!")
