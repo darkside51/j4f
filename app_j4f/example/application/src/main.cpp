@@ -507,7 +507,7 @@ namespace engine {
             camera->addObserver(this);
             Engine::getInstance().getModule<Input>()->addObserver(this);
 
-            statObserver = new ImguiStatObserver();
+            statObserver = new ImguiStatObserver(ImguiStatObserver::Location::top_right);
         }
 
 		ApplicationCustomData() {

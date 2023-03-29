@@ -7,7 +7,7 @@
 
 namespace engine {
 
-    ImguiStatObserver::ImguiStatObserver() {
+    ImguiStatObserver::ImguiStatObserver(const Location location) : _location(location) {
         if (auto &&stat = Engine::getInstance().getModule<Statistic>()) {
             stat->addObserver(this);
         }
