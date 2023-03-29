@@ -31,7 +31,7 @@ namespace engine {
 	};
 
 	template <typename T, typename... Args>
-	Component*  makeComponent(Args&&... args) {
+	Component* makeComponent(Args&&... args) {
 		// create with memory pool?
 		return new ComponentImpl<T>(std::forward<Args>(args)...);
 	}

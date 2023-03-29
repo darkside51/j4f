@@ -36,17 +36,16 @@ namespace engine {
                 break;
         }
 
-        _gpuName = fmtString("gpu: {}({})", renderer->getDevice()->gpuProperties.deviceName, gpuType);
+        _gpuName = fmtString("gpu ({}): {}", gpuType, renderer->getDevice()->gpuProperties.deviceName);
 
         const auto engineVersion = engineInstance.version();
         const auto apiVersion = engineInstance.getModule<Graphics>()->config().render_api_version;
         const auto applicationVersion = engineInstance.applicationVersion();
 
-        _versions = fmtString("engine version: {}.{}.{}\n{} api version: {}.{}.{}\napplication version: {}.{}.{}",
+        _versions = fmtString("application version {}.{}.{}\nengine version {}.{}.{}\ngpu api: {}, version {}.{}.{}",
+                              applicationVersion->major, applicationVersion->minor, applicationVersion->patch,
                               engineVersion->major, engineVersion->minor, engineVersion->patch,
-                              renderer->getName(),
-                              apiVersion->major, apiVersion->minor, apiVersion->patch,
-                              applicationVersion->major, applicationVersion->minor, applicationVersion->patch
+                              renderer->getName(), apiVersion->major, apiVersion->minor, apiVersion->patch
                               );
     }
 
@@ -133,7 +132,7 @@ namespace engine {
         ImGuiStyleColorChanger _7(ImGuiCol_TitleBgActive, bgColor);
 
 #ifdef _DEBUG
-        if (ImGui::Begin("j4f_statistic(debug):", nullptr, window_flags)) {
+        if (ImGui::Begin("info(debug):", nullptr, window_flags)) {
 #else
             if (ImGui::Begin("j4f_statistic(release):", nullptr, window_flags)) {
 #endif
