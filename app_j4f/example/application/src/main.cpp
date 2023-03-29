@@ -1826,6 +1826,7 @@ namespace engine {
 			commandBuffer.cmdSetViewport(0.0f, 0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f, 1.0f, false);
 			commandBuffer.cmdSetScissor(0, 0, width, height);
 			commandBuffer.cmdSetDepthBias(0.0f, 0.0f, 0.0f);
+            //commandBuffer.cmdSetLineWidth(1.0f);
 
 			const glm::mat4& cameraMatrix = camera->getMatrix();
 
@@ -2544,6 +2545,7 @@ int main() {
 	cfg.graphicsCfg = { engine::GpuType::DISCRETE, true, false,
                         engine::Version(1, 2, 182) }; // INTEGRATED, DISCRETE
 	cfg.graphicsCfg.gpu_features.geometryShader = 1;
+    //cfg.graphicsCfg.gpu_features.wideLines = 1;
 	//cfg.graphicsCfg.gpu_features.fillModeNonSolid = 1; // example to enable POLYGON_MODE_LINE or POLYGON_MODE_POINT
 
 	engine::Engine::getInstance().init(cfg);

@@ -125,7 +125,7 @@ namespace engine {
 				+ std::max(min.y * _frustum[i][1], max.y * _frustum[i][1])
 				+ std::max(min.z * _frustum[i][2], max.z * _frustum[i][2])
 				+ _frustum[i][3];
-			inside &= d > 0.0f;
+			inside &= (d > 0.0f);
 		}
 		return inside;
 	}

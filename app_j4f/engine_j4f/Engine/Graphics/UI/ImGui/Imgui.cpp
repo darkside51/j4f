@@ -11,7 +11,8 @@ namespace engine {
         setupKeyMap();
 
         ImGuiIO& io = ImGui::GetIO();
-        io.DisplayFramebufferScale = ImVec2(1, 1);
+        io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
+        io.IniFilename = nullptr; // disable creation "imgui.ini"
     }
 
     ImguiGraphics::~ImguiGraphics() {

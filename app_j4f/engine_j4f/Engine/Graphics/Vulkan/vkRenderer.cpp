@@ -1046,6 +1046,10 @@ namespace vulkan {
 		dynamicStateEnables.push_back(VK_DYNAMIC_STATE_SCISSOR);
 		dynamicStateEnables.push_back(VK_DYNAMIC_STATE_DEPTH_BIAS);
 
+        if (_vulkanDevice->enabledFeatures.wideLines != 0) {
+            dynamicStateEnables.push_back(VK_DYNAMIC_STATE_LINE_WIDTH);
+        }
+
 		VkPipelineDynamicStateCreateInfo dynamicState = {};
 		dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
 		dynamicState.pDynamicStates = dynamicStateEnables.data();

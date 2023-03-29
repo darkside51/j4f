@@ -23,6 +23,10 @@ namespace vulkan {
 	struct EmptyState {};
 
 	struct VulkanCommandBufferState {
+    private:
+        static inline constexpr float invalid_float = 0xffffffff;
+
+    public:
 
 		struct BindingSets {
 		private:
@@ -97,9 +101,10 @@ namespace vulkan {
 		VkDeviceSize m_indexBufferOffset = 0;
 		VkIndexType m_indexBufferType = VK_INDEX_TYPE_MAX_ENUM;
 
-		float m_depthBiasConstantFactor = 0xffff;
-		float m_depthBiasClamp = 0xffff;
-		float m_depthBiasSlopeFactor = 0xffff;
+		float m_depthBiasConstantFactor = invalid_float;
+		float m_depthBiasClamp = invalid_float;
+		float m_depthBiasSlopeFactor = invalid_float;
+        float m_lineWidth = invalid_float;
 
 		BindingSets m_bindSets[3];
 
@@ -118,9 +123,10 @@ namespace vulkan {
 			memset(&m_viewport, 0, sizeof(VkViewport));
 			memset(&m_scissor, 0, sizeof(VkRect2D));
 
-			m_depthBiasConstantFactor = 0xffff;
-			m_depthBiasClamp = 0xffff;
-			m_depthBiasSlopeFactor = 0xffff;
+			m_depthBiasConstantFactor = invalid_float;
+			m_depthBiasClamp = invalid_float;
+			m_depthBiasSlopeFactor = invalid_float;
+            m_lineWidth = invalid_float;
 
 			m_bindSets[0].invalidate();
 			m_bindSets[1].invalidate();
@@ -181,6 +187,15 @@ namespace vulkan {
 
 			return false;
 		}
+
+        inline bool setLineWidth(const float lineWidth) {
+            if (m_lineWidth != lineWidth) {
+                m_lineWidth = lineWidth;
+                return true;
+            }
+
+            return false;
+        }
 
 		inline bool bindPipeline(const VkPipelineBindPoint pipelineBindPoint, VkPipeline pipeline) { 
 			if (/*m_pipelineBindPoint != pipelineBindPoint ||*/ m_pipeline != pipeline) {
@@ -610,6 +625,19 @@ namespace vulkan {
 			}
 			return false;
 		}
+
+        inline bool cmdSetLineWidth(const float lineWidth) {
+            if constexpr (stated) {
+                if (state.setLineWidth(lineWidth)) {
+                    vkCmdSetLineWidth(m_commandBuffer, lineWidth);
+                    return true;
+                }
+            } else {
+                vkCmdSetLineWidth(m_commandBuffer, lineWidth);
+                return true;
+            }
+            return false;
+        }
 
 		inline void cmdBindDescriptorSet(const VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout layout,
 			const uint32_t set,
