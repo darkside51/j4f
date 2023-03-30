@@ -15,6 +15,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 
+#include "../../3rd_party/half_float/umHalf.h"
+
 #include <cmath>
 #include <cstdint>
 #include <type_traits>

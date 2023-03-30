@@ -2538,6 +2538,8 @@ int main() {
 	fmt::format_to(buffer, "{}", 42);
 	*/
 
+    half half_float_value = 0.5f;
+
 	//////////////////////////////////
 	engine::EngineConfig cfg;
 	cfg.fpsDraw = 120;

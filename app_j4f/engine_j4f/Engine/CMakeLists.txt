@@ -100,6 +100,7 @@ set(
 	Utils/Debug
 	Utils/Json
 
+	../3rd_party/half_float
 	../3rd_party/imgui
 )
 
