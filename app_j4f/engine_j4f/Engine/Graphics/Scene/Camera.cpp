@@ -4,7 +4,7 @@
 
 namespace engine {
 
-	void Frustum::calculate(const glm::mat4& clip) {
+	void Frustum::calculate(const glm::mat4& clip) noexcept {
 		//находим A,B,C,D для правой плоскости
 		_frustum[0][0] = clip[0][3] - clip[0][0];
 		_frustum[0][1] = clip[1][3] - clip[1][0];
@@ -44,7 +44,7 @@ namespace engine {
 		_normalized = false;
 	}
 
-	void Frustum::normalize() { // normalize frustum plains
+	void Frustum::normalize() noexcept { // normalize frustum plains
 		if (_normalized) return;
 
 		for (uint8_t i = 0; i < 6; ++i) { // приводим уравнения плоскостей к нормальному виду
@@ -58,7 +58,7 @@ namespace engine {
 		_normalized = true;
 	}
 
-	bool Frustum::isPointVisible(const glm::vec3& p) const {
+	bool Frustum::isPointVisible(const glm::vec3& p) const noexcept {
 		for (uint8_t i = 0; i < 6; ++i) {
 			if (_frustum[i][0] * p.x + _frustum[i][1] * p.y + _frustum[i][2] * p.z + _frustum[i][3] < 0.0f) {
 				return false;
@@ -68,7 +68,7 @@ namespace engine {
 		return true;
 	}
 
-	bool Frustum::isSphereVisible(const glm::vec3& p, const float r) {
+	bool Frustum::isSphereVisible(const glm::vec3& p, const float r) noexcept {
 		if (_normalized == false) { // для определения расстояний до плоскостей нужна нормализация плоскостей
 			normalize();
 		}
@@ -83,7 +83,7 @@ namespace engine {
 		return true;
 	}
 
-	bool Frustum::isCubeVisible_classic(const glm::vec3& min, const glm::vec3& max) const {
+	bool Frustum::isCubeVisible_classic(const glm::vec3& min, const glm::vec3& max) const noexcept {
 		for (uint8_t i = 0; i < 6; ++i) {
 			if (_frustum[i][0] * min.x + _frustum[i][1] * min.y +
 				_frustum[i][2] * min.z + _frustum[i][3] > 0.0f)
@@ -117,7 +117,7 @@ namespace engine {
 		return true;
 	}
 
-	bool Frustum::isCubeVisible(const glm::vec3& min, const glm::vec3& max) const {
+	bool Frustum::isCubeVisible(const glm::vec3& min, const glm::vec3& max) const noexcept {
 		// https://gamedev.ru/code/articles/FrustumCulling
 		bool inside = true;
 		for (int i = 0; (inside && (i < 6)); ++i) {
@@ -152,7 +152,7 @@ namespace engine {
 		_position(emptyVec3)
 	{}
 
-	void Camera::makeProjection(const float fov, const float aspect, const float znear, const float zfar) {
+	void Camera::makeProjection(const float fov, const float aspect, const float znear, const float zfar) noexcept {
 		_projectionType = ProjectionType::PERSPECTIVE;
 		_projectionTransform = glm::perspective(fov, aspect, znear, zfar);
 		_projectionTransform[1][1] *= -1.0f;
@@ -166,7 +166,7 @@ namespace engine {
 		*/
 	}
 
-	void Camera::makeOrtho(const float left, const float right, const float bottom, const float top, const float znear, const float zfar) {
+	void Camera::makeOrtho(const float left, const float right, const float bottom, const float top, const float znear, const float zfar) noexcept {
 		_projectionType = ProjectionType::ORTHO;
 		_projectionTransform = glm::ortho(left, right, bottom, top, znear, zfar);
 		_projectionTransform[3][2] = 0.0f; // для большей точности в буфере глубины
@@ -175,7 +175,7 @@ namespace engine {
 		_dirty->transform = 1;
 	}
 
-	void Camera::resize(const float w, const float h) {
+	void Camera::resize(const float w, const float h) noexcept {
 		switch (_projectionType) {
 			case ProjectionType::PERSPECTIVE:
 			{
@@ -197,7 +197,7 @@ namespace engine {
 		_dirty->transform = 1;
 	}
 
-	bool Camera::calculateTransform() {
+	bool Camera::calculateTransform() noexcept {
 		if (_dirty->transform == 0) return false;
 
 		_viewTransform = glm::mat4(1.0f);
@@ -229,7 +229,7 @@ namespace engine {
 		return true;
 	}
 
-	glm::vec2 Camera::worldToScreen(const glm::vec3& p) const {
+	glm::vec2 Camera::worldToScreen(const glm::vec3& p) const noexcept {
 		glm::vec4 v = _transform * glm::vec4(p, 1.0f);
 		v /= v.w;
 
@@ -239,7 +239,7 @@ namespace engine {
 		return glm::vec2(v.x, v.y);
 	}
 
-	Ray Camera::screenToWorld(const glm::vec2& screenCoord) {
+	Ray Camera::screenToWorld(const glm::vec2& screenCoord) noexcept {
 		glm::vec4 v;
 		v.x = (((2.0f * screenCoord.x) / _size.x) - 1.0f);
 		v.y = (((2.0f * screenCoord.y) / _size.y) - 1.0f);

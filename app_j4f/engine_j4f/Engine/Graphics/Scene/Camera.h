@@ -3,6 +3,7 @@
 #include "../../Core/Math/mathematic.h"
 
 #include <cstdint>
+#include <memory>
 #include <vector>
 
 namespace engine {
@@ -20,15 +21,15 @@ namespace engine {
 
 	class Frustum {
 	public:
-		void calculate(const glm::mat4& clip);
+		void calculate(const glm::mat4& clip) noexcept;
 		
-		bool isPointVisible(const glm::vec3& p) const;
-		bool isSphereVisible(const glm::vec3& p, const float r);
-		bool isCubeVisible_classic(const glm::vec3& min, const glm::vec3& max) const;
-		bool isCubeVisible(const glm::vec3& min, const glm::vec3& max) const;
+		bool isPointVisible(const glm::vec3& p) const noexcept;
+		bool isSphereVisible(const glm::vec3& p, const float r) noexcept;
+		bool isCubeVisible_classic(const glm::vec3& min, const glm::vec3& max) const noexcept;
+		bool isCubeVisible(const glm::vec3& min, const glm::vec3& max) const noexcept;
 
 	private:
-		void normalize();
+		void normalize() noexcept;
 		bool _normalized;
 		float _frustum[6][4];
 	};
@@ -37,30 +38,30 @@ namespace engine {
 	public:
 		FrustumCollection(const uint8_t count) : _frustums(count) {}
 
-		inline void calculate(const std::vector<glm::mat4>& clips) {
+		inline void calculate(const std::vector<glm::mat4>& clips) noexcept {
 			size_t i = 0;
 			for (auto&& f : _frustums) {
 				f.calculate(clips[i++]);
 			}
 		}
 
-		void calculateOne(const glm::mat4& clip, const uint8_t idx) {
+		void calculateOne(const glm::mat4& clip, const uint8_t idx) noexcept {
 			_frustums[idx].calculate(clip);
 		}
 
-		inline bool isPointVisible(const glm::vec3& p) const {
+		inline bool isPointVisible(const glm::vec3& p) const noexcept {
 			for (auto&& f : _frustums) { if (f.isPointVisible(p)) return true; }
 		}
 
-		inline bool isSphereVisible(const glm::vec3& p, const float r) {
+		inline bool isSphereVisible(const glm::vec3& p, const float r) noexcept {
 			for (auto&& f : _frustums) { if (f.isSphereVisible(p, r)) return true; }
 		}
 
-		inline bool isCubeVisible_classic(const glm::vec3& min, const glm::vec3& max) const {
+		inline bool isCubeVisible_classic(const glm::vec3& min, const glm::vec3& max) const noexcept {
 			for (auto&& f : _frustums) { if (f.isCubeVisible_classic(min, max)) return true; }
 		}
 
-		inline bool isCubeVisible(const glm::vec3& min, const glm::vec3& max) const {
+		inline bool isCubeVisible(const glm::vec3& min, const glm::vec3& max) const noexcept {
 			for (auto&& f : _frustums) { if (f.isCubeVisible(min, max)) return true; }
 		}
 
@@ -93,8 +94,8 @@ namespace engine {
 
 			DirtyValue(const uint8_t value) : v(value) {}
 
-			DirtyFlags* operator->() { return &flags; }
-			const DirtyFlags* operator->() const { return &flags; }
+			DirtyFlags* operator->() noexcept { return &flags; }
+			const DirtyFlags* operator->() const noexcept { return &flags; }
 		};
 
 	public:
@@ -105,22 +106,22 @@ namespace engine {
 			disableFrustum();
 		}
 
-		void resize(const float w, const float h);
-		glm::vec2 worldToScreen(const glm::vec3& p) const;
-		Ray screenToWorld(const glm::vec2& screenCoord);
+		void resize(const float w, const float h) noexcept;
+		glm::vec2 worldToScreen(const glm::vec3& p) const noexcept;
+		Ray screenToWorld(const glm::vec2& screenCoord) noexcept;
 
-		inline const glm::vec2& getSize() const { return _size; }
-		inline const glm::vec2& getNearFar() const { return _near_far; }
-		inline const Frustum* getFrustum() const { return _frustum; }
+		inline const glm::vec2& getSize() const noexcept { return _size; }
+		inline const glm::vec2& getNearFar() const noexcept { return _near_far; }
+		inline const Frustum* getFrustum() const noexcept { return _frustum.get(); }
 
-		inline const glm::vec3& getScale() const { return _scale; }
-		inline const glm::vec3& getRotation() const { return _rotation; }
-		inline const glm::vec3& getPosition() const { return _position; }
-		inline const glm::mat4& getMatrix() const { return _transform; }
+		inline const glm::vec3& getScale() const noexcept { return _scale; }
+		inline const glm::vec3& getRotation() const noexcept { return _rotation; }
+		inline const glm::vec3& getPosition() const noexcept { return _position; }
+		inline const glm::mat4& getMatrix() const noexcept { return _transform; }
 
-		inline const glm::mat4& getViewTransform() const { return _viewTransform; }
+		inline const glm::mat4& getViewTransform() const noexcept { return _viewTransform; }
 
-		inline const glm::mat4& getInvMatrix() { 
+		inline const glm::mat4& getInvMatrix() noexcept {
 			if (_dirty->invTransform) {
 				_invTransform = glm::inverse(_transform);
 				_dirty->invTransform = 0;
@@ -128,7 +129,7 @@ namespace engine {
 			return _invTransform;
 		}
 
-		inline const glm::mat4& getInvViewMatrix() {
+		inline const glm::mat4& getInvViewMatrix() noexcept {
 			if (_dirty->invViewTransform) {
 				_invViewTransform = glm::inverse(_viewTransform);
 				_dirty->invViewTransform = 0;
@@ -136,7 +137,7 @@ namespace engine {
 			return _invViewTransform;
 		}
 
-		inline void setRotationOrder(const RotationsOrder ro) {
+		inline void setRotationOrder(const RotationsOrder ro) noexcept {
 			if (_rotationOrder != ro) {
 				_rotationOrder = ro;
 				_dirty->transform = 1;
@@ -144,7 +145,7 @@ namespace engine {
 		}
 
 		template <typename VEC3 = const glm::vec3&>
-		inline void setScale(VEC3&& s) {
+		inline void setScale(VEC3&& s) noexcept {
 			if (_scale != s) {
 				_scale = s;
 				_dirty->transform = 1;
@@ -152,7 +153,7 @@ namespace engine {
 		}
 
 		template <typename VEC3 = const glm::vec3&>
-		inline void setRotation(VEC3&& r) {
+		inline void setRotation(VEC3&& r) noexcept {
 			if (_rotation != r) {
 				_rotation = r;
 				_dirty->transform = 1;
@@ -160,7 +161,7 @@ namespace engine {
 		}
 
 		template <typename VEC3 = const glm::vec3&>
-		inline void setPosition(VEC3&& p) { 
+		inline void setPosition(VEC3&& p) noexcept {
 			if (_position != p) {
 				_position = p;
 				_dirty->transform = 1;
@@ -168,7 +169,7 @@ namespace engine {
 		}
 
 		template <typename VEC3 = const glm::vec3&>
-		inline void movePosition(VEC3&& p) {
+		inline void movePosition(VEC3&& p) noexcept {
 			if (p != emptyVec3) {
 				const glm::vec4 move = glm::vec4(p, 0.0f) * _transform;
 
@@ -184,20 +185,19 @@ namespace engine {
 			if (_frustum) {
 				return;
 			}
-			_frustum = new Frustum();
+			_frustum = std::make_unique<Frustum>();
 		}
 
 		inline void disableFrustum() {
 			if (_frustum) {
-				delete _frustum;
 				_frustum = nullptr;
 			}
 		}
 
-		bool calculateTransform();
+		bool calculateTransform() noexcept;
 
-		void makeProjection(const float fov, const float aspect, const float znear, const float zfar);
-		void makeOrtho(const float left, const float right, const float bottom, const float top, const float znear, const float zfar);
+		void makeProjection(const float fov, const float aspect, const float znear, const float zfar) noexcept;
+		void makeOrtho(const float left, const float right, const float bottom, const float top, const float znear, const float zfar) noexcept;
 
 		inline void addObserver(ICameraTransformChangeObserver* observer) {
 			_observers.push_back(observer);
@@ -207,7 +207,7 @@ namespace engine {
 			_observers.erase(std::remove(_observers.begin(), _observers.end(), observer), _observers.end());
 		}
 
-		inline void notifyObservers() {
+		inline void notifyObservers() noexcept {
 			for (auto&& observer : _observers) {
 				observer->onCameraTransformChanged(this);
 			}
@@ -226,7 +226,7 @@ namespace engine {
 		glm::mat4 _viewTransform;
 		glm::mat4 _projectionTransform;
 
-		Frustum* _frustum;
+		std::unique_ptr<Frustum> _frustum;
 
 		RotationsOrder _rotationOrder;
 		glm::vec3 _scale;
