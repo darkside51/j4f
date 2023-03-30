@@ -42,10 +42,10 @@ namespace engine {
         const auto apiVersion = engineInstance.getModule<Graphics>()->config().render_api_version;
         const auto applicationVersion = engineInstance.applicationVersion();
 
-        _versions = fmtString("application version {}.{}.{}\nengine version {}.{}.{}\ngpu api: {}, version {}.{}.{}",
-                              applicationVersion->major, applicationVersion->minor, applicationVersion->patch,
-                              engineVersion->major, engineVersion->minor, engineVersion->patch,
-                              renderer->getName(), apiVersion->major, apiVersion->minor, apiVersion->patch
+        _versions = fmtString("application version {}\nengine version {}\ngpu api: {}, version {}",
+                              applicationVersion.str().c_str(),
+                              engineVersion.str().c_str(),
+                              renderer->getName(), apiVersion.str().c_str()
                               );
     }
 
