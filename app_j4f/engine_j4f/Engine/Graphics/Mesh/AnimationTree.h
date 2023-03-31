@@ -270,9 +270,11 @@ namespace engine {
 
 	class MeshAnimationTree {
 		using TreeAnimator = MeshAnimator;
+        
 	public:
         using TargetType = MeshSkeleton*;
 		using AnimatorType = HierarchyRaw<TreeAnimator>;
+
 	private:
 		inline static bool updateAnimators(AnimatorType* animator, const float delta, const uint8_t i) {
 			if (animator->value().getWeight() > 0.0f) {
@@ -304,7 +306,7 @@ namespace engine {
 		}
 
 		inline void updateAnimation(const float delta, TargetType target) {
-            target->updateAnimation(delta, this);
+            target->updateAnimation(delta * _speed, this);
 		}
 
 		inline void apply(TargetType target, const uint8_t updateFrame) const {
@@ -316,7 +318,7 @@ namespace engine {
 
         inline void updateAnimation(const float delta) {
             _updateFrameNum = (_updateFrameNum + 1) % _animator->value().getLatency();
-            update(delta, _updateFrameNum); // просто пересчет времени
+            update(delta * _speed, _updateFrameNum); // просто пересчет времени
             calculate(_updateFrameNum); // расчет scale, rotation, translation для нодов анимации
         }
 
@@ -331,9 +333,14 @@ namespace engine {
 		[[nodiscard]] inline const AnimatorType* getAnimator() const noexcept { return _animator; }
 
         [[nodiscard]] inline uint8_t frame() const noexcept { return _updateFrameNum; }
+
+        inline void setSpeed(const float s) noexcept { _speed = s; }
+        [[nodiscard]] inline float getSpeed() const noexcept { return _speed; }
+
 	private:
 		AnimatorType* _animator;
         uint8_t _updateFrameNum = 0;
         bool _needUpdate = true;
+        float _speed = 1.0f;
 	};
 }

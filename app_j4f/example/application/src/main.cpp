@@ -116,7 +116,7 @@ namespace engine {
 	glm::vec4 lightColor(1.0f, 1.0f, 1.0f, 1.0f);
 	//glm::vec2 lightMinMax(0.075f, 3.0f);
 	glm::vec2 lightMinMax(0.5f, 1.0f);
-	float saturation = 1.3f;
+	const float saturation = 1.2f;
 
 	H_Node* rootNode;
 	H_Node* uiNode;
@@ -1000,7 +1000,9 @@ namespace engine {
 				animTree->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[2], 1.0f, asset->getSkeleton()->getLatency()));
 				animTree->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[1], 0.0f, asset->getSkeleton()->getLatency()));
 
-                Engine::getInstance().getModule<Graphics>()->getAnimationManager()->registerAnimation(animTree);
+                auto&& animationManager = Engine::getInstance().getModule<Graphics>()->getAnimationManager();
+                animationManager->registerAnimation(animTree);
+                animationManager->addTarget(animTree, asset->getSkeleton().get());
 
 				asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
 					renderState.rasterizationState.cullMode = vulkan::CullMode::CULL_MODE_NONE;
@@ -1111,7 +1113,9 @@ namespace engine {
 				animTree2->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[10], 0.0f, asset->getSkeleton()->getLatency(), 1.0f));
 				animTree2->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[0], 0.0f, asset->getSkeleton()->getLatency(), 1.4f));
 
-                Engine::getInstance().getModule<Graphics>()->getAnimationManager()->registerAnimation(animTree2);
+                auto&& animationManager = Engine::getInstance().getModule<Graphics>()->getAnimationManager();
+                animationManager->registerAnimation(animTree2);
+                animationManager->addTarget(animTree2, asset->getSkeleton().get());
 
 				////////////////////
 				glm::mat4 wtr(1.0f);
@@ -1229,7 +1233,9 @@ namespace engine {
 
 				animTreeWindMill = new MeshAnimationTree(&asset->getMeshData()->animations[0],1.0f, asset->getSkeleton()->getLatency());
 
-                Engine::getInstance().getModule<Graphics>()->getAnimationManager()->registerAnimation(animTreeWindMill);
+                auto&& animationManager = Engine::getInstance().getModule<Graphics>()->getAnimationManager();
+                animationManager->registerAnimation(animTreeWindMill);
+                animationManager->addTarget(animTreeWindMill, asset->getSkeleton().get());
 
 				////////////////////
 				glm::mat4 wtr(1.0f);
@@ -1678,35 +1684,35 @@ namespace engine {
             // check update for animation needed (object visible etc...)
             Engine::getInstance().getModule<Graphics>()->getAnimationManager()->update<MeshAnimationTree>(dt);
 
-            if (animTree) {
-                // v0
-                //mesh->graphics()->getSkeleton()->updateAnimation(delta, animTree);
-                // v1
-                //animTree->updateAnimation(dt, mesh->graphics()->getSkeleton().get());
-                // v2
-                //animTree->updateAnimation(dt);
-                mesh->graphics()->getSkeleton()->applyFrame(animTree);
-            }
-
-            if (animTree2) {
-                // v0
-                //mesh3->graphics()->getSkeleton()->updateAnimation(delta, animTree2);
-                // v1
-                //animTree2->updateAnimation(dt, mesh3->graphics()->getSkeleton().get());
-                // v2
-                //animTree2->updateAnimation(dt);
-                mesh3->graphics()->getSkeleton()->applyFrame(animTree2);
-            }
-
-            if (animTreeWindMill) {
-                // v0
-                //mesh7->graphics()->getSkeleton()->updateAnimation(delta, animTreeWindMill);
-                // v1
-                //animTreeWindMill->updateAnimation(dt, mesh7->graphics()->getSkeleton().get());
-                // v2
-                //animTreeWindMill->updateAnimation(dt);
-                mesh7->graphics()->getSkeleton()->applyFrame(animTreeWindMill);
-            }
+//            if (animTree) {
+//                // v0
+//                //mesh->graphics()->getSkeleton()->updateAnimation(delta, animTree);
+//                // v1
+//                //animTree->updateAnimation(dt, mesh->graphics()->getSkeleton().get());
+//                // v2
+//                //animTree->updateAnimation(dt);
+//                mesh->graphics()->getSkeleton()->applyFrame(animTree);
+//            }
+//
+//            if (animTree2) {
+//                // v0
+//                //mesh3->graphics()->getSkeleton()->updateAnimation(delta, animTree2);
+//                // v1
+//                //animTree2->updateAnimation(dt, mesh3->graphics()->getSkeleton().get());
+//                // v2
+//                //animTree2->updateAnimation(dt);
+//                mesh3->graphics()->getSkeleton()->applyFrame(animTree2);
+//            }
+//
+//            if (animTreeWindMill) {
+//                // v0
+//                //mesh7->graphics()->getSkeleton()->updateAnimation(delta, animTreeWindMill);
+//                // v1
+//                //animTreeWindMill->updateAnimation(dt, mesh7->graphics()->getSkeleton().get());
+//                // v2
+//                //animTreeWindMill->updateAnimation(dt);
+//                mesh7->graphics()->getSkeleton()->applyFrame(animTreeWindMill);
+//            }
 
             if (auto&& grassNode = grassMesh2->getNode()) {
                 static float t = 0.0f;
@@ -1748,8 +1754,12 @@ namespace engine {
 			if (mesh3) {
 				if (auto&& nm3 = mesh3->getNode()) {
 					static uint32_t mesh3RemoveTest = 0;
-					if (++mesh3RemoveTest == 10000) {
-						meshUpdateSystem.unregisterObject(mesh3);
+					if (++mesh3RemoveTest == 5000) {
+                        Engine::getInstance().getModule<Graphics>()->getAnimationManager()->removeTarget(animTree2, mesh3->graphics()->getSkeleton().get());
+					}
+
+                    if (mesh3RemoveTest == 10000) {
+                        meshUpdateSystem.unregisterObject(mesh3);
 						auto node = rootNode->getChildFromPtr(nm3);
 						shadowCastNodes.erase(std::remove(shadowCastNodes.begin(), shadowCastNodes.end(), node), shadowCastNodes.end());
 						rootNode->removeChild(node);
@@ -1757,7 +1767,8 @@ namespace engine {
                         Engine::getInstance().getModule<Graphics>()->getAnimationManager()->unregisterAnimation(animTree2);
                         delete animTree2;
                         animTree2 = nullptr;
-					}
+                    }
+
 				}
 			}
             ////

@@ -22,9 +22,33 @@ namespace engine {
             }
         }
 
-        inline void unregisterAnimation(T *animation) noexcept {
-            // todo: remove _animationsTargets!
-            _animations.erase(std::remove(_animations.begin(), _animations.end(), animation), _animations.end());
+        inline void unregisterAnimation(const T *animation) noexcept {
+            auto it = std::find(_animations.begin(), _animations.end(), animation);
+            if (it != _animations.end()) {
+                const auto i = std::distance(_animations.begin(), it);
+                _animationsTargets.erase(
+                        std::remove(_animationsTargets.begin(), _animationsTargets.end(), _animationsTargets[i]),
+                        _animationsTargets.end());
+                _animations.erase(std::remove(_animations.begin(), _animations.end(), animation), _animations.end());
+            }
+        }
+
+        inline void addTarget(const T *animation, T::TargetType target) noexcept {
+            auto it = std::find(_animations.begin(), _animations.end(), animation);
+            if (it != _animations.end()) {
+                const auto i = std::distance(_animations.begin(), it);
+                _animationsTargets[i].push_back(target);
+            }
+        }
+
+        inline void removeTarget(const T *animation, T::TargetType target) noexcept {
+            auto it = std::find(_animations.begin(), _animations.end(), animation);
+            if (it != _animations.end()) {
+                const auto i = std::distance(_animations.begin(), it);
+                _animationsTargets[i].erase(
+                        std::remove(_animationsTargets[i].begin(), _animationsTargets[i].end(), target),
+                        _animationsTargets[i].end());
+            }
         }
 
         inline void update(const float delta) noexcept {
@@ -66,6 +90,22 @@ namespace engine {
             static const auto animId = UniqueTypeId<Animation>::getUniqueId<T>();
             if (_animUpdaters.size() > animId) {
                 static_cast<AnimationUpdater<T>*>(_animUpdaters[animId].get())->unregisterAnimation(animation);
+            }
+        }
+
+        template<typename T>
+        inline void addTarget(const T *animation, T::TargetType target) noexcept {
+            static const auto animId = UniqueTypeId<Animation>::getUniqueId<T>();
+            if (_animUpdaters.size() > animId) {
+                static_cast<AnimationUpdater<T>*>(_animUpdaters[animId].get())->addTarget(animation, target);
+            }
+        }
+
+        template<typename T>
+        inline void removeTarget(const T *animation, T::TargetType target) noexcept {
+            static const auto animId = UniqueTypeId<Animation>::getUniqueId<T>();
+            if (_animUpdaters.size() > animId) {
+                static_cast<AnimationUpdater<T>*>(_animUpdaters[animId].get())->removeTarget(animation, target);
             }
         }
 
