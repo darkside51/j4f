@@ -13,6 +13,12 @@ namespace engine {
             stat->addObserver(this);
         }
 
+#if defined j4f_PLATFORM_LINUX
+        _os = "system: linux";
+#elif defined j4f_PLATFORM_WINDOWS
+        _os = "system: windows";
+#endif
+
         auto &&engineInstance = Engine::getInstance();
         auto &&renderer = engineInstance.getModule<Graphics>()->getRenderer();
 
@@ -64,7 +70,7 @@ namespace engine {
         const std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
         const auto time = fmt::localtime(now);
 
-        _timeString = fmtString("system time: {:%H:%M:%S}", time);
+        _timeString = fmtString("time: {:%H:%M:%S}", time);
 
         auto &&renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
         const bool vsync = Engine::getInstance().getModule<Graphics>()->config().v_sync;
@@ -139,8 +145,9 @@ namespace engine {
 #ifdef _DEBUG
         if (ImGui::Begin("info(debug):", nullptr, window_flags)) {
 #else
-            if (ImGui::Begin("j4f_statistic(release):", nullptr, window_flags)) {
+            if (ImGui::Begin("info(release):", nullptr, window_flags)) {
 #endif
+            ImGui::Text(_os.c_str());
             ImGui::Text(_timeString.c_str());
             ImGui::Separator();
             ImGui::Text(_versions.c_str());

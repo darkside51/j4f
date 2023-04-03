@@ -26,6 +26,7 @@ namespace engine {
         Location _location = Location::bottom_left;
 
         std::string _timeString = "_";
+        std::string _os;
         std::string _cpuName;
         std::string _gpuName;
         std::string _statString;
