@@ -318,14 +318,10 @@ namespace vulkan {
 		}
 
 		bool operator < (const VulkanStencilState& other) const noexcept {
-			return (enabled < other.enabled)		||
-				(failOp < other.failOp)				||
-				(passOp < other.passOp)				||
-				(compareOp < other.compareOp)		||
-				(depthFailOp < other.depthFailOp)	||
-				(compareMask < other.compareMask)	||
-				(writeMask < other.writeMask)		||
-				(reference < other.reference);
+            return std::tie(enabled, failOp, passOp, compareOp,
+                     depthFailOp, compareMask, writeMask, reference) <
+            std::tie(other.enabled, other.failOp, other.passOp, other.compareOp,
+                     other.depthFailOp, other.compareMask, other.writeMask, other.reference);
 		}
 	};
 

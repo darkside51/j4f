@@ -340,7 +340,7 @@ namespace engine {
 	private:
 		AnimatorType* _animator;
         uint8_t _updateFrameNum = 0;
-        bool _needUpdate = true;
+        bool _needUpdate = false;
         float _speed = 1.0f;
 	};
 }

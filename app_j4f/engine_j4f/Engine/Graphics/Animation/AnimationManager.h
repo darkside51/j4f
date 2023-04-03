@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <memory>
+#include <utility>
 
 namespace engine {
 
@@ -16,25 +17,36 @@ namespace engine {
     class AnimationUpdater final : public IAnimationUpdater {
     public:
         inline void registerAnimation(T *animation) noexcept {
-            if (std::find(_animations.begin(), _animations.end(), animation) == _animations.end()) {
-                _animations.push_back(animation);
+            if (std::find_if(_animations.begin(), _animations.end(),
+                             [animation](const std::pair<T*, float>& p) {
+                                return p.first == animation;
+                             }) == _animations.end()) {
+                _animations.emplace_back(animation, 0.0f);
                 _animationsTargets.emplace_back();
             }
         }
 
         inline void unregisterAnimation(const T *animation) noexcept {
-            auto it = std::find(_animations.begin(), _animations.end(), animation);
+            auto it = std::find_if(_animations.begin(), _animations.end(), [animation](const std::pair<T*, float>& p) {
+                return p.first == animation;
+            });
             if (it != _animations.end()) {
                 const auto i = std::distance(_animations.begin(), it);
                 _animationsTargets.erase(
                         std::remove(_animationsTargets.begin(), _animationsTargets.end(), _animationsTargets[i]),
                         _animationsTargets.end());
-                _animations.erase(std::remove(_animations.begin(), _animations.end(), animation), _animations.end());
+                std::swap(*it, _animations.back());
+                _animations.pop_back();
+//                _animations.erase(std::remove_if(_animations.begin(), _animations.end(), [animation](const std::pair<T*, float>& p){
+//                    return p.first == animation;
+//                }), _animations.end());
             }
         }
 
         inline void addTarget(const T *animation, T::TargetType target) noexcept {
-            auto it = std::find(_animations.begin(), _animations.end(), animation);
+            auto it = std::find_if(_animations.begin(), _animations.end(), [animation](const std::pair<T*, float>& p){
+                return p.first == animation;
+            });
             if (it != _animations.end()) {
                 const auto i = std::distance(_animations.begin(), it);
                 _animationsTargets[i].push_back(target);
@@ -42,7 +54,9 @@ namespace engine {
         }
 
         inline void removeTarget(const T *animation, T::TargetType target) noexcept {
-            auto it = std::find(_animations.begin(), _animations.end(), animation);
+            auto it = std::find_if(_animations.begin(), _animations.end(), [animation](const std::pair<T*, float>& p){
+                return p.first == animation;
+            });
             if (it != _animations.end()) {
                 const auto i = std::distance(_animations.begin(), it);
                 _animationsTargets[i].erase(
@@ -53,20 +67,33 @@ namespace engine {
 
         inline void update(const float delta) noexcept {
             size_t i = 0;
-            for (auto && anim : _animations) {
-                if (anim->getNeedUpdate()) {
-                    anim->updateAnimation(delta);
+            for (auto && [anim, accum] : _animations) {
+                bool requestUpdate = anim->getNeedUpdate();
+                if (requestUpdate == false) {
+                    for (auto &&target: _animationsTargets[i]) {
+                        if (requestUpdate = target->requestAnimUpdate()) {
+                            break;
+                        }
+                    }
+                }
+
+                if (requestUpdate) {
+                    anim->updateAnimation(delta + accum);
+                    accum = 0.0f;
                     // update targets
                     for (auto&& target : _animationsTargets[i]) {
                         target->applyFrame(anim);
+                        target->completeAnimUpdate();
                     }
+                } else {
+                    accum += delta;
                 }
                 ++i;
             }
         }
 
     private:
-        std::vector<T*> _animations;
+        std::vector<std::pair<T*, float>> _animations;
         std::vector<std::vector<typename T::TargetType>> _animationsTargets;
     };
 

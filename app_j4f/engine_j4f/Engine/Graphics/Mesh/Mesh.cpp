@@ -468,8 +468,9 @@ namespace engine {
 		}
 	}
 
-	void Mesh::updateRenderData(const glm::mat4& worldMatrix, const bool worldMatrixChanged) {
+	void Mesh::updateRenderData(const glm::mat4& worldMatrix, const bool worldMatrixChanged) { // called when mesh is visible
 		if (!_skeleton) return;
+        _skeleton->_requestAnimUpdate = true;
 
 		_modelMatrixChanged |= worldMatrixChanged;
 

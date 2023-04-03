@@ -110,6 +110,8 @@ namespace engine {
 		void updateAnimation(const float time, const Mesh_Animation* animation, float& currentAnimTime); // simple animation update
 		void updateAnimation(const float time, MeshAnimationTree* animTree); // advanced animation update
 
+        bool requestAnimUpdate() const noexcept { return _requestAnimUpdate; }
+        void completeAnimUpdate() noexcept { _requestAnimUpdate = false; }
         void applyFrame(MeshAnimationTree* animTree); // animation another vision
 
 		inline void checkAnimCalculation(const uint8_t frame) noexcept {
@@ -198,6 +200,7 @@ namespace engine {
 		uint8_t _latency;
 		uint8_t _updateFrameNum = 0;
 		bool _dirtySkins = true;
+        bool _requestAnimUpdate = false;
 
         std::atomic<uint8_t> _updatedFrameNum = {0};
 	};
