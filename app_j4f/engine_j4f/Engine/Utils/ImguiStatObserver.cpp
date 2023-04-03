@@ -3,6 +3,7 @@
 #include "StringHelper.h"
 #include "../Graphics/Graphics.h"
 #include "../Graphics/Vulkan/vkRenderer.h"
+#include "CpuInfo.h"
 #include <imgui.h>
 
 namespace engine {
@@ -14,6 +15,10 @@ namespace engine {
 
         auto &&engineInstance = Engine::getInstance();
         auto &&renderer = engineInstance.getModule<Graphics>()->getRenderer();
+
+        CPUInfo cpuInfo;
+        _cpuName = fmtString("cpu: {}", cpuInfo.model());
+
         const char *gpuType = "";
 
         switch (renderer->getDevice()->gpuProperties.deviceType) {
@@ -140,6 +145,7 @@ namespace engine {
             ImGui::Separator();
             ImGui::Text(_versions.c_str());
             ImGui::Separator();
+            ImGui::Text(_cpuName.c_str());
             ImGui::Text(_gpuName.c_str());
             ImGui::Separator();
             ImGui::Text(_statString.c_str());
