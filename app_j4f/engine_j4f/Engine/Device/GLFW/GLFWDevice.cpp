@@ -224,7 +224,7 @@ namespace engine {
 		//_width = mode->width;
 		//_height = mode->height;
 
-		_window = glfwCreateWindow(_width, _height, "j4f (vulkan)", nullptr, nullptr);
+		_window = glfwCreateWindow(_width, _height, "(vulkan)", nullptr, nullptr);
 		//_window = glfwCreateWindow(_width, _height, "j4f (vulkan)", monitor, nullptr);
 
 		//glfwSetFramebufferSizeCallback(_window, &glfwOnFrameBufferResize);
@@ -289,6 +289,10 @@ namespace engine {
 	const IRenderSurfaceInitializer* GLFWDevice::getSurfaceInitializer() const {
 		return _surfaceInitializer;
 	}
+
+    void GLFWDevice::setTittle(const char* value) {
+        glfwSetWindowTitle(_window, value);
+    }
 
 	void GLFWDevice::start() {
 		//constexpr float kDeviceSleepMilliseconds = 33.333; // ~ 30fps

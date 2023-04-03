@@ -102,6 +102,10 @@ namespace engine {
     }
 
     Version Application::version() const noexcept {
-        return Version(1, 0, 0);
+        return Version(0, 0, 1);
+    }
+
+    const char* Application::getName() const noexcept {
+        return "application";
     }
 }

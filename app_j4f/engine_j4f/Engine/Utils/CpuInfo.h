@@ -127,6 +127,10 @@ namespace engine {
                 mModelName += std::string((const char *) &cpuID.ECX(), 4);
                 mModelName += std::string((const char *) &cpuID.EDX(), 4);
             }
+
+            int8_t i = mModelName.length() - 1;
+            for (; i > 0 && (mModelName[i] == ' ' || mModelName[i] == '\0'); --i) { }
+            mModelName = mModelName.substr(0, i);
         }
 
         std::string vendor() const noexcept { return mVendorId; }

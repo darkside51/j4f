@@ -74,6 +74,7 @@ namespace engine {
 	}
 
 	void Engine::initComplete() {
+        getModule<Device>()->setTittle(_application->getName());
 		_graphics->onEngineInitComplete();
         _application->onEngineInitComplete();
 	}

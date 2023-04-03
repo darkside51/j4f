@@ -2370,6 +2370,10 @@ namespace engine {
     Version Application::version() const noexcept {
         return Version(1, 0, 0);
     }
+
+    const char* Application::getName() const noexcept {
+        return "example";
+    }
 }
 
 class A1 {

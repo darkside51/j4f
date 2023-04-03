@@ -24,6 +24,7 @@ namespace engine {
 		void setFullscreen(const bool fullscreen);
         [[nodiscard]] bool isFullscreen() const;
 
+        void setTittle(const char* value);
 	private:
 		GLFWwindow* _window = nullptr;
 		IRenderSurfaceInitializer* _surfaceInitializer = nullptr;
