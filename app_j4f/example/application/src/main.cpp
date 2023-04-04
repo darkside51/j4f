@@ -2556,15 +2556,14 @@ int main() {
     half half_float_value = 0.5f;
 
 	//////////////////////////////////
-	engine::EngineConfig cfg;
-	cfg.fpsDraw = 120;
-	cfg.fpsLimitTypeDraw = engine::FpsLimitType::F_CPU_SLEEP;
-	cfg.graphicsCfg = { engine::GpuType::DISCRETE, true, false,
+	engine::EngineConfig config;
+    config.fpsLimitDraw = engine::FpsLimit(120, engine::FpsLimitType::F_CPU_SLEEP);
+    config.graphicsCfg = { engine::GpuType::DISCRETE, true, false,
                         engine::Version(1, 2, 182) }; // INTEGRATED, DISCRETE
-	cfg.graphicsCfg.gpu_features.geometryShader = 1;
-    //cfg.graphicsCfg.gpu_features.wideLines = 1;
-	//cfg.graphicsCfg.gpu_features.fillModeNonSolid = 1; // example to enable POLYGON_MODE_LINE or POLYGON_MODE_POINT
+    config.graphicsCfg.gpu_features.geometryShader = 1;
+    //config.graphicsCfg.gpu_features.wideLines = 1;
+	//config.graphicsCfg.gpu_features.fillModeNonSolid = 1; // example to enable POLYGON_MODE_LINE or POLYGON_MODE_POINT
 
-	engine::Engine::getInstance().init(cfg);
+	engine::Engine::getInstance().init(config);
 	return 123;
 }

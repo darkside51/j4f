@@ -32,7 +32,7 @@ namespace engine {
 		destroy();
 	}
 	
-	void Engine::init(const EngineConfig& cfg) {
+	void Engine::init(const EngineConfig& config) {
 		setModule<LogManager>();
 		setModule<Statistic>();
 
@@ -44,7 +44,7 @@ namespace engine {
 		setModule<FileManager>();
 		setModule<AssetManager>(2);
 		setModule<Input>();
-        setModule<Graphics>(cfg.graphicsCfg);
+        setModule<Graphics>(config.graphicsCfg);
 		setModule<Device>();
 		setModule<Bus>();
 		
@@ -63,12 +63,12 @@ namespace engine {
 
 		// run
 		_renderThread = std::make_unique<WorkerThread>(&Engine::nextFrame, this);
-		_renderThread->setTargetFrameTime(1.0f / cfg.fpsDraw);
-		_renderThread->setFpsLimitType(cfg.fpsLimitTypeDraw);
+		_renderThread->setTargetFrameTime(1.0f / config.fpsLimitDraw.fpsMax);
+		_renderThread->setFpsLimitType(config.fpsLimitDraw.limitType);
 
 		_updateThread = std::make_unique<WorkerThread>(&Engine::update, this);
-        _updateThread->setTargetFrameTime(1.0f / cfg.fpsUpdate);
-        _updateThread->setFpsLimitType(cfg.fpsLimitTypeUpdate);
+        _updateThread->setTargetFrameTime(1.0f / config.fpsLimitUpdate.fpsMax);
+        _updateThread->setFpsLimitType(config.fpsLimitUpdate.limitType);
 
 		run();
 	}
@@ -170,18 +170,35 @@ namespace engine {
         }
 	}
 
-	void Engine::update(const float delta, const std::chrono::steady_clock::time_point& /*currentTime*/) {
+    inline void executeTaskCollection(std::deque<linked_ptr<TaskBase>>&& tasks) {
+        while (!tasks.empty()) {
+            if (tasks.front()->state() == TaskState::IDLE) {
+                tasks.front()->operator()();
+            }
+            tasks.pop_front();
+        }
+    }
+
+	void Engine::update(const float delta,
+                        const std::chrono::steady_clock::time_point& /*currentTime*/,
+                        std::deque<linked_ptr<TaskBase>>&& tasks) {
         if (_application) {
             _application->update(delta);
         }
+
+        executeTaskCollection(std::move(tasks));
 	}
 
-	void Engine::nextFrame(const float delta, const std::chrono::steady_clock::time_point& currentTime) {
+	void Engine::nextFrame(const float delta,
+                           const std::chrono::steady_clock::time_point& currentTime,
+                           std::deque<linked_ptr<TaskBase>>&& tasks) {
 		_graphics->beginFrame();
 
         if (_application) {
             _application->nextFrame(delta);
         }
+
+        executeTaskCollection(std::move(tasks));
 
 		_looper->nextFrame(delta);
 

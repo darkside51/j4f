@@ -31,7 +31,6 @@ namespace engine {
 
     class TaskBase : public task_control_block {
         friend class ThreadPool2;
-        friend class Task2Queue;
     public:
         TaskBase() = default;
         virtual ~TaskBase() {
@@ -87,6 +86,7 @@ namespace engine {
         inline explicit operator bool() const noexcept { return _function != nullptr; }
         inline void operator()() const noexcept { _function(); }
 
+        inline TaskType type() const noexcept { return _type; }
     private:
         TaskType _type = TaskType::COMMON;
         Locker _locker;

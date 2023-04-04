@@ -12,9 +12,10 @@ namespace engine {
         STOP = 2
     };
 
-    using Locker = SpinLock;
-    using CondVar = std::condition_variable_any;
+    //using Locker = SpinLock;
+    //using CondVar = std::condition_variable_any;
 
+    template <typename Locker, typename CondVar>
     class Task2Queue {
         friend class ThreadPool2;
     public:
@@ -59,7 +60,7 @@ namespace engine {
         inline void cancelTasks(const uint8_t typeMask) {
             std::unique_lock<Locker> lock(_locker);
             for (auto&& t : _tasks) {
-                if (typeMask & (1 << static_cast<uint8_t>(t->_type))) {
+                if (typeMask & (1 << static_cast<uint8_t>(t->type()))) {
                     t->cancel();
                 }
             }
@@ -70,6 +71,66 @@ namespace engine {
         ThreadQueueState _state = ThreadQueueState::RUN;
         Locker _locker;
         CondVar _condition;
+        std::deque<linked_ptr<TaskBase>> _tasks;
+    };
+
+    template <typename Locker>
+    class Task2Queue<Locker, void> {
+        friend class ThreadPool2;
+    public:
+        template <typename T>
+        void enqueue(const linked_ptr<T>& task) noexcept {
+            {
+                std::lock_guard<Locker> guard(_locker);
+                if (_state == ThreadQueueState::STOP) {
+                    return;
+                }
+
+                _tasks.emplace_back(std::static_pointer_cast<TaskBase>(task));
+            }
+        }
+
+        inline void stop() noexcept {
+            {
+                std::lock_guard<Locker> guard(_locker);
+                _state = ThreadQueueState::STOP;
+            }
+        }
+
+        inline void pause() noexcept {
+            {
+                std::lock_guard<Locker> guard(_locker);
+                _state = ThreadQueueState::PAUSE;
+            }
+        }
+
+        inline void resume() noexcept {
+            {
+                std::lock_guard<Locker> guard(_locker);
+                _state = ThreadQueueState::RUN;
+            }
+        }
+
+        inline void notify() noexcept { }
+
+        inline void cancelTasks(const uint8_t typeMask) {
+            std::unique_lock<Locker> lock(_locker);
+            for (auto&& t : _tasks) {
+                if (typeMask & (1 << static_cast<uint8_t>(t->type()))) {
+                    t->cancel();
+                }
+            }
+            _tasks.clear();
+        }
+
+        std::deque<linked_ptr<TaskBase>> stealTasks() {
+            std::unique_lock<Locker> lock(_locker);
+            return std::move(_tasks);
+        }
+
+    private:
+        ThreadQueueState _state = ThreadQueueState::RUN;
+        Locker _locker;
         std::deque<linked_ptr<TaskBase>> _tasks;
     };
 }

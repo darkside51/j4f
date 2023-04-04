@@ -7,7 +7,9 @@
 #include <functional>
 #include <chrono>
 #include <condition_variable>
+#include <optional>
 
+#include "Task2Queue.h"
 #include "../../Log/Log.h"
 #include "Synchronisations.h"
 #include "../Configs.h"
@@ -15,16 +17,25 @@
 namespace engine {
 
 	class WorkerThread {
+        using TasksCollection = std::deque<linked_ptr<TaskBase>>;
 	public:
 		template <typename T, typename F, typename... Args>
-		explicit WorkerThread(F T::* f, T* t, Args&&... args) : 
-			_task([f, t, args...](const float time, const std::chrono::steady_clock::time_point& currentTime) { (t->*f)(time, currentTime, std::forward<Args>(args)...); }),
+		explicit WorkerThread(F T::* f, T* t, Args&&... args) :
+			_task([f, t, args...](const float time,
+                                  const std::chrono::steady_clock::time_point& currentTime,
+                                  TasksCollection&& tasks) {
+                (t->*f)(time, currentTime, move(tasks), std::forward<Args>(args)...);
+            }),
 			_time(std::chrono::steady_clock::now()) {
 		}
 
 		template <typename F, typename... Args>
 		explicit WorkerThread(F&& f, Args&&... args) :
-			_task([f, args...](const float time, const std::chrono::steady_clock::time_point& currentTime) { f(time, currentTime, std::forward<Args>(args)...); }),
+			_task([f = std::forward<F>(f), args...](const float time,
+                                                    const std::chrono::steady_clock::time_point& currentTime,
+                                                    TasksCollection&& tasks) {
+                f(time, currentTime, std::move(tasks), std::forward<Args>(args)...);
+            }),
 			_time(std::chrono::steady_clock::now()) {
 		}
 
@@ -40,6 +51,8 @@ namespace engine {
 		}
 
 		inline void work() {
+            _threadId = std::this_thread::get_id();
+
 			while (isAlive()) {
 				_wait.clear(std::memory_order_release);
 
@@ -47,7 +60,7 @@ namespace engine {
 					const auto currentTime = std::chrono::steady_clock::now();
 					const std::chrono::duration<float> duration = currentTime - _time;
 					const float durationTime = duration.count();
-					
+
 					switch (_fpsLimitType) {
 						case FpsLimitType::F_STRICT:
 							if (durationTime < _targetFrameTime) {
@@ -68,7 +81,7 @@ namespace engine {
 					}
 
 					_time = currentTime;
-					_task(durationTime, currentTime);
+					_task(durationTime, currentTime, _linkedTasks.stealTasks());
 
 					_frameId.fetch_add(1, std::memory_order_relaxed); // increase frameId at the end of frame
 				}
@@ -119,10 +132,11 @@ namespace engine {
 				if (_thread.joinable()) {
 					_thread.join();
 				}
+                _threadId = std::nullopt;
 			}
 		}
 
-		inline void requestPause(const std::function<bool()>& onPause) { 
+		inline void requestPause(const std::function<bool()>& onPause) {
 			{
 				AtomicLockF lock(_callbackLock);
 				_onPause = onPause;
@@ -156,7 +170,13 @@ namespace engine {
 			_fpsLimitType = t;
 		}
 
-		[[nodiscard]] inline uint16_t getFrameId() const noexcept { return _frameId.load(std::memory_order_relaxed); }
+        template <typename T>
+        void linkTask(const linked_ptr<T>& task) noexcept {
+            _linkedTasks.enqueue(task);
+        }
+
+		[[nodiscard]] inline uint16_t frameId() const noexcept { return _frameId.load(std::memory_order_relaxed); }
+        [[nodiscard]] inline std::optional<std::thread::id> threadId() const noexcept { return _threadId; }
 
 	private:
 		inline void sleep() {
@@ -166,6 +186,7 @@ namespace engine {
 
 		inline void notify() { _condition.notify_one(); }
 
+        std::optional<std::thread::id> _threadId = std::nullopt;
 		std::thread _thread;
 		std::atomic_flag _paused;
 		std::atomic_flag _stop;
@@ -174,7 +195,7 @@ namespace engine {
 		std::mutex _mutex;
 		std::condition_variable _condition;
 
-		std::function<void(const float, const std::chrono::steady_clock::time_point&)> _task = nullptr;
+		std::function<void(const float, const std::chrono::steady_clock::time_point&, std::deque<linked_ptr<TaskBase>>&&)> _task = nullptr;
 
 		std::atomic_flag _callbackLock;
 		std::function<bool()> _onPause = nullptr;
@@ -184,6 +205,8 @@ namespace engine {
 
 		float _targetFrameTime = std::numeric_limits<float>::max();
 		FpsLimitType _fpsLimitType = FpsLimitType::F_DONT_CARE;
+
+        Task2Queue<SpinLock, void> _linkedTasks;
 	};
 
 }

@@ -102,7 +102,7 @@ namespace engine {
         inline void grabTask(linked_ptr<TaskBase>& task, const uint8_t threadId) {
             for (size_t i = 0; i < _threads_count; ++i) {
                 if (i == threadId) continue;
-                Task2Queue& current = _queues[i];
+                auto& current = _queues[i];
 
                 while (!current._tasks.empty() && (current._tasks.front()->state() != TaskState::IDLE)) { // immediate remove cancelled tasks
                     current._tasks.pop_front();
@@ -123,7 +123,7 @@ namespace engine {
             for ( ; ; ) {
                 auto& task = _currentTasks[threadId];
                 {
-                    Task2Queue& current = _queues[threadId];
+                    auto& current = _queues[threadId];
                     std::unique_lock<Locker> lock(current._locker);
                     current._condition.wait(lock, [this, threadId] { return (_queues[threadId]._state == ThreadQueueState::STOP) || (!_queues[threadId]._tasks.empty()); });
 
@@ -163,9 +163,9 @@ namespace engine {
 
         std::atomic<TPoolState> _state;
         size_t _threads_count;
-        std::atomic_uint16_t _taskIdx = 0;
+        std::atomic_uint16_t _taskIdx = 0u;
         std::vector<std::thread> _workers;
-        std::vector<Task2Queue> _queues;
+        std::vector<Task2Queue<SpinLock, std::condition_variable_any>> _queues;
         std::vector<linked_ptr<TaskBase>> _currentTasks;
     };
 }

@@ -4,6 +4,9 @@
 #include "Configs.h"
 #include "Version.h"
 
+#include "Threads/Task2.h"
+#include <deque>
+
 #include <vector>
 #include <cstdint>
 #include <chrono>
@@ -25,7 +28,7 @@ namespace engine {
 			return engine;
 		}
 
-		void init(const EngineConfig& cfg);
+		void init(const EngineConfig& config);
 		void destroy();
 
 		template<typename T>
@@ -90,8 +93,8 @@ namespace engine {
 		Engine();
 		void initComplete();
 
-		void nextFrame(const float delta, const std::chrono::steady_clock::time_point& currentTime);
-		void update(const float delta, const std::chrono::steady_clock::time_point& currentTime);
+		void nextFrame(const float delta, const std::chrono::steady_clock::time_point& currentTime, std::deque<linked_ptr<TaskBase>>&& tasks);
+		void update(const float delta, const std::chrono::steady_clock::time_point& currentTime, std::deque<linked_ptr<TaskBase>>&& tasks);
 
 		std::vector<IEngineModule*> _modules;
 

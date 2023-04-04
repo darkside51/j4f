@@ -1,10 +1,9 @@
 #include <Engine/Core/Engine.h>
 
 int main() {
-	engine::EngineConfig cfg;
-	cfg.fpsDraw = 120;
-	cfg.fpsLimitTypeDraw = engine::FpsLimitType::F_CPU_SLEEP;
-	cfg.graphicsCfg = { engine::GpuType::DISCRETE, true, false, engine::Version(1, 0, 0) };
-	engine::Engine::getInstance().init(cfg);
+	engine::EngineConfig config;
+	config.fpsLimitDraw = engine::FpsLimit(120, engine::FpsLimitType::F_CPU_SLEEP);
+	config.graphicsCfg = { engine::GpuType::DISCRETE, true, false, engine::Version(1, 0, 0) };
+	engine::Engine::getInstance().init(config);
 	return 1;
 }
