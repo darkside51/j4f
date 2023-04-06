@@ -23,7 +23,7 @@ namespace engine {
 
 	class Statistic : public IEngineModule {
 	public:
-		inline void nextFrame(const float delta) {
+		inline void frame(const float delta) {
 			_tmpTime += delta;
 			++_tmpFrameCount;
 

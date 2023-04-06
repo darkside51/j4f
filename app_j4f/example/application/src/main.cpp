@@ -638,15 +638,15 @@ namespace engine {
 					break;
 				case KeyboardKey::K_MINUS:
 					if (event.state == InputEventState::IES_RELEASE) {
-						Engine::getInstance().setGameTimeMultiply(std::max(0.0f, Engine::getInstance().getGameTimeMultiply() - 0.1f));
+						Engine::getInstance().setTimeMultiply(std::max(0.0f, Engine::getInstance().getTimeMultiply() - 0.1f));
 					}
 					break;
 				case KeyboardKey::K_EQUAL:
 					if (event.state == InputEventState::IES_RELEASE) {
 						if (Engine::getInstance().getModule<Input>()->isShiftPressed()) {
-							Engine::getInstance().setGameTimeMultiply(Engine::getInstance().getGameTimeMultiply() + 0.1f);
+							Engine::getInstance().setTimeMultiply(Engine::getInstance().getTimeMultiply() + 0.1f);
 						} else {
-							Engine::getInstance().setGameTimeMultiply(1.0f);
+							Engine::getInstance().setTimeMultiply(1.0f);
 						}
 					}
 					break;
@@ -1643,7 +1643,7 @@ namespace engine {
 
 		void update(const float delta) { // update thread
             // mix test
-            const float dt = delta * Engine::getInstance().getGameTimeMultiply();
+            const float dt = delta * Engine::getInstance().getTimeMultiply();
             static float mix = 0.7f;
             static bool na = false;
             const float step = 1.5f * dt;
@@ -1728,7 +1728,7 @@ namespace engine {
             }
 		}
 
-		void draw(const float delta) {
+		void render(const float delta) {
 			auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
 			const uint32_t currentFrame = renderer->getCurrentFrame();
 
@@ -1738,7 +1738,7 @@ namespace engine {
 			const float rotateCameraSpeed = 24.0f * delta;
 			camera->setRotation(camera->getRotation() + rotateCameraSpeed * (targetCameraRotation - camera->getRotation()));
 
-			const float dt = delta * Engine::getInstance().getGameTimeMultiply();
+			const float dt = delta * Engine::getInstance().getTimeMultiply();
 
 			camera->calculateTransform();
 			camera2->calculateTransform();
@@ -1969,7 +1969,7 @@ namespace engine {
 				std::shared_ptr<TextureFrame> frame = bitmapFont->createFrame(
 					fmt_string(
 						"system time: {:%H:%M:%S}\nbuild type: {}\ngpu: {}({})\nresolution: {}x{}\nv_sync: {}\ndraw calls: {}\nfps: {}\ncpu frame time: {:.3}\nspeed mult: {:.3}\n\nWASD + mouse(camera control)",
-						time, buildType, renderer->getDevice()->gpuProperties.deviceName, gpuType, width, height, vsync ? "on" : "off", statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime(), Engine::getInstance().getGameTimeMultiply()
+						time, buildType, renderer->getDevice()->gpuProperties.deviceName, gpuType, width, height, vsync ? "on" : "off", statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime(), Engine::getInstance().getTimeMultiply()
 					)
 				);
 				TextureFrameBounds frameBounds(frame.get());
@@ -2353,8 +2353,8 @@ namespace engine {
         _customData->onEngineInitComplete();
     }
 
-	void Application::nextFrame(const float delta) {
-		_customData->draw(delta);
+	void Application::render(const float delta) {
+		_customData->render(delta);
 	}
 
 	void Application::update(const float delta) {

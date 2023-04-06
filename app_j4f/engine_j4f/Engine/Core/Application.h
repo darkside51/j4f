@@ -12,7 +12,7 @@ namespace engine {
         void requestFeatures();
         void onEngineInitComplete();
 		void update(const float delta);
-		void nextFrame(const float delta);
+		void render(const float delta);
 		void resize(const uint16_t w, const uint16_t h);
 		void deviceDestroyed() { freeCustomData(); }
         [[nodiscard]] Version version() const noexcept;
@@ -27,7 +27,7 @@ namespace engine {
     void Application::requestFeatures() {}
     void Application::onEngineInitComplete() {}
 	void Application::update(const float delta) {}
-	void Application::nextFrame(const float delta) {}
+	void Application::render(const float delta) {}
 	void Application::resize(const uint16_t w, const uint16_t h) {}
 	void Application::deviceDestroyed() {}
 	void Application::freeCustomData() {}

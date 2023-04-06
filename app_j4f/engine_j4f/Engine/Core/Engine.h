@@ -84,8 +84,8 @@ namespace engine {
 
 		void run();
 
-		inline void setGameTimeMultiply(const float m) { _gameTimeMultiply = m; }
-		[[nodiscard]] inline float getGameTimeMultiply() const noexcept { return _gameTimeMultiply; }
+		inline void setTimeMultiply(const float m) { _timeMultiply = m; }
+		[[nodiscard]] inline float getTimeMultiply() const noexcept { return _timeMultiply; }
 
         [[nodiscard]] inline static Version version() noexcept { return {0, 0, 1}; }
         [[nodiscard]] Version applicationVersion() const noexcept;
@@ -93,7 +93,7 @@ namespace engine {
 		Engine();
 		void initComplete();
 
-		void nextFrame(const float delta, const std::chrono::steady_clock::time_point& currentTime, std::deque<linked_ptr<TaskBase>>&& tasks);
+		void render(const float delta, const std::chrono::steady_clock::time_point& currentTime, std::deque<linked_ptr<TaskBase>>&& tasks);
 		void update(const float delta, const std::chrono::steady_clock::time_point& currentTime, std::deque<linked_ptr<TaskBase>>&& tasks);
 
 		std::vector<IEngineModule*> _modules;
@@ -105,6 +105,6 @@ namespace engine {
 		std::unique_ptr<WorkerThread> _renderThread;
 		std::unique_ptr<WorkerThread> _updateThread;
 
-		float _gameTimeMultiply = 1.0f;
+		float _timeMultiply = 1.0f;
 	};
 }

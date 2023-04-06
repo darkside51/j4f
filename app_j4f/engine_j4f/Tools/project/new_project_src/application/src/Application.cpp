@@ -55,7 +55,7 @@ namespace engine {
 
         }
 
-        void draw(const float delta) {
+        void render(const float delta) {
 
         }
 
@@ -87,8 +87,8 @@ namespace engine {
         }
     }
 
-    void Application::nextFrame(const float delta) {
-        _customData->draw(delta);
+    void Application::render(const float delta) {
+        _customData->render(delta);
     }
 
     void Application::update(const float delta) {

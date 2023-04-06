@@ -81,7 +81,7 @@ namespace engine {
                                 "fps: {}\ncpu frame time: {:.3}\nspeed mult: {:.3}",
                                 width, height, vsync ? "on" : "off",
                                 statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime(),
-                                Engine::getInstance().getGameTimeMultiply());
+                                Engine::getInstance().getTimeMultiply());
     }
 
     class ImGuiStyleColorChanger {

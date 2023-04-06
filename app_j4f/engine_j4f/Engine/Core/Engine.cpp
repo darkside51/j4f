@@ -62,7 +62,7 @@ namespace engine {
 		initComplete(); // after all
 
 		// run
-		_renderThread = std::make_unique<WorkerThread>(&Engine::nextFrame, this);
+		_renderThread = std::make_unique<WorkerThread>(&Engine::render, this);
 		_renderThread->setTargetFrameTime(1.0f / config.fpsLimitDraw.fpsMax);
 		_renderThread->setFpsLimitType(config.fpsLimitDraw.limitType);
 
@@ -189,13 +189,13 @@ namespace engine {
         executeTaskCollection(std::move(tasks));
 	}
 
-	void Engine::nextFrame(const float delta,
+	void Engine::render(const float delta,
                            const std::chrono::steady_clock::time_point& currentTime,
                            std::deque<linked_ptr<TaskBase>>&& tasks) {
 		_graphics->beginFrame();
 
         if (_application) {
-            _application->nextFrame(delta);
+            _application->render(delta);
         }
 
         executeTaskCollection(std::move(tasks));
@@ -203,7 +203,7 @@ namespace engine {
 		_looper->nextFrame(delta);
 
 		if (_statistic) {
-			_statistic->nextFrame(delta);
+			_statistic->frame(delta);
 			_statistic->addFramePrepareTime(static_cast<float>((std::chrono::duration<double>(std::chrono::steady_clock::now() - currentTime)).count()));
 		}
 
