@@ -8,7 +8,6 @@
 #include "Threads/ThreadPool2.h"
 #include "Threads/Worker.h"
 #include "Threads/WorkersCommutator.h"
-#include "Threads/Looper.h"
 #include "Memory/MemoryManager.h"
 #include "AssetManager.h"
 #include "../File/FileManager.h"
@@ -17,6 +16,7 @@
 #include "../Utils/Json/Json.h"
 #include "../Input/Input.h"
 #include "../Events/Bus.h"
+//#include "Threads/Looper.h"
 
 #include <cstdint>
 #include <chrono>
@@ -40,7 +40,6 @@ namespace engine {
 		//setModule<ThreadPool>(std::max(static_cast<uint8_t>(std::thread::hardware_concurrency()), uint8_t(1)));
 		setModule<ThreadPool2>(std::max(static_cast<uint8_t>(std::thread::hardware_concurrency()), uint8_t(1)));
         setModule<WorkerThreadsCommutator>();
-		setModule<Looper>();
 		setModule<MemoryManager>();
 		setModule<CacheManager>();
 		setModule<FileManager>();
@@ -52,13 +51,12 @@ namespace engine {
 		
 		_statistic = getModule<Statistic>();
 		_graphics = getModule<Graphics>();
-		_looper = getModule<Looper>();
 
 		getModule<FileManager>()->createFileSystem<DefaultFileSystem>();
 		getModule<AssetManager>()->setLoader<JsonLoader>();
 
         // create application
-        _application = new Application();
+        _application = std::make_unique<Application>();
         _application->requestFeatures();
 
         _renderThread = std::make_unique<WorkerThread>(&Engine::render, this);
@@ -107,7 +105,6 @@ namespace engine {
 		_modules.clear();
 
 		if (_application) {
-			delete _application;
 			_application = nullptr;
 		}
 	}
@@ -206,11 +203,9 @@ namespace engine {
 
         executeTaskCollection(std::move(tasks));
 
-//		_looper->frame(delta);
-
 		if (_statistic) {
 			_statistic->frame(delta);
-			_statistic->addFramePrepareTime(static_cast<float>((std::chrono::duration<double>(std::chrono::steady_clock::now() - currentTime)).count()));
+			_statistic->addFramePrepareTime((std::chrono::duration<float>(std::chrono::steady_clock::now() - currentTime)).count());
 		}
 
 		_graphics->endFrame();

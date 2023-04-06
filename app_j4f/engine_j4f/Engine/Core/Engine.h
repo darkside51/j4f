@@ -11,13 +11,13 @@
 #include <vector>
 #include <cstdint>
 #include <chrono>
+#include <memory>
 
 namespace engine {
 	class IEngineModule;
 	class Graphics;
 	class Statistic;
 	class Application;
-	class Looper;
 	class WorkerThread;
 	
 	class Engine {
@@ -118,13 +118,12 @@ namespace engine {
 
 		Statistic* _statistic = nullptr;
 		Graphics* _graphics = nullptr;
-		Application* _application = nullptr;
-		Looper* _looper = nullptr;
+		std::unique_ptr<Application> _application;
 		std::unique_ptr<WorkerThread> _renderThread;
 		std::unique_ptr<WorkerThread> _updateThread;
 
 		float _timeMultiply = 1.0f;
 
-        std::array<uint8_t, static_cast<size_t>(Workers::MAX_VALUE)> _workerIds;
+        std::array<uint8_t, static_cast<size_t>(Workers::MAX_VALUE)> _workerIds = {};
 	};
 }
