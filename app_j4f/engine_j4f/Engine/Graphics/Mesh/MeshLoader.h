@@ -62,6 +62,7 @@ namespace engine {
 		std::string file;
 		uint16_t semanticMask = 0;
 		uint8_t latency = 1;
+		uint8_t targetThreadId = 0u;
 		MeshGraphicsDataBuffer* graphicsBuffer = nullptr;
 		bool useOffsetsInRenderData = false; // parameter used with none zero vbOffset or ibOffset for fill correct renderData values
 	};
@@ -79,13 +80,15 @@ namespace engine {
 			Mesh* mesh;
 			uint16_t semanticMask;
 			uint8_t latency;
+			uint8_t targetThreadId = 0u;
 			MeshLoadingCallback callback;
 
-			DataLoadingCallback(Mesh* m, const MeshLoadingCallback& c, uint16_t msk, uint8_t l) : mesh(m), callback(c), semanticMask(msk), latency(l) {}
+			DataLoadingCallback(Mesh* m, const MeshLoadingCallback& c, uint16_t msk, uint8_t l, uint8_t t) :
+				mesh(m), callback(c), semanticMask(msk), latency(l), targetThreadId(t) { }
 			~DataLoadingCallback() = default;
 		};
 
-		static void addCallback(Mesh_Data*, Mesh* mesh, const MeshLoadingCallback&, uint16_t mask, uint8_t l);
+		static void addCallback(Mesh_Data*, Mesh* mesh, const MeshLoadingCallback&, uint16_t mask, uint8_t l, uint8_t thread);
 		static void executeCallbacks(Mesh_Data*, const AssetLoadingResult);
 
 		static void fillMeshData(Mesh_Data*, const MeshLoadingParams&);

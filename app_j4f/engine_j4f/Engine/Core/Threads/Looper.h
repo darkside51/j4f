@@ -19,7 +19,7 @@ namespace engine {
 			_tasks.clear();
 		}
 		
-		void nextFrame(const float /*delta*/) {
+		void frame(const float /*delta*/) {
 			if (_tasks.empty()) return;
 
 			std::vector<LooperTask> tasks;

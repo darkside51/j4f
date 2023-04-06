@@ -866,6 +866,7 @@ namespace engine {
 			mesh_params.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::TANGENT, AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT, AttributesSemantic::TEXCOORD_0);
 			mesh_params.latency = 3;
 			mesh_params.flags->async = 1;
+            mesh_params.targetThreadId = 1;
 			mesh_params.graphicsBuffer = meshesGraphicsBuffer;
 
 			MeshLoadingParams mesh_params2;

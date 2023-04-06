@@ -1,7 +1,7 @@
 #include "MeshLoader.h"
 #include "../../Core/Engine.h"
 #include "../../Core/Cache.h"
-#include "../../Core/Threads/Looper.h"
+#include "../../Core/Threads/WorkersCommutator.h"
 #include "../Graphics.h"
 #include "MeshData.h"
 #include "Mesh.h"
@@ -29,9 +29,9 @@ namespace engine {
 		);
 	}
 
-	void MeshLoader::addCallback(Mesh_Data* md, Mesh* mesh, const MeshLoadingCallback& c, uint16_t mask, uint8_t l) {
+	void MeshLoader::addCallback(Mesh_Data* md, Mesh* mesh, const MeshLoadingCallback& c, uint16_t mask, uint8_t l, uint8_t thread) {
 		AtomicLock lock(_callbacksLock);
-		_callbacks[md].emplace_back(mesh, c, mask, l);
+		_callbacks[md].emplace_back(mesh, c, mask, l, thread);
 	}
 
 	void MeshLoader::executeCallbacks(Mesh_Data* m, const AssetLoadingResult result) {
@@ -45,13 +45,18 @@ namespace engine {
 			}
 		}
 
+        auto && engine = Engine::getInstance();
+        auto && threadCommutator = engine.getModule<WorkerThreadsCommutator>();
+
 		for (auto&& c : callbacks) {
 			c.mesh->createWithData(m, c.semanticMask, c.latency);
-			Engine::getInstance().getModule<Looper>()->pushTask([callback = std::move(c.callback), v = c.mesh]() {
-				if (callback) { 
-					callback(v, AssetLoadingResult::LOADING_SUCCESS);
-				}
-			});
+
+            threadCommutator->enqueue(c.targetThreadId,
+                                      [callback = std::move(c.callback), v = c.mesh](const CancellationToken &){
+                if (callback) {
+                    callback(v, AssetLoadingResult::LOADING_SUCCESS);
+                }
+            });
 		}
 	}
 
@@ -91,8 +96,12 @@ namespace engine {
 		mData->loadNodes(layout);
 
 		mData->uploadGpuData(params.graphicsBuffer->vb, params.graphicsBuffer->ib, vbOffset, ibOffset);
-		
-		Engine::getInstance().getModule<Looper>()->pushTask([mData]() { mData->fillGpuData(); });
+
+        auto && engine = Engine::getInstance();
+        auto && threadCommutator = engine.getModule<WorkerThreadsCommutator>();
+
+        threadCommutator->enqueue(engine.getThreadCommutationId(Engine::Workers::RENDER_THREAD),
+                                  [mData](const CancellationToken &){ mData->fillGpuData(); });
 
 		executeCallbacks(mData, AssetLoadingResult::LOADING_SUCCESS);
 	}
@@ -109,7 +118,7 @@ namespace engine {
 				v->createWithData(mData, params.semanticMask, params.latency);
 				if (callback) { callback(v, AssetLoadingResult::LOADING_SUCCESS); }
 			} else {
-				addCallback(mData, v, callback, params.semanticMask, params.latency); 
+				addCallback(mData, v, callback, params.semanticMask, params.latency, params.targetThreadId);
 			}
 			return;
 		}
@@ -118,7 +127,7 @@ namespace engine {
 			auto&& engine = Engine::getInstance();
 			Mesh_Data* mData = new Mesh_Data();
 
-			addCallback(mData, v, callback, params.semanticMask, params.latency);
+			addCallback(mData, v, callback, params.semanticMask, params.latency, params.targetThreadId);
 
 			if (params.flags->async) {
 				engine.getModule<AssetManager>()->getThreadPool()->enqueue(TaskType::COMMON, 0, [](const CancellationToken& token, const MeshLoadingParams params, Mesh_Data* mData) {

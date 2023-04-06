@@ -7,6 +7,7 @@
 #include "Threads/ThreadPool.h"
 #include "Threads/ThreadPool2.h"
 #include "Threads/Worker.h"
+#include "Threads/WorkersCommutator.h"
 #include "Threads/Looper.h"
 #include "Memory/MemoryManager.h"
 #include "AssetManager.h"
@@ -38,6 +39,7 @@ namespace engine {
 
 		//setModule<ThreadPool>(std::max(static_cast<uint8_t>(std::thread::hardware_concurrency()), uint8_t(1)));
 		setModule<ThreadPool2>(std::max(static_cast<uint8_t>(std::thread::hardware_concurrency()), uint8_t(1)));
+        setModule<WorkerThreadsCommutator>();
 		setModule<Looper>();
 		setModule<MemoryManager>();
 		setModule<CacheManager>();
@@ -59,17 +61,21 @@ namespace engine {
         _application = new Application();
         _application->requestFeatures();
 
-		initComplete(); // after all
+        _renderThread = std::make_unique<WorkerThread>(&Engine::render, this);
+        _renderThread->setTargetFrameTime(1.0f / config.fpsLimitDraw.fpsMax);
+        _renderThread->setFpsLimitType(config.fpsLimitDraw.limitType);
 
-		// run
-		_renderThread = std::make_unique<WorkerThread>(&Engine::render, this);
-		_renderThread->setTargetFrameTime(1.0f / config.fpsLimitDraw.fpsMax);
-		_renderThread->setFpsLimitType(config.fpsLimitDraw.limitType);
-
-		_updateThread = std::make_unique<WorkerThread>(&Engine::update, this);
+        _updateThread = std::make_unique<WorkerThread>(&Engine::update, this);
         _updateThread->setTargetFrameTime(1.0f / config.fpsLimitUpdate.fpsMax);
         _updateThread->setFpsLimitType(config.fpsLimitUpdate.limitType);
 
+        auto workersCommutator = getModule<WorkerThreadsCommutator>();
+        _workerIds[static_cast<uint8_t>(Workers::RENDER_THREAD)] = workersCommutator->emplaceWorkerThread(_renderThread.get());
+        _workerIds[static_cast<uint8_t>(Workers::UPDATE_THREAD)] = workersCommutator->emplaceWorkerThread(_updateThread.get());
+
+		initComplete(); // after all
+
+		// run
 		run();
 	}
 
@@ -200,7 +206,7 @@ namespace engine {
 
         executeTaskCollection(std::move(tasks));
 
-		_looper->nextFrame(delta);
+//		_looper->frame(delta);
 
 		if (_statistic) {
 			_statistic->frame(delta);
