@@ -118,7 +118,7 @@ namespace engine {
 				v->createWithData(mData, params.semanticMask, params.latency);
 				if (callback) { callback(v, AssetLoadingResult::LOADING_SUCCESS); }
 			} else {
-				addCallback(mData, v, callback, params.semanticMask, params.latency, params.targetThreadId);
+				addCallback(mData, v, callback, params.semanticMask, params.latency, params.callbackThreadId);
 			}
 			return;
 		}
@@ -127,7 +127,7 @@ namespace engine {
 			auto&& engine = Engine::getInstance();
 			Mesh_Data* mData = new Mesh_Data();
 
-			addCallback(mData, v, callback, params.semanticMask, params.latency, params.targetThreadId);
+			addCallback(mData, v, callback, params.semanticMask, params.latency, params.callbackThreadId);
 
 			if (params.flags->async) {
 				engine.getModule<AssetManager>()->getThreadPool()->enqueue(TaskType::COMMON, 0, [](const CancellationToken& token, const MeshLoadingParams params, Mesh_Data* mData) {

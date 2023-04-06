@@ -62,7 +62,7 @@ namespace engine {
 		std::string file;
 		uint16_t semanticMask = 0;
 		uint8_t latency = 1;
-		uint8_t targetThreadId = 0u;
+		uint8_t callbackThreadId = 0u;
 		MeshGraphicsDataBuffer* graphicsBuffer = nullptr;
 		bool useOffsetsInRenderData = false; // parameter used with none zero vbOffset or ibOffset for fill correct renderData values
 	};
