@@ -190,6 +190,10 @@ namespace engine {
         }
 
         executeTaskCollection(std::move(tasks));
+
+        if (_statistic) {
+            _statistic->update(delta);
+        }
 	}
 
 	void Engine::render(const float delta,
@@ -204,6 +208,7 @@ namespace engine {
         executeTaskCollection(std::move(tasks));
 
 		if (_statistic) {
+            _statistic->render(delta);
 			_statistic->frame(delta);
 			_statistic->addFramePrepareTime((std::chrono::duration<float>(std::chrono::steady_clock::now() - currentTime)).count());
 		}

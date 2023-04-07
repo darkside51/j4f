@@ -23,18 +23,25 @@ namespace engine {
 
 	class Statistic : public IEngineModule {
 	public:
-		inline void frame(const float delta) {
-			_tmpTime += delta;
-			++_tmpFrameCount;
+        inline void update(const float /*delta*/) noexcept {
+            _updateFrameCounter.fetch_add(1u, std::memory_order_relaxed);
+        }
 
-			if (_tmpTime >= 1.0f) {
-				_fps = _tmpFrameCount;
-				_drawCalls = std::roundf(float(_tmpDrawCalls.exchange(0, std::memory_order_release)) / _fps);
-				_cpuFrameTime = _tmpCpuTime / _fps;
+        inline void render(const float /*delta*/) noexcept {
+            _renderFrameCounter.fetch_add(1u, std::memory_order_relaxed);
+        }
+
+		inline void frame(const float delta) {
+            _timeCounter += delta;
+
+			if (_timeCounter >= 1.0f) {
+                _renderFps = _renderFrameCounter.exchange(0u, std::memory_order_relaxed);
+                _updateFps = _updateFrameCounter.exchange(0u, std::memory_order_relaxed);
+				_drawCalls = std::roundf(static_cast<float>(_drawCallsCounter.exchange(0, std::memory_order_relaxed)) / _renderFps);
+				_cpuFrameTime = _cpuTimeCounter / _renderFps;
 				updateValues();
-				_tmpFrameCount = 0;
-				_tmpTime = 0;
-				_tmpCpuTime = 0.0f;
+                _timeCounter = 0;
+                _cpuTimeCounter = 0.0f;
 			}
 		}
 
@@ -52,27 +59,32 @@ namespace engine {
 			_observers.erase(std::remove(_observers.begin(), _observers.end(), o), _observers.end());
 		}
 
-		inline uint16_t fps() const { return _fps; }
-		inline uint16_t drawCalls() const { return _drawCalls; }
-		inline float cpuFrameTime() const { return _cpuFrameTime; }
+		inline uint16_t renderFps() const noexcept { return _renderFps; }
+        inline uint16_t updateFps() const noexcept { return _updateFps; }
+		inline uint16_t drawCalls() const noexcept { return _drawCalls; }
+		inline float cpuFrameTime() const noexcept { return _cpuFrameTime; }
 
-		inline void addDrawCall() { 
-			_tmpDrawCalls.fetch_add(1, std::memory_order_release);
+		inline void addDrawCall() noexcept {
+            _drawCallsCounter.fetch_add(1, std::memory_order_relaxed);
 		}
 
-		inline void addFramePrepareTime(const float t) {
-			_tmpCpuTime += t;
+		inline void addFramePrepareTime(const float t) noexcept {
+            _cpuTimeCounter += t;
 		}
 
 	private:
-		uint16_t _fps = 0;
+		uint16_t _renderFps = 0;
+        uint16_t _updateFps = 0;
 		uint16_t _drawCalls = 0;
 		float _cpuFrameTime = 0.0f;
 
-		uint16_t _tmpFrameCount = 0;
-		std::atomic<uint32_t> _tmpDrawCalls = 0;
-		float _tmpTime = 0.0f;
-		float _tmpCpuTime = 0.0f;
+		std::atomic<uint32_t> _drawCallsCounter = 0;
+		float _timeCounter = 0.0f;
+		float _cpuTimeCounter = 0.0f;
+
+        std::atomic<uint16_t> _renderFrameCounter = 0;
+        std::atomic<uint16_t> _updateFrameCounter = 0;
+
 		std::vector<IStatisticObserver*> _observers;
 	};
 }

@@ -52,6 +52,8 @@
 
 #include <mutex>
 
+#include <imgui.h>
+
 namespace engine {
 	vulkan::VulkanGpuProgram* grass_default = nullptr;
 
@@ -866,7 +868,7 @@ namespace engine {
 			mesh_params.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::TANGENT, AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT, AttributesSemantic::TEXCOORD_0);
 			mesh_params.latency = 3;
 			mesh_params.flags->async = 1;
-            mesh_params.callbackThreadId = 1;
+            mesh_params.callbackThreadId = 0;
 			mesh_params.graphicsBuffer = meshesGraphicsBuffer;
 
 			MeshLoadingParams mesh_params2;
@@ -1970,7 +1972,7 @@ namespace engine {
 				std::shared_ptr<TextureFrame> frame = bitmapFont->createFrame(
 					fmt_string(
 						"system time: {:%H:%M:%S}\nbuild type: {}\ngpu: {}({})\nresolution: {}x{}\nv_sync: {}\ndraw calls: {}\nfps: {}\ncpu frame time: {:.3}\nspeed mult: {:.3}\n\nWASD + mouse(camera control)",
-						time, buildType, renderer->getDevice()->gpuProperties.deviceName, gpuType, width, height, vsync ? "on" : "off", statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime(), Engine::getInstance().getTimeMultiply()
+						time, buildType, renderer->getDevice()->gpuProperties.deviceName, gpuType, width, height, vsync ? "on" : "off", statistic->drawCalls(), statistic->renderFps(), statistic->cpuFrameTime(), Engine::getInstance().getTimeMultiply()
 					)
 				);
 				TextureFrameBounds frameBounds(frame.get());
@@ -1994,6 +1996,7 @@ namespace engine {
 
                 imgui->graphics()->update(dt);
                 statObserver->draw();
+                //ImGui::ShowDemoWindow();
 				uiRenderList.render(commandBuffer, currentFrame, &camera2Matrix);
 
 				autoBatcher->draw(commandBuffer, currentFrame);
@@ -2559,6 +2562,7 @@ int main() {
 	//////////////////////////////////
 	engine::EngineConfig config;
     config.fpsLimitDraw = engine::FpsLimit(120, engine::FpsLimitType::F_CPU_SLEEP);
+    config.fpsLimitUpdate = engine::FpsLimit(60, engine::FpsLimitType::F_CPU_SLEEP);
     config.graphicsCfg = { engine::GpuType::DISCRETE, true, false,
                         engine::Version(1, 2, 182) }; // INTEGRATED, DISCRETE
     config.graphicsCfg.gpu_features.geometryShader = 1;

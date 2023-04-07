@@ -14,9 +14,9 @@ namespace engine {
         }
 
 #if defined j4f_PLATFORM_LINUX
-        _os = "system: linux";
+        _os = "linux";
 #elif defined j4f_PLATFORM_WINDOWS
-        _os = "system: windows";
+        _os = "windows";
 #endif
 
         auto &&engineInstance = Engine::getInstance();
@@ -78,9 +78,9 @@ namespace engine {
         auto [width, height] = Engine::getInstance().getModule<Graphics>()->getSize();
 
         _statString = fmtString("resolution: {}x{}\nv_sync: {}\ndraw calls: {}\n"
-                                "fps: {}\ncpu frame time: {:.3}\nspeed mult: {:.3}",
+                                "fps render: {}\nfps update: {}\ncpu frame time: {:.5f}\nspeed mult: {:.3}",
                                 width, height, vsync ? "on" : "off",
-                                statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime(),
+                                statistic->drawCalls(), statistic->renderFps(), statistic->updateFps(), statistic->cpuFrameTime(),
                                 Engine::getInstance().getTimeMultiply());
     }
 
@@ -97,10 +97,9 @@ namespace engine {
     };
 
     void ImguiStatObserver::draw() {
-        ImGuiIO &io = ImGui::GetIO();
         ImGuiWindowFlags window_flags = /*ImGuiWindowFlags_NoDecoration |*/ ImGuiWindowFlags_AlwaysAutoResize
-                                                                            | ImGuiWindowFlags_NoSavedSettings |
-                                                                            ImGuiWindowFlags_NoFocusOnAppearing
+                                                                            | ImGuiWindowFlags_NoSavedSettings
+                                                                            | ImGuiWindowFlags_NoFocusOnAppearing
                                                                             | ImGuiWindowFlags_NoNav;
 
         switch (_location) {
@@ -108,15 +107,15 @@ namespace engine {
             case Location::top_right:
             case Location::bottom_left:
             case Location::bottom_right: {
-                constexpr float PAD = 4.0f;
+                constexpr float pad = 4.0f;
                 const ImGuiViewport *viewport = ImGui::GetMainViewport();
                 ImVec2 work_pos = viewport->WorkPos; // use work area to avoid menu-bar/task-bar, if any!
                 ImVec2 work_size = viewport->WorkSize;
                 ImVec2 window_pos, window_pos_pivot;
-                window_pos.x = (static_cast<uint8_t>(_location) & 1) ? (work_pos.x + work_size.x - PAD) : (work_pos.x +
-                                                                                                           PAD);
-                window_pos.y = (static_cast<uint8_t>(_location) & 2) ? (work_pos.y + work_size.y - PAD) : (work_pos.y +
-                                                                                                           PAD);
+                window_pos.x = (static_cast<uint8_t>(_location) & 1) ? (work_pos.x + work_size.x - pad) : (work_pos.x +
+                        pad);
+                window_pos.y = (static_cast<uint8_t>(_location) & 2) ? (work_pos.y + work_size.y - pad) : (work_pos.y +
+                        pad);
                 window_pos_pivot.x = (static_cast<uint8_t>(_location) & 1) ? 1.0f : 0.0f;
                 window_pos_pivot.y = (static_cast<uint8_t>(_location) & 2) ? 1.0f : 0.0f;
                 ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
@@ -141,21 +140,37 @@ namespace engine {
         ImGuiStyleColorChanger _5(ImGuiCol_TitleBg, bgColor);
         ImGuiStyleColorChanger _6(ImGuiCol_TitleBgCollapsed, bgColor);
         ImGuiStyleColorChanger _7(ImGuiCol_TitleBgActive, bgColor);
+        ImGuiStyleColorChanger _8(ImGuiCol_HeaderActive, IM_COL32(50, 50, 50, 200));
+        ImGuiStyleColorChanger _9(ImGuiCol_HeaderHovered, IM_COL32(0, 0, 0, 200));
+
 
 #ifdef _DEBUG
         if (ImGui::Begin("info(debug):", nullptr, window_flags)) {
 #else
             if (ImGui::Begin("info(release):", nullptr, window_flags)) {
 #endif
-            ImGui::Text(_os.c_str());
-            ImGui::Text(_timeString.c_str());
+
+            if (ImGui::TreeNodeEx("platform", ImGuiTreeNodeFlags_OpenOnArrow)) {
+                ImGui::Text(_os.c_str());
+                ImGui::Text(_timeString.c_str());
+                ImGui::TreePop();
+            }
             ImGui::Separator();
-            ImGui::Text(_versions.c_str());
+            if (ImGui::TreeNodeEx("versions", ImGuiTreeNodeFlags_OpenOnArrow)) {
+                ImGui::Text(_versions.c_str());
+                ImGui::TreePop();
+            }
             ImGui::Separator();
-            ImGui::Text(_cpuName.c_str());
-            ImGui::Text(_gpuName.c_str());
+            if (ImGui::TreeNodeEx("hardware info", ImGuiTreeNodeFlags_OpenOnArrow)) {
+                ImGui::Text(_cpuName.c_str());
+                ImGui::Text(_gpuName.c_str());
+                ImGui::TreePop();
+            }
             ImGui::Separator();
-            ImGui::Text(_statString.c_str());
+            if (ImGui::TreeNodeEx("frame info", ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_DefaultOpen)) {
+                ImGui::Text(_statString.c_str());
+                ImGui::TreePop();
+            }
 
             if (ImGui::BeginPopupContextWindow()) {
                 if (ImGui::MenuItem("locked", nullptr, _location == Location::locked)) _location = Location::locked;

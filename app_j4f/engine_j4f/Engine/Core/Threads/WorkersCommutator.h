@@ -30,7 +30,7 @@ namespace engine {
 
             using return_type = typename std::invoke_result_t<std::decay_t<F>, const CancellationToken &, std::decay_t<Args>...>;
             auto task = make_linked<Task2<return_type>>(TaskType::COMMON, std::forward<F>(f), std::forward<Args>(args)...);
-            it->second->template linkTask(task);
+            it->second->linkTask(task);
 
             return task;
         }
