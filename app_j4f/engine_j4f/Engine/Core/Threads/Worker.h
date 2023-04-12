@@ -58,7 +58,7 @@ namespace engine {
 
 				while (isActive()) {
 					const auto currentTime = std::chrono::steady_clock::now();
-					const std::chrono::duration<float> duration = currentTime - _time;
+					const std::chrono::duration<float> duration = currentTime - _time; // as default in seconds
 					const float durationTime = duration.count();
 
 					switch (_fpsLimitType) {
@@ -71,8 +71,13 @@ namespace engine {
 						case FpsLimitType::F_CPU_SLEEP:
                             // linux - ok
                             // windows - some strange, wtf??
-							if (durationTime < _targetFrameTime) {
-								std::this_thread::sleep_for(std::chrono::duration<float, std::milli>(1000.0f * (_targetFrameTime - durationTime)));
+							if (const float t = (_targetFrameTime - durationTime); t > 0.0f) {
+								if (_stealedTime <= t) {
+									std::this_thread::sleep_for(std::chrono::duration<float>(t)); // as default in seconds
+									_stealedTime = std::chrono::duration<float>(std::chrono::steady_clock::now() - currentTime).count() - t;
+								} else {
+									_stealedTime -= t;
+								}
                                 continue;
 							}
 							break;
@@ -205,6 +210,7 @@ namespace engine {
 
 		float _targetFrameTime = std::numeric_limits<float>::max();
 		FpsLimitType _fpsLimitType = FpsLimitType::F_DONT_CARE;
+		float _stealedTime = 0.0;
 
         Task2Queue<SpinLock, void> _linkedTasks;
 	};
