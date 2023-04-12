@@ -24,9 +24,8 @@ namespace engine {
 			_task([f, t, args...](const float time,
                                   const std::chrono::steady_clock::time_point& currentTime,
                                   TasksCollection&& tasks) {
-                (t->*f)(time, currentTime, move(tasks), std::forward<Args>(args)...);
-            }),
-			_time(std::chrono::steady_clock::now()) {
+                (t->*f)(time, currentTime, std::move(tasks), std::forward<Args>(args)...);
+            }) {
 		}
 
 		template <typename F, typename... Args>
@@ -35,8 +34,7 @@ namespace engine {
                                                     const std::chrono::steady_clock::time_point& currentTime,
                                                     TasksCollection&& tasks) {
                 f(time, currentTime, std::move(tasks), std::forward<Args>(args)...);
-            }),
-			_time(std::chrono::steady_clock::now()) {
+            }) {
 		}
 
 		~WorkerThread() {
@@ -47,6 +45,7 @@ namespace engine {
 		const WorkerThread& operator= (WorkerThread&) = delete;
 
 		inline void run() {
+            _time = std::chrono::steady_clock::now();
 			_thread = std::thread(&WorkerThread::work, this);
 		}
 
@@ -54,7 +53,7 @@ namespace engine {
             _threadId = std::this_thread::get_id();
 
 			while (isAlive()) {
-				_wait.clear(std::memory_order_release);
+				_wait.clear(std::memory_order_relaxed);
 
 				while (isActive()) {
 					const auto currentTime = std::chrono::steady_clock::now();
@@ -91,7 +90,7 @@ namespace engine {
 					_frameId.fetch_add(1, std::memory_order_relaxed); // increase frameId at the end of frame
 				}
 
-				_wait.test_and_set(std::memory_order_acq_rel);
+				_wait.test_and_set(std::memory_order_relaxed);
 				//LOG_TAG_LEVEL(engine::LogLevel::L_DEBUG, THREAD, "pause worker thread");
 
 				if (isAlive()) {
@@ -118,7 +117,7 @@ namespace engine {
 			}
 		}
 
-		[[nodiscard]] inline bool isActive() const noexcept { return !_paused.test(std::memory_order_acquire); }
+		[[nodiscard]] inline bool isActive() const noexcept { return !_paused.test(std::memory_order_relaxed); }
         [[nodiscard]] inline bool isAlive() const noexcept { return !_stop.test(std::memory_order_acquire); }
 
 		inline void resume() {
@@ -133,7 +132,7 @@ namespace engine {
 
 		inline void stop() {
 			if (!_stop.test_and_set(std::memory_order_acq_rel)) {
-				_paused.test_and_set(std::memory_order_release);
+				_paused.test_and_set(std::memory_order_relaxed);
 				if (_thread.joinable()) {
 					_thread.join();
 				}
@@ -146,7 +145,7 @@ namespace engine {
 				AtomicLockF lock(_callbackLock);
 				_onPause = onPause;
 			}
-			_paused.test_and_set(std::memory_order_release);
+			_paused.test_and_set(std::memory_order_relaxed);
 		}
 
 		inline void requestPause(std::function<bool()>&& onPause) {
@@ -154,15 +153,15 @@ namespace engine {
 				AtomicLockF lock(_callbackLock);
 				_onPause = std::move(onPause);
 			}
-			_paused.test_and_set(std::memory_order_release);
+			_paused.test_and_set(std::memory_order_relaxed);
 		}
 
 		inline void requestResume() {
-			_paused.clear(std::memory_order_release);
+			_paused.clear(std::memory_order_relaxed);
 		}
 
 		inline void waitPaused() {
-			while (!_wait.test(std::memory_order_acquire)) {
+			while (!_wait.test(std::memory_order_relaxed)) {
 				std::this_thread::yield();
 			}
 		}
@@ -208,9 +207,9 @@ namespace engine {
 		std::chrono::steady_clock::time_point _time;
 		std::atomic_uint16_t _frameId = { 0 };
 
+        float _stealedTime = 0.0f;
 		float _targetFrameTime = std::numeric_limits<float>::max();
 		FpsLimitType _fpsLimitType = FpsLimitType::F_DONT_CARE;
-		float _stealedTime = 0.0;
 
         Task2Queue<SpinLock, void> _linkedTasks;
 	};
