@@ -165,7 +165,7 @@ namespace engine {
 		void initVariables();
 
 		ShadowMapTechnique _technique;
-		uint8_t _cascadesCount;
+		uint32_t _cascadesCount;
 		uint16_t _dimension;
 		float _cascadeSplitLambda = 1.0f;
 		float _frustumRadiusLambda = 1.0f;
@@ -192,6 +192,9 @@ namespace engine {
 
 		uint8_t _dirtyCascades = 0;
 		std::unordered_map<vulkan::VulkanGpuProgram*, ShadowUniforms> _programsShadowUniforms;
+
+		VkSpecializationInfo _specialisationInfo;
+		std::array<VkSpecializationMapEntry, 1> _specialisationEntry;
 	};
 
 }

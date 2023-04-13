@@ -128,6 +128,15 @@ namespace engine {
 
 		initVariables();
 		initCascadeSplits(nearFar, minZ, maxZ);
+
+		_specialisationEntry[0].constantID = 0;
+		_specialisationEntry[0].offset = 0;
+		_specialisationEntry[0].size = sizeof(uint32_t);
+
+		_specialisationInfo.mapEntryCount = 1;
+		_specialisationInfo.dataSize = sizeof(uint32_t);
+		_specialisationInfo.pData = &_cascadesCount;
+		_specialisationInfo.pMapEntries = _specialisationEntry.data();
 	}
 
 	CascadeShadowMap::~CascadeShadowMap() {
