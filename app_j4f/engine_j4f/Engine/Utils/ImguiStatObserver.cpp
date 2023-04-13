@@ -3,7 +3,7 @@
 #include "StringHelper.h"
 #include "../Graphics/Graphics.h"
 #include "../Graphics/Vulkan/vkRenderer.h"
-#include "CpuInfo.h"
+#include "HardwareInfo.h"
 #include <imgui.h>
 
 namespace engine {
@@ -48,6 +48,8 @@ namespace engine {
         }
 
         _gpuName = fmtString("gpu ({}): {}", gpuType, renderer->getDevice()->gpuProperties.deviceName);
+
+        _ram = fmtString("ram: {:.1f} GB", static_cast<double>(getTotalSystemMemory() / 1'000'000) / 1000.0);
 
         const auto engineVersion = engineInstance.version();
         const auto apiVersion = engineInstance.getModule<Graphics>()->config().render_api_version;
@@ -143,7 +145,6 @@ namespace engine {
         ImGuiStyleColorChanger _8(ImGuiCol_HeaderActive, IM_COL32(50, 50, 50, 200));
         ImGuiStyleColorChanger _9(ImGuiCol_HeaderHovered, IM_COL32(0, 0, 0, 200));
 
-
 #ifdef _DEBUG
         if (ImGui::Begin("info(debug):", nullptr, window_flags)) {
 #else
@@ -162,8 +163,9 @@ namespace engine {
             }
             ImGui::Separator();
             if (ImGui::TreeNodeEx("hardware info", ImGuiTreeNodeFlags_OpenOnArrow)) {
-                ImGui::Text(_cpuName.c_str());
-                ImGui::Text(_gpuName.c_str());
+                ImGui::BulletText(_cpuName.c_str());
+                ImGui::BulletText(_gpuName.c_str());
+                ImGui::BulletText(_ram.c_str());
                 ImGui::TreePop();
             }
             ImGui::Separator();

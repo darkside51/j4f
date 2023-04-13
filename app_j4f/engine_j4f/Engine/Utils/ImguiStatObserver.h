@@ -29,6 +29,7 @@ namespace engine {
         std::string _os;
         std::string _cpuName;
         std::string _gpuName;
+        std::string _ram;
         std::string _statString;
         std::string _versions;
     };

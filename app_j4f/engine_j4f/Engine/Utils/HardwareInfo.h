@@ -7,6 +7,12 @@
 #include <cstdint>
 #include <string>
 
+#ifdef j4f_PLATFORM_WINDOWS
+#include <windows.h>
+#elif defined(j4f_PLATFORM_LINUX)
+#include <unistd.h>
+#endif
+
 #ifdef _WIN32
 #include <limits.h>
 #include <intrin.h>
@@ -189,4 +195,20 @@ namespace engine {
         bool mIsAVX2;
     };
 
+#ifdef j4f_PLATFORM_WINDOWS
+    unsigned long long getTotalSystemMemory() {
+        MEMORYSTATUSEX status;
+        status.dwLength = sizeof(status);
+        GlobalMemoryStatusEx(&status);
+        return status.ullTotalPhys;
+    }
+#elif defined(j4f_PLATFORM_LINUX)
+    unsigned long long getTotalSystemMemory() {
+        long pages = sysconf(_SC_PHYS_PAGES);
+        long page_size = sysconf(_SC_PAGE_SIZE);
+        return pages * page_size;
+    }
+#endif
+    // mem usage in linux
+    // https://www.tutorialspoint.com/how-to-get-memory-usage-at-runtime-using-cplusplus
 }
