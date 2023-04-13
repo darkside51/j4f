@@ -74,10 +74,10 @@ namespace engine {
 								if (_stealedTime <= t) {
 									std::this_thread::sleep_for(std::chrono::duration<float>(t)); // as default in seconds
 									_stealedTime = std::chrono::duration<float>(std::chrono::steady_clock::now() - currentTime).count() - t;
+									continue;
 								} else {
 									_stealedTime -= t;
 								}
-                                continue;
 							}
 							break;
 						default:
