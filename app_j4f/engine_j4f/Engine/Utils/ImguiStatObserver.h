@@ -1,8 +1,10 @@
 #pragma once
 
 #include "Statistic.h"
-#include <string>
+
+#include <array>
 #include <cstdint>
+#include <string>
 
 namespace engine {
 
@@ -32,6 +34,16 @@ namespace engine {
         std::string _ram;
         std::string _statString;
         std::string _versions;
+
+        uint8_t _fps_array_idx = 0;
+
+        float _maxRenderFps = 0.0f;
+        std::array<float, 64> _renderFps_array;
+        std::string _renderFps;
+
+        float _maxUpdateFps = 0.0f;
+        std::array<float, 64> _updateFps_array;
+        std::string _updateFps;
     };
 
 }

@@ -49,7 +49,8 @@ namespace engine {
 
         _gpuName = fmtString("gpu ({}): {}", gpuType, renderer->getDevice()->gpuProperties.deviceName);
 
-        _ram = fmtString("ram: {:.1f} GB", static_cast<double>(getTotalSystemMemory() / 1'000'000) / 1000.0);
+        constexpr uint32_t toGB = 1 << 30u; // 1024 * 1024 * 1024;
+        _ram = fmtString("ram: {:.2f} GB", static_cast<double>(getTotalSystemMemory()) / toGB);
 
         const auto engineVersion = engineInstance.version();
         const auto apiVersion = engineInstance.getModule<Graphics>()->config().render_api_version;
@@ -60,6 +61,9 @@ namespace engine {
                               engineVersion.str().c_str(),
                               renderer->getName(), apiVersion.str().c_str()
                               );
+
+        memset(_renderFps_array.data(), 0, sizeof(float) * _renderFps_array.size());
+        memset(_updateFps_array.data(), 0, sizeof(float) * _updateFps_array.size());
     }
 
     ImguiStatObserver::~ImguiStatObserver() {
@@ -80,10 +84,22 @@ namespace engine {
         auto [width, height] = Engine::getInstance().getModule<Graphics>()->getSize();
 
         _statString = fmtString("resolution: {}x{}\nv_sync: {}\ndraw calls: {}\n"
-                                "fps render: {}\nfps update: {}\ncpu frame time: {:.5f}\nspeed mult: {:.3}",
+                                "cpu frame time: {:.5f}\nspeed mult: {:.3}",
                                 width, height, vsync ? "on" : "off",
-                                statistic->drawCalls(), statistic->renderFps(), statistic->updateFps(), statistic->cpuFrameTime(),
+                                statistic->drawCalls(), statistic->cpuFrameTime(),
                                 Engine::getInstance().getTimeMultiply());
+
+        auto const renderFps = statistic->renderFps();
+        _renderFps_array[_fps_array_idx] = renderFps;
+        _maxRenderFps = std::max(_maxRenderFps, static_cast<float>(renderFps));
+        _renderFps = fmtString("render :{} fps", renderFps);
+
+        auto const updateFps = statistic->updateFps();
+        _updateFps_array[_fps_array_idx] = updateFps;
+        _maxUpdateFps = std::max(_maxUpdateFps, static_cast<float>(updateFps));
+        _updateFps = fmtString("update: {} fps", updateFps);
+
+        if (++_fps_array_idx == _renderFps_array.size()) { _fps_array_idx = 0; }
     }
 
     class ImGuiStyleColorChanger {
@@ -144,6 +160,8 @@ namespace engine {
         ImGuiStyleColorChanger _7(ImGuiCol_TitleBgActive, bgColor);
         ImGuiStyleColorChanger _8(ImGuiCol_HeaderActive, IM_COL32(50, 50, 50, 200));
         ImGuiStyleColorChanger _9(ImGuiCol_HeaderHovered, IM_COL32(0, 0, 0, 200));
+        ImGuiStyleColorChanger _10(ImGuiCol_PlotLines, IM_COL32(0, 0, 0, 200));
+        ImGuiStyleColorChanger _11(ImGuiCol_FrameBg, IM_COL32(200, 200, 200, 100));
 
 #ifdef _DEBUG
         if (ImGui::Begin("info(debug):", nullptr, window_flags)) {
@@ -171,6 +189,21 @@ namespace engine {
             ImGui::Separator();
             if (ImGui::TreeNodeEx("frame info", ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_DefaultOpen)) {
                 ImGui::Text(_statString.c_str());
+
+                ImGui::Separator();
+                ImGui::BulletText(_renderFps.c_str());
+                ImGui::PlotLines("", _renderFps_array.data(), _renderFps_array.size(),
+                                 _fps_array_idx, NULL, 0.0, _maxRenderFps,
+                                 ImVec2(0, 30.0f));
+
+                ImGui::BulletText(_updateFps.c_str());
+                ImGui::PlotLines("", _updateFps_array.data(), _updateFps_array.size(),
+                                 _fps_array_idx, NULL, 0.0, _maxUpdateFps,
+                                 ImVec2(0, 30.0f));
+
+//                ImGui::PlotHistogram("", _renderFps_array.data(), _renderFps_array.size(),
+//                                                 _fps_array_idx, NULL, 0.0, _maxRenderFps, ImVec2(0, 30.0f));
+
                 ImGui::TreePop();
             }
 

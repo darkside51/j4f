@@ -23,6 +23,8 @@ namespace engine {
 
 	class Statistic : public IEngineModule {
 	public:
+        explicit Statistic(const float time = 1.0f) : _calculationTime(time) {}
+
         inline void update(const float /*delta*/) noexcept {
             _updateFrameCounter.fetch_add(1u, std::memory_order_relaxed);
         }
@@ -34,10 +36,10 @@ namespace engine {
 		inline void frame(const float delta) {
             _timeCounter += delta;
 
-			if (_timeCounter >= 1.0f) {
-                _renderFps = _renderFrameCounter.exchange(0u, std::memory_order_relaxed);
-                _updateFps = _updateFrameCounter.exchange(0u, std::memory_order_relaxed);
-				_drawCalls = std::roundf(static_cast<float>(_drawCallsCounter.exchange(0, std::memory_order_relaxed)) / _renderFps);
+			if (_timeCounter >= _calculationTime) {
+                _renderFps = static_cast<uint16_t>(static_cast<float>(_renderFrameCounter.exchange(0u, std::memory_order_relaxed)) / _calculationTime);
+                _updateFps = static_cast<uint16_t>(static_cast<float>(_updateFrameCounter.exchange(0u, std::memory_order_relaxed)) / _calculationTime);
+				_drawCalls = static_cast<uint16_t>(std::roundf(static_cast<float>(_drawCallsCounter.exchange(0, std::memory_order_relaxed)) / _renderFps));
 				_cpuFrameTime = _cpuTimeCounter / _renderFps;
 				updateValues();
                 _timeCounter = 0;
@@ -59,10 +61,10 @@ namespace engine {
 			_observers.erase(std::remove(_observers.begin(), _observers.end(), o), _observers.end());
 		}
 
-		inline uint16_t renderFps() const noexcept { return _renderFps; }
-        inline uint16_t updateFps() const noexcept { return _updateFps; }
-		inline uint16_t drawCalls() const noexcept { return _drawCalls; }
-		inline float cpuFrameTime() const noexcept { return _cpuFrameTime; }
+		[[nodiscard]] inline uint16_t renderFps() const noexcept { return _renderFps; }
+        [[nodiscard]] inline uint16_t updateFps() const noexcept { return _updateFps; }
+		[[nodiscard]] inline uint16_t drawCalls() const noexcept { return _drawCalls; }
+		[[nodiscard]] inline float cpuFrameTime() const noexcept { return _cpuFrameTime; }
 
 		inline void addDrawCall() noexcept {
             _drawCallsCounter.fetch_add(1, std::memory_order_relaxed);
@@ -73,6 +75,7 @@ namespace engine {
 		}
 
 	private:
+        float _calculationTime = 1.0f;
 		uint16_t _renderFps = 0;
         uint16_t _updateFps = 0;
 		uint16_t _drawCalls = 0;
