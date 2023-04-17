@@ -34,6 +34,8 @@ namespace engine {
 	}
 	
 	void Engine::init(const EngineConfig& config) {
+		initPlatform();
+
 		setModule<LogManager>();
 		setModule<Statistic>();
 
@@ -107,6 +109,8 @@ namespace engine {
 		if (_application) {
 			_application = nullptr;
 		}
+
+		deinitPlatform();
 	}
 
 	void Engine::resize(const uint16_t w, const uint16_t h) {

@@ -68,8 +68,6 @@ namespace engine {
 							}
 							break;
 						case FpsLimitType::F_CPU_SLEEP:
-                            // linux - ok
-                            // windows - some strange, wtf??
 							if (const float t = (_targetFrameTime - durationTime); t > 0.0f) {
 								if (_stealedTime <= t) {
 									std::this_thread::sleep_for(std::chrono::duration<float>(t)); // as default in seconds

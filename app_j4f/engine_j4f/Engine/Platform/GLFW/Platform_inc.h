@@ -11,4 +11,7 @@ namespace engine {
 	using Device = GLFWDevice;
 	using DefaultFileSystem = CommonFileSystem;
     using Renderer = vulkan::VulkanRenderer;
+
+	void initPlatform();
+	void deinitPlatform();
 }
