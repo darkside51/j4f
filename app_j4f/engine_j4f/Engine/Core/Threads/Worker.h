@@ -57,8 +57,8 @@ namespace engine {
 
 				while (isActive()) {
 					const auto currentTime = std::chrono::steady_clock::now();
-					const std::chrono::duration<float> duration = currentTime - _time; // as default in seconds
-					const float durationTime = duration.count();
+					const std::chrono::duration<double> duration = currentTime - _time; // as default in seconds
+					const double durationTime = duration.count();
 
 					switch (_fpsLimitType) {
 						case FpsLimitType::F_STRICT:
@@ -68,10 +68,10 @@ namespace engine {
 							}
 							break;
 						case FpsLimitType::F_CPU_SLEEP:
-							if (const float t = (_targetFrameTime - durationTime); t > 0.0f) {
+							if (const double t = (_targetFrameTime - durationTime); t > 0.0) {
 								if (_stealedTime <= t) {
-									std::this_thread::sleep_for(std::chrono::duration<float>(t)); // as default in seconds
-									_stealedTime = std::chrono::duration<float>(std::chrono::steady_clock::now() - currentTime).count() - t;
+									std::this_thread::sleep_for(std::chrono::duration<double>(t)); // as default in seconds
+									_stealedTime = std::chrono::duration<double>(std::chrono::steady_clock::now() - currentTime).count() - t;
 									continue;
 								} else {
 									_stealedTime -= t;
@@ -83,7 +83,7 @@ namespace engine {
 					}
 
 					_time = currentTime;
-					_task(durationTime, currentTime, _linkedTasks.stealTasks());
+					_task(static_cast<float>(durationTime), currentTime, _linkedTasks.stealTasks());
 
 					_frameId.fetch_add(1, std::memory_order_relaxed); // increase frameId at the end of frame
 				}
@@ -205,8 +205,8 @@ namespace engine {
 		std::chrono::steady_clock::time_point _time;
 		std::atomic_uint16_t _frameId = { 0 };
 
-        float _stealedTime = 0.0f;
-		float _targetFrameTime = std::numeric_limits<float>::max();
+        double _stealedTime = 0.0f;
+		double _targetFrameTime = std::numeric_limits<float>::max();
 		FpsLimitType _fpsLimitType = FpsLimitType::F_DONT_CARE;
 
         Task2Queue<SpinLock, void> _linkedTasks;
