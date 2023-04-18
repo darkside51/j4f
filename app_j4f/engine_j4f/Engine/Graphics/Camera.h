@@ -117,11 +117,12 @@ namespace engine {
 		inline const glm::vec3& getScale() const noexcept { return _scale; }
 		inline const glm::vec3& getRotation() const noexcept { return _rotation; }
 		inline const glm::vec3& getPosition() const noexcept { return _position; }
-		inline const glm::mat4& getMatrix() const noexcept { return _transform; }
 
+		inline const glm::mat4& getTransform() const noexcept { return _transform; }
 		inline const glm::mat4& getViewTransform() const noexcept { return _viewTransform; }
+		inline const glm::mat4& getProjectionTransform() const noexcept { return _projectionTransform; }
 
-		inline const glm::mat4& getInvMatrix() noexcept {
+		inline const glm::mat4& getInvTransform() noexcept {
 			if (_dirty->invTransform) {
 				_invTransform = glm::inverse(_transform);
 				_dirty->invTransform = 0;
@@ -129,7 +130,7 @@ namespace engine {
 			return _invTransform;
 		}
 
-		inline const glm::mat4& getInvViewMatrix() noexcept {
+		inline const glm::mat4& getInvViewTransform() noexcept {
 			if (_dirty->invViewTransform) {
 				_invViewTransform = glm::inverse(_viewTransform);
 				_dirty->invViewTransform = 0;

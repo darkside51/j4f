@@ -334,7 +334,7 @@ namespace engine {
 			};
 
 			// project frustum corners into world space
-			const glm::mat4& invCam = const_cast<Camera*>(camera)->getInvMatrix();
+			const glm::mat4& invCam = const_cast<Camera*>(camera)->getInvTransform();
 			for (uint32_t i = 0; i < 8; ++i) {
 				glm::vec4 invCorner = invCam * glm::vec4(frustumCorners[i], 1.0f);
 				frustumCorners[i] = invCorner / invCorner.w;

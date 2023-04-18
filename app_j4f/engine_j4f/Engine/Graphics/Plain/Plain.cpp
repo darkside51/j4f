@@ -95,7 +95,7 @@ namespace engine {
 		_renderState.vertexDescription.attributes = _vertexInputAttributes.data();
 
 		_fixedGpuLayouts.resize(1);
-		_fixedGpuLayouts[0].second = "mvp";
+		_fixedGpuLayouts[0].second = { "mvp", ViewParams::Ids::CAMERA_TRANSFORM };
 
 		setPipeline(Engine::getInstance().getModule<Graphics>()->getRenderer()->getGraphicsPipeline(_renderState, pipeline->program));
 	}

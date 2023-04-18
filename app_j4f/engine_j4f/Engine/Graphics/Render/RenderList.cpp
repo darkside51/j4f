@@ -28,14 +28,23 @@ namespace engine {
 		}
 	}
 
-	void RenderList::render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const glm::mat4* cameraMatrix) {
+	void RenderList::render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const ViewParams& viewParams) {
 		for (auto&& vec : _descriptors) {
 			for (auto&& descriptor : vec) {
 				if (descriptor->visible) {
-					descriptor->render(commandBuffer, currentFrame, cameraMatrix);
+					descriptor->render(commandBuffer, currentFrame, viewParams);
 				}
 			}
 		}
 	}
 
+	void RenderList::render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, ViewParams&& viewParams) {
+		for (auto&& vec : _descriptors) {
+			for (auto&& descriptor : vec) {
+				if (descriptor->visible) {
+					descriptor->render(commandBuffer, currentFrame, viewParams);
+				}
+			}
+		}
+	}
 }

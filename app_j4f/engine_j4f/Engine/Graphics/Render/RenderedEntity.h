@@ -3,12 +3,18 @@
 #include "../Vulkan/vkRenderData.h"
 #include "RenderDescriptor.h"
 
+#include <cstdint>
 #include <string>
 #include <utility>
 #include <functional>
 #include <unordered_map>
 
 namespace engine {
+
+	struct FixedLayoutDescriptor {
+		std::string name;
+		ViewParams::Ids viewParamIdx = ViewParams::Ids::UNKNOWN;
+	};
 
 	class RenderedEntity {
 	public:
@@ -72,15 +78,19 @@ namespace engine {
 				} else {
 					std::vector<const vulkan::GPUParamLayoutInfo*> layouts;
 					for (auto&& l : _fixedGpuLayouts) {
-						l.first = p->program->getGPUParamLayoutByName(l.second);
+						l.first = p->program->getGPUParamLayoutByName(l.second.name);
 						layouts.push_back(l.first);
 					}
 					_pipelinesLayoutsMap[p] = std::move(layouts);
 				}				
 			}
 
-            if (!_fixedGpuLayouts.empty() && _renderDescriptor.mode != RenderDescritorMode::CUSTOM_DRAW) {
-                _renderDescriptor.setCameraMatrix(_fixedGpuLayouts[0].first);
+            if (_renderDescriptor.mode != RenderDescritorMode::CUSTOM_DRAW) {
+				for (auto&& l : _fixedGpuLayouts) {
+					if (l.second.viewParamIdx != ViewParams::Ids::UNKNOWN) {
+						_renderDescriptor.setViewParamLayout(l.first, l.second.viewParamIdx);
+					}
+				}
             }
 
 			for (uint32_t i = 0; i < _renderDescriptor.renderDataCount; ++i) {
@@ -108,15 +118,15 @@ namespace engine {
 			setPipeline(Engine::getInstance().getModule<Graphics>()->getRenderer()->getGraphicsPipeline(_renderState, _renderDescriptor.renderData[0]->pipeline->program));
 		}
 
-		inline void render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const glm::mat4* cameraMatrix) {
-			_renderDescriptor.render(commandBuffer, currentFrame, cameraMatrix);
+		inline void render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const ViewParams& viewParams) {
+			_renderDescriptor.render(commandBuffer, currentFrame, viewParams);
 		}
 
 	protected:
 		RenderDescriptor _renderDescriptor;
 		vulkan::VulkanRenderState _renderState;
 		std::vector<VkVertexInputAttributeDescription> _vertexInputAttributes;
-		std::vector<std::pair<const vulkan::GPUParamLayoutInfo*, std::string>> _fixedGpuLayouts;
+		std::vector<std::pair<const vulkan::GPUParamLayoutInfo*, FixedLayoutDescriptor>> _fixedGpuLayouts;
 		std::unordered_map<vulkan::VulkanPipeline*, std::vector<const vulkan::GPUParamLayoutInfo*>> _pipelinesLayoutsMap;
 	};
 

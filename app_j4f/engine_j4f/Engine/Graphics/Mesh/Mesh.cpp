@@ -362,9 +362,9 @@ namespace engine {
 
 		// fixed gpu layout works
 		_fixedGpuLayouts.resize(3);
-		_fixedGpuLayouts[0].second = "camera_matrix";
-		_fixedGpuLayouts[1].second = "model_matrix";
-		_fixedGpuLayouts[2].second = "skin_matrixes";
+		_fixedGpuLayouts[0].second = { "camera_matrix", ViewParams::Ids::CAMERA_TRANSFORM };
+		_fixedGpuLayouts[1].second = { "model_matrix" };
+		_fixedGpuLayouts[2].second = { "skin_matrixes" };
 	}
 
 	std::vector<VkVertexInputAttributeDescription> Mesh::getVertexInputAttributes() const {

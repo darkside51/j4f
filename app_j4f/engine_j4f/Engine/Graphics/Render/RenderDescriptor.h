@@ -2,6 +2,8 @@
 
 #include "../Vulkan/vkRenderData.h"
 #include "../../Core/Math/mathematic.h"
+
+#include <array>
 #include <cstdint>
 
 namespace engine {
@@ -12,10 +14,34 @@ namespace engine {
         CUSTOM_DRAW = 2
 	};
 
+	struct ViewParams {
+		enum class Ids : uint8_t {
+			CAMERA_TRANSFORM = 0,
+			VIEW_TRANSFORM = 1,
+			PROJECTION_TRANSFROM = 2,
+			UNKNOWN = 0xff
+		};
+
+		struct Params {
+			const glm::mat4* cameraTransfrom = nullptr;
+			const glm::mat4* cameraViewTransfrom = nullptr;
+			const glm::mat4* cameraProjectionTransfrom = nullptr;
+		};
+
+		union {
+			Params params;
+			std::array<const glm::mat4*, 3> values;
+		} v;
+
+		const glm::mat4* operator[](const uint8_t i) const {
+			return v.values[i];
+		}
+	};
+
     class IRenderDescriptorCustomRenderer {
     public:
         virtual ~IRenderDescriptorCustomRenderer() = default;
-        virtual void render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const glm::mat4* cameraMatrix) = 0;
+		virtual void render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const ViewParams& viewParams) = 0;
     };
 
 	struct RenderDescriptor {
@@ -25,12 +51,11 @@ namespace engine {
 		int16_t order = 0;
 		bool visible = true;
         IRenderDescriptorCustomRenderer* customRenderer = nullptr;
-
-		const vulkan::GPUParamLayoutInfo* camera_matrix = nullptr;
+		std::array<const vulkan::GPUParamLayoutInfo*, 3> viewParamsLayouts = {nullptr, nullptr, nullptr};
 
 		~RenderDescriptor() { destroy(); }
 
-		inline void setCameraMatrix(const vulkan::GPUParamLayoutInfo* layout) { camera_matrix = layout; }
+		inline void setViewParamLayout(const vulkan::GPUParamLayoutInfo* layout, const ViewParams::Ids idx) { viewParamsLayouts[static_cast<uint8_t>(idx)] = layout; }
 
 		void destroy() {
 			if (renderDataCount) {
@@ -72,6 +97,6 @@ namespace engine {
 			}
 		}
 
-		void render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const glm::mat4* cameraMatrix);
+		void render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const ViewParams& viewParams);
 	};
 }

@@ -71,9 +71,9 @@ namespace engine {
 
         // fixed gpu layout works
         _fixedGpuLayouts.resize(3);
-        _fixedGpuLayouts[0].second = "uScale";
-        _fixedGpuLayouts[1].second = "uTranslate";
-        _fixedGpuLayouts[2].second = "sTexture";
+        _fixedGpuLayouts[0].second = { "uScale" };
+        _fixedGpuLayouts[1].second = { "uTranslate" };
+        _fixedGpuLayouts[2].second = { "sTexture" };
 
         setPipeline(Engine::getInstance().getModule<Graphics>()->getRenderer()->getGraphicsPipeline(_renderState, _program));
     }
@@ -139,7 +139,7 @@ namespace engine {
         ImGui::NewFrame();
     }
 
-    void ImguiGraphics::render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const glm::mat4*) {
+    void ImguiGraphics::render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const ViewParams& /*viewParams*/) {
         const uint8_t swapChainImagesCount = Engine::getInstance().getModule<Graphics>()->getRenderer()->getSwapchainImagesCount();
 
         if (swapChainImagesCount != _dynamic_vertices.size()) {

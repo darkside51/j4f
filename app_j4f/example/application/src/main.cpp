@@ -13,7 +13,7 @@
 #include <Engine/Graphics/Mesh/AnimationTree.h>
 #include <Engine/Graphics/Plain/Plain.h>
 #include <Engine/Core/Math/functions.h>
-#include <Engine/Graphics/Scene/Camera.h>
+#include <Engine/Graphics/Camera.h>
 #include <Engine/Graphics/Render/RenderHelper.h>
 #include <Engine/Graphics/Render/AutoBatchRender.h>
 #include <Engine/Graphics/Render/RenderList.h>
@@ -186,8 +186,8 @@ namespace engine {
 
 			// fixed gpu layout works
 			_fixedGpuLayouts.resize(2);
-			_fixedGpuLayouts[0].second = "camera_matrix";
-			_fixedGpuLayouts[1].second = "model_matrix";
+			_fixedGpuLayouts[0].second = { "camera_matrix", ViewParams::Ids::CAMERA_TRANSFORM };
+			_fixedGpuLayouts[1].second = { "model_matrix" };
 
 			auto&& gpuProgramManager = Engine::getInstance().getModule<Graphics>()->getGpuProgramsManager();
 			std::vector<engine::ProgramStageInfo> psi;
@@ -1842,7 +1842,7 @@ namespace engine {
 			commandBuffer.cmdSetDepthBias(0.0f, 0.0f, 0.0f);
             //commandBuffer.cmdSetLineWidth(1.0f);
 
-			const glm::mat4& cameraMatrix = camera->getMatrix();
+			const glm::mat4& cameraMatrix = camera->getTransform();
 
 			//mesh->draw(cameraMatrix, wtr, commandBuffer, currentFrame);
 			//mesh2->draw(cameraMatrix, wtr2, commandBuffer, currentFrame);
@@ -1861,7 +1861,7 @@ namespace engine {
 				renderNodesBounds(rootNode, cameraMatrix, commandBuffer, currentFrame, 0); // draw bounding boxes
 			}
 
-			sceneRenderList.render(commandBuffer, currentFrame, &cameraMatrix);
+			sceneRenderList.render(commandBuffer, currentFrame, { &cameraMatrix, nullptr, nullptr });
 
 			////////
 			if constexpr (0) {
@@ -1985,7 +1985,7 @@ namespace engine {
 				translateMatrixTo(wtr, glm::vec3(-(width * 0.5f) + 16.0f, height * 0.5f - 30.0f, -1.0f));
 				plainTest->getNode()->setLocalMatrix(wtr);
 
-				const glm::mat4& camera2Matrix = camera2->getMatrix();
+				const glm::mat4& camera2Matrix = camera2->getTransform();
 
 				reloadRenderList(uiRenderList, uiNode, false, 0, engine::FrustumVisibleChecker(camera2->getFrustum()));
 
@@ -1997,7 +1997,7 @@ namespace engine {
                 imgui->graphics()->update(dt);
                 statObserver->draw();
                 //ImGui::ShowDemoWindow();
-				uiRenderList.render(commandBuffer, currentFrame, &camera2Matrix);
+				uiRenderList.render(commandBuffer, currentFrame, { &camera2Matrix, nullptr, nullptr });
 
 				autoBatcher->draw(commandBuffer, currentFrame);
 			}
@@ -2057,9 +2057,9 @@ namespace engine {
 				glm::mat4 wtr5(1.0f);
 				translateMatrixTo(wtr5, lightPos);
 
-				glm::mat4 billboardMatrix = engine::getBillboardViewMatrix(camera->getInvViewMatrix());
+				glm::mat4 billboardMatrix = engine::getBillboardViewMatrix(camera->getInvViewTransform());
 
-				glm::mat4 transform = camera->getMatrix() * wtr5 * billboardMatrix;
+				glm::mat4 transform = camera->getTransform() * wtr5 * billboardMatrix;
 				renderData.setParamForLayout(mvp_layout, &transform, false);
 				renderData.setParamByName("u_texture", texture_1, false);
 
@@ -2131,7 +2131,7 @@ namespace engine {
 			}
 
 			if constexpr (0) { // ortho matrix draw
-				const glm::mat4& cameraMatrix2 = camera2->getMatrix();
+				const glm::mat4& cameraMatrix2 = camera2->getTransform();
 
 				if (animTree2) {
 

@@ -246,7 +246,7 @@ namespace engine {
 		v.z = 0.0f;
 		v.w = 1.0f;
 
-		glm::vec4 sp = getInvMatrix() * v;
+		glm::vec4 sp = getInvTransform() * v;
 		sp /= sp.w;
 
 		v.z = 1.0f;

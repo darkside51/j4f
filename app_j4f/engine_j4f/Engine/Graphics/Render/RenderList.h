@@ -8,6 +8,7 @@
 namespace engine {
 
 	struct RenderDescriptor;
+	struct ViewParams;
 
 	class RenderList {
 	public:
@@ -18,8 +19,9 @@ namespace engine {
 		void eraseLayersData();
 
 		void sort();
-		void render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const glm::mat4* cameraMatrix);
 
+		void render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const ViewParams& viewParams);
+		void render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, ViewParams&& viewParams);
 	private:
 		std::vector<std::vector<RenderDescriptor*>> _descriptors;
 	};

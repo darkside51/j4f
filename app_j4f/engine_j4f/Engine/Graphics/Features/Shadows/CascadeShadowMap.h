@@ -5,7 +5,7 @@
 #include "../../Vulkan/vkCommandBuffer.h"
 #include "../../Vulkan/vkFrameBuffer.h"
 #include "../../Vulkan/vkDebugMarker.h"
-#include "../../Scene/Camera.h"
+#include "../../Camera.h"
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <unordered_map>
