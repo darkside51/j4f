@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <string>
 #include <vector>
 
@@ -32,11 +33,16 @@ namespace engine {
         ProgramStage stage;
         std::string pass;
         void* specialization;
-        ProgramStageInfo(const ProgramStage s, const std::string& p, void* sp = nullptr) : stage(s), pass(p), specialization(sp) {}
-        ProgramStageInfo(const ProgramStage s, std::string&& p, void* sp = nullptr) : stage(s), pass(std::move(p)), specialization(sp) {}
+        const std::vector<std::byte>* pShaderCode = nullptr;
+
+        ProgramStageInfo(const ProgramStage s, const std::string& p, const std::vector<std::byte>* code = nullptr, void* sp = nullptr) :
+            stage(s), pass(p), pShaderCode(code), specialization(sp) {}
+        ProgramStageInfo(const ProgramStage s, std::string&& p, const std::vector<std::byte>* code = nullptr, void* sp = nullptr) :
+            stage(s), pass(std::move(p)), pShaderCode(code), specialization(sp) {}
 
         inline bool operator == (const ProgramStageInfo& r) const noexcept {
-            return stage == r.stage && pass == r.pass && specialization == r.specialization;
+            return stage == r.stage && pass == r.pass;
+            // && pShaderCode == r.pShaderCode && specialization == r.specialization;
         }
     };
 

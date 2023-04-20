@@ -161,10 +161,24 @@ endif()
 
 #### vulkan lib
 if (j4f_PLATFORM STREQUAL "WINDOWS")
+# Vulkan
 set(
 	USED_FRAMEWORKS
 	general $ENV{VULKAN_SDK}/Lib/vulkan-1.lib
 )
+
+# for glslang to spirv compile
+set(
+		USED_FRAMEWORKS ${USED_FRAMEWORKS}
+		general $ENV{VULKAN_SDK}/Lib/MachineIndependent.lib
+		general $ENV{VULKAN_SDK}/Lib/OSDependent.lib
+		general $ENV{VULKAN_SDK}/Lib/GenericCodeGen.lib
+		general	$ENV{VULKAN_SDK}/Lib/SPIRV.lib
+		general $ENV{VULKAN_SDK}/Lib/glslang.lib
+		general $ENV{VULKAN_SDK}/Lib/OGLCompiler.lib
+		general $ENV{VULKAN_SDK}/Lib/HLSL.lib
+)
+
 elseif (j4f_PLATFORM STREQUAL "LINUX")
 #add_library(vulkan_lib SHARED IMPORTED)
 #set_property(TARGET vulkan_lib PROPERTY IMPORTED_LOCATION $ENV{VULKAN_SDK}/lib/libvulkan.so)
@@ -173,9 +187,22 @@ elseif (j4f_PLATFORM STREQUAL "LINUX")
 #        vulkan_lib
 #)
 
+# Vulkan
 set(
 	USED_FRAMEWORKS
 	general $ENV{VULKAN_SDK}/lib/libvulkan.so
+)
+
+# for glslang to spirv compile
+set(
+	USED_FRAMEWORKS ${USED_FRAMEWORKS}
+	general $ENV{VULKAN_SDK}/lib/libMachineIndependent.a
+	general $ENV{VULKAN_SDK}/lib/libOSDependent.a
+	general $ENV{VULKAN_SDK}/lib/libGenericCodeGen.a
+	general	$ENV{VULKAN_SDK}/lib/libSPIRV.a
+	general $ENV{VULKAN_SDK}/lib/libglslang.a
+	general $ENV{VULKAN_SDK}/lib/libOGLCompiler.a
+	general $ENV{VULKAN_SDK}/lib/libHLSL.a
 )
 endif()
 

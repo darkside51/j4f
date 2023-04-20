@@ -257,11 +257,11 @@ namespace vulkan {
 
 						if (value) {
 							p.second = buffer->encrease();
-							increasedBuffers |= (uint64_t(1) << l->dynamcBufferIdx);
-							result = dynamicOffsets[l->dynamcBufferIdx] = program->setValueToLayout(l, value, nullptr, p.second, size);
+							increasedBuffers |= (uint64_t(1) << l->dynamicBufferIdx);
+							result = dynamicOffsets[l->dynamicBufferIdx] = program->setValueToLayout(l, value, nullptr, p.second, size);
 						} else {
 							const uint32_t bufferOffset = buffer->getCurrentOffset();
-							result = dynamicOffsets[l->dynamcBufferIdx] = ((bufferOffset == 0) ? 0 : (buffer->alignedSize * (bufferOffset - 1)));
+							result = dynamicOffsets[l->dynamicBufferIdx] = ((bufferOffset == 0) ? 0 : (buffer->alignedSize * (bufferOffset - 1)));
 						}
 					}
 						break;
@@ -269,15 +269,15 @@ namespace vulkan {
 					{
 						if (value) {
 							auto* buffer = reinterpret_cast<VulkanDynamicBuffer*>(l->parentLayout->data);
-							if ((increasedBuffers & (uint64_t(1) << l->parentLayout->dynamcBufferIdx)) == 0) {
-								increasedBuffers |= (uint64_t(1) << l->parentLayout->dynamcBufferIdx);
+							if ((increasedBuffers & (uint64_t(1) << l->parentLayout->dynamicBufferIdx)) == 0) {
+								increasedBuffers |= (uint64_t(1) << l->parentLayout->dynamicBufferIdx);
 								p.second = buffer->encrease();
 							} else {
 								const uint32_t bufferOffset = buffer->getCurrentOffset();
 								p.second = bufferOffset == 0 ? 0 : bufferOffset - 1;
 							}
 
-							result = dynamicOffsets[l->parentLayout->dynamcBufferIdx] = program->setValueToLayout(l, value, nullptr, p.second, size);
+							result = dynamicOffsets[l->parentLayout->dynamicBufferIdx] = program->setValueToLayout(l, value, nullptr, p.second, size);
 						}
 					}
 						break;

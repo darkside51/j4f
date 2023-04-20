@@ -388,8 +388,8 @@ namespace vulkan {
 		moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 		moduleCreateInfo.flags = 0;
 		moduleCreateInfo.pNext = nullptr;
-		moduleCreateInfo.codeSize = code.shaderSize;
-		moduleCreateInfo.pCode = reinterpret_cast<uint32_t*>(code.shaderCode);
+		moduleCreateInfo.codeSize = code.size();
+		moduleCreateInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
 
 		VkShaderModule shaderModule;
 		vkCreateShaderModule(device, &moduleCreateInfo, nullptr, &shaderModule);

@@ -89,20 +89,25 @@ namespace vulkan {
 	}
 
 	VulkanShaderCode VulkanShaderModule::loadSpirVCode(const char* pass) {
-		using namespace engine;
-		auto* fm = Engine::getInstance().getModule<FileManager>();
+		auto* fm = engine::Engine::getInstance().getModule<engine::FileManager>();
 
-		VulkanShaderCode code;
-		code.shaderCode = fm->readFile(pass, code.shaderSize);
+        size_t dataSize = 0;
+        auto* data = reinterpret_cast<std::byte*>(fm->readFile(pass, dataSize));
 
-		return code;
+		return makeVulkanShaderCode(data, dataSize);
 	}
 
-	VulkanShaderModule::VulkanShaderModule(VulkanRenderer* renderer, const ShaderStageInfo& stageInfo) : m_renderer(renderer), stage(stageInfo.pipelineStage) {
+	VulkanShaderModule::VulkanShaderModule(VulkanRenderer* renderer, const ShaderStageInfo& stageInfo) : m_renderer(renderer), m_stage(stageInfo.pipelineStage) {
 		const VulkanShaderCode code = VulkanShaderModule::loadSpirVCode(stageInfo.modulePass);
 		reflectShaderCode(renderer, code);
-		module = renderer->getDevice()->createShaderModule(code);
+		m_module = renderer->getDevice()->createShaderModule(code);
 	}
+
+    VulkanShaderModule::VulkanShaderModule(VulkanRenderer* renderer, const VulkanShaderCode& code, const VkShaderStageFlagBits pipelineStage) :
+            m_renderer(renderer), m_stage(pipelineStage) {
+        reflectShaderCode(renderer, code);
+        m_module = renderer->getDevice()->createShaderModule(code);
+    }
 
 	VulkanShaderModule::~VulkanShaderModule() {
 		for (auto&& v : m_descriptorSetLayoutBindings) {
@@ -113,13 +118,13 @@ namespace vulkan {
 
 		m_descriptorSetLayoutBindings.clear();
 
-		m_renderer->getDevice()->destroyShaderModule(module);
+		m_renderer->getDevice()->destroyShaderModule(m_module);
 	}
 
 	void VulkanShaderModule::reflectShaderCode(VulkanRenderer* renderer, const VulkanShaderCode& code) {
 	
 		SpvReflectShaderModule reflectedModule;
-		SpvReflectResult result = spvReflectCreateShaderModule(code.shaderSize, code.shaderCode, &reflectedModule);
+		SpvReflectResult result = spvReflectCreateShaderModule(code.size(), code.data(), &reflectedModule);
 		if (result != SPV_REFLECT_RESULT_SUCCESS) {
 			assert(false);
 		}
@@ -149,7 +154,7 @@ namespace vulkan {
 					layoutBinding.binding = binding->binding;
 					layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 					layoutBinding.descriptorCount = binding->count;
-					layoutBinding.stageFlags = stage;
+					layoutBinding.stageFlags = m_stage;
 					layoutBinding.pImmutableSamplers = nullptr;
 
 					auto* bindingDescription = new VulkanDescriptorSetLayoutBindingDescription();
@@ -214,7 +219,7 @@ namespace vulkan {
 					layoutBinding.binding = binding->binding;
 					layoutBinding.descriptorType = constUniform ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER : VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
 					layoutBinding.descriptorCount = binding->count;
-					layoutBinding.stageFlags = stage;
+					layoutBinding.stageFlags = m_stage;
 					layoutBinding.pImmutableSamplers = nullptr;
 
 					auto* bindingDescription = new VulkanDescriptorSetLayoutBindingDescription();
@@ -242,7 +247,7 @@ namespace vulkan {
 					layoutBinding.binding = binding->binding;
 					layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
 					layoutBinding.descriptorCount = binding->count;
-					layoutBinding.stageFlags = stage;
+					layoutBinding.stageFlags = m_stage;
 					layoutBinding.pImmutableSamplers = nullptr;
 
 					auto* bindingDescription = new VulkanDescriptorSetLayoutBindingDescription();
@@ -273,7 +278,7 @@ namespace vulkan {
 					layoutBinding.binding = binding->binding;
 					layoutBinding.descriptorType = constUniform ? VK_DESCRIPTOR_TYPE_STORAGE_BUFFER : VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
 					layoutBinding.descriptorCount = binding->count;
-					layoutBinding.stageFlags = stage;
+					layoutBinding.stageFlags = m_stage;
 					layoutBinding.pImmutableSamplers = nullptr;
 
 					auto* bindingDescription = new VulkanDescriptorSetLayoutBindingDescription();
@@ -301,7 +306,7 @@ namespace vulkan {
 					layoutBinding.binding = binding->binding;
 					layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
 					layoutBinding.descriptorCount = binding->count;
-					layoutBinding.stageFlags = stage;
+					layoutBinding.stageFlags = m_stage;
 					layoutBinding.pImmutableSamplers = nullptr;
 
 					auto* bindingDescription = new VulkanDescriptorSetLayoutBindingDescription();
@@ -342,7 +347,7 @@ namespace vulkan {
 		for (const SpvReflectBlockVariable* pushConstant : pushConstants) {
 
 			VkPushConstantRange pushConstantDecription;
-			pushConstantDecription.stageFlags = stage;
+			pushConstantDecription.stageFlags = m_stage;
 			pushConstantDecription.offset = pushConstant->offset;
 			pushConstantDecription.size = pushConstant->size;
 
@@ -378,7 +383,13 @@ namespace vulkan {
 		for (const ShaderStageInfo& stageInfo : stages) {
 			auto&& module = Engine::getInstance().getModule<CacheManager>()->load<VulkanShaderModule*>(
 					std::string(stageInfo.modulePass),
-					[](VulkanRenderer* renderer, const ShaderStageInfo& stageInfo) -> VulkanShaderModule* { return new VulkanShaderModule(renderer, stageInfo); },
+					[](VulkanRenderer* renderer, const ShaderStageInfo& stageInfo) -> VulkanShaderModule* {
+                            if (stageInfo.shaderCode) {
+                                return new VulkanShaderModule(renderer, *stageInfo.shaderCode, stageInfo.pipelineStage);
+                            } else {
+                                return new VulkanShaderModule(renderer, stageInfo);
+                            }
+                        },
 					renderer, stageInfo
 				);
 
@@ -388,8 +399,8 @@ namespace vulkan {
 			m_shaderStages[i].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 			m_shaderStages[i].pNext = nullptr;
 			m_shaderStages[i].flags = 0;
-			m_shaderStages[i].stage = module->stage;
-			m_shaderStages[i].module = module->module;
+			m_shaderStages[i].stage = module->m_stage;
+			m_shaderStages[i].module = module->m_module;
 			m_shaderStages[i].pName = "main";
 			m_shaderStages[i].pSpecializationInfo = stageInfo.specializationInfo;
 
@@ -447,7 +458,7 @@ namespace vulkan {
 				for (VulkanDescriptorSetLayoutBindingDescription* layoutDescription : descriptionVec) {
 
 					if (sets_map & (1 << layoutDescription->set)) { 
-						found_sets[layoutDescription->set]->binding.stageFlags |= module->stage; // если в нескольких шейдерах прописан uniform с одинаковым set - ом, тогда проставим stageFlags для использования этого uniform во всех этих шейдерах
+						found_sets[layoutDescription->set]->binding.stageFlags |= module->m_stage; // если в нескольких шейдерах прописан uniform с одинаковым set - ом, тогда проставим stageFlags для использования этого uniform во всех этих шейдерах
 						continue; // пропускаем, чтоб не попал несколько раз в общее descriptorSetLayoutBindings для программы
 					} 
 
@@ -466,7 +477,7 @@ namespace vulkan {
 						case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
 						{
 							info = new GPUParamLayoutInfo{ paramId++, layoutDescription->set, 0, layoutDescription->sizeInBytes, &(layoutDescription->binding), nullptr, GPUParamLayoutType::UNIFORM_BUFFER_DYNAMIC };
-							info->dynamcBufferIdx = m_dynamicBuffersCount++;
+							info->dynamicBufferIdx = m_dynamicBuffersCount++;
 							parseParamLayoutChilds(paramId, info, m_paramLayouts, layoutDescription->childInfos, GPUParamLayoutType::BUFFER_DYNAMIC_PART);
 						}
 							break;
@@ -479,7 +490,7 @@ namespace vulkan {
 						case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:
 						{
 							info = new GPUParamLayoutInfo{ paramId++, layoutDescription->set, 0, layoutDescription->sizeInBytes, &(layoutDescription->binding), nullptr, GPUParamLayoutType::STORAGE_BUFFER_DYNAMIC };
-							info->dynamcBufferIdx = m_dynamicBuffersCount++;
+							info->dynamicBufferIdx = m_dynamicBuffersCount++;
 							parseParamLayoutChilds(paramId, info, m_paramLayouts, layoutDescription->childInfos, GPUParamLayoutType::BUFFER_DYNAMIC_PART);
 						}
 							break;

@@ -44,6 +44,7 @@ namespace engine {
 					shaderStagesInfo[i].modulePass = stages[i].pass.c_str();
 					shaderStagesInfo[i].pipelineStage = static_cast<VkShaderStageFlagBits>(stages[i].stage);
 					shaderStagesInfo[i].specializationInfo = static_cast<VkSpecializationInfo*>(stages[i].specialization);
+                    shaderStagesInfo[i].shaderCode = stages[i].pShaderCode;
 				}
 
 				auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();

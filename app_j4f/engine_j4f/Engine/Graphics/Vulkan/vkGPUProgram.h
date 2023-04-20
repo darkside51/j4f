@@ -4,6 +4,8 @@
 #include "vkDescriptorSet.h"
 #include "vkDynamicBuffer.h"
 #include <vulkan/vulkan.h>
+
+#include <cstddef>
 #include <vector>
 #include <cstdint>
 #include <fstream>
@@ -17,52 +19,19 @@ namespace vulkan {
 		std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
 	};
 
-	struct VulkanShaderCode {
-		char* shaderCode = nullptr;
-		size_t shaderSize = 0;
-
-		~VulkanShaderCode() {
-			if (shaderCode) {
-				delete[] shaderCode;
-				shaderCode = nullptr;
-				shaderSize = 0;
-			}
-		}
-
-		VulkanShaderCode() = default;
-
-		VulkanShaderCode(VulkanShaderCode&& code) noexcept {
-			shaderSize = code.shaderSize;
-			shaderCode = code.shaderCode;
-			code.shaderCode = nullptr;
-		}
-
-		VulkanShaderCode(const VulkanShaderCode& code) {
-			shaderSize = code.shaderSize;
-			shaderCode = code.shaderCode;
-		}
-
-		VulkanShaderCode& operator=(const VulkanShaderCode& code) {
-            if (&code == this) return *this;
-			shaderSize = code.shaderSize;
-			shaderCode = code.shaderCode;
-			return *this;
-		}
-
-		VulkanShaderCode& operator=(VulkanShaderCode&& code) noexcept {
-			shaderSize = code.shaderSize;
-			shaderCode = code.shaderCode;
-			code.shaderCode = nullptr;
-			return *this;
-		}
-	};
+    using VulkanShaderCode = std::vector<std::byte>;
+    inline VulkanShaderCode makeVulkanShaderCode(const std::byte* data, const size_t size) {
+        VulkanShaderCode code;
+        code.assign(data, data + size);
+        return code;
+    }
 
 	struct ShaderStageInfo {
 		VkShaderStageFlagBits pipelineStage;
-		const char* modulePass;
-		VkSpecializationInfo* specializationInfo;
+		const char* modulePass = nullptr;
+        const VulkanShaderCode* shaderCode = nullptr;
+		VkSpecializationInfo* specializationInfo = nullptr;
 		ShaderStageInfo() = default;
-		ShaderStageInfo(VkShaderStageFlagBits s, const char* p, VkSpecializationInfo* si = nullptr) : pipelineStage(s), modulePass(p), specializationInfo(si) {}
 	};
 
 	enum class GPUParamLayoutType : uint8_t { // порядок важен, будет для сортировки потом
@@ -77,31 +46,8 @@ namespace vulkan {
 		PUSH_CONSTANT_PART		= 8
 	};
 
-	struct GPUParamLayout {
-		uint32_t offset = 0;
-		uint32_t sizeInBytes = 0;
-		uint32_t set = 0;
-		uint32_t descriptorSetBinding = 0;
-		uint32_t pushConstant = 0;
-		GPUParamLayoutType type = GPUParamLayoutType::PUSH_CONSTANT;
-		uint32_t dynamcBufferIdx = 0;
-		void* data = nullptr;
-		const GPUParamLayout* parentLayout = nullptr;
-
-		[[nodiscard]] const void* getData() const {
-			if (parentLayout) { return parentLayout->getData(); }
-			return data;
-		}
-	};
-
 	class VulkanRenderer;
 
-	struct VulkanDescriptorSetLayoutBindings {
-		uint8_t set;
-		std::vector<VkDescriptorSetLayoutBinding> bindings;
-	};
-
-	
 	//////////////////////
 	struct VulkanUniformInfo {
 		std::string name;
@@ -144,7 +90,7 @@ namespace vulkan {
 		VkPushConstantRange* pcRange = nullptr;
 		GPUParamLayoutType type = GPUParamLayoutType::PUSH_CONSTANT;
 		uint32_t push_constant_number = 0;
-		uint32_t dynamcBufferIdx = 0; // для смещения в нужном dynamic буффере при установке значения
+		uint32_t dynamicBufferIdx = 0; // для смещения в нужном dynamic буффере при установке значения
 		ImageType imageType = ImageType::undefined;
 		void* data = nullptr;
 		const GPUParamLayoutInfo* parentLayout = nullptr;
@@ -163,6 +109,8 @@ namespace vulkan {
 		static VulkanShaderCode loadSpirVCode(const char* pass);
 
 		VulkanShaderModule(VulkanRenderer* renderer, const ShaderStageInfo& stageInfo);
+        VulkanShaderModule(VulkanRenderer* renderer, const VulkanShaderCode& code, const VkShaderStageFlagBits pipelineStage);
+
 		~VulkanShaderModule();
 
 	//private:
@@ -172,8 +120,8 @@ namespace vulkan {
 		);
 
 		VulkanRenderer* m_renderer;
-		VkShaderModule module;
-		VkShaderStageFlagBits stage;
+		VkShaderModule m_module;
+		VkShaderStageFlagBits m_stage;
 		int16_t m_maxSet = -1;
 
 		std::vector<VulkanPushConstantRangeInfo> m_pushConstantsRange; // only one per stage
