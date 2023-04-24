@@ -36,6 +36,10 @@ namespace engine {
 		const glm::mat4* operator[](const uint8_t i) const {
 			return v.values[i];
 		}
+
+		const glm::mat4* data() const {
+			return *v.values.data();
+		}
 	};
 
     class IRenderDescriptorCustomRenderer {

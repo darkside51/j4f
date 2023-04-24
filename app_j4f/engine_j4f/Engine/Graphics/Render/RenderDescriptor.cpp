@@ -20,10 +20,10 @@ namespace engine {
 				vulkan::RenderData* r_data = renderData[i];
 				if (r_data == nullptr || r_data->pipeline == nullptr || !r_data->visible) continue;
 
-				uint8_t p = 0;
+				const auto* p = viewParams.data();
 				for (auto& param : viewParamsLayouts) {
 					if (param) {
-						r_data->setRawDataForLayout(param, const_cast<glm::mat4*>(viewParams[p]), false, sizeof(glm::mat4));
+						r_data->setRawDataForLayout(param, const_cast<glm::mat4*>(p), false, sizeof(glm::mat4));
 					}
 					++p;
 				}
@@ -39,10 +39,10 @@ namespace engine {
 				vulkan::RenderData* r_data = renderData[i];
 				if (r_data == nullptr || r_data->pipeline == nullptr || !r_data->visible) continue;
 
-				uint8_t p = 0;
+				const auto* p = viewParams.data();
 				for (auto& param : viewParamsLayouts) {
 					if (param) {
-						r_data->setRawDataForLayout(param, const_cast<glm::mat4*>(viewParams[p]), false, sizeof(glm::mat4));
+						r_data->setRawDataForLayout(param, const_cast<glm::mat4*>(p), false, sizeof(glm::mat4));
 					}
 					++p;
 				}
