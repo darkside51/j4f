@@ -93,20 +93,22 @@ namespace engine {
 	}
 
 	size_t CommonFileSystem::lengthFile(const std::string& path) const {
-		struct stat s;
-		if (stat(fullPath(path).c_str(), &s) == 0) { return s.st_size; }
-		return 0;
+		return lengthFile(path, false);
 	}
 
-	size_t CommonFileSystem::lengthFile_fullPath(const std::string& path) const {
+	size_t CommonFileSystem::lengthFile(const std::string& path, const bool isFullPath) const {
 		struct stat s;
-		if (stat(path.c_str(), &s) == 0) { return s.st_size; }
+		if (isFullPath) {
+			if (stat(path.c_str(), &s) == 0) { return s.st_size; }
+		} else {
+			if (stat(fullPath(path).c_str(), &s) == 0) { return s.st_size; }
+		}
 		return 0;
 	}
 
 	char* CommonFileSystem::readFile(const std::string& path, size_t& fileSize) const {
 		const std::string full_path = fullPath(path);
-		fileSize = lengthFile_fullPath(full_path);
+		fileSize = lengthFile(full_path, true);
 
 		if (fileSize == 0) return nullptr;
 
@@ -126,21 +128,30 @@ namespace engine {
 		return nullptr;
 	}
 
-	bool CommonFileSystem::readFile(const std::string& path, std::vector<char>& data) const {
-		const std::string full_path = fullPath(path);
-		const size_t fileLength = lengthFile(full_path);
+	template <typename T>
+	bool readFileImpl(const CommonFileSystem* fs, const std::string& path, T& data) {
+		const std::string full_path = fs->fullPath(path);
+		const size_t fileLength = fs->lengthFile(full_path, true);
 		if (fileLength == 0) return false;
 
-		if (File* file = file_open(full_path.c_str(), "rb")) {
+		if (File* file = fs->file_open(full_path.c_str(), "rb")) {
 			data.resize(fileLength);
-			if (file_read(file, fileLength, 1, data.data())) {
-				file_close(file);
+			if (fs->file_read(file, fileLength, 1, data.data())) {
+				fs->file_close(file);
 				return true;
 			}
-			file_close(file);
+			fs->file_close(file);
 		}
 
 		return false;
+	}
+
+	bool CommonFileSystem::readFile(const std::string& path, std::vector<char>& data) const {
+		return readFileImpl(this, path, data);
+	}
+
+	bool CommonFileSystem::readFile(const std::string& path, std::vector<std::byte>& data) const {
+		return readFileImpl(this, path, data);
 	}
 
 	bool CommonFileSystem::writeFile(const std::string& path, const void* data, const size_t sz, const char* mode) const {

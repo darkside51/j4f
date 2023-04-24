@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <cstdint>
+#include <cstddef>
 
 namespace engine {
 	struct File;
@@ -33,6 +34,7 @@ namespace engine {
 		virtual size_t lengthFile(const std::string& path) const = 0;
 		virtual char* readFile(const std::string& path, size_t& fileSize) const = 0;
 		virtual bool readFile(const std::string& path, std::vector<char>& data) const = 0;
+		virtual bool readFile(const std::string& path, std::vector<std::byte>& data) const = 0;
 		virtual bool writeFile(const std::string& path, const void* data, const size_t sz, const char* mode = "wb") const = 0;
 
 		virtual std::string fullPath(const std::string& path) const = 0;

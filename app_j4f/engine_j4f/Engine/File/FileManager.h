@@ -5,6 +5,7 @@
 #include "../Core/Threads/Synchronisations.h"
 #include "FileSystem.h"
 
+#include <cstddef>
 #include <unordered_map>
 
 namespace engine {
@@ -88,6 +89,13 @@ namespace engine {
 		}
 
 		bool readFile(const std::string& path, std::vector<char>& data) const {
+			if (const FileSystem* fs = getFileSystemByFilePath(path)) {
+				return fs->readFile(path, data);
+			}
+			return false;
+		}
+
+		bool readFile(const std::string& path, std::vector<std::byte>& data) const {
 			if (const FileSystem* fs = getFileSystemByFilePath(path)) {
 				return fs->readFile(path, data);
 			}

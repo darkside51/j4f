@@ -41,7 +41,7 @@ namespace vulkan {
 					const uint32_t stride = member->traits.numeric.matrix.stride; // выравнивание элемента
 					const uint32_t startMatrixStride = stride / oneElementSize; // размер выравнивания для начала матрицы
 					size = member->traits.numeric.matrix.row_count * member->traits.numeric.matrix.column_count * oneElementSize;
-					elementOffset = engine::alignValue(elementOffset, startMatrixStride); // матрицы должны быть выровнены по размеру элемента, иначе работает не правильно
+					elementOffset = engine::alignValue(elementOffset, startMatrixStride); // матрицы должны быть выравнены по размеру элемента, иначе работает не правильно
 				}
 					break;
 				case SpvOpTypeArray:
@@ -52,7 +52,7 @@ namespace vulkan {
 					for (size_t n = 0; n < member->traits.array.dims_count; ++n) {
 						size *= member->traits.array.dims[n];
 					}
-					elementOffset = engine::alignValue(elementOffset, startArrayStride); // массивы должны быть выровнены по размеру элемента, иначе работает не правильно
+					elementOffset = engine::alignValue(elementOffset, startArrayStride); // массивы должны быть выравнены по размеру элемента, иначе работает не правильно
 				}
 					break;
 				case SpvOpTypeVector:
@@ -90,11 +90,9 @@ namespace vulkan {
 
 	VulkanShaderCode VulkanShaderModule::loadSpirVCode(const char* pass) {
 		auto* fm = engine::Engine::getInstance().getModule<engine::FileManager>();
-
-        size_t dataSize = 0;
-        auto* data = reinterpret_cast<std::byte*>(fm->readFile(pass, dataSize));
-
-		return makeVulkanShaderCode(data, dataSize);
+		VulkanShaderCode code;
+		fm->readFile(pass, code);
+		return code;
 	}
 
 	VulkanShaderModule::VulkanShaderModule(VulkanRenderer* renderer, const ShaderStageInfo& stageInfo) : m_renderer(renderer), m_stage(stageInfo.pipelineStage) {

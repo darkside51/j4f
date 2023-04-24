@@ -21,12 +21,14 @@ namespace engine {
 		size_t lengthFile(const std::string& path) const override;
 		char* readFile(const std::string& path, size_t& fileSize) const override;
 		bool readFile(const std::string& path, std::vector<char>& data) const override;
+		bool readFile(const std::string& path, std::vector<std::byte>& data) const override;
 		bool writeFile(const std::string& path, const void* data, const size_t sz, const char* mode = "wb") const override;
 
 		inline std::string fullPath(const std::string& path) const override { return _root + path; }
 
+		size_t lengthFile(const std::string& path, const bool isFullPath) const;
+
 	private:
-		size_t lengthFile_fullPath(const std::string& path) const;
 		std::string _root;
 	};
 
