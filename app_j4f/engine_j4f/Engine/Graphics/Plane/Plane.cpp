@@ -1,10 +1,10 @@
-#include "Plain.h"
+#include "Plane.h"
 #include "../Render/RenderHelper.h"
 #include "../Render/AutoBatchRender.h"
 
 namespace engine {
 
-	Plain::Plain(const glm::vec2& sz, const vulkan::RenderDataGpuParamsType& params) {
+	Plane::Plane(const glm::vec2& sz, const vulkan::RenderDataGpuParamsType& params) {
         createRenderData(params);
 		_aabb[0] = glm::vec2(0.0f);
 		_aabb[1] = glm::vec2(sz);
@@ -26,7 +26,7 @@ namespace engine {
         _renderDescriptor.renderData[0]->batchingParams->rawIndexes = _idx.data();
 	}
 
-	Plain::Plain(const std::shared_ptr<TextureFrame>& f, const vulkan::RenderDataGpuParamsType& params) : _frame(f) {
+	Plane::Plane(const std::shared_ptr<TextureFrame>& f, const vulkan::RenderDataGpuParamsType& params) : _frame(f) {
         createRenderData(params);
 
 		_vtx.resize(_frame->_vtx.size() / 2);
@@ -48,7 +48,7 @@ namespace engine {
         _renderDescriptor.renderData[0]->batchingParams->rawIndexes = _idx.data();
 	}
 
-	void Plain::setFrame(const std::shared_ptr<TextureFrame>& f) {
+	void Plane::setFrame(const std::shared_ptr<TextureFrame>& f) {
 		if (_frame == f) { return; }
 
 		_frame = f;
@@ -71,7 +71,7 @@ namespace engine {
 
 	}
 
-	void Plain::createRenderData(const vulkan::RenderDataGpuParamsType& params) {
+	void Plane::createRenderData(const vulkan::RenderDataGpuParamsType& params) {
 		auto&& renderHelper = Engine::getInstance().getModule<Graphics>()->getRenderHelper();
 		auto&& pipeline = renderHelper->getPipeline(CommonPipelines::COMMON_PIPELINE_TEXTURED);
 
@@ -100,7 +100,7 @@ namespace engine {
 		setPipeline(Engine::getInstance().getModule<Graphics>()->getRenderer()->getGraphicsPipeline(_renderState, pipeline->program));
 	}
 
-	void Plain::updateRenderData(const glm::mat4& worldMatrix, const bool worldMatrixChanged) {
+	void Plane::updateRenderData(const glm::mat4& worldMatrix, const bool worldMatrixChanged) {
 		_modelMatrixChanged |= worldMatrixChanged;
 
 		if (_modelMatrixChanged || _frameChanged) {

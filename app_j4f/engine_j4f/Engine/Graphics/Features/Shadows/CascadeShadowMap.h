@@ -23,7 +23,7 @@ namespace engine {
 
 	enum class ShadowMapSpecialPipelines : uint8_t {
 		SH_PIPELINE_DEBUG = 0,
-		SH_PIPEINE_PLAIN = 1,
+		SH_PIPEINE_PLANE = 1,
 		SH_PIPELINES_COUNT = 2
 	};
 

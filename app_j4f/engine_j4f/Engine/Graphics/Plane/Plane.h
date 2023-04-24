@@ -9,10 +9,10 @@
 
 namespace engine {
 	
-	class Plain : public RenderedEntity {
+	class Plane : public RenderedEntity {
 	public:
-		Plain(const glm::vec2& sz, const vulkan::RenderDataGpuParamsType& params = nullptr);
-		Plain(const std::shared_ptr<TextureFrame>& f, const vulkan::RenderDataGpuParamsType& params = nullptr);
+		Plane(const glm::vec2& sz, const vulkan::RenderDataGpuParamsType& params = nullptr);
+		Plane(const std::shared_ptr<TextureFrame>& f, const vulkan::RenderDataGpuParamsType& params = nullptr);
 
 		void updateRenderData(const glm::mat4& worldMatrix, const bool worldMatrixChanged);
 		inline void updateModelMatrixChanged(const bool worldMatrixChanged) noexcept { _modelMatrixChanged |= worldMatrixChanged; }

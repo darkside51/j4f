@@ -11,7 +11,7 @@
 #include <Engine/Graphics/Mesh/Mesh.h>
 #include <Engine/Graphics/Mesh/MeshLoader.h>
 #include <Engine/Graphics/Mesh/AnimationTree.h>
-#include <Engine/Graphics/Plain/Plain.h>
+#include <Engine/Graphics/Plane/Plane.h>
 #include <Engine/Core/Math/functions.h>
 #include <Engine/Graphics/Camera.h>
 #include <Engine/Graphics/Render/RenderHelper.h>
@@ -76,7 +76,7 @@ namespace engine {
 	std::vector<NodeRenderer<Mesh>*> testMehsesVec;
 
 	NodeRenderer<Mesh>* grassMesh = nullptr;
-	NodeRenderer<Plain>* plainTest = nullptr;
+	NodeRenderer<Plane>* planeTest = nullptr;
 
     NodeRenderer<ImguiGraphics> *imgui = nullptr;
 
@@ -485,7 +485,7 @@ namespace engine {
 	GraphicsTypeUpdateSystem<GrassRenderer> grassUpdateSystem;
 	GraphicsTypeUpdateSystem<SkyBoxRenderer> skyBoxUpdateSystem;
 	GraphicsTypeUpdateSystem<InstanceMeshRenderer> instanceMeshUpdateSystem;
-	GraphicsTypeUpdateSystem<Plain> plainUpdateSystem;
+	GraphicsTypeUpdateSystem<Plane> planeUpdateSystem;
 	
 	class ApplicationCustomData : public InputObserver, public ICameraTransformChangeObserver {
 	public:
@@ -738,7 +738,7 @@ namespace engine {
 			program_mesh_with_stroke = program_gltf2;
 			program_mesh_skin_with_stroke = program_gltf3;
 			program_mesh_instance = program_gltf4;
-			VulkanGpuProgram* shadowPlainProgram = const_cast<VulkanGpuProgram*>(CascadeShadowMap::getSpecialPipeline(ShadowMapSpecialPipelines::SH_PIPEINE_PLAIN)->program);
+			VulkanGpuProgram* shadowPlaneProgram = const_cast<VulkanGpuProgram*>(CascadeShadowMap::getSpecialPipeline(ShadowMapSpecialPipelines::SH_PIPEINE_PLANE)->program);
 
 			auto assignGPUParams = [](VulkanGpuProgram* program) {
 				glm::vec3 lightDir = as_normalized(-lightPos);
@@ -751,7 +751,7 @@ namespace engine {
 
 			assignGPUParams(program_mesh);
 			assignGPUParams(program_mesh_skin);
-			assignGPUParams(shadowPlainProgram);
+			assignGPUParams(shadowPlaneProgram);
 			assignGPUParams(program_mesh_with_stroke);
 			assignGPUParams(program_mesh_skin_with_stroke);
 			assignGPUParams(program_mesh_instance);
@@ -1389,8 +1389,8 @@ namespace engine {
                 imgui->getRenderDescriptor()->order = 100;
             }
 
-			plainTest = new NodeRenderer<Plain>();
-			plainUpdateSystem.registerObject(plainTest);
+			planeTest = new NodeRenderer<Plane>();
+			planeUpdateSystem.registerObject(planeTest);
 			{
 				glm::mat4 wtr(1.0f);
 				//scaleMatrix(wtr, glm::vec3(1.0f));
@@ -1402,9 +1402,9 @@ namespace engine {
 				node->value().setLocalMatrix(wtr);
 				uiNode->addChild(node);
 
-				//plainTest->setGraphics(new Plain(glm::vec2(100.0f, 100.0f)));
+				//planeTest->setGraphics(new Plane(glm::vec2(100.0f, 100.0f)));
 
-				plainTest->setGraphics(new Plain(
+				planeTest->setGraphics(new Plane(
 				std::shared_ptr<TextureFrame>(new TextureFrame(
 					{
 						0.0f, 0.0f,
@@ -1423,10 +1423,10 @@ namespace engine {
 					}
 				)), nullptr));
 
-				(*node)->setRenderObject(plainTest);
+				(*node)->setRenderObject(planeTest);
 
-				plainTest->graphics()->setParamByName("u_texture", texture_floor_normal, false);
-				plainTest->getRenderDescriptor()->order = 10;
+				planeTest->graphics()->setParamByName("u_texture", texture_floor_normal, false);
+				planeTest->getRenderDescriptor()->order = 10;
 			}
 
 			TextureLoadingParams tex_params_floorArray;
@@ -1505,31 +1505,31 @@ namespace engine {
 				}
 			));
 
-			plainTest->graphics()->setFrame(texFrame);
-			plainTest->graphics()->setParamByName("u_texture", texture_text, false);
-			plainTest->graphics()->pipelineAttributesChanged();
+			planeTest->graphics()->setFrame(texFrame);
+			planeTest->graphics()->setParamByName("u_texture", texture_text, false);
+			planeTest->graphics()->pipelineAttributesChanged();
 
-            plainTest->graphics()->changeRenderState([](vulkan::VulkanRenderState& renderState) {
+			planeTest->graphics()->changeRenderState([](vulkan::VulkanRenderState& renderState) {
                 renderState.blendMode = vulkan::CommonBlendModes::blend_alpha;
                 renderState.depthState.depthWriteEnabled = false;
                 renderState.depthState.depthTestEnabled = false;
             });
 
-			plainTest->getNode()->setBoundingVolume(BoundingVolume::make<CubeVolume>(glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(256, 256, 1.0f)));
+			planeTest->getNode()->setBoundingVolume(BoundingVolume::make<CubeVolume>(glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(256, 256, 1.0f)));
 
             {
                 std::vector<engine::ProgramStageInfo> psi;
                 psi.emplace_back(ProgramStage::VERTEX, "resources/shaders/texture.vsh.spv");
                 psi.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/textureSDF.psh.spv");
                 vulkan::VulkanGpuProgram *program = gpuProgramManager->getProgram(psi);
-                plainTest->setProgram(program);
+				planeTest->setProgram(program);
             }
 
-			//plainTest->graphics()->setFrame(bitmapFont->createFrame("hello world!"));
-			//plainTest->getNode()->setBoundingVolume(nullptr);
+			//planeTest->graphics()->setFrame(bitmapFont->createFrame("hello world!"));
+			//planeTest->getNode()->setBoundingVolume(nullptr);
 			//const float wf = frame->_vtx[2] - frame->_vtx[0];
 			//const float hf = frame->_vtx[5] - frame->_vtx[1];
-			//plainTest->getNode()->setBoundingVolume(BoundingVolume::make<CubeVolume>(glm::vec3(0.0f, 0.0f, -0.1f), glm::vec3(wf, hf, 0.1f)));
+			//planeTest->getNode()->setBoundingVolume(BoundingVolume::make<CubeVolume>(glm::vec3(0.0f, 0.0f, -0.1f), glm::vec3(wf, hf, 0.1f)));
 
 			/*FontLibrary lib;
 			Font font("resources/assets/fonts/Roboto/Roboto-Regular.ttf");
@@ -1746,7 +1746,7 @@ namespace engine {
 			camera->calculateTransform();
 			camera2->calculateTransform();
 
-			//auto&& shadowProgram = const_cast<vulkan::VulkanGpuProgram*>(CascadeShadowMap::getSpecialPipeline(ShadowMapSpecialPipelines::SH_PIPEINE_PLAIN)->program);
+			//auto&& shadowProgram = const_cast<vulkan::VulkanGpuProgram*>(CascadeShadowMap::getSpecialPipeline(ShadowMapSpecialPipelines::SH_PIPEINE_PLANE)->program);
 
 			//shadowMap->updateShadowUniforms(shadowProgram, camera->getViewTransform());
 			//shadowMap->updateShadowUniforms(program_mesh_default, camera->getViewTransform());
@@ -1783,7 +1783,7 @@ namespace engine {
 			meshUpdateSystem.updateRenderData();
 			grassUpdateSystem.updateRenderData();
 			skyBoxUpdateSystem.updateRenderData();
-			plainUpdateSystem.updateRenderData();
+			planeUpdateSystem.updateRenderData();
 			instanceMeshUpdateSystem.updateRenderData();
 
 
@@ -1907,7 +1907,7 @@ namespace engine {
 				constexpr uint32_t indexBufferSize = 6 * sizeof(uint32_t);
 
 				//// floor
-				static auto&& pipeline_shadow_test = CascadeShadowMap::getSpecialPipeline(ShadowMapSpecialPipelines::SH_PIPEINE_PLAIN);
+				static auto&& pipeline_shadow_test = CascadeShadowMap::getSpecialPipeline(ShadowMapSpecialPipelines::SH_PIPEINE_PLANE);
 				static const vulkan::GPUParamLayoutInfo* mvp_layout2 = pipeline_shadow_test->program->getGPUParamLayoutByName("mvp");
 
 				const float tc = 16.0f;
@@ -1927,7 +1927,7 @@ namespace engine {
 				renderDataFloor.setParamByName("u_texture_normal", texture_floor_normal, false);
 				renderDataFloor.setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 
-				GPU_DEBUG_MARKER_INSERT(commandBuffer.m_commandBuffer, "project render shadow plain", 0.5f, 0.5f, 0.5f, 1.0f);
+				GPU_DEBUG_MARKER_INSERT(commandBuffer.m_commandBuffer, "project render shadow plane", 0.5f, 0.5f, 0.5f, 1.0f);
 				autoBatcher->addToDraw(&renderDataFloor, sizeof(TexturedVertex), &floorVtx[0], vertexBufferSize, &idxs[0], indexBufferSize, commandBuffer, currentFrame);
 
 				//commandBuffer.cmdSetDepthBias(200.0f, 0.0f, 0.0f);
@@ -1977,13 +1977,13 @@ namespace engine {
 				);
 				TextureFrameBounds frameBounds(frame.get());
 
-				plainTest->graphics()->setFrame(frame);
-				plainTest->getNode()->setBoundingVolume(BoundingVolume::make<CubeVolume>(glm::vec3(frameBounds.minx, frameBounds.miny, -0.1f), glm::vec3(frameBounds.maxx, frameBounds.maxy, 0.1f)));
+				planeTest->graphics()->setFrame(frame);
+				planeTest->getNode()->setBoundingVolume(BoundingVolume::make<CubeVolume>(glm::vec3(frameBounds.minx, frameBounds.miny, -0.1f), glm::vec3(frameBounds.maxx, frameBounds.maxy, 0.1f)));
 
 				glm::mat4 wtr(1.0f);
                 //scaleMatrix(wtr, glm::vec3(1.25f));
 				translateMatrixTo(wtr, glm::vec3(-(width * 0.5f) + 16.0f, height * 0.5f - 30.0f, -1.0f));
-				plainTest->getNode()->setLocalMatrix(wtr);
+				planeTest->getNode()->setLocalMatrix(wtr);
 
 				const glm::mat4& camera2Matrix = camera2->getTransform();
 

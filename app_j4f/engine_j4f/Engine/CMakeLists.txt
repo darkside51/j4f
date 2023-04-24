@@ -83,7 +83,7 @@ set(
 	Graphics/Render
 	Graphics/Mesh
 	Graphics/Text
-	Graphics/Plain
+	Graphics/Plane
 	Graphics/UI
 	Graphics/UI/ImGui
 

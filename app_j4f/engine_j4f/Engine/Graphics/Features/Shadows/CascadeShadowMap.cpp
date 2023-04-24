@@ -53,12 +53,12 @@ namespace engine {
 		}
 
 		{
-			std::vector<engine::ProgramStageInfo> psi_shadow_plain;
-			psi_shadow_plain.emplace_back(ProgramStage::VERTEX, "resources/shaders/shadows_plain.vsh.spv");
-			psi_shadow_plain.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/shadows_plain.psh.spv");
-			VulkanGpuProgram* program = gpuProgramManager->getProgram(psi_shadow_plain);
+			std::vector<engine::ProgramStageInfo> psi_shadow_plane;
+			psi_shadow_plane.emplace_back(ProgramStage::VERTEX, "resources/shaders/shadows_plane.vsh.spv");
+			psi_shadow_plane.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/shadows_plane.psh.spv");
+			VulkanGpuProgram* program = gpuProgramManager->getProgram(psi_shadow_plane);
 
-			_specialPipelines[static_cast<uint8_t>(ShadowMapSpecialPipelines::SH_PIPEINE_PLAIN)] = renderer->getGraphicsPipeline(
+			_specialPipelines[static_cast<uint8_t>(ShadowMapSpecialPipelines::SH_PIPEINE_PLANE)] = renderer->getGraphicsPipeline(
 				vertexDescription,
 				primitiveTopology,
 				rasterisation,
