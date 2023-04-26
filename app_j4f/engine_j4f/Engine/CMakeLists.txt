@@ -173,6 +173,12 @@ set(
 		general $ENV{VULKAN_SDK}/Lib/MachineIndependent.lib
 		general $ENV{VULKAN_SDK}/Lib/OSDependent.lib
 		general $ENV{VULKAN_SDK}/Lib/GenericCodeGen.lib
+		general	$ENV{VULKAN_SDK}/Lib/SPIRV-Tools.lib
+		general	$ENV{VULKAN_SDK}/Lib/SPIRV-Tools-link.lib
+		general	$ENV{VULKAN_SDK}/Lib/SPIRV-Tools-lint.lib
+		general	$ENV{VULKAN_SDK}/Lib/SPIRV-Tools-opt.lib
+		general	$ENV{VULKAN_SDK}/Lib/SPIRV-Tools-reduce.lib
+		general	$ENV{VULKAN_SDK}/Lib/SPIRV-Tools-shared.lib
 		general	$ENV{VULKAN_SDK}/Lib/SPIRV.lib
 		general $ENV{VULKAN_SDK}/Lib/glslang.lib
 		general $ENV{VULKAN_SDK}/Lib/OGLCompiler.lib

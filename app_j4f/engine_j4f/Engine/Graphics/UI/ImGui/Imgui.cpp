@@ -1,8 +1,50 @@
 #include "Imgui.h"
-#include <imgui.h>
 #include "../../GpuProgramsManager.h"
+#include "../../Vulkan/spirv/glsl_to_spirv.h"
+
+#include <imgui.h>
 
 namespace engine {
+
+    auto constexpr imgui_vsh = TO_GLSL(450,
+        layout(location = 0) in vec2 a_position;
+        layout(location = 1) in vec2 a_uv;
+        layout(location = 2) in vec4 a_color;
+
+        layout(push_constant) uniform uPushConstant {
+            vec2 u_scale;
+            vec2 u_translate;
+        } pc;
+
+        out gl_PerVertex{
+            vec4 gl_Position;
+        };
+
+        layout(location = 0) out struct {
+            vec4 color;
+            vec2 uv;
+        } v_out;
+
+        void main() {
+            v_out.color = a_color;
+            v_out.uv = a_uv;
+            gl_Position = vec4(a_position * pc.u_scale + pc.u_translate, 0.0, 1.0);
+        }
+    );
+
+    auto constexpr imgui_psh = TO_GLSL(450,
+        layout(location = 0) out vec4 out_color;
+        layout(set = 0, binding = 0) uniform sampler2D u_texture;
+
+        layout(location = 0) in struct {
+            vec4 color;
+            vec2 uv;
+        } v_in;
+
+        void main() {
+            out_color = v_in.color * texture(u_texture, v_in.uv.st);
+        }
+    );
 
     ImguiGraphics::ImguiGraphics() {
         ImGui::CreateContext();
@@ -64,16 +106,23 @@ namespace engine {
 
         auto&& gpuProgramManager = Engine::getInstance().getModule<Graphics>()->getGpuProgramsManager();
 
+        std::vector<unsigned int> imguiVsh;
+        std::vector<unsigned int> imguiPsh;
+        glsl_to_sprirv::initialize();
+        glsl_to_sprirv::convert(VK_SHADER_STAGE_VERTEX_BIT, imgui_vsh, imguiVsh);
+        glsl_to_sprirv::convert(VK_SHADER_STAGE_FRAGMENT_BIT, imgui_psh, imguiPsh);
+        glsl_to_sprirv::finalize();
+
         std::vector<engine::ProgramStageInfo> psiCTextured;
-        psiCTextured.emplace_back(ProgramStage::VERTEX, "resources/shaders/imgui.vsh.spv");
-        psiCTextured.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/imgui.psh.spv");
+        psiCTextured.emplace_back(ProgramStage::VERTEX, "imgui.vertex", reinterpret_cast<const std::vector<std::byte>*>(&imguiVsh));
+        psiCTextured.emplace_back(ProgramStage::FRAGMENT, "imgui.fragment", reinterpret_cast<const std::vector<std::byte>*>(&imguiPsh));
         _program = reinterpret_cast<vulkan::VulkanGpuProgram*>(gpuProgramManager->getProgram(psiCTextured));
 
         // fixed gpu layout works
         _fixedGpuLayouts.resize(3);
-        _fixedGpuLayouts[0].second = { "uScale" };
-        _fixedGpuLayouts[1].second = { "uTranslate" };
-        _fixedGpuLayouts[2].second = { "sTexture" };
+        _fixedGpuLayouts[0].second = { "u_scale" };
+        _fixedGpuLayouts[1].second = { "u_translate" };
+        _fixedGpuLayouts[2].second = { "u_texture" };
 
         setPipeline(Engine::getInstance().getModule<Graphics>()->getRenderer()->getGraphicsPipeline(_renderState, _program));
     }
