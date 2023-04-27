@@ -169,21 +169,28 @@ set(
 
 # for glslang to spirv compile
 set(
-		USED_FRAMEWORKS ${USED_FRAMEWORKS}
-		general $ENV{VULKAN_SDK}/Lib/MachineIndependent.lib
-		general $ENV{VULKAN_SDK}/Lib/OSDependent.lib
-		general $ENV{VULKAN_SDK}/Lib/GenericCodeGen.lib
-		general	$ENV{VULKAN_SDK}/Lib/SPIRV-Tools.lib
-		general	$ENV{VULKAN_SDK}/Lib/SPIRV-Tools-link.lib
-		general	$ENV{VULKAN_SDK}/Lib/SPIRV-Tools-lint.lib
-		general	$ENV{VULKAN_SDK}/Lib/SPIRV-Tools-opt.lib
-		general	$ENV{VULKAN_SDK}/Lib/SPIRV-Tools-reduce.lib
-		general	$ENV{VULKAN_SDK}/Lib/SPIRV-Tools-shared.lib
-		general	$ENV{VULKAN_SDK}/Lib/SPIRV.lib
-		general $ENV{VULKAN_SDK}/Lib/glslang.lib
-		general $ENV{VULKAN_SDK}/Lib/OGLCompiler.lib
-		general $ENV{VULKAN_SDK}/Lib/HLSL.lib
+		SPIRV_LIB_NAMES
+		MachineIndependent
+		OSDependent
+		GenericCodeGen
+		SPIRV-Tools
+		SPIRV-Tools-link
+		SPIRV-Tools-lint
+		SPIRV-Tools-opt
+		SPIRV-Tools-reduce
+		SPIRV-Tools-shared
+		SPIRV
+		glslang
+		OGLCompiler
+		HLSL
 )
+
+foreach (lib ${SPIRV_LIB_NAMES})
+		set(
+			SPIRV_LIBS ${SPIRV_LIBS}
+			general ${CMAKE_BINARY_DIR}/$<CONFIG>/SpirvLibs/${lib}.lib
+		)
+endforeach()
 
 elseif (j4f_PLATFORM STREQUAL "LINUX")
 #add_library(vulkan_lib SHARED IMPORTED)
@@ -201,7 +208,7 @@ set(
 
 # for glslang to spirv compile
 set(
-	USED_FRAMEWORKS ${USED_FRAMEWORKS}
+	SPIRV_LIBS
 	general $ENV{VULKAN_SDK}/lib/libMachineIndependent.a
 	general $ENV{VULKAN_SDK}/lib/libOSDependent.a
 	general $ENV{VULKAN_SDK}/lib/libGenericCodeGen.a
@@ -255,6 +262,7 @@ message("webp library end")
 target_link_libraries (
 	${PROJECT_NAME}
 	${USED_FRAMEWORKS}
+	${SPIRV_LIBS}
 	${FREETYPE_LIB}
 	${FMT_LIB}
 	${WEBP_LIB}
@@ -285,6 +293,33 @@ endif()
 #### vulkan includes
 if (j4f_PLATFORM STREQUAL "WINDOWS")
 	target_include_directories(${PROJECT_NAME} PUBLIC $ENV{VULKAN_SDK}/Include)
+
+set(debug_dir_spirv ${CMAKE_BINARY_DIR}/Debug/SpirvLibs)
+if(NOT EXISTS ${debug_dir_spirv})
+	file(MAKE_DIRECTORY ${debug_dir_spirv})
+	foreach (lib ${SPIRV_LIB_NAMES})
+		add_custom_command(
+        	TARGET ${PROJECT_NAME}
+        	PRE_BUILD
+        	COMMAND ${CMAKE_COMMAND} -E copy
+                	$ENV{VULKAN_SDK}/Lib/${lib}d.lib
+                	${debug_dir_spirv}/${lib}.lib)
+	endforeach()
+endif()
+
+set(release_dir_spirv ${CMAKE_BINARY_DIR}/Release/SpirvLibs)
+if(NOT EXISTS ${release_dir_spirv})
+	file(MAKE_DIRECTORY ${release_dir_spirv})
+	foreach (lib ${SPIRV_LIB_NAMES})
+		add_custom_command(
+        	TARGET ${PROJECT_NAME}
+        	PRE_BUILD
+        	COMMAND ${CMAKE_COMMAND} -E copy
+                	$ENV{VULKAN_SDK}/Lib/${lib}.lib
+                	${release_dir_spirv}/${lib}.lib)
+	endforeach()
+endif()
+
 elseif (j4f_PLATFORM STREQUAL "LINUX")
 	target_include_directories(${PROJECT_NAME} PUBLIC $ENV{VULKAN_SDK}/include)
 endif()

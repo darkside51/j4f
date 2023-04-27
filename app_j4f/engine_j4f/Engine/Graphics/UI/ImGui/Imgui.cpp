@@ -6,7 +6,7 @@
 
 namespace engine {
 
-    auto constexpr imgui_vsh = TO_GLSL(450,
+    auto constexpr imgui_vsh = AS_GLSL(450,
         layout(location = 0) in vec2 a_position;
         layout(location = 1) in vec2 a_uv;
         layout(location = 2) in vec4 a_color;
@@ -32,7 +32,7 @@ namespace engine {
         }
     );
 
-    auto constexpr imgui_psh = TO_GLSL(450,
+    auto constexpr imgui_psh = AS_GLSL(450,
         layout(location = 0) out vec4 out_color;
         layout(set = 0, binding = 0) uniform sampler2D u_texture;
 
