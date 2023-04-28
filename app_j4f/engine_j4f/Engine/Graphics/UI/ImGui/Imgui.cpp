@@ -11,10 +11,10 @@ namespace engine {
         layout(location = 1) in vec2 a_uv;
         layout(location = 2) in vec4 a_color;
 
-        layout(push_constant) uniform uPushConstant {
+        layout(push_constant) uniform PushConstant {
             vec2 u_scale;
             vec2 u_translate;
-        } pc;
+        } u_transfrom;
 
         out gl_PerVertex{
             vec4 gl_Position;
@@ -28,7 +28,7 @@ namespace engine {
         void main() {
             v_out.color = a_color;
             v_out.uv = a_uv;
-            gl_Position = vec4(a_position * pc.u_scale + pc.u_translate, 0.0, 1.0);
+            gl_Position = vec4(a_position * u_transfrom.u_scale + u_transfrom.u_translate, 0.0f, 1.0f);
         }
     );
 

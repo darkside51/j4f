@@ -6,7 +6,7 @@
 #include <cassert>
 #include <vector>
 
-#define AS_GLSL(version, x) "#version " ## #version ##"core\n" ## #x
+#define AS_GLSL(version, x) "#version " #version "core\n" #x
 
 struct glsl_to_sprirv {
 public:
