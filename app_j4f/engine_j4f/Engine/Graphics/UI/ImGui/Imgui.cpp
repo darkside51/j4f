@@ -39,10 +39,10 @@ namespace engine {
         layout(location = 0) in struct {
             vec4 color;
             vec2 uv;
-        } v_in;
+        } in_vertex;
 
         void main() {
-            out_color = v_in.color * texture(u_texture, v_in.uv.st);
+            out_color = in_vertex.color * texture(u_texture, in_vertex.uv.st);
         }
     );
 
