@@ -104,12 +104,17 @@ namespace engine {
 									case gltf::AttributesSemantic::JOINTS:
 									case gltf::AttributesSemantic::WEIGHT:
 									case gltf::AttributesSemantic::TANGENT:
-									case gltf::AttributesSemantic::COLOR: // vec4 or vec3?
 									{
 										mesh_vertexSize += 4;
 										buffersDimensions[a_idx] = 4;
 									}
 										break;
+                                    case gltf::AttributesSemantic::COLOR: // vec4 or vec3?
+                                    {
+                                        mesh_vertexSize += 1;
+                                        buffersDimensions[a_idx] = 1;
+                                    }
+                                        break;
 									case gltf::AttributesSemantic::TEXCOORD_0:
 									case gltf::AttributesSemantic::TEXCOORD_1:
 									case gltf::AttributesSemantic::TEXCOORD_2:
@@ -144,7 +149,13 @@ namespace engine {
 										vertexBuffer[firstVertex + idx + 1] = jointIndicesBuffer[v * 4 + 1];
 										vertexBuffer[firstVertex + idx + 2] = jointIndicesBuffer[v * 4 + 2];
 										vertexBuffer[firstVertex + idx + 3] = jointIndicesBuffer[v * 4 + 3];
-									} else {
+									} else if (a_idx == static_cast<uint8_t>(gltf::AttributesSemantic::COLOR)) {
+                                        uint32_t color = static_cast<uint8_t>(buffer[v * 4 + 0] * 255.0f) << 24 |
+                                                         static_cast<uint8_t>(buffer[v * 4 + 1] * 255.0f) << 16 |
+                                                         static_cast<uint8_t>(buffer[v * 4 + 2] * 255.0f) << 8 |
+                                                         static_cast<uint8_t>(buffer[v * 4 + 3] * 255.0f) << 0;
+                                        vertexBuffer[firstVertex + idx] = static_cast<float>(color);
+                                    } else {
 										memcpy(&vertexBuffer[firstVertex + idx], &buffer[v * dataSize], dataSize * sizeof(float));
 									}
 								} else {

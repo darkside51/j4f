@@ -390,7 +390,6 @@ namespace engine {
 					}
 						break;
 					case gltf::AttributesSemantic::TANGENT:
-					case gltf::AttributesSemantic::COLOR:
 					case gltf::AttributesSemantic::JOINTS:
 					case gltf::AttributesSemantic::WEIGHT:
 					{
@@ -405,6 +404,19 @@ namespace engine {
 						attribute_offset += 16;
 					}
 						break;
+                    case gltf::AttributesSemantic::COLOR:
+                    {
+                        vertexInputAttributes.emplace_back(
+                                VkVertexInputAttributeDescription{
+                                        attribute_location++,			// location
+                                        0,								// binding
+                                        VK_FORMAT_R8G8B8A8_UNORM,	// format
+                                        attribute_offset				// offset
+                                }
+                        );
+                        attribute_offset += 4;
+                    }
+                        break;
 					case gltf::AttributesSemantic::TEXCOORD_0:
 					case gltf::AttributesSemantic::TEXCOORD_1:
 					case gltf::AttributesSemantic::TEXCOORD_2:
