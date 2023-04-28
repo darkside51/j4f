@@ -233,6 +233,9 @@ namespace engine {
 		glm::vec4 v = _transform * glm::vec4(p, 1.0f);
 		v /= v.w;
 
+		// for vulkan topdown viewport oy
+		v.y *= -1.0f;
+
 		v.x = (0.5f + v.x * 0.5f) * _size.x;
 		v.y = (0.5f + v.y * 0.5f) * _size.y;
 
@@ -245,6 +248,9 @@ namespace engine {
 		v.y = (((2.0f * screenCoord.y) / _size.y) - 1.0f);
 		v.z = 0.0f;
 		v.w = 1.0f;
+
+		// for vulkan topdown viewport oy
+		v.y *= -1.0f;
 
 		glm::vec4 sp = getInvTransform() * v;
 		sp /= sp.w;

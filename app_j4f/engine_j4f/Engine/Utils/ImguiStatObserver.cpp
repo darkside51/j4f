@@ -92,7 +92,7 @@ namespace engine {
         auto const renderFps = statistic->renderFps();
         _renderFps_array[_fps_array_idx] = renderFps;
         _maxRenderFps = std::max(_maxRenderFps, static_cast<float>(renderFps));
-        _renderFps = fmtString("render :{} fps", renderFps);
+        _renderFps = fmtString("render: {} fps", renderFps);
 
         auto const updateFps = statistic->updateFps();
         _updateFps_array[_fps_array_idx] = updateFps;
