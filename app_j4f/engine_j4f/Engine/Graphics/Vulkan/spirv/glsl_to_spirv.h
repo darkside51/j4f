@@ -181,10 +181,12 @@ private:
                 return EShLangMiss;
             case VkShaderStageFlagBits::VK_SHADER_STAGE_CALLABLE_BIT_KHR:
                 return EShLangCallable;
-            case VkShaderStageFlagBits::VK_SHADER_STAGE_TASK_BIT_EXT:
-                return EShLangTask;
-            case VkShaderStageFlagBits::VK_SHADER_STAGE_MESH_BIT_EXT:
-                return EShLangMesh;
+            case VkShaderStageFlagBits::VK_SHADER_STAGE_TASK_BIT_NV:
+                return EShLangTaskNV;
+                //return EShLangTask;
+            case VkShaderStageFlagBits::VK_SHADER_STAGE_MESH_BIT_NV:
+                return EShLangMeshNV;
+                //return EShLangMesh;
             default:
                 assert(false);
                 return EShLangVertex;
