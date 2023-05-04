@@ -248,6 +248,7 @@ namespace engine {
 					commonVertexCount += mesh_vertexCount;
 
 					render_data.layouts.emplace_back(Mesh_Data::MeshRenderParams::Layout{
+							static_cast<uint8_t>(primitive.mode),
 							firstIndex + startIndex,					// firstIndex
 							mesh_indexCount,							// indexCount
 							(useOffsetsInRenderData ? vbOffset : 0),	// vbOffset

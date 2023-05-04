@@ -4,6 +4,7 @@
 #include "Loader_gltf.h"
 #include "../Render/RenderHelper.h"
 #include "AnimationTree.h"
+#include "../../Utils/Debug/Assert.h"
 #include <limits>
 
 namespace engine {
@@ -295,6 +296,7 @@ namespace engine {
 		const size_t renderDataCount = _meshData->renderData.size();
 
 		_renderDescriptor.renderData = new vulkan::RenderData*[renderDataCount];
+		uint8_t primitiveMode = 0xff;
 
 		for (size_t i = 0; i < renderDataCount; ++i) {
 			const size_t partsCount = _meshData->renderData[i].layouts.size();
@@ -302,6 +304,12 @@ namespace engine {
 			_renderDescriptor.renderData[i]->createRenderParts(partsCount);
 			for (size_t j = 0; j < partsCount; ++j) {
 				auto&& layout = _meshData->renderData[i].layouts[j];
+				if (primitiveMode == 0xff) {
+					primitiveMode = layout.primitiveMode;
+				}
+
+				ENGINE_BREAK_CONDITION(primitiveMode == layout.primitiveMode)
+
 				_renderDescriptor.renderData[i]->renderParts[j] = vulkan::RenderData::RenderPart{
 													layout.firstIndex,	// firstIndex
 													layout.indexCount,	// indexCount
@@ -346,9 +354,36 @@ namespace engine {
 		}
 
 		_renderDescriptor.renderDataCount = renderDataCount;
+		
+		vulkan::PrimitiveTopology topology = vulkan::PrimitiveTopology::TRIANGLE_LIST;
+		bool enableRestartTopology = false;
+		switch (_meshData->renderData[0].layouts[0].primitiveMode) {
+			case 0:
+				topology = vulkan::PrimitiveTopology::POINT_LIST;
+				break;
+			case 1:
+				topology = vulkan::PrimitiveTopology::LINE_LIST;
+				break;
+			case 2:
+				topology = vulkan::PrimitiveTopology::LINE_LIST;
+				enableRestartTopology = true;
+				break;
+			case 3:
+				topology = vulkan::PrimitiveTopology::LINE_STRIP;
+				break;
+			case 4:
+				topology = vulkan::PrimitiveTopology::TRIANGLE_LIST;
+				break;
+			case 5:
+				topology = vulkan::PrimitiveTopology::TRIANGLE_STRIP;
+				break;
+			case 6:
+				topology = vulkan::PrimitiveTopology::TRIANGLE_FAN;
+				break;
+		}
 
 		_renderState.vertexDescription.bindings_strides.emplace_back(0, sizeOfVertex());
-		_renderState.topology = { vulkan::PrimitiveTopology::TRIANGLE_LIST, false };
+		_renderState.topology = { topology, enableRestartTopology };
 		_renderState.rasterizationState = vulkan::VulkanRasterizationState(vulkan::CullMode::CULL_MODE_BACK, vulkan::PoligonMode::POLYGON_MODE_FILL);
 		_renderState.blendMode = vulkan::CommonBlendModes::blend_none;
 		_renderState.depthState = vulkan::VulkanDepthState(true, true, VK_COMPARE_OP_LESS);

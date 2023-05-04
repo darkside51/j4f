@@ -699,6 +699,17 @@ namespace engine {
 			rootNode = new H_Node();
 			uiNode = new H_Node();
 
+			imgui = new NodeRenderer<ImguiGraphics>();
+			{
+				H_Node* node = new H_Node();
+				uiNode->addChild(node);
+
+				imgui->setGraphics(new ImguiGraphics());
+				(*node)->setRenderObject(imgui);
+
+				imgui->getRenderDescriptor()->order = 100;
+			}
+
 			auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
 			auto&& gpuProgramManager = Engine::getInstance().getModule<Graphics>()->getGpuProgramsManager();
 			AssetManager* assm = Engine::getInstance().getModule<AssetManager>();
@@ -1378,17 +1389,6 @@ namespace engine {
 				shadowCastNodes.push_back(node);
 			});
 
-            imgui = new NodeRenderer<ImguiGraphics>();
-            {
-                H_Node* node = new H_Node();
-                uiNode->addChild(node);
-
-                imgui->setGraphics(new ImguiGraphics());
-                (*node)->setRenderObject(imgui);
-
-                imgui->getRenderDescriptor()->order = 100;
-            }
-
 			planeTest = new NodeRenderer<Plane>();
 			planeUpdateSystem.registerObject(planeTest);
 			{
@@ -1994,9 +1994,12 @@ namespace engine {
 					renderNodesBounds(uiNode, camera2Matrix, commandBuffer, currentFrame, 0); // draw bounding boxes
 				}
 
-                imgui->graphics()->update(dt);
-                statObserver->draw();
-                //ImGui::ShowDemoWindow();
+				if (imgui) {
+					imgui->graphics()->update(dt);
+					statObserver->draw();
+					//ImGui::ShowDemoWindow();
+				}
+
 				uiRenderList.render(commandBuffer, currentFrame, { &camera2Matrix, nullptr, nullptr });
 
 				autoBatcher->draw(commandBuffer, currentFrame);

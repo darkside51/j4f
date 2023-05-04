@@ -19,10 +19,10 @@ namespace vulkan {
 namespace engine {
 
 	struct Mesh_Geometry {
-		struct Primitive {
-
-		};
-		std::vector<Primitive> primitives;
+		//struct Primitive {
+		//
+		//};
+		//std::vector<Primitive> primitives;
 		uint16_t nodeIndex = 0xffff;
 	};
 
@@ -71,6 +71,7 @@ namespace engine {
 	struct Mesh_Data {
 		struct MeshRenderParams {
 			struct Layout {
+				uint8_t primitiveMode;
 				uint32_t firstIndex;	// номер первого индекса
 				uint32_t indexCount;	// количество индексов
 				size_t vbOffset;		// оффсет в вершинном буфере

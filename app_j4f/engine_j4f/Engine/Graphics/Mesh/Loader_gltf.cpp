@@ -480,7 +480,7 @@ namespace gltf {
 		engine::JsonLoadingParams jsParams(file);
 		const Json js = engine::Engine::getInstance().getModule<engine::AssetManager>()->loadAsset<Json>(jsParams);
 
-		const map_type<std::string, AttributesSemantic> semantics = {
+		const static map_type<std::string, AttributesSemantic> semantics = {
 			{"POSITION", AttributesSemantic::POSITION},
 			{"NORMAL", AttributesSemantic::NORMAL},
 			{"TANGENT", AttributesSemantic::TANGENT},
@@ -494,7 +494,7 @@ namespace gltf {
 			{"TEXCOORD_4", AttributesSemantic::TEXCOORD_4}
 		};
 
-		const map_type<std::string, AccessorType> accesorTypes = {
+		const static map_type<std::string, AccessorType> accesorTypes = {
 			{"SCALAR", AccessorType::SCALAR},
 			{"VEC2", AccessorType::VEC2},
 			{"VEC3", AccessorType::VEC3},
@@ -504,25 +504,25 @@ namespace gltf {
 			{"MAT4", AccessorType::MAT4}
 		};
 
-		const map_type<std::string, AimationChannelPath> animChannelTypes = {
+		const static map_type<std::string, AimationChannelPath> animChannelTypes = {
 			{"translation", AimationChannelPath::TRANSLATION},
 			{"rotation", AimationChannelPath::ROTATION},
 			{"scale", AimationChannelPath::SCALE},
 			{"weights", AimationChannelPath::WEIGHTS}
 		};
 
-		const map_type<std::string, Interpolation> interpolationTypes = {
+		const static map_type<std::string, Interpolation> interpolationTypes = {
 			{"LINEAR", Interpolation::LINEAR},
 			{"STEP", Interpolation::STEP},
 			{"CUBICSPLINE", Interpolation::CUBICSPLINE}
 		};
 
-		const map_type<std::string, MimeType> mimeTypes = {
+		const static map_type<std::string, MimeType> mimeTypes = {
 			{"image/jpeg", MimeType::JPEG},
 			{"image/png", MimeType::PNG}
 		};
 
-		const map_type<std::string, AlphaMode> alphaModes = {
+		const static map_type<std::string, AlphaMode> alphaModes = {
 			{"OPAQUE", AlphaMode::A_OPAQUE},
 			{"BLEND", AlphaMode::A_BLEND},
 			{"MASK", AlphaMode::A_MASK}
