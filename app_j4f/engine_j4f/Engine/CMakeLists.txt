@@ -67,36 +67,35 @@ set(
 	Core/Threads
 
 	Device
+	ECS
+	Events
+	File
 
 	Graphics
 	Graphics/Animation
+	Graphics/Color
+	Graphics/Features
+	Graphics/Features/Shadows
+	Graphics/Mesh
+	Graphics/Particles
+	Graphics/Plane
+	Graphics/Render
+	Graphics/Scene
+	Graphics/Scene/LOD
+	Graphics/Text
+	Graphics/Texture
+	Graphics/UI
+	Graphics/UI/ImGui
 	Graphics/Vulkan
 	Graphics/Vulkan/spirv
 	Graphics/Vulkan/spirv/include
 	Graphics/Vulkan/spirv/include/spirv
 	Graphics/Vulkan/spirv/include/spirv/unified1
-	Graphics/Texture
-	Graphics/Scene
-	Graphics/Scene/LOD
-	Graphics/Features
-	Graphics/Features/Shadows
-	Graphics/Render
-	Graphics/Mesh
-	Graphics/Text
-	Graphics/Particles
-	Graphics/Plane
-	Graphics/UI
-	Graphics/UI/ImGui
 
-	Events
-	File
-	Log
-	Time
 	Input
-	ECS
-
+	Log
 	Platform
-
+	Time
 	Utils
 	Utils/Debug
 	Utils/Json
