@@ -1,6 +1,7 @@
 #include "Imgui.h"
 #include "../../GpuProgramsManager.h"
 #include "../../Vulkan/spirv/glsl_to_spirv.h"
+#include "../../Core/Engine.h"
 
 #include <imgui.h>
 
@@ -46,19 +47,36 @@ namespace engine {
         }
     );
 
+    void generateShaders(const CancellationToken& token, ImguiGraphics * g) {
+        glsl_to_sprirv::initialize();
+        glsl_to_sprirv::convert(VK_SHADER_STAGE_VERTEX_BIT, imgui_vsh, ImguiGraphics::imguiVsh);
+        glsl_to_sprirv::convert(VK_SHADER_STAGE_FRAGMENT_BIT, imgui_psh, ImguiGraphics::imguiPsh);
+        glsl_to_sprirv::finalize();
+        g->createRenderData();
+    }
+
     ImguiGraphics::ImguiGraphics() {
+        _generateShadersTask = Engine::getInstance().getModule<ThreadPool2>()->enqueue(TaskType::COMMON, generateShaders, this);
+        //generateShaders({}, this);
+
         ImGui::CreateContext();
-        createRenderData();
         createFontTexture();
         setupKeyMap();
 
         ImGuiIO& io = ImGui::GetIO();
         io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
         io.IniFilename = nullptr; // disable creation "imgui.ini"
+
+        _renderDescriptor.mode = RenderDescritorMode::CUSTOM_DRAW;
+        _renderDescriptor.customRenderer = this;
     }
 
     ImguiGraphics::~ImguiGraphics() {
         ImGui::DestroyContext();
+        destroy();
+    }
+
+    void ImguiGraphics::destroy() {
         destroyFontTexture();
         _dynamic_vertices.clear();
         _dynamic_indices.clear();
@@ -106,13 +124,6 @@ namespace engine {
 
         auto&& gpuProgramManager = Engine::getInstance().getModule<Graphics>()->getGpuProgramsManager();
 
-        std::vector<unsigned int> imguiVsh;
-        std::vector<unsigned int> imguiPsh;
-        glsl_to_sprirv::initialize();
-        glsl_to_sprirv::convert(VK_SHADER_STAGE_VERTEX_BIT, imgui_vsh, imguiVsh);
-        glsl_to_sprirv::convert(VK_SHADER_STAGE_FRAGMENT_BIT, imgui_psh, imguiPsh);
-        glsl_to_sprirv::finalize();
-
         std::vector<engine::ProgramStageInfo> psiCTextured;
         psiCTextured.emplace_back(ProgramStage::VERTEX, "imgui.vertex", reinterpret_cast<const std::vector<std::byte>*>(&imguiVsh));
         psiCTextured.emplace_back(ProgramStage::FRAGMENT, "imgui.fragment", reinterpret_cast<const std::vector<std::byte>*>(&imguiPsh));
@@ -125,6 +136,7 @@ namespace engine {
         _fixedGpuLayouts[2].second = { "u_texture" };
 
         setPipeline(Engine::getInstance().getModule<Graphics>()->getRenderer()->getGraphicsPipeline(_renderState, _program));
+        _initComplete = true;
     }
 
     void ImguiGraphics::createFontTexture() {
@@ -189,6 +201,12 @@ namespace engine {
     }
 
     void ImguiGraphics::render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const ViewParams& /*viewParams*/) {
+
+        if (!_initComplete) {
+            ImGui::Render();
+            return;
+        }
+
         const uint8_t swapChainImagesCount = Engine::getInstance().getModule<Graphics>()->getRenderer()->getSwapchainImagesCount();
 
         if (swapChainImagesCount != _dynamic_vertices.size()) {

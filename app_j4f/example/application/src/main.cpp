@@ -704,7 +704,7 @@ namespace engine {
 				H_Node* node = new H_Node();
 				uiNode->addChild(node);
 
-				imgui->setGraphics(new ImguiGraphics());
+				imgui->setGraphics(ImguiGraphics::getInstance());
 				(*node)->setRenderObject(imgui);
 
 				imgui->getRenderDescriptor()->order = 100;
