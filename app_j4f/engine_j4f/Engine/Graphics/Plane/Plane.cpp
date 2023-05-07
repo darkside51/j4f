@@ -4,10 +4,10 @@
 
 namespace engine {
 
-	Plane::Plane(const glm::vec2& sz, const vulkan::RenderDataGpuParamsType& params) {
+	Plane::Plane(const vec2f& sz, const vulkan::RenderDataGpuParamsType& params) {
         createRenderData(params);
-		_aabb[0] = glm::vec2(0.0f);
-		_aabb[1] = glm::vec2(sz);
+		_aabb[0] = vec2f(0.0f);
+		_aabb[1] = vec2f(sz);
 		
 		_vtx = {
 			{ {_aabb[0].x, _aabb[0].y, 0.0f}, {0.0f, 1.0f} },
@@ -100,7 +100,7 @@ namespace engine {
 		setPipeline(Engine::getInstance().getModule<Graphics>()->getRenderer()->getGraphicsPipeline(_renderState, pipeline->program));
 	}
 
-	void Plane::updateRenderData(const glm::mat4& worldMatrix, const bool worldMatrixChanged) {
+	void Plane::updateRenderData(const mat4f& worldMatrix, const bool worldMatrixChanged) {
 		_modelMatrixChanged |= worldMatrixChanged;
 
 		if (_modelMatrixChanged || _frameChanged) {
@@ -108,15 +108,15 @@ namespace engine {
 			if (_frame) {
 				size_t j = 0;
 				for (size_t i = 0, sz = _frame->_vtx.size(); i < sz; i += 2) {
-					const glm::vec4 p = worldMatrix * glm::vec4(_frame->_vtx[i], _frame->_vtx[i + 1], 0.0f, 1.0f);
+					const vec4f p = worldMatrix * vec4f(_frame->_vtx[i], _frame->_vtx[i + 1], 0.0f, 1.0f);
 					_vtx[j].position[0] = p.x; _vtx[j].position[1] = p.y; _vtx[j].position[2] = p.z;
 					++j;
 				}
 			} else {
-				const glm::vec4 p0 = worldMatrix * glm::vec4(_aabb[0].x, _aabb[0].y, 0.0f, 1.0f);
-				const glm::vec4 p1 = worldMatrix * glm::vec4(_aabb[1].x, _aabb[0].y, 0.0f, 1.0f);
-				const glm::vec4 p2 = worldMatrix * glm::vec4(_aabb[0].x, _aabb[1].y, 0.0f, 1.0f);
-				const glm::vec4 p3 = worldMatrix * glm::vec4(_aabb[1].x, _aabb[1].y, 0.0f, 1.0f);
+				const vec4f p0 = worldMatrix * vec4f(_aabb[0].x, _aabb[0].y, 0.0f, 1.0f);
+				const vec4f p1 = worldMatrix * vec4f(_aabb[1].x, _aabb[0].y, 0.0f, 1.0f);
+				const vec4f p2 = worldMatrix * vec4f(_aabb[0].x, _aabb[1].y, 0.0f, 1.0f);
+				const vec4f p3 = worldMatrix * vec4f(_aabb[1].x, _aabb[1].y, 0.0f, 1.0f);
 
 				_vtx[0].position[0] = p0.x; _vtx[0].position[1] = p0.y; _vtx[0].position[2] = p0.z;
 				_vtx[1].position[0] = p1.x; _vtx[1].position[1] = p1.y; _vtx[1].position[2] = p1.z;

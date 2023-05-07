@@ -56,8 +56,8 @@ namespace engine {
 					}
 
 					// vertex attributes
-					glm::vec3 minCorner;
-					glm::vec3 maxCorner;
+					vec3f minCorner;
+					vec3f maxCorner;
 
                     for(auto&& [semantic, accessorId] : primitive.attributes) {
 						if (!allowedAttributes.empty()) {
@@ -74,8 +74,8 @@ namespace engine {
 
 						if (semantic == gltf::AttributesSemantic::POSITION) {
 							mesh_vertexCount = accessor.count;
-							minCorner = glm::vec3(accessor.min[0], accessor.min[1], accessor.min[2]);
-							maxCorner = glm::vec3(accessor.max[0], accessor.max[1], accessor.max[2]);
+							minCorner = vec3f(accessor.min[0], accessor.min[1], accessor.min[2]);
+							maxCorner = vec3f(accessor.max[0], accessor.max[1], accessor.max[2]);
 						}
 
 						switch (accessor.type) {
@@ -303,7 +303,7 @@ namespace engine {
 				const gltf::BufferView& bufferView = layout.bufferViews[accessor.bufferView];
 				const gltf::Buffer& buffer = layout.buffers[bufferView.buffer];
 				skins[i].inverseBindMatrices.resize(accessor.count);
-				memcpy(&skins[i].inverseBindMatrices[0], &buffer.data[accessor.offset + bufferView.offset], accessor.count * sizeof(glm::mat4));
+				memcpy(&skins[i].inverseBindMatrices[0], &buffer.data[accessor.offset + bufferView.offset], accessor.count * sizeof(mat4f));
 			}
 		}
 	}
@@ -364,12 +364,12 @@ namespace engine {
 							struct vec3 { float x, y, z; };
 							const vec3* buf = static_cast<const vec3*>(dataPtr);
 							for (size_t index = 0; index < accessor.count; ++index) {
-								animSampler.outputs[index] = glm::vec4(buf[index].x, buf[index].y, buf[index].z, 0.0f);
+								animSampler.outputs[index] = vec4f(buf[index].x, buf[index].y, buf[index].z, 0.0f);
 							}
 							break;
 						}
 						case gltf::AccessorType::VEC4: {
-							memcpy(&animSampler.outputs[0], dataPtr, accessor.count * sizeof(glm::vec4));
+							memcpy(&animSampler.outputs[0], dataPtr, accessor.count * sizeof(vec4f));
 							break;
 						}
 						default:

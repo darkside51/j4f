@@ -23,12 +23,12 @@ namespace engine {
 
 				if ((time >= t0) && (time < t1)) {
 
-					const glm::vec4& v0 = sampler.outputs[i];
+					const vec4f& v0 = sampler.outputs[i];
 
 					switch (sampler.interpolation) {
 					case Mesh_Animation::Interpolation::LINEAR:
 					{
-						const glm::vec4& v1 = sampler.outputs[i + 1];
+						const vec4f& v1 = sampler.outputs[i + 1];
 						const float mix_c = (time - t0) / (t1 - t0);
 						switch (channel.path) {
 						case Mesh_Animation::AimationChannelPath::TRANSLATION:
@@ -43,10 +43,10 @@ namespace engine {
 						case Mesh_Animation::AimationChannelPath::ROTATION:
 						{
 							if (!compare(v0, v1, 1e-4f)) {
-								target.setRotation(glm::quat(v0.w, v0.x, v0.y, v0.z));
+								target.setRotation(quatf(v0.w, v0.x, v0.y, v0.z));
 							} else {
-								const glm::quat q1(v0.w, v0.x, v0.y, v0.z);
-								const glm::quat q2(v1.w, v1.x, v1.y, v1.z);
+								const quatf q1(v0.w, v0.x, v0.y, v0.z);
+								const quatf q2(v1.w, v1.x, v1.y, v1.z);
 								target.setRotation(glm::normalize(glm::slerp(q1, q2, mix_c)));
 							}
 						}
@@ -72,7 +72,7 @@ namespace engine {
 							target.setTranslation(v0);
 							break;
 						case Mesh_Animation::AimationChannelPath::ROTATION:
-							target.setRotation(glm::quat(v0.w, v0.x, v0.y, v0.z));
+							target.setRotation(quatf(v0.w, v0.x, v0.y, v0.z));
 							break;
 						case Mesh_Animation::AimationChannelPath::SCALE:
 							target.setScale(v0);
@@ -159,7 +159,7 @@ namespace engine {
 			const size_t matricesCount = mData->skins[i].inverseBindMatrices.size();
 			for (uint8_t ii = 0; ii < latency; ++ii) {
 				_skinsMatrices[ii][i].resize(matricesCount);
-				memcpy(&(_skinsMatrices[ii][i][0]), &(mData->skins[i].inverseBindMatrices[0]), matricesCount * sizeof(glm::mat4));
+				memcpy(&(_skinsMatrices[ii][i][0]), &(mData->skins[i].inverseBindMatrices[0]), matricesCount * sizeof(mat4f));
 			}
 		}
 
@@ -186,9 +186,9 @@ namespace engine {
 
 		// parse node values
 		Mesh_Node mNode;
-		mNode.scale = glm::vec3(node.scale.x, node.scale.y, node.scale.z);
-		mNode.rotation = glm::quat(node.rotation.w, node.rotation.x, node.rotation.y, node.rotation.z);
-		mNode.translation = glm::vec3(node.translation.x, node.translation.y, node.translation.z);
+		mNode.scale = vec3f(node.scale.x, node.scale.y, node.scale.z);
+		mNode.rotation = quatf(node.rotation.w, node.rotation.x, node.rotation.y, node.rotation.z);
+		mNode.translation = vec3f(node.translation.x, node.translation.y, node.translation.z);
 
 		mNode.skinIndex = node.skin;
 
@@ -258,10 +258,10 @@ namespace engine {
 		for (const Mesh_Skin& s : _skins) {
 			const Mesh_Node& h = _nodes[updateFrame][s.skeletonRoot]->value();
 
-			const bool emptyInverse = !memcmp(&(h.modelMatrix), &emptyMatrix, sizeof(glm::mat4));
+			const bool emptyInverse = !memcmp(&(h.modelMatrix), &emptyMatrix, sizeof(mat4f));
 			const size_t numJoints = static_cast<uint32_t>(s.joints.size());
 
-			std::vector<glm::mat4>& skin_matrices = _skinsMatrices[updateFrame][skinId];
+			std::vector<mat4f>& skin_matrices = _skinsMatrices[updateFrame][skinId];
 			if (emptyInverse) {
 				for (size_t i = 0; i < numJoints; ++i) {
 					if (auto&& n = _nodes[updateFrame][s.joints[i]]->value(); n.dirtyModelTransform) {
@@ -270,7 +270,7 @@ namespace engine {
 					}
 				}
 			} else {
-				const glm::mat4 inverseTransform = glm::inverse(h.modelMatrix);
+				const mat4f inverseTransform = glm::inverse(h.modelMatrix);
 				for (size_t i = 0; i < numJoints; ++i) {
 					if (auto&& n = _nodes[updateFrame][s.joints[i]]->value(); n.dirtyModelTransform) {
 						skin_matrices[i] = inverseTransform * (n.modelMatrix * s.inverseBindMatrices[i]);
@@ -325,20 +325,20 @@ namespace engine {
 				const Mesh_Node& node = _skeleton->_nodes[0][_meshData->meshes[i].nodeIndex]->value();
 
 				/*
-				glm::vec3 s;
-				glm::vec3 t;
-				glm::quat r;
+				vec3f s;
+				vec3f t;
+				quatf r;
 
 				decomposeMatrix(node.modelMatrix, s, r, t);
-				const glm::vec3 corner1 = s * layout.minCorner;
-				const glm::vec3 corner2 = s * layout.maxCorner;
+				const vec3f corner1 = s * layout.minCorner;
+				const vec3f corner2 = s * layout.maxCorner;
 				*/
 
-				const glm::vec3 corner1 = node.modelMatrix * glm::vec4(layout.minCorner, 1.0f);
-				const glm::vec3 corner2 = node.modelMatrix * glm::vec4(layout.maxCorner, 1.0f);
+				const vec3f corner1 = node.modelMatrix * vec4f(layout.minCorner, 1.0f);
+				const vec3f corner2 = node.modelMatrix * vec4f(layout.maxCorner, 1.0f);
 
-				//const glm::vec3 corner1 = layout.minCorner;
-				//const glm::vec3 corner2 = layout.maxCorner;
+				//const vec3f corner1 = layout.minCorner;
+				//const vec3f corner2 = layout.maxCorner;
 
 				_minCorner.x = std::min(std::min(_minCorner.x, corner1.x), corner2.x);
 				_minCorner.y = std::min(std::min(_minCorner.y, corner1.y), corner2.y);
@@ -481,7 +481,7 @@ namespace engine {
 
 	uint32_t Mesh::sizeOfVertex() const { return _meshData ? (sizeof(float) * _meshData->vertexSize) : 0; }
 
-	void Mesh::draw(const glm::mat4& cameraMatrix, const glm::mat4& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame) {
+	void Mesh::draw(const mat4f& cameraMatrix, const mat4f& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame) {
 		if (!_skeleton) return;
 
         // old variant
@@ -501,13 +501,13 @@ namespace engine {
 				if (node.skinIndex != 0xffff) {
 					r_data->setParamForLayout(_fixedGpuLayouts[2].first, &(_skeleton->_skinsMatrices[renderFrameNum][node.skinIndex][0]), false, _skeleton->_skinsMatrices[renderFrameNum][node.skinIndex].size());
 				} else {
-					r_data->setParamForLayout(_fixedGpuLayouts[2].first, const_cast<glm::mat4*>(&(engine::emptyMatrix)), false, 1);
+					r_data->setParamForLayout(_fixedGpuLayouts[2].first, const_cast<mat4f*>(&(engine::emptyMatrix)), false, 1);
 				}
 			}
 
-			r_data->setParamForLayout(_fixedGpuLayouts[0].first, &const_cast<glm::mat4&>(cameraMatrix), false, 1);
+			r_data->setParamForLayout(_fixedGpuLayouts[0].first, &const_cast<mat4f&>(cameraMatrix), false, 1);
 
-			glm::mat4 model = worldMatrix * node.modelMatrix;
+			mat4f model = worldMatrix * node.modelMatrix;
 			r_data->setParamForLayout(_fixedGpuLayouts[1].first, &model, true, 1);
 
 			r_data->prepareRender(/*commandBuffer*/);
@@ -515,7 +515,7 @@ namespace engine {
 		}
 	}
 
-	void Mesh::updateRenderData(const glm::mat4& worldMatrix, const bool worldMatrixChanged) { // called when mesh is visible
+	void Mesh::updateRenderData(const mat4f& worldMatrix, const bool worldMatrixChanged) { // called when mesh is visible
 		if (!_skeleton) return;
         _skeleton->_requestAnimUpdate = true;
 
@@ -540,12 +540,12 @@ namespace engine {
 				if (node.skinIndex != 0xffff) {
 					r_data->setParamForLayout(_fixedGpuLayouts[2].first, &(_skeleton->_skinsMatrices[renderFrameNum][node.skinIndex][0]), false, _skeleton->_skinsMatrices[renderFrameNum][node.skinIndex].size());
 				} else {
-					r_data->setParamForLayout(_fixedGpuLayouts[2].first, const_cast<glm::mat4*>(&(engine::emptyMatrix)), false, 1);
+					r_data->setParamForLayout(_fixedGpuLayouts[2].first, const_cast<mat4f*>(&(engine::emptyMatrix)), false, 1);
 				}
 			}
 
 			if (node.dirtyModelTransform || _modelMatrixChanged) {
-				glm::mat4 model = worldMatrix * node.modelMatrix;
+				mat4f model = worldMatrix * node.modelMatrix;
 				r_data->setParamForLayout(_fixedGpuLayouts[1].first, &model, true, 1);
 			}
 		}
@@ -557,8 +557,8 @@ namespace engine {
 		_meshData = mData;
 		_semanticMask = semantic_mask;
 
-		_minCorner = glm::vec3(std::numeric_limits<float>::max());
-		_maxCorner = glm::vec3(std::numeric_limits<float>::min());
+		_minCorner = vec3f(std::numeric_limits<float>::max());
+		_maxCorner = vec3f(std::numeric_limits<float>::min());
 
 		if (_skeleton == nullptr) {
 			_skeleton = std::make_shared<MeshSkeleton>(mData, latency);
@@ -572,7 +572,7 @@ namespace engine {
 		_skeleton = nullptr;
 	}
 
-	void Mesh::drawBoundingBox(const glm::mat4& cameraMatrix, const glm::mat4& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame) {
+	void Mesh::drawBoundingBox(const mat4f& cameraMatrix, const mat4f& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame) {
 		if (!_skeleton) return;
 		Engine::getInstance().getModule<Graphics>()->getRenderHelper()->drawBoundingBox(_minCorner, _maxCorner, cameraMatrix, worldMatrix, commandBuffer, currentFrame, true);
 		//Engine::getInstance().getModule<Graphics>()->getRenderHelper()->drawSphere((_minCorner + _maxCorner) * 0.5f, 1.0f, cameraMatrix, worldMatrix, commandBuffer, currentFrame, true);

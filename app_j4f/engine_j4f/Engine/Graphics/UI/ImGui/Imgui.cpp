@@ -189,7 +189,7 @@ namespace engine {
         }
     }
 
-    void ImguiGraphics::updateRenderData(const glm::mat4& /*worldMatrix*/, const bool /*worldMatrixChanged*/) { }
+    void ImguiGraphics::updateRenderData(const mat4f& /*worldMatrix*/, const bool /*worldMatrixChanged*/) { }
 
     void ImguiGraphics::update(const float delta) {
         ImGuiIO& io = ImGui::GetIO();

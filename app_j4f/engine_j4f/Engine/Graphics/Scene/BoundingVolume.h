@@ -17,8 +17,8 @@ namespace engine {
 	public:
 		BVolume(const BVolumeType t) : _type(t) {}
 		virtual ~BVolume() = default;
-		virtual bool checkVisible(const void* visibleChecker, const glm::mat4& wtr) const = 0;
-		virtual void render(const glm::mat4& cameraMatrix, const glm::mat4& wtr, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame) const { }
+		virtual bool checkVisible(const void* visibleChecker, const mat4f& wtr) const = 0;
+		virtual void render(const mat4f& cameraMatrix, const mat4f& wtr, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame) const { }
 
 		inline BVolumeType type() const { return _type; }
 
@@ -28,24 +28,24 @@ namespace engine {
 
 	class CubeVolume : public BVolume {
 	public:
-		CubeVolume(const glm::vec3& m1, const glm::vec3& m2) : BVolume(BVolumeType::CUBE), _min(m1), _max(m2) { }
-		CubeVolume(glm::vec3&& m1, glm::vec3&& m2) : BVolume(BVolumeType::CUBE), _min(std::move(m1)), _max(std::move(m2)) { }
+		CubeVolume(const vec3f& m1, const vec3f& m2) : BVolume(BVolumeType::CUBE), _min(m1), _max(m2) { }
+		CubeVolume(vec3f&& m1, vec3f&& m2) : BVolume(BVolumeType::CUBE), _min(std::move(m1)), _max(std::move(m2)) { }
 
 		template <typename T>
-		bool checkVisible(const T* visibleChecker, const glm::mat4& wtr) const {
-			glm::vec4 m1(FLT_MAX);
-			glm::vec4 m2(-FLT_MAX);
-			glm::vec4 m[8];
+		bool checkVisible(const T* visibleChecker, const mat4f& wtr) const {
+			vec4f m1(FLT_MAX);
+			vec4f m2(-FLT_MAX);
+			vec4f m[8];
 
-			m[0] = wtr * glm::vec4(_min.x, _min.y, _min.z, 1.0f);
-			m[1] = wtr * glm::vec4(_min.x, _min.y, _max.z, 1.0f);
-			m[2] = wtr * glm::vec4(_min.x, _max.y, _min.z, 1.0f);
-			m[3] = wtr * glm::vec4(_max.x, _min.y, _min.z, 1.0f);
+			m[0] = wtr * vec4f(_min.x, _min.y, _min.z, 1.0f);
+			m[1] = wtr * vec4f(_min.x, _min.y, _max.z, 1.0f);
+			m[2] = wtr * vec4f(_min.x, _max.y, _min.z, 1.0f);
+			m[3] = wtr * vec4f(_max.x, _min.y, _min.z, 1.0f);
 
-			m[4] = wtr * glm::vec4(_min.x, _max.y, _max.z, 1.0f);
-			m[5] = wtr * glm::vec4(_max.x, _min.y, _max.z, 1.0f);
-			m[6] = wtr * glm::vec4(_max.x, _max.y, _min.z, 1.0f);
-			m[7] = wtr * glm::vec4(_max.x, _max.y, _max.z, 1.0f);
+			m[4] = wtr * vec4f(_min.x, _max.y, _max.z, 1.0f);
+			m[5] = wtr * vec4f(_max.x, _min.y, _max.z, 1.0f);
+			m[6] = wtr * vec4f(_max.x, _max.y, _min.z, 1.0f);
+			m[7] = wtr * vec4f(_max.x, _max.y, _max.z, 1.0f);
 
 			for (uint8_t i = 0; i < 8; ++i) {
 				m1.x = std::min(m1.x, m[i].x); m1.y = std::min(m1.y, m[i].y); m1.z = std::min(m1.z, m[i].z);
@@ -55,33 +55,33 @@ namespace engine {
 			return visibleChecker->isCubeVisible(m1, m2);
 		}
 
-		inline bool checkVisible(const void* visibleChecker, const glm::mat4& wtr) const override { return true; }
+		inline bool checkVisible(const void* visibleChecker, const mat4f& wtr) const override { return true; }
 
-		void render(const glm::mat4& cameraMatrix, const glm::mat4& wtr, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame) const override;
+		void render(const mat4f& cameraMatrix, const mat4f& wtr, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame) const override;
 
 	private:
-		glm::vec3 _min;
-		glm::vec3 _max;
+		vec3f _min;
+		vec3f _max;
 	};
 
 	class SphereVolume : public BVolume {
 	public:
-		SphereVolume(const glm::vec3& c, const float r) : BVolume(BVolumeType::SPHERE), _center(c), _radius(r) {}
-		SphereVolume(glm::vec3&& c, const float r) : BVolume(BVolumeType::SPHERE), _center(std::move(c)), _radius(r) {}
+		SphereVolume(const vec3f& c, const float r) : BVolume(BVolumeType::SPHERE), _center(c), _radius(r) {}
+		SphereVolume(vec3f&& c, const float r) : BVolume(BVolumeType::SPHERE), _center(std::move(c)), _radius(r) {}
 
 		template <typename T>
-		inline bool checkVisible(const T* visibleChecker, const glm::mat4& wtr) const {
-			const glm::vec4 center = wtr * glm::vec4(_center.x, _center.y, _center.z, 1.0f);
+		inline bool checkVisible(const T* visibleChecker, const mat4f& wtr) const {
+			const vec4f center = wtr * vec4f(_center.x, _center.y, _center.z, 1.0f);
 			const float radius = vec_length(wtr[0]) * _radius;
 			return (const_cast<T*>(visibleChecker))->isSphereVisible(center, radius);
 		}
 
-		inline bool checkVisible(const void* visibleChecker, const glm::mat4& wtr) const override { return true; }
+		inline bool checkVisible(const void* visibleChecker, const mat4f& wtr) const override { return true; }
 
-		void render(const glm::mat4& cameraMatrix, const glm::mat4& wtr, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame) const override;
+		void render(const mat4f& cameraMatrix, const mat4f& wtr, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame) const override;
 
 	private:
-		glm::vec3 _center;
+		vec3f _center;
 		float _radius;
 	};
 
@@ -103,7 +103,7 @@ namespace engine {
 		}
 
 		template <typename T>
-		inline bool checkVisible(const T* visibleChecker, const glm::mat4& wtr) const {
+		inline bool checkVisible(const T* visibleChecker, const mat4f& wtr) const {
 			// reserved types use checkVisible call without virtual table
 			switch (_impl->type()) {
 				case BVolumeType::CUBE:
@@ -121,7 +121,7 @@ namespace engine {
 		}
 
 		// debug draw
-		inline void render(const glm::mat4& cameraMatrix, const glm::mat4& wtr, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame) const {
+		inline void render(const mat4f& cameraMatrix, const mat4f& wtr, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame) const {
 			_impl->render(cameraMatrix, wtr, commandBuffer, currentFrame);
 		}
 

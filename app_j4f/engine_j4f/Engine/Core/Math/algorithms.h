@@ -9,8 +9,8 @@
 namespace engine {
     class EuclidHeuristic {
     public:
-        inline static float execute(const std::vector<glm::vec3>& vertexes, const size_t n, const glm::vec3& finishV) {
-            const glm::vec3 sub = vertexes[n] - finishV;
+        inline static float execute(const std::vector<vec3f>& vertexes, const size_t n, const vec3f& finishV) {
+            const vec3f sub = vertexes[n] - finishV;
             return vec_length(sub); // вычисение квадратного корня через алгоритм Ньютона("квадратный корень Кармака")
         }
     };
@@ -20,11 +20,11 @@ namespace engine {
     template<typename HEURISTIC>
     std::vector<size_t> a_star(
         std::vector<std::vector<std::pair<size_t, float>>>& graph, // граф как набор смежности
-        const std::vector<glm::vec3>& vertexes, // фактические вершины, для евристической оценки
+        const std::vector<vec3f>& vertexes, // фактические вершины, для евристической оценки
         const size_t start, // номер стартовой вершины
         const size_t finish, // номер финишной вершины
-        const glm::vec3& startV,
-        const glm::vec3& finishV
+        const vec3f& startV,
+        const vec3f& finishV
     ) {
 
         const size_t n = graph.size();

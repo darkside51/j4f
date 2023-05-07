@@ -47,7 +47,7 @@ namespace engine {
 	template<typename T>
 	concept IsGraphicsType = requires(T v) {
 		v.getRenderDescriptor();
-		v.updateRenderData(glm::mat4(), bool());
+		v.updateRenderData(mat4f(), bool());
 		v.updateModelMatrixChanged(bool());
 		v.setProgram([]()->vulkan::VulkanGpuProgram* { return nullptr; }(), VkRenderPass()); // wow!, it work :)
 	};

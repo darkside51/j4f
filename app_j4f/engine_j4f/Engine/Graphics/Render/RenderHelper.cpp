@@ -142,7 +142,7 @@ namespace engine {
 	}
 
 	/////
-	void RenderHelper::drawBoundingBox(const glm::vec3& c1, const glm::vec3& c2, const glm::mat4& cameraMatrix, const glm::mat4& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const bool batch) {
+	void RenderHelper::drawBoundingBox(const vec3f& c1, const vec3f& c2, const mat4f& cameraMatrix, const mat4f& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const bool batch) {
 		
 		constexpr uint32_t vertexBufferSize = 8 * sizeof(ColoredVertex);
 		constexpr uint32_t indexBufferSize = 24 * sizeof(uint32_t);
@@ -165,18 +165,18 @@ namespace engine {
 		};
 	
 		if (batch) {
-			_debugDrawRenderData->setParamByName("mvp", &const_cast<glm::mat4&>(cameraMatrix), true);
+			_debugDrawRenderData->setParamByName("mvp", &const_cast<mat4f&>(cameraMatrix), true);
 
-			const glm::vec4 vtxCoords[8] = {
-				worldMatrix * glm::vec4(c1.x, c1.y, c1.z, 1.0f),
-				worldMatrix * glm::vec4(c1.x, c2.y, c1.z, 1.0f),
-				worldMatrix * glm::vec4(c2.x, c1.y, c1.z, 1.0f),
-				worldMatrix * glm::vec4(c2.x, c2.y, c1.z, 1.0f),
+			const vec4f vtxCoords[8] = {
+				worldMatrix * vec4f(c1.x, c1.y, c1.z, 1.0f),
+				worldMatrix * vec4f(c1.x, c2.y, c1.z, 1.0f),
+				worldMatrix * vec4f(c2.x, c1.y, c1.z, 1.0f),
+				worldMatrix * vec4f(c2.x, c2.y, c1.z, 1.0f),
 
-				worldMatrix * glm::vec4(c1.x, c1.y, c2.z, 1.0f),
-				worldMatrix * glm::vec4(c1.x, c2.y, c2.z, 1.0f),
-				worldMatrix * glm::vec4(c2.x, c1.y, c2.z, 1.0f),
-				worldMatrix * glm::vec4(c2.x, c2.y, c2.z, 1.0f),
+				worldMatrix * vec4f(c1.x, c1.y, c2.z, 1.0f),
+				worldMatrix * vec4f(c1.x, c2.y, c2.z, 1.0f),
+				worldMatrix * vec4f(c2.x, c1.y, c2.z, 1.0f),
+				worldMatrix * vec4f(c2.x, c2.y, c2.z, 1.0f),
 			};
 
 			const ColoredVertex vtx[8] = {
@@ -205,7 +205,7 @@ namespace engine {
 				{ {c2.x, c2.y, c2.z}, {1.0f, 1.0f, 1.0f} }
 			};
 
-			const glm::mat4 transform = cameraMatrix * worldMatrix;
+			const mat4f transform = cameraMatrix * worldMatrix;
 
 			size_t vOffset;
 			size_t iOffset;
@@ -223,14 +223,14 @@ namespace engine {
 		}
 	}
 
-	void RenderHelper::drawSphere(const glm::vec3& c, const float r, const glm::mat4& cameraMatrix, const glm::mat4& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const bool batch) {
+	void RenderHelper::drawSphere(const vec3f& c, const float r, const mat4f& cameraMatrix, const mat4f& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const bool batch) {
 		constexpr uint8_t segments = 64;
 		constexpr float a = math_constants::pi2 / segments;
 		
 		ColoredVertex vtx[3 * segments];
 		uint32_t idxs[3 * segments * 2];
 
-		const glm::vec4 center = worldMatrix * glm::vec4(c.x, c.y, c.z, 1.0f);
+		const vec4f center = worldMatrix * vec4f(c.x, c.y, c.z, 1.0f);
 		const float radius = glm::length(worldMatrix[0]) * r;
 
 		uint8_t vtxCount = 0;
@@ -284,7 +284,7 @@ namespace engine {
 			angle += a;
 		}
 
-		_debugDrawRenderData->setParamByName("mvp", &const_cast<glm::mat4&>(cameraMatrix), true);
+		_debugDrawRenderData->setParamByName("mvp", &const_cast<mat4f&>(cameraMatrix), true);
 
 		constexpr uint32_t vertexBufferSize = 3 * segments * sizeof(ColoredVertex);
 		constexpr uint32_t indexBufferSize = 3 * 2 * segments * sizeof(uint32_t);

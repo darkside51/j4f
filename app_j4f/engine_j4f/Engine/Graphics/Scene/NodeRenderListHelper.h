@@ -14,7 +14,7 @@ namespace engine {
 		FrustumVisibleChecker(const Frustum* f) : _frustum(f) {}
 		~FrustumVisibleChecker() = default;
 
-		inline bool operator()(const BoundingVolume* volume, const glm::mat4& wtr) const {
+		inline bool operator()(const BoundingVolume* volume, const mat4f& wtr) const {
 			return volume->checkVisible<Frustum>(_frustum, wtr);
 		}
 

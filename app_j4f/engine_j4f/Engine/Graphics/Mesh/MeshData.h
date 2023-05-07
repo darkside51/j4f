@@ -28,7 +28,7 @@ namespace engine {
 
 	struct Mesh_Skin {
 		uint16_t skeletonRoot = 0xffff;
-		std::vector<glm::mat4> inverseBindMatrices;
+		std::vector<mat4f> inverseBindMatrices;
 		std::vector<uint16_t> joints;
 	};
 
@@ -48,7 +48,7 @@ namespace engine {
 
 		struct AnimationSampler {
 			std::vector<float> inputs;
-			std::vector<glm::vec4> outputs;
+			std::vector<vec4f> outputs;
 			Interpolation interpolation = Interpolation::LINEAR;
 		};
 
@@ -76,8 +76,8 @@ namespace engine {
 				uint32_t indexCount;	// количество индексов
 				size_t vbOffset;		// оффсет в вершинном буфере
 				size_t ibOffset;		// оффсет в индексном буфере
-				glm::vec3 minCorner;
-				glm::vec3 maxCorner;
+				vec3f minCorner;
+				vec3f maxCorner;
 			};
 
 			std::vector<Layout> layouts;

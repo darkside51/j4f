@@ -15,19 +15,19 @@ namespace engine {
 	public:
 		~Node();
 
-		inline void calculateModelMatrix(const glm::mat4& parentModel) {
+		inline void calculateModelMatrix(const mat4f& parentModel) {
 			_model = parentModel * _local;
 			_dirtyModel = false;
 			_modelChanged = true;
 		}
 
-		inline void setLocalMatrix(const glm::mat4& m) {
-			memcpy(&_local, &m, sizeof(glm::mat4));
+		inline void setLocalMatrix(const mat4f& m) {
+			memcpy(&_local, &m, sizeof(mat4f));
 			_dirtyModel = true;
 		}
 
-		inline const glm::mat4& localMatrix() const { return _local; }
-		inline const glm::mat4& model() const { return _model; }
+		inline const mat4f& localMatrix() const { return _local; }
+		inline const mat4f& model() const { return _model; }
 		inline bool modelChanged() const { return _modelChanged; }
 
 		inline NodeRenderObject* getRenderObject() { return _graphics; }
@@ -57,8 +57,8 @@ namespace engine {
 	private:
 		bool _dirtyModel = false;
 		bool _modelChanged = false;
-		glm::mat4 _local = glm::mat4(1.0f);
-		glm::mat4 _model = glm::mat4(1.0f);
+		mat4f _local = mat4f(1.0f);
+		mat4f _model = mat4f(1.0f);
 		NodeRenderObject* _graphics = nullptr;
 		const BoundingVolume* _boundingVolume = nullptr;
 		BitMask64 _visibleMask; // ����� ��������� (��������������, ��� ������ ����� ���� ������� ��� ��� � ���������� ����������, ��� ���������� ��������� � ������� ����� ������������ BitMask64)
@@ -84,7 +84,7 @@ namespace engine {
 				if (parent) {
 					mNode.calculateModelMatrix(parent->value()._model);
 				} else {
-					memcpy(&mNode._model, &mNode._local, sizeof(glm::mat4));
+					memcpy(&mNode._model, &mNode._local, sizeof(mat4f));
 					mNode._dirtyModel = false;
 					mNode._modelChanged = true;
 				}
@@ -110,8 +110,8 @@ namespace engine {
 	};
 
 	// render bounding volumes for hierarchy
-	inline void renderNodesBounds(H_Node* node, const glm::mat4& cameraMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const uint8_t visibleId = 0) {
-		node->execute([](H_Node* node, const glm::mat4& cameraMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const uint8_t visibleId) -> bool {
+	inline void renderNodesBounds(H_Node* node, const mat4f& cameraMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const uint8_t visibleId = 0) {
+		node->execute([](H_Node* node, const mat4f& cameraMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const uint8_t visibleId) -> bool {
 			Node& mNode = node->value();
 			if (auto&& volume = mNode.getBoundingVolume()) {
 				if (mNode.visible().checkBit(visibleId)) {

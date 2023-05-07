@@ -13,9 +13,9 @@ namespace engine {
 		struct Transform {
 			uint8_t mask = 0;
 			uint16_t target_node = 0;
-			glm::vec3 scale = glm::vec3(1.0f);
-			glm::quat rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
-			glm::vec3 translation = glm::vec3(0.0f);
+			vec3f scale = vec3f(1.0f);
+			quatf rotation = quatf(1.0f, 0.0f, 0.0f, 0.0f);
+			vec3f translation = vec3f(0.0f);
 		};
 
 		MeshAnimator(float weight, const size_t transformsCount, const uint8_t latency) :
@@ -85,12 +85,12 @@ namespace engine {
 
 					if ((time >= t0) && (time < t1)) {
 
-						const glm::vec4& v0 = sampler.outputs[i];
+						const vec4f& v0 = sampler.outputs[i];
 
 						switch (sampler.interpolation) {
 							case Mesh_Animation::Interpolation::LINEAR:
 							{
-								const glm::vec4& v1 = sampler.outputs[i + 1];
+								const vec4f& v1 = sampler.outputs[i + 1];
 								const float mix_c = (time - t0) / (t1 - t0);
 								switch (channel.path) {
 									case Mesh_Animation::AimationChannelPath::TRANSLATION:
@@ -107,10 +107,10 @@ namespace engine {
 									{
 										transform.mask |= 0b00000010;
 										if (!compare(v0, v1, epsilon)) {
-											transform.rotation = glm::quat(v0.w, v0.x, v0.y, v0.z);
+											transform.rotation = quatf(v0.w, v0.x, v0.y, v0.z);
 										} else {
-											const glm::quat q1(v0.w, v0.x, v0.y, v0.z);
-											const glm::quat q2(v1.w, v1.x, v1.y, v1.z);
+											const quatf q1(v0.w, v0.x, v0.y, v0.z);
+											const quatf q2(v1.w, v1.x, v1.y, v1.z);
 											transform.rotation = glm::normalize(glm::slerp(q1, q2, mix_c));
 										}
 									}
@@ -139,7 +139,7 @@ namespace engine {
 										break;
 									case Mesh_Animation::AimationChannelPath::ROTATION:
 										transform.mask |= 0b00000010;
-										transform.rotation = glm::quat(v0.w, v0.x, v0.y, v0.z);
+										transform.rotation = quatf(v0.w, v0.x, v0.y, v0.z);
 										break;
 									case Mesh_Animation::AimationChannelPath::SCALE:
 										transform.mask |= 0b00000100;

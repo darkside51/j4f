@@ -119,8 +119,8 @@ namespace engine {
 		void initCommonPipelines();
 
 		///////
-		void drawBoundingBox(const glm::vec3& c1, const glm::vec3& c2, const glm::mat4& cameraMatrix, const glm::mat4& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const bool batch = true);
-		void drawSphere(const glm::vec3& c, const float r, const glm::mat4& cameraMatrix, const glm::mat4& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const bool batch = true);
+		void drawBoundingBox(const vec3f& c1, const vec3f& c2, const mat4f& cameraMatrix, const mat4f& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const bool batch = true);
+		void drawSphere(const vec3f& c, const float r, const mat4f& cameraMatrix, const mat4f& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const bool batch = true);
 	private:
 		
 		vulkan::VulkanRenderer* _renderer;

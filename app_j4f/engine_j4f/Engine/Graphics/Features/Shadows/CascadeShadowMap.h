@@ -81,11 +81,11 @@ namespace engine {
 			return _specialPipelines[static_cast<uint8_t>(p)];
 		}
 
-		CascadeShadowMap(const uint16_t dim, const uint8_t count, const glm::vec2& nearFar, const float minZ, const float maxZ);
+		CascadeShadowMap(const uint16_t dim, const uint8_t count, const vec2f& nearFar, const float minZ, const float maxZ);
 
 		~CascadeShadowMap();
 
-		void initCascadeSplits(const glm::vec2& nearFar, const float minZ, const float maxZ);
+		void initCascadeSplits(const vec2f& nearFar, const float minZ, const float maxZ);
 		inline void setLamdas(const float s, const float r, const float l) {
 			_cascadeSplitLambda = s;
 			_frustumRadiusLambda = r;
@@ -123,24 +123,24 @@ namespace engine {
 		inline uint16_t getDimension() const { return _dimension; }
 		inline const std::vector<float>& getSplitDepths() const { return _splitDepths; }
 		inline std::vector<float>& getSplitDepths() { return _splitDepths; }
-		inline const std::vector<glm::mat4>& getVPMatrixes() const { return _cascadeViewProjects; }
-		inline std::vector<glm::mat4>& getVPMatrixes() { return _cascadeViewProjects; }
+		inline const std::vector<mat4f>& getVPMatrixes() const { return _cascadeViewProjects; }
+		inline std::vector<mat4f>& getVPMatrixes() { return _cascadeViewProjects; }
 
-		inline const glm::mat4& getVPMatrix(const uint8_t i) const { return _cascadeViewProjects[i]; }
+		inline const mat4f& getVPMatrix(const uint8_t i) const { return _cascadeViewProjects[i]; }
 
 		template <typename T>
 		inline T* getSplitDepthsPointer() const { return reinterpret_cast<T*>(const_cast<float*>(_splitDepths.data())); }
 
-		void updateShadowUniforms(vulkan::VulkanGpuProgram* program, const glm::mat4& cameraMatrix);
+		void updateShadowUniforms(vulkan::VulkanGpuProgram* program, const mat4f& cameraMatrix);
 
-		inline void updateShadowUniformsForRegesteredPrograms(const glm::mat4& cameraMatrix) {
+		inline void updateShadowUniformsForRegesteredPrograms(const mat4f& cameraMatrix) {
 			if (_dirtyCascades > 0) {
 				--_dirtyCascades;
 				for (auto it = _programsShadowUniforms.begin(); it != _programsShadowUniforms.end(); ++it) {
 					const ShadowUniforms& uniforms = it->second;
-					it->first->setValueToLayout(uniforms.viewLayout, &const_cast<glm::mat4&>(cameraMatrix), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, false);
+					it->first->setValueToLayout(uniforms.viewLayout, &const_cast<mat4f&>(cameraMatrix), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, false);
 					it->first->setValueToLayout(uniforms.cascadeMatrixLayout, _cascadeViewProjects.data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, false);
-					it->first->setValueToLayout(uniforms.cascadeSplitLayout, getSplitDepthsPointer<glm::vec4>(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, false);
+					it->first->setValueToLayout(uniforms.cascadeSplitLayout, getSplitDepthsPointer<vec4f>(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, false);
 				}
 			}
 		}
@@ -174,7 +174,7 @@ namespace engine {
 		std::vector<CascadeFrameBuffer> _cascades;		// _cascadesCount
 		std::vector<float> _cascadeSplits;				// _cascadesCount
 		std::vector<float> _splitDepths;				// _cascadesCount
-		std::vector<glm::mat4> _cascadeViewProjects;	// _cascadesCount
+		std::vector<mat4f> _cascadeViewProjects;	// _cascadesCount
 		std::vector<Frustum> _cascadeFrustums;			// _cascadesCount
 
 		VkClearValue _shadowClearValues;
@@ -182,7 +182,7 @@ namespace engine {
 		VkRenderPass _depthRenderPass;
 		vulkan::VulkanTexture* _shadowMapTexture;
 
-		glm::vec3 _lightDirection;
+		vec3f _lightDirection;
 
 		struct ShadowUniforms {
 			const vulkan::GPUParamLayoutInfo* viewLayout;

@@ -23,7 +23,7 @@ namespace engine {
 				const auto* p = viewParams.data();
 				for (auto& param : viewParamsLayouts) {
 					if (param) {
-						r_data->setRawDataForLayout(param, const_cast<glm::mat4*>(p), false, sizeof(glm::mat4));
+						r_data->setRawDataForLayout(param, const_cast<mat4f*>(p), false, sizeof(mat4f));
 					}
 					++p;
 				}
@@ -42,7 +42,7 @@ namespace engine {
 				const auto* p = viewParams.data();
 				for (auto& param : viewParamsLayouts) {
 					if (param) {
-						r_data->setRawDataForLayout(param, const_cast<glm::mat4*>(p), false, sizeof(glm::mat4));
+						r_data->setRawDataForLayout(param, const_cast<mat4f*>(p), false, sizeof(mat4f));
 					}
 					++p;
 				}

@@ -31,10 +31,26 @@ namespace engine {
         inline constexpr float degInRad = 180.0f / pi;
     }
     
-    inline static const glm::mat4 emptyMatrix   = glm::mat4(1.0f);
-    inline static const glm::quat emptyQuat     = glm::quat(0.0f, 0.0f, 0.0f, 0.0f);
-    inline static const glm::vec3 emptyVec3     = glm::vec3(0.0f, 0.0f, 0.0f);
-    inline static const glm::vec3 unitVec3      = glm::vec3(1.0f, 1.0f, 1.0f);
+    using vec2f = glm::vec2;
+    using vec3f = glm::vec3;
+    using vec4f = glm::vec4;
+    using mat2f = glm::mat2;
+    using mat3f = glm::mat3;
+    using mat4f = glm::mat4;
+    using quatf = glm::quat;
+
+    using vec2d = glm::dvec2;
+    using vec3d = glm::dvec3;
+    using vec4d = glm::dvec4;
+    using mat2d = glm::dmat2;
+    using mat3d = glm::dmat3;
+    using mat4d = glm::dmat4;
+    using quatd = glm::dquat;
+
+    inline static const mat4f emptyMatrix   = mat4f(1.0f);
+    inline static const quatf emptyQuat     = quatf(0.0f, 0.0f, 0.0f, 0.0f);
+    inline static const vec3f emptyVec3     = vec3f(0.0f, 0.0f, 0.0f);
+    inline static const vec3f unitVec3      = vec3f(1.0f, 1.0f, 1.0f);
 
     inline float inv_sqrt(const float x) { // "инверсный(1.0f/sqrt) квадратный корень Кармака"(алгоритм Ньютона)
         const float xhalf = 0.5f * x;
@@ -63,19 +79,19 @@ namespace engine {
         return v * inv_sqrt(glm::dot(v, v));
     }
 
-    inline bool compare(const glm::vec2& v1, const glm::vec2& v2, const float eps) noexcept {
+    inline bool compare(const vec2f& v1, const vec2f& v2, const float eps) noexcept {
         return (fabsf(v1.x - v2.x) > eps) || (fabsf(v1.y - v2.y) > eps);
     }
 
-    inline bool compare(const glm::vec3& v1, const glm::vec3& v2, const float eps) noexcept {
+    inline bool compare(const vec3f& v1, const vec3f& v2, const float eps) noexcept {
         return (fabsf(v1.x - v2.x) > eps) || (fabsf(v1.y - v2.y) > eps) || (fabsf(v1.z - v2.z) > eps);
     }
 
-    inline bool compare(const glm::vec4& v1, const glm::vec4& v2, const float eps) noexcept {
+    inline bool compare(const vec4f& v1, const vec4f& v2, const float eps) noexcept {
         return (fabsf(v1.x - v2.x) > eps) || (fabsf(v1.y - v2.y) > eps) || (fabsf(v1.z - v2.z) > eps) || (fabsf(v1.w - v2.w) > eps);
     }
 
-    inline bool compare(const glm::quat& q1, const glm::quat& q2, const float eps) noexcept {
+    inline bool compare(const quatf& q1, const quatf& q2, const float eps) noexcept {
         return (fabsf(q1.w - q2.w) > eps) || (fabsf(q1.x - q2.x) > eps) || (fabsf(q1.y - q2.y) > eps) || (fabsf(q1.z - q2.z) > eps);
     }
 
@@ -88,110 +104,110 @@ namespace engine {
         RO_ZYX = 5
     };
 
-    inline void rotateMatrix_x(glm::mat4& m, const float angle) {
+    inline void rotateMatrix_x(mat4f& m, const float angle) {
         if (angle == 0.0f) return;
 
         const float c = cosf(angle);
         const float s = sinf(angle);
 
-        const glm::vec4 tmpV = m[1] * c + m[2] * s;
+        const vec4f tmpV = m[1] * c + m[2] * s;
         m[2] = -m[1] * s + m[2] * c;
         m[1] = tmpV;
     }
 
-    inline void rotateMatrix_y(glm::mat4& m, const float angle) {
+    inline void rotateMatrix_y(mat4f& m, const float angle) {
         if (angle == 0.0f) return;
 
         const float c = cosf(angle);
         const float s = sinf(angle);
 
-        const glm::vec4 tmpV = m[2] * c + m[0] * s;
+        const vec4f tmpV = m[2] * c + m[0] * s;
         m[0] = -m[2] * s + m[0] * c;
         m[2] = tmpV;
     }
 
-    inline void rotateMatrix_z(glm::mat4& m, const float angle) {
+    inline void rotateMatrix_z(mat4f& m, const float angle) {
         if (angle == 0.0f) return;
 
         const float c = cosf(angle);
         const float s = sinf(angle);
 
-        const glm::vec4 tmpV = m[0] * c + m[1] * s;
+        const vec4f tmpV = m[0] * c + m[1] * s;
         m[1] = -m[0] * s + m[1] * c;
         m[0] = tmpV;
     }
 
-    inline void directMatrix_yz(glm::mat4& m, const float c, const float s) {
-        const glm::vec4 tmpV = m[1] * c + m[2] * s;
+    inline void directMatrix_yz(mat4f& m, const float c, const float s) {
+        const vec4f tmpV = m[1] * c + m[2] * s;
         m[2] = -m[1] * s + m[2] * c;
         m[1] = tmpV;
     }
 
-    inline void directMatrix_xz(glm::mat4& m, const float c, const float s) {
-        const glm::vec4 tmpV = m[2] * c + m[0] * s;
+    inline void directMatrix_xz(mat4f& m, const float c, const float s) {
+        const vec4f tmpV = m[2] * c + m[0] * s;
         m[0] = -m[2] * s + m[0] * c;
         m[2] = tmpV;
     }
 
-    inline void directMatrix_xy(glm::mat4& m, const float c, const float s) {
-        const glm::vec4 tmpV = m[0] * c + m[1] * s;
+    inline void directMatrix_xy(mat4f& m, const float c, const float s) {
+        const vec4f tmpV = m[0] * c + m[1] * s;
         m[1] = -m[0] * s + m[1] * c;
         m[0] = tmpV;
     }
 
-    inline void scaleMatrix(glm::mat4& matrix, const glm::vec3& scale) {
+    inline void scaleMatrix(mat4f& matrix, const vec3f& scale) {
         matrix[0] *= scale[0];
         matrix[1] *= scale[1];
         matrix[2] *= scale[2];
     }
 
-    inline void translateMatrixTo(glm::mat4& matrix, const glm::vec3& translate) {
+    inline void translateMatrixTo(mat4f& matrix, const vec3f& translate) {
         matrix[3][0] = translate.x;
         matrix[3][1] = translate.y;
         matrix[3][2] = translate.z;
     }
 
-    inline void translateMatrix(glm::mat4& matrix, const glm::vec3& translate) {
+    inline void translateMatrix(mat4f& matrix, const vec3f& translate) {
         matrix[3] = matrix[0] * translate[0] + matrix[1] * translate[1] + matrix[2] * translate[2] + matrix[3];
     }
 
-    inline void rotateMatrix_xyz(glm::mat4& transform, const glm::vec3& v) {
+    inline void rotateMatrix_xyz(mat4f& transform, const vec3f& v) {
         rotateMatrix_x(transform, v.x);
         rotateMatrix_y(transform, v.y);
         rotateMatrix_z(transform, v.z);
     }
 
-    inline void rotateMatrix_xzy(glm::mat4& transform, const glm::vec3& v) {
+    inline void rotateMatrix_xzy(mat4f& transform, const vec3f& v) {
         rotateMatrix_x(transform, v.x);
         rotateMatrix_z(transform, v.z);
         rotateMatrix_y(transform, v.y);
     }
 
-    inline void rotateMatrix_yxz(glm::mat4& transform, const glm::vec3& v) {
+    inline void rotateMatrix_yxz(mat4f& transform, const vec3f& v) {
         rotateMatrix_y(transform, v.y);
         rotateMatrix_x(transform, v.x);
         rotateMatrix_z(transform, v.z);
     }
 
-    inline void rotateMatrix_yzx(glm::mat4& transform, const glm::vec3& v) {
+    inline void rotateMatrix_yzx(mat4f& transform, const vec3f& v) {
         rotateMatrix_y(transform, v.y);
         rotateMatrix_z(transform, v.z);
         rotateMatrix_x(transform, v.x);
     }
 
-    inline void rotateMatrix_zxy(glm::mat4& transform, const glm::vec3& v) {
+    inline void rotateMatrix_zxy(mat4f& transform, const vec3f& v) {
         rotateMatrix_z(transform, v.z);
         rotateMatrix_x(transform, v.x);
         rotateMatrix_y(transform, v.y);
     }
 
-    inline void rotateMatrix_zyx(glm::mat4& transform, const glm::vec3& v) {
+    inline void rotateMatrix_zyx(mat4f& transform, const vec3f& v) {
         rotateMatrix_z(transform, v.z);
         rotateMatrix_y(transform, v.y);
         rotateMatrix_x(transform, v.x);
     }
 
-    inline void rotateMatrix_byOrder(glm::mat4& transform, const glm::vec3& v, const RotationsOrder r) {
+    inline void rotateMatrix_byOrder(mat4f& transform, const vec3f& v, const RotationsOrder r) {
         switch (r) {
             case RotationsOrder::RO_XYZ:
                 rotateMatrix_xyz(transform, v);
@@ -216,7 +232,7 @@ namespace engine {
         }
     }
 
-    inline void quatToMatrix(const glm::quat& q, glm::mat4& matrix) {
+    inline void quatToMatrix(const quatf& q, mat4f& matrix) {
         if (q.x == 0.0f && q.y == 0.0f && q.z == 0.0f && q.w == 1.0f) {
             matrix[0][0] = 1.0f; matrix[0][1] = 0.0f; matrix[0][2] = 0.0f;
             matrix[1][0] = 0.0f; matrix[1][1] = 1.0f; matrix[1][2] = 0.0f;
@@ -247,21 +263,21 @@ namespace engine {
     }
 
     inline void decomposeMatrix(
-        const glm::mat4& m,
-        glm::vec3& s,
-        glm::quat& r,
-        glm::vec3& t
+        const mat4f& m,
+        vec3f& s,
+        quatf& r,
+        vec3f& t
     ) {
-        s.x = vec_length(glm::vec3(m[0]));
-        s.y = vec_length(glm::vec3(m[1]));
-        s.z = vec_length(glm::vec3(m[2]));
+        s.x = vec_length(vec3f(m[0]));
+        s.y = vec_length(vec3f(m[1]));
+        s.z = vec_length(vec3f(m[2]));
         // glm::sign(m[0][0]) - и аналогичные, для знака скелинга?
 
         if (s == emptyVec3) {
             r = emptyQuat;
             t = emptyVec3;
         } else {
-            const glm::mat4 m1 = glm::scale(m, 1.0f / s);
+            const mat4f m1 = glm::scale(m, 1.0f / s);
             r = glm::normalize(glm::quat_cast(m1));
             t.x = m1[3].x;
             t.y = m1[3].y;
@@ -269,10 +285,10 @@ namespace engine {
         }
     }
 
-    inline void lookAt(const glm::vec3& eye, const glm::vec3& center, const glm::vec3& up, glm::mat4& matrix) {
-        const glm::vec3 f(as_normalized(center - eye));
-        const glm::vec3 s(as_normalized(cross(f, up)));
-        const glm::vec3 u(cross(s, f));
+    inline void lookAt(const vec3f& eye, const vec3f& center, const vec3f& up, mat4f& matrix) {
+        const vec3f f(as_normalized(center - eye));
+        const vec3f s(as_normalized(cross(f, up)));
+        const vec3f u(cross(s, f));
 
         matrix[0][3] = 0.0f;
         matrix[1][3] = 0.0f;
@@ -295,8 +311,8 @@ namespace engine {
         matrix[3][2] =  dot(f, eye);
     }
 
-    inline glm::mat4 getBillboardViewMatrix(const glm::mat4& inverseViewMatrix) {
-        glm::mat4 matrix = inverseViewMatrix;
+    inline mat4f getBillboardViewMatrix(const mat4f& inverseViewMatrix) {
+        mat4f matrix = inverseViewMatrix;
         // matrix[3].x = 0.0f; matrix[3].y = 0.0f; matrix[3].z = 0.0f;
         // matrix[3].w = matrix[3].w; // не меняем значение
         memset(&matrix[3], 0, sizeof(float) * 3);

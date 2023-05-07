@@ -15,20 +15,20 @@ namespace engine {
 
 	struct Mesh_Node {
 		uint16_t skinIndex = 0xffff;
-		glm::vec3 translation;
-		glm::vec3 scale;
-		glm::quat rotation;
+		vec3f translation;
+		vec3f scale;
+		quatf rotation;
 		
 		bool dirtyLocalTransform = true;
 		bool dirtyModelTransform = true;
 
-		glm::mat4 localMatrix;
-		glm::mat4 modelMatrix;
+		mat4f localMatrix;
+		mat4f modelMatrix;
 
 		inline void calculateLocalMatrix() {
 			if (dirtyLocalTransform) {
 				// TRS matrix : T * R * S
-				memcpy(&localMatrix, &engine::emptyMatrix, sizeof(glm::mat4));
+				memcpy(&localMatrix, &engine::emptyMatrix, sizeof(mat4f));
 				translateMatrixTo(localMatrix, translation);
 				quatToMatrix(rotation, localMatrix);
 				scaleMatrix(localMatrix, scale);
@@ -38,47 +38,47 @@ namespace engine {
 			}
 		}
 
-		inline void calculateModelMatrix(const glm::mat4& parentModel) {
+		inline void calculateModelMatrix(const mat4f& parentModel) {
 			modelMatrix = parentModel * localMatrix;
 			// no set dirtyGlobalTransform = false here, for skin skin_matrices calculate
 		}
 
-		inline void setTranslation(const glm::vec3& t) {
+		inline void setTranslation(const vec3f& t) {
 			if (compare(t, translation, 1e-5f)) {
 				translation = t;
 				dirtyLocalTransform = true;
 			}
 		}
 
-		inline void setTranslation(glm::vec3&& t) {
+		inline void setTranslation(vec3f&& t) {
 			if (compare(t, translation, 1e-5f)) {
 				translation = std::move(t);
 				dirtyLocalTransform = true;
 			}
 		}
 
-		inline void setScale(const glm::vec3& s) {
+		inline void setScale(const vec3f& s) {
 			if (compare(s, scale, 1e-5f)) {
 				scale = s;
 				dirtyLocalTransform = true;
 			}
 		}
 
-		inline void setScale(glm::vec3&& s) {
+		inline void setScale(vec3f&& s) {
 			if (compare(s, scale, 1e-5f)) {
 				scale = std::move(s);
 				dirtyLocalTransform = true;
 			}
 		}
 
-		inline void setRotation(const glm::quat& r) {
+		inline void setRotation(const quatf& r) {
 			if (compare(r, rotation, 1e-5f)) {
 				rotation = r;
 				dirtyLocalTransform = true;
 			}
 		}
 
-		inline void setRotation(glm::quat&& r) {
+		inline void setRotation(quatf&& r) {
 			if (compare(r, rotation, 1e-5f)) {
 				rotation = std::move(r);
 				dirtyLocalTransform = true;
@@ -161,7 +161,7 @@ namespace engine {
 					if (parent) {
 						mNode.calculateModelMatrix(parent->value().modelMatrix);
 					} else {
-						memcpy(&mNode.modelMatrix, &mNode.localMatrix, sizeof(glm::mat4));
+						memcpy(&mNode.modelMatrix, &mNode.localMatrix, sizeof(mat4f));
 					}
 				}
 
@@ -183,7 +183,7 @@ namespace engine {
 				if (parent) {
 					mNode.calculateModelMatrix(parent->value().modelMatrix);
 				} else {
-					memcpy(&mNode.modelMatrix, &mNode.localMatrix, sizeof(glm::mat4));
+					memcpy(&mNode.modelMatrix, &mNode.localMatrix, sizeof(mat4f));
 				}
 			}
 
@@ -193,7 +193,7 @@ namespace engine {
 		const std::vector<Mesh_Skin>& _skins;
 		std::vector<std::vector<HierarchyRaw<Mesh_Node>*>> _hierarchyes;
 		std::vector<std::vector<HierarchyRaw<Mesh_Node>*>> _nodes;
-		std::vector<std::vector<std::vector<glm::mat4>>> _skinsMatrices;
+		std::vector<std::vector<std::vector<mat4f>>> _skinsMatrices;
 		//std::vector<TaskResult<void>> _animCalculationResult;
 		std::vector<linked_ptr<Task2<void>>> _animCalculationResult;
 
@@ -221,22 +221,22 @@ namespace engine {
 		inline Mesh_Data* getMeshData() noexcept { return _meshData; }
 		inline const Mesh_Data* getMeshData() const noexcept { return _meshData; }
 
-		inline const glm::vec3& getMinCorner() const noexcept { return _minCorner; }
-		inline const glm::vec3& getMaxCorner() const noexcept { return _maxCorner; }
+		inline const vec3f& getMinCorner() const noexcept { return _minCorner; }
+		inline const vec3f& getMaxCorner() const noexcept { return _maxCorner; }
 
 		inline std::shared_ptr<MeshSkeleton>& getSkeleton() noexcept { return _skeleton; }
 		inline const std::shared_ptr<MeshSkeleton>& getSkeleton() const noexcept { return _skeleton; }
 
 		inline void setSkeleton(const std::shared_ptr<MeshSkeleton>& s) noexcept { _skeleton = s; }
 
-		void draw(const glm::mat4& cameraMatrix, const glm::mat4& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame);
-		void drawBoundingBox(const glm::mat4& cameraMatrix, const glm::mat4& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame);
+		void draw(const mat4f& cameraMatrix, const mat4f& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame);
+		void drawBoundingBox(const mat4f& cameraMatrix, const mat4f& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame);
 
-		void updateRenderData(const glm::mat4& worldMatrix, const bool worldMatrixChanged);
+		void updateRenderData(const mat4f& worldMatrix, const bool worldMatrixChanged);
 		inline void updateModelMatrixChanged(const bool worldMatrixChanged) noexcept { _modelMatrixChanged |= worldMatrixChanged; }
 
-		inline void setCameraMatrix(const glm::mat4& cameraMatrix, const bool copy = false) {
-			_renderDescriptor.setRawDataForLayout(_fixedGpuLayouts[0].first, &const_cast<glm::mat4&>(cameraMatrix), copy, sizeof(glm::mat4));
+		inline void setCameraMatrix(const mat4f& cameraMatrix, const bool copy = false) {
+			_renderDescriptor.setRawDataForLayout(_fixedGpuLayouts[0].first, &const_cast<mat4f&>(cameraMatrix), copy, sizeof(mat4f));
 		}
 
 	private:
@@ -250,7 +250,7 @@ namespace engine {
 		std::shared_ptr<MeshSkeleton> _skeleton;
 		bool _modelMatrixChanged = true;
 
-		glm::vec3 _minCorner = glm::vec3(0.0f);
-		glm::vec3 _maxCorner = glm::vec3(0.0f);
+		vec3f _minCorner = vec3f(0.0f);
+		vec3f _maxCorner = vec3f(0.0f);
 	};
 }

@@ -23,21 +23,21 @@ namespace engine {
 		};
 
 		struct Params {
-			const glm::mat4* cameraTransfrom = nullptr;
-			const glm::mat4* cameraViewTransfrom = nullptr;
-			const glm::mat4* cameraProjectionTransfrom = nullptr;
+			const mat4f* cameraTransfrom = nullptr;
+			const mat4f* cameraViewTransfrom = nullptr;
+			const mat4f* cameraProjectionTransfrom = nullptr;
 		};
 
 		union {
 			Params params;
-			std::array<const glm::mat4*, 3> values;
+			std::array<const mat4f*, 3> values;
 		} v;
 
-		const glm::mat4* operator[](const uint8_t i) const {
+		const mat4f* operator[](const uint8_t i) const {
 			return v.values[i];
 		}
 
-		const glm::mat4* data() const {
+		const mat4f* data() const {
 			return *v.values.data();
 		}
 	};

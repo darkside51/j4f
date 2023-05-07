@@ -12,15 +12,15 @@ namespace engine {
 
 	class SimpleInstanceStrategy {
 	public:
-		SimpleInstanceStrategy(const std::vector<glm::mat4>& transforms, const std::vector<vulkan::VulkanGpuProgram*>& programs) {
+		SimpleInstanceStrategy(const std::vector<mat4f>& transforms, const std::vector<vulkan::VulkanGpuProgram*>& programs) {
 			for (auto&& p : programs) {
-				p->setValueByName("models", transforms.data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, sizeof(glm::mat4) * transforms.size(), true);
+				p->setValueByName("models", transforms.data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, sizeof(mat4f) * transforms.size(), true);
 			}
 		}
 
-		SimpleInstanceStrategy(std::vector<glm::mat4>&& transforms, const std::vector<vulkan::VulkanGpuProgram*>& programs) {
+		SimpleInstanceStrategy(std::vector<mat4f>&& transforms, const std::vector<vulkan::VulkanGpuProgram*>& programs) {
 			for (auto&& p : programs) {
-				p->setValueByName("models", transforms.data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, sizeof(glm::mat4) * transforms.size(), true);
+				p->setValueByName("models", transforms.data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, sizeof(mat4f) * transforms.size(), true);
 			}
 		}
 
@@ -31,7 +31,7 @@ namespace engine {
 	class InstanceRenderer {
 	public:
 		template <typename... Args>
-		InstanceRenderer(const std::vector<glm::mat4>& transforms, T* graphics, Args&&...args) :
+		InstanceRenderer(const std::vector<mat4f>& transforms, T* graphics, Args&&...args) :
 			_instanceCount(transforms.size()), 
 			_graphics(graphics),
 			_strategy(std::make_unique<Strategy>(transforms, std::forward<Args>(args)...))
@@ -40,7 +40,7 @@ namespace engine {
 		}
 
 		template <typename... Args>
-		InstanceRenderer(std::vector<glm::mat4>&& transforms, T* graphics, Args&&...args) :
+		InstanceRenderer(std::vector<mat4f>&& transforms, T* graphics, Args&&...args) :
 			_instanceCount(transforms.size()), 
 			_graphics(graphics),
 			_strategy(std::make_unique<Strategy>(transforms, std::forward<Args>(args)...))
@@ -67,7 +67,7 @@ namespace engine {
 			updateGraphicsInstanceCount();
 		}
 
-		inline void updateRenderData(const glm::mat4& worldMatrix, const bool worldMatrixChanged) {
+		inline void updateRenderData(const mat4f& worldMatrix, const bool worldMatrixChanged) {
 			_graphics->updateRenderData(worldMatrix, worldMatrixChanged);
 		}
 

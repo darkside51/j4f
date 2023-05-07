@@ -110,7 +110,7 @@ namespace engine {
 		}
 	}
 
-	CascadeShadowMap::CascadeShadowMap(const uint16_t dim, const uint8_t count, const glm::vec2& nearFar, const float minZ, const float maxZ) :
+	CascadeShadowMap::CascadeShadowMap(const uint16_t dim, const uint8_t count, const vec2f& nearFar, const float minZ, const float maxZ) :
 		_dimension(dim),
 		_cascadesCount(count),
 		_cascadeSplits(count),
@@ -296,7 +296,7 @@ namespace engine {
 		}
 	}
 
-	void CascadeShadowMap::initCascadeSplits(const glm::vec2& nearFar, const float minZ, const float maxZ) {
+	void CascadeShadowMap::initCascadeSplits(const vec2f& nearFar, const float minZ, const float maxZ) {
 		const float clipRange = nearFar.y - nearFar.x;
 
 		const float range = maxZ - minZ;
@@ -314,7 +314,7 @@ namespace engine {
 	}
 
 	void CascadeShadowMap::updateCascades(const Camera* camera) {
-		const glm::vec2& nearFar = camera->getNearFar();
+		const vec2f& nearFar = camera->getNearFar();
 		const float clipRange = nearFar.y - nearFar.x;
 
 		// calculate orthographic projection matrix for each cascade
@@ -322,32 +322,32 @@ namespace engine {
 		for (uint32_t i = 0; i < _cascadesCount; ++i) {
 			float splitDist = _cascadeSplits[i];
 
-			glm::vec3 frustumCorners[8] = {
-				glm::vec3(-1.0f,  1.0f, 0.0f),
-				glm::vec3(1.0f,  1.0f, 0.0f),
-				glm::vec3(1.0f, -1.0f, 0.0f),
-				glm::vec3(-1.0f, -1.0f,	0.0f),
-				glm::vec3(-1.0f,  1.0f, 1.0f),
-				glm::vec3(1.0f,  1.0f, 1.0f),
-				glm::vec3(1.0f, -1.0f, 1.0f),
-				glm::vec3(-1.0f, -1.0f, 1.0f)
+			vec3f frustumCorners[8] = {
+				vec3f(-1.0f,  1.0f, 0.0f),
+				vec3f(1.0f,  1.0f, 0.0f),
+				vec3f(1.0f, -1.0f, 0.0f),
+				vec3f(-1.0f, -1.0f,	0.0f),
+				vec3f(-1.0f,  1.0f, 1.0f),
+				vec3f(1.0f,  1.0f, 1.0f),
+				vec3f(1.0f, -1.0f, 1.0f),
+				vec3f(-1.0f, -1.0f, 1.0f)
 			};
 
 			// project frustum corners into world space
-			const glm::mat4& invCam = const_cast<Camera*>(camera)->getInvTransform();
+			const mat4f& invCam = const_cast<Camera*>(camera)->getInvTransform();
 			for (uint32_t i = 0; i < 8; ++i) {
-				glm::vec4 invCorner = invCam * glm::vec4(frustumCorners[i], 1.0f);
+				vec4f invCorner = invCam * vec4f(frustumCorners[i], 1.0f);
 				frustumCorners[i] = invCorner / invCorner.w;
 			}
 
 			for (uint32_t i = 0; i < 4; ++i) {
-				glm::vec3 dist = frustumCorners[i + 4] - frustumCorners[i];
+				vec3f dist = frustumCorners[i + 4] - frustumCorners[i];
 				frustumCorners[i + 4] = frustumCorners[i] + (dist * splitDist);
 				frustumCorners[i] = frustumCorners[i] + (dist * lastSplitDist);
 			}
 
 			// get frustum center
-			glm::vec3 frustumCenter = frustumCorners[0];
+			vec3f frustumCenter = frustumCorners[0];
 			for (uint32_t i = 1; i < 8; ++i) { frustumCenter += frustumCorners[i]; }
 			frustumCenter /= 8.0f;
 
@@ -356,8 +356,8 @@ namespace engine {
 			// �� ������ �� ��������� ������� ��������
 			const float radius = vec_length(frustumCorners[7] - frustumCenter) * _frustumRadiusLambda;
 
-			glm::mat4 lightViewMatrix = glm::lookAt(frustumCenter - _lightDirection * radius * _cascadeLigthLambda, frustumCenter, glm::vec3(0.0f, 1.0f, 0.0f));
-			glm::mat4 lightOrthoMatrix = glm::ortho(-radius, radius, -radius, radius, -2.0f * radius, 2.0f * radius);
+			mat4f lightViewMatrix = glm::lookAt(frustumCenter - _lightDirection * radius * _cascadeLigthLambda, frustumCenter, vec3f(0.0f, 1.0f, 0.0f));
+			mat4f lightOrthoMatrix = glm::ortho(-radius, radius, -radius, radius, -2.0f * radius, 2.0f * radius);
 
 			// store split distance and matrix in cascade
 			_splitDepths[i] = (nearFar.x + splitDist * clipRange) * -1.0f;
@@ -388,22 +388,22 @@ namespace engine {
 		}
 	}
 
-	void CascadeShadowMap::updateShadowUniforms(vulkan::VulkanGpuProgram* program, const glm::mat4& cameraMatrix) {
+	void CascadeShadowMap::updateShadowUniforms(vulkan::VulkanGpuProgram* program, const mat4f& cameraMatrix) {
 		auto it = _programsShadowUniforms.find(program);
 		if (it != _programsShadowUniforms.end()) {
 			const ShadowUniforms& uniforms = it->second;
-			program->setValueToLayout(uniforms.viewLayout, &const_cast<glm::mat4&>(cameraMatrix), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, false);
+			program->setValueToLayout(uniforms.viewLayout, &const_cast<mat4f&>(cameraMatrix), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, false);
 			program->setValueToLayout(uniforms.cascadeMatrixLayout, _cascadeViewProjects.data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, false);
-			program->setValueToLayout(uniforms.cascadeSplitLayout, getSplitDepthsPointer<glm::vec4>(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, false);
+			program->setValueToLayout(uniforms.cascadeSplitLayout, getSplitDepthsPointer<vec4f>(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, false);
 		} else {
 			ShadowUniforms uniforms;
 			uniforms.viewLayout = program->getGPUParamLayoutByName("view");
 			uniforms.cascadeMatrixLayout = program->getGPUParamLayoutByName("cascade_matrix");
 			uniforms.cascadeSplitLayout = program->getGPUParamLayoutByName("cascade_splits");
 
-			program->setValueToLayout(uniforms.viewLayout, &const_cast<glm::mat4&>(cameraMatrix), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, false);
+			program->setValueToLayout(uniforms.viewLayout, &const_cast<mat4f&>(cameraMatrix), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, false);
 			program->setValueToLayout(uniforms.cascadeMatrixLayout, _cascadeViewProjects.data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, false);
-			program->setValueToLayout(uniforms.cascadeSplitLayout, getSplitDepthsPointer<glm::vec4>(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, false);
+			program->setValueToLayout(uniforms.cascadeSplitLayout, getSplitDepthsPointer<vec4f>(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, false);
 
 			_programsShadowUniforms.insert({ program, uniforms });
 		}

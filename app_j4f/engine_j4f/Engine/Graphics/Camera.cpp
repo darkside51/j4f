@@ -4,7 +4,7 @@
 
 namespace engine {
 
-	void Frustum::calculate(const glm::mat4& clip) noexcept {
+	void Frustum::calculate(const mat4f& clip) noexcept {
 		//находим A,B,C,D для правой плоскости
 		_frustum[0][0] = clip[0][3] - clip[0][0];
 		_frustum[0][1] = clip[1][3] - clip[1][0];
@@ -58,7 +58,7 @@ namespace engine {
 		_normalized = true;
 	}
 
-	bool Frustum::isPointVisible(const glm::vec3& p) const noexcept {
+	bool Frustum::isPointVisible(const vec3f& p) const noexcept {
 		for (uint8_t i = 0; i < 6; ++i) {
 			if (_frustum[i][0] * p.x + _frustum[i][1] * p.y + _frustum[i][2] * p.z + _frustum[i][3] < 0.0f) {
 				return false;
@@ -68,7 +68,7 @@ namespace engine {
 		return true;
 	}
 
-	bool Frustum::isSphereVisible(const glm::vec3& p, const float r) noexcept {
+	bool Frustum::isSphereVisible(const vec3f& p, const float r) noexcept {
 		if (_normalized == false) { // для определения расстояний до плоскостей нужна нормализация плоскостей
 			normalize();
 		}
@@ -83,7 +83,7 @@ namespace engine {
 		return true;
 	}
 
-	bool Frustum::isCubeVisible_classic(const glm::vec3& min, const glm::vec3& max) const noexcept {
+	bool Frustum::isCubeVisible_classic(const vec3f& min, const vec3f& max) const noexcept {
 		for (uint8_t i = 0; i < 6; ++i) {
 			if (_frustum[i][0] * min.x + _frustum[i][1] * min.y +
 				_frustum[i][2] * min.z + _frustum[i][3] > 0.0f)
@@ -117,7 +117,7 @@ namespace engine {
 		return true;
 	}
 
-	bool Frustum::isCubeVisible(const glm::vec3& min, const glm::vec3& max) const noexcept {
+	bool Frustum::isCubeVisible(const vec3f& min, const vec3f& max) const noexcept {
 		// https://gamedev.ru/code/articles/FrustumCulling
 		bool inside = true;
 		for (int i = 0; (inside && (i < 6)); ++i) {
@@ -141,7 +141,7 @@ namespace engine {
 		_position(emptyVec3)
 	{}
 
-	Camera::Camera(const glm::vec2& sz) :
+	Camera::Camera(const vec2f& sz) :
 		_projectionType(ProjectionType::PERSPECTIVE),
 		_dirty(0),
 		_size(sz),
@@ -156,7 +156,7 @@ namespace engine {
 		_projectionType = ProjectionType::PERSPECTIVE;
 		_projectionTransform = glm::perspective(fov, aspect, znear, zfar);
 		_projectionTransform[1][1] *= -1.0f;
-		_near_far = glm::vec2(znear, zfar);
+		_near_far = vec2f(znear, zfar);
 		_dirty->transform = 1;
 
 		/* // parameters calculation variant(считает кажется правильно, но точности не хватает немного)
@@ -171,7 +171,7 @@ namespace engine {
 		_projectionTransform = glm::ortho(left, right, bottom, top, znear, zfar);
 		_projectionTransform[3][2] = 0.0f; // для большей точности в буфере глубины
 		_projectionTransform[1][1] *= -1.0f;
-		_near_far = glm::vec2(znear, zfar);
+		_near_far = vec2f(znear, zfar);
 		_dirty->transform = 1;
 	}
 
@@ -200,7 +200,7 @@ namespace engine {
 	bool Camera::calculateTransform() noexcept {
 		if (_dirty->transform == 0) return false;
 
-		_viewTransform = glm::mat4(1.0f);
+		_viewTransform = mat4f(1.0f);
 		
 		if (_scale != unitVec3) {
 			scaleMatrix(_viewTransform, _scale);
@@ -229,8 +229,8 @@ namespace engine {
 		return true;
 	}
 
-	glm::vec2 Camera::worldToScreen(const glm::vec3& p) const noexcept {
-		glm::vec4 v = _transform * glm::vec4(p, 1.0f);
+	vec2f Camera::worldToScreen(const vec3f& p) const noexcept {
+		vec4f v = _transform * vec4f(p, 1.0f);
 		v /= v.w;
 
 		// for vulkan topdown viewport oy
@@ -239,11 +239,11 @@ namespace engine {
 		v.x = (0.5f + v.x * 0.5f) * _size.x;
 		v.y = (0.5f + v.y * 0.5f) * _size.y;
 
-		return glm::vec2(v.x, v.y);
+		return vec2f(v.x, v.y);
 	}
 
-	Ray Camera::screenToWorld(const glm::vec2& screenCoord) noexcept {
-		glm::vec4 v;
+	Ray Camera::screenToWorld(const vec2f& screenCoord) noexcept {
+		vec4f v;
 		v.x = (((2.0f * screenCoord.x) / _size.x) - 1.0f);
 		v.y = (((2.0f * screenCoord.y) / _size.y) - 1.0f);
 		v.z = 0.0f;
@@ -252,12 +252,12 @@ namespace engine {
 		// for vulkan topdown viewport oy
 		v.y *= -1.0f;
 
-		glm::vec4 sp = getInvTransform() * v;
+		vec4f sp = getInvTransform() * v;
 		sp /= sp.w;
 
 		v.z = 1.0f;
 
-		glm::vec4 fp = _invTransform * v;
+		vec4f fp = _invTransform * v;
 		fp /= fp.w;
 
 		return Ray(sp.x, sp.y, sp.z, fp.x, fp.y, fp.z);

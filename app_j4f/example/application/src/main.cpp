@@ -107,19 +107,19 @@ namespace engine {
 	RenderList shadowRenderList;
 	RenderList uiRenderList;
 
-	glm::vec3 wasd(0.0f);
+	vec3f wasd(0.0f);
 
 	///////////////////////////
 	/// cascade shadow map
 	constexpr uint8_t SHADOW_MAP_CASCADE_COUNT = 3;
 	constexpr uint16_t SHADOWMAP_DIM = 1536; // VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
 	//constexpr uint16_t SHADOWMAP_DIM = 1024; // VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU
-	glm::vec3 lightPos = glm::vec3(-460.0f, -600.0f, 1000.0f) * 2.0f;
+	vec3f lightPos = vec3f(-460.0f, -600.0f, 1000.0f) * 2.0f;
 	//// cascade shadow map
 
-	glm::vec4 lightColor(1.0f, 1.0f, 1.0f, 1.0f);
-	//glm::vec2 lightMinMax(0.075f, 3.0f);
-	glm::vec2 lightMinMax(0.5f, 1.0f);
+	vec4f lightColor(1.0f, 1.0f, 1.0f, 1.0f);
+	//vec2f lightMinMax(0.075f, 3.0f);
+	vec2f lightMinMax(0.5f, 1.0f);
 	const float saturation = 1.2f;
 
 	H_Node* rootNode;
@@ -132,7 +132,7 @@ namespace engine {
 	//constexpr bool renderBounds = false;
 	bool renderBounds = false;
 
-	glm::vec3 targetCameraRotation(0.0f, 0.0f, 0.0f);
+	vec3f targetCameraRotation(0.0f, 0.0f, 0.0f);
 
 	class SkyBoxRenderer : public RenderedEntity {
 	public:
@@ -200,9 +200,9 @@ namespace engine {
 			setProgram(program);
 		}
 
-		inline void updateRenderData(const glm::mat4& worldMatrix, const bool worldMatrixChanged) {
+		inline void updateRenderData(const mat4f& worldMatrix, const bool worldMatrixChanged) {
 			if (worldMatrixChanged) {
-				_renderDescriptor.renderData[0]->setParamForLayout(_fixedGpuLayouts[1].first, &const_cast<glm::mat4&>(worldMatrix), false, 1);
+				_renderDescriptor.renderData[0]->setParamForLayout(_fixedGpuLayouts[1].first, &const_cast<mat4f&>(worldMatrix), false, 1);
 			}
 		}
 
@@ -348,7 +348,7 @@ namespace engine {
 			psi.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/grass.psh.spv");
 			grass_default = gpuProgramManager->getProgram(psi);
 
-			glm::vec3 lightDir = as_normalized(-lightPos);
+			vec3f lightDir = as_normalized(-lightPos);
 
 			auto l = grass_default->getGPUParamLayoutByName("lightDirection");
 			grass_default->setValueToLayout(l, &lightDir, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
@@ -361,7 +361,7 @@ namespace engine {
 
 			shadowMap->registerProgramAsReciever(grass_default);
 
-			std::vector<glm::mat4> grassTransforms(instanceCount);
+			std::vector<mat4f> grassTransforms(instanceCount);
 			const int step = static_cast<int>(sqrtf(instanceCount));
 			
 			for (size_t i = 0; i < instanceCount; ++i) {
@@ -369,15 +369,15 @@ namespace engine {
 				const float scale_xy = (engine::random(15, 25) * 1350.0f);
 				const float scale_z = (engine::random(5, 50) * 330.0f);
 
-				glm::mat4 wtr(1.0f);
-				scaleMatrix(wtr, glm::vec3(scale_xy, scale_xy, scale_z));
-				rotateMatrix_xyz(wtr, glm::vec3(0.0f, 0.0f, engine::random(-3.1415926, 3.1415926)));
-				translateMatrixTo(wtr, glm::vec3(-(step * space * 0.5f) + (i % step) * space, -(step * space * 0.5f) + (i / step) * space, 0.0f));
+				mat4f wtr(1.0f);
+				scaleMatrix(wtr, vec3f(scale_xy, scale_xy, scale_z));
+				rotateMatrix_xyz(wtr, vec3f(0.0f, 0.0f, engine::random(-3.1415926, 3.1415926)));
+				translateMatrixTo(wtr, vec3f(-(step * space * 0.5f) + (i % step) * space, -(step * space * 0.5f) + (i / step) * space, 0.0f));
 				grassTransforms[i] = std::move(wtr);
 			}
 
 			auto lssbo = grass_default->getGPUParamLayoutByName("models");
-			grass_default->setValueToLayout(lssbo, grassTransforms.data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, sizeof(glm::mat4) * instanceCount, true);
+			grass_default->setValueToLayout(lssbo, grassTransforms.data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, sizeof(mat4f) * instanceCount, true);
 		}
 
 		GrassRenderer(const TextureData& img) : _mesh(nullptr) {
@@ -387,7 +387,7 @@ namespace engine {
 			psi.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/grass.psh.spv");
 			grass_default = gpuProgramManager->getProgram(psi);
 
-			glm::vec3 lightDir = as_normalized(-lightPos);		
+			vec3f lightDir = as_normalized(-lightPos);		
 
 			auto l = grass_default->getGPUParamLayoutByName("lightDirection");
 			grass_default->setValueToLayout(l, &lightDir, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
@@ -400,31 +400,31 @@ namespace engine {
 
 			shadowMap->registerProgramAsReciever(grass_default);
 
-			std::vector<glm::mat4> grassTransforms;
+			std::vector<mat4f> grassTransforms;
 			const float space = 26.0f;
 			const uint32_t* data = reinterpret_cast<const uint32_t*>(img.data());
 			for (size_t x = 0; x < img.width(); ++x) {
 				for (size_t y = 0; y < img.height(); ++y) {
 					const uint32_t v = data[y * img.width() + x];
 					if ((v & 0x000000f0) >= 240) {
-						glm::mat4 wtr(1.0f);
+						mat4f wtr(1.0f);
 
-						const float l = vec_length(glm::vec2(-1024.0f + 26.0f * x, 1024.0f - 26.0f * y) - glm::vec2(570.0f, -250.0f));
+						const float l = vec_length(vec2f(-1024.0f + 26.0f * x, 1024.0f - 26.0f * y) - vec2f(570.0f, -250.0f));
 						const float r = 100.0f;
 						if (l >= r) {
 
 							const int grassType = engine::random(0, 100) < 5 ? engine::random(2, 4) : engine::random(0, 1);
 							if (grassType > 2) {
 								const float scale_xyz = (engine::random(25.0f, 35.0f) * 400.0f);
-								scaleMatrix(wtr, glm::vec3(scale_xyz, scale_xyz, scale_xyz));
+								scaleMatrix(wtr, vec3f(scale_xyz, scale_xyz, scale_xyz));
 							} else {
 								const float scale_xyz = (engine::random(25.0f, 60.0f) * 490.0f);
 								const float scale_z = (engine::random(25.0f, 60.0f) * 310.0f);
-								scaleMatrix(wtr, glm::vec3(scale_xyz, scale_xyz, scale_z));
+								scaleMatrix(wtr, vec3f(scale_xyz, scale_xyz, scale_z));
 							}
 
-							rotateMatrix_xyz(wtr, glm::vec3(0.0f, 0.0f, engine::random(-3.1415926, 3.1415926)));
-							translateMatrixTo(wtr, glm::vec3(-1024.0f + engine::random(-10.0f, 10.0f) + x * space, 1024.0f + engine::random(-10.0f, 10.0f) - y * space, 0.0f));
+							rotateMatrix_xyz(wtr, vec3f(0.0f, 0.0f, engine::random(-3.1415926, 3.1415926)));
+							translateMatrixTo(wtr, vec3f(-1024.0f + engine::random(-10.0f, 10.0f) + x * space, 1024.0f + engine::random(-10.0f, 10.0f) - y * space, 0.0f));
 							wtr[0][3] = grassType;
 							grassTransforms.emplace_back(std::move(wtr));
 						}
@@ -436,7 +436,7 @@ namespace engine {
 			_instanceCount = grassTransforms.size();
 
 			auto lssbo = grass_default->getGPUParamLayoutByName("models");
-			grass_default->setValueToLayout(lssbo, grassTransforms.data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, sizeof(glm::mat4) * _instanceCount, true);
+			grass_default->setValueToLayout(lssbo, grassTransforms.data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, sizeof(mat4f) * _instanceCount, true);
 		}
 
 		~GrassRenderer() {
@@ -457,7 +457,7 @@ namespace engine {
 			}
 		}
 
-		inline void updateRenderData(const glm::mat4& worldMatrix, const bool worldMatrixChanged) {
+		inline void updateRenderData(const mat4f& worldMatrix, const bool worldMatrixChanged) {
 			_mesh->updateRenderData(worldMatrix, worldMatrixChanged);
 		}
 
@@ -496,7 +496,7 @@ namespace engine {
 			shadowMap->updateCascades(camera);
 			cameraMatrixChanged = true;
 
-			const glm::vec3& p = camera->getPosition();
+			const vec3f& p = camera->getPosition();
 			program_mesh->setValueByName("camera_position", &p, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 			program_mesh_skin->setValueByName("camera_position", &p, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 			program_mesh_with_stroke->setValueByName("camera_position", &p, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
@@ -580,8 +580,8 @@ namespace engine {
 				{
 					if (m1) {
 						constexpr float k = 0.0075f;
-						targetCameraRotation = (camera->getRotation() + glm::vec3(-k * (event.y - y), 0.0f, k * (event.x - x)));
-						//camera->setRotation(camera->getRotation() + glm::vec3(-k * (event.y - y), 0.0f, k * (event.x - x)));
+						targetCameraRotation = (camera->getRotation() + vec3f(-k * (event.y - y), 0.0f, k * (event.x - x)));
+						//camera->setRotation(camera->getRotation() + vec3f(-k * (event.y - y), 0.0f, k * (event.x - x)));
 						x = event.x;
 						y = event.y;
 					}
@@ -598,7 +598,7 @@ namespace engine {
             if (imgui && imgui->graphics() && imgui->graphics()->onInputWheelEvent(dx, dy)) {
                 return true;
             }
-			camera->movePosition(glm::vec3(0.0f, 0.0f, dy * 20.0f));
+			camera->movePosition(vec3f(0.0f, 0.0f, dy * 20.0f));
 			return true;
 		}
 
@@ -668,7 +668,7 @@ namespace engine {
 			const uint32_t width = static_cast<uint32_t>(wh >> 0);
 			const uint32_t height = static_cast<uint32_t>(wh >> 32);
 
-			targetCameraRotation = glm::vec3(-engine::math_constants::pi / 3.0f, 0.0f, 0.0f);
+			targetCameraRotation = vec3f(-engine::math_constants::pi / 3.0f, 0.0f, 0.0f);
 
 			camera = new Camera(width, height);
 			camera->enableFrustum();
@@ -676,19 +676,19 @@ namespace engine {
 			camera->makeProjection(engine::math_constants::pi / 4.0f, static_cast<float>(width) / static_cast<float>(height), 1.0f, 5000.0f);
 			//camera->makeOrtho(-float(width) * 0.5f, float(width) * 0.5f, -float(height) * 0.5f, float(height) * 0.5f, 1.0f, 1000.0f);
 			camera->setRotation(targetCameraRotation);
-			camera->setPosition(glm::vec3(0.0f, -500.0f, 300.0f));
+			camera->setPosition(vec3f(0.0f, -500.0f, 300.0f));
 
 			camera2 = new Camera(width, height);
 			camera2->enableFrustum();
 			camera2->makeOrtho(-float(width) * 0.5f, float(width) * 0.5f, -float(height) * 0.5f, float(height) * 0.5f, 1.0f, 1000.0f);
-			camera2->setPosition(glm::vec3(0.0f, 0.0f, 200.0f));
+			camera2->setPosition(vec3f(0.0f, 0.0f, 200.0f));
 
 			//clearValues[0].color = { 0.5f, 0.78f, 0.99f, 1.0f };
 			clearValues[0].color = { 0.25f, 0.25f, 0.25f, 1.0f };
 			clearValues[1].depthStencil = { 1.0f, 0 };
 
 			//////////////////////////////////
-			const glm::vec2 nearFar(1.0f, 5500.0f);
+			const vec2f nearFar(1.0f, 5500.0f);
 			shadowMap = new CascadeShadowMap(SHADOWMAP_DIM, SHADOW_MAP_CASCADE_COUNT, nearFar, 250.0f, 2500.0f);
 			shadowMap->setLamdas(1.0f, 1.0f, 1.0f);
 			shadowMap->setLightPosition(lightPos);
@@ -754,7 +754,7 @@ namespace engine {
 			VulkanGpuProgram* shadowPlaneProgram = const_cast<VulkanGpuProgram*>(CascadeShadowMap::getSpecialPipeline(ShadowMapSpecialPipelines::SH_PIPEINE_PLANE)->program);
 
 			auto assignGPUParams = [](VulkanGpuProgram* program) {
-				glm::vec3 lightDir = as_normalized(-lightPos);
+				vec3f lightDir = as_normalized(-lightPos);
 				program->setValueByName("lightDirection", &lightDir, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 				program->setValueByName("lightMinMax", &lightMinMax, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
 				program->setValueByName("lightColor", &lightColor, nullptr, vulkan::VulkanGpuProgram::UNDEFINED, vulkan::VulkanGpuProgram::UNDEFINED, true);
@@ -993,12 +993,12 @@ namespace engine {
 				SkyBoxRenderer* skyboxRenderer = new SkyBoxRenderer();
 				skyboxRenderer->createRenderData();
 
-				glm::mat4 wtr(1.0f);
-				scaleMatrix(wtr, glm::vec3(1400.0f));
+				mat4f wtr(1.0f);
+				scaleMatrix(wtr, vec3f(1400.0f));
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
-				//node->value().setBoundingVolume(BoundingVolume::make<SphereVolume>(glm::vec3(0.0f, 1.45f, 0.0f), 1.8f));
+				//node->value().setBoundingVolume(BoundingVolume::make<SphereVolume>(vec3f(0.0f, 1.45f, 0.0f), 1.8f));
 				rootNode->addChild(node);
 
 				skyBox->setGraphics(skyboxRenderer);
@@ -1009,7 +1009,7 @@ namespace engine {
 				asset->setProgram(program_mesh_skin_with_stroke);
 				asset->setParamByName("u_texture", texture_zombi, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
-				asset->setParamByName("color", glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), true);
+				asset->setParamByName("color", vec4f(1.0f, 0.0f, 0.0f, 1.0f), true);
 				asset->setParamByName("lighting", 0.5f, true);
 
 				animTree = new MeshAnimationTree(0.0f, asset->getNodesCount(), asset->getSkeleton()->getLatency());
@@ -1025,14 +1025,14 @@ namespace engine {
 				});
 
 				//////////////////////
-				glm::mat4 wtr(1.0f);
-				scaleMatrix(wtr, glm::vec3(25.0f));
-				rotateMatrix_xyz(wtr, glm::vec3(1.57f, 0.45f, 0.0f));
-				translateMatrixTo(wtr, glm::vec3(-100.0f, -0.0f, 0.0f));
+				mat4f wtr(1.0f);
+				scaleMatrix(wtr, vec3f(25.0f));
+				rotateMatrix_xyz(wtr, vec3f(1.57f, 0.45f, 0.0f));
+				translateMatrixTo(wtr, vec3f(-100.0f, -0.0f, 0.0f));
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
-				node->value().setBoundingVolume(BoundingVolume::make<SphereVolume>(glm::vec3(0.0f, 1.45f, 0.0f), 1.8f));
+				node->value().setBoundingVolume(BoundingVolume::make<SphereVolume>(vec3f(0.0f, 1.45f, 0.0f), 1.8f));
 				rootNode->addChild(node);
 
 				mesh->setGraphics(asset);
@@ -1045,7 +1045,7 @@ namespace engine {
 				asset->setProgram(program_mesh_skin);
 				asset->setParamByName("u_texture", texture_zombi, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
-				asset->setParamByName("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), true);
+				asset->setParamByName("color", vec4f(1.0f, 1.0f, 1.0f, 1.0f), true);
 				asset->setParamByName("lighting", 0.5f, true);
 
 				asset->setSkeleton(mesh->graphics()->getSkeleton());
@@ -1055,14 +1055,14 @@ namespace engine {
 				});
 
 				////////////////////
-				glm::mat4 wtr(1.0f);
-				scaleMatrix(wtr, glm::vec3(20.0f));
-				rotateMatrix_xyz(wtr, glm::vec3(1.57f, -0.45f, 0.0f));
-				translateMatrixTo(wtr, glm::vec3(100.0f, 190.0f, 0.0f));
+				mat4f wtr(1.0f);
+				scaleMatrix(wtr, vec3f(20.0f));
+				rotateMatrix_xyz(wtr, vec3f(1.57f, -0.45f, 0.0f));
+				translateMatrixTo(wtr, vec3f(100.0f, 190.0f, 0.0f));
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
-				node->value().setBoundingVolume(BoundingVolume::make<SphereVolume>(glm::vec3(0.0f, 1.45f, 0.0f), 1.8f));
+				node->value().setBoundingVolume(BoundingVolume::make<SphereVolume>(vec3f(0.0f, 1.45f, 0.0f), 1.8f));
 				rootNode->addChild(node);
 
 				mesh2->setGraphics(asset);
@@ -1076,7 +1076,7 @@ namespace engine {
 					asset->setProgram(program_mesh_skin);
 					asset->setParamByName("u_texture", texture_zombi, false);
 					asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
-					asset->setParamByName("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), true);
+					asset->setParamByName("color", vec4f(1.0f, 1.0f, 1.0f, 1.0f), true);
 					asset->setParamByName("lighting", 0.5f, true);
 
 					asset->setSkeleton(mesh->graphics()->getSkeleton());
@@ -1086,14 +1086,14 @@ namespace engine {
 					});
 
 					////////////////////
-					glm::mat4 wtr(1.0f);
-					scaleMatrix(wtr, glm::vec3(engine::random(18.0f, 22.0f)));
-					rotateMatrix_xyz(wtr, glm::vec3(1.57f, engine::random(-3.1415f, 3.1415f), 0.0f));
-					translateMatrixTo(wtr, glm::vec3(engine::random(-1024.0f, 1024.0f), engine::random(-1024.0f, 1024.0f), 0.0f));
+					mat4f wtr(1.0f);
+					scaleMatrix(wtr, vec3f(engine::random(18.0f, 22.0f)));
+					rotateMatrix_xyz(wtr, vec3f(1.57f, engine::random(-3.1415f, 3.1415f), 0.0f));
+					translateMatrixTo(wtr, vec3f(engine::random(-1024.0f, 1024.0f), engine::random(-1024.0f, 1024.0f), 0.0f));
 
 					H_Node* node = new H_Node();
 					node->value().setLocalMatrix(wtr);
-					node->value().setBoundingVolume(BoundingVolume::make<SphereVolume>(glm::vec3(0.0f, 1.45f, 0.0f), 1.8f));
+					node->value().setBoundingVolume(BoundingVolume::make<SphereVolume>(vec3f(0.0f, 1.45f, 0.0f), 1.8f));
 					rootNode->addChild(node);
 
 					meshObj->setGraphics(asset);
@@ -1107,7 +1107,7 @@ namespace engine {
 				asset->setProgram(program_mesh_skin);
 				asset->setParamByName("u_texture", texture_v, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
-				asset->setParamByName("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), true);
+				asset->setParamByName("color", vec4f(1.0f, 1.0f, 1.0f, 1.0f), true);
 				asset->setParamByName("lighting", 0.5f, true);
 
 				asset->getRenderDataAt(3)->setParamByName("u_texture", texture_v3, false);
@@ -1134,10 +1134,10 @@ namespace engine {
                 animationManager->addTarget(animTree2, asset->getSkeleton().get());
 
 				////////////////////
-				glm::mat4 wtr(1.0f);
-				scaleMatrix(wtr, glm::vec3(30.0f));
+				mat4f wtr(1.0f);
+				scaleMatrix(wtr, vec3f(30.0f));
 				directMatrix_yz(wtr, 0.0f, 1.0f);
-				translateMatrixTo(wtr, glm::vec3(-100.0f, 210.0f, 0.0f));
+				translateMatrixTo(wtr, vec3f(-100.0f, 210.0f, 0.0f));
 
 				H_Node* node = new H_Node();
 				(*node)->setLocalMatrix(wtr);
@@ -1156,7 +1156,7 @@ namespace engine {
 				asset->setParamByName("u_texture", texture_t, false);
 				asset->getRenderDataAt(1)->setParamByName("u_texture", texture_t2, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
-				asset->setParamByName("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), true);
+				asset->setParamByName("color", vec4f(1.0f, 1.0f, 1.0f, 1.0f), true);
 				asset->setParamByName("lighting", 0.0f, true);
 
 				asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
@@ -1164,10 +1164,10 @@ namespace engine {
 				});
 
 				////////////////////
-				glm::mat4 wtr(1.0f);
-				scaleMatrix(wtr, glm::vec3(0.65f));
-				rotateMatrix_xyz(wtr, glm::vec3(1.57f, 0.0f, 0.0f));
-				translateMatrixTo(wtr, glm::vec3(-150.0f, -170.0f, 0.0f));
+				mat4f wtr(1.0f);
+				scaleMatrix(wtr, vec3f(0.65f));
+				rotateMatrix_xyz(wtr, vec3f(1.57f, 0.0f, 0.0f));
+				translateMatrixTo(wtr, vec3f(-150.0f, -170.0f, 0.0f));
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
@@ -1184,7 +1184,7 @@ namespace engine {
 				asset->setProgram(program_mesh);
 				asset->setParamByName("u_texture", texture_t3, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
-				asset->setParamByName("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), true);
+				asset->setParamByName("color", vec4f(1.0f, 1.0f, 1.0f, 1.0f), true);
 				asset->setParamByName("lighting", 0.0f, true);
 
 				asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
@@ -1192,10 +1192,10 @@ namespace engine {
 				});
 
 				////////////////////
-				glm::mat4 wtr(1.0f);
-				scaleMatrix(wtr, glm::vec3(0.125f));
-				rotateMatrix_xyz(wtr, glm::vec3(1.57f, 0.0f, 0.0f));
-				translateMatrixTo(wtr, glm::vec3(570.0f, -250.0f, 10.0f));
+				mat4f wtr(1.0f);
+				scaleMatrix(wtr, vec3f(0.125f));
+				rotateMatrix_xyz(wtr, vec3f(1.57f, 0.0f, 0.0f));
+				translateMatrixTo(wtr, vec3f(570.0f, -250.0f, 10.0f));
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
@@ -1212,7 +1212,7 @@ namespace engine {
 				asset->setProgram(program_mesh);
 				asset->setParamByName("u_texture", texture_t5, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
-				asset->setParamByName("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), true);
+				asset->setParamByName("color", vec4f(1.0f, 1.0f, 1.0f, 1.0f), true);
 				asset->setParamByName("lighting", 0.0f, true);
 
 				asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
@@ -1220,10 +1220,10 @@ namespace engine {
 				});
 
 				////////////////////
-				glm::mat4 wtr(1.0f);
-				scaleMatrix(wtr, glm::vec3(35.0f));
-				rotateMatrix_xyz(wtr, glm::vec3(1.57f, 1.1f, 0.0f));
-				translateMatrixTo(wtr, glm::vec3(225.0f, 285.0f, 0.0f));
+				mat4f wtr(1.0f);
+				scaleMatrix(wtr, vec3f(35.0f));
+				rotateMatrix_xyz(wtr, vec3f(1.57f, 1.1f, 0.0f));
+				translateMatrixTo(wtr, vec3f(225.0f, 285.0f, 0.0f));
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
@@ -1240,7 +1240,7 @@ namespace engine {
 				asset->setProgram(program_mesh);
 				asset->setParamByName("u_texture", texture_t7, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
-				asset->setParamByName("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), true);
+				asset->setParamByName("color", vec4f(1.0f, 1.0f, 1.0f, 1.0f), true);
 				asset->setParamByName("lighting", 0.0f, true);
 
 				asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
@@ -1254,14 +1254,14 @@ namespace engine {
                 animationManager->addTarget(animTreeWindMill, asset->getSkeleton().get());
 
 				////////////////////
-				glm::mat4 wtr(1.0f);
-				scaleMatrix(wtr, glm::vec3(8000.0f));
-				rotateMatrix_xyz(wtr, glm::vec3(1.57f, -1.15f, 0.0f));
-				translateMatrixTo(wtr, glm::vec3(-150.0f, 375.0f, -10.0f));
+				mat4f wtr(1.0f);
+				scaleMatrix(wtr, vec3f(8000.0f));
+				rotateMatrix_xyz(wtr, vec3f(1.57f, -1.15f, 0.0f));
+				translateMatrixTo(wtr, vec3f(-150.0f, 375.0f, -10.0f));
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
-				node->value().setBoundingVolume(BoundingVolume::make<CubeVolume>(asset->getMinCorner(), asset->getMaxCorner() + glm::vec3(0.0f, 0.01f, 0.0f)));
+				node->value().setBoundingVolume(BoundingVolume::make<CubeVolume>(asset->getMinCorner(), asset->getMaxCorner() + vec3f(0.0f, 0.01f, 0.0f)));
 				rootNode->addChild(node);
 
 				mesh7->setGraphics(asset);
@@ -1274,7 +1274,7 @@ namespace engine {
 			GrassRenderer* grenderer = new GrassRenderer(img);
 
 			///////////////////////////////////////////////////////////////////////////
-			std::vector<glm::mat4> instanceTransforms(100);
+			std::vector<mat4f> instanceTransforms(100);
 			{
 				const uint32_t* data = reinterpret_cast<const uint32_t*>(img.data());
 
@@ -1294,11 +1294,11 @@ namespace engine {
 						v = data[y * w + x];
 					}
 
-					const float l = vec_length(glm::vec2(-1024.0f + cx * x, 1024.0f - cy * y) - glm::vec2(570.0f, -250.0f));
+					const float l = vec_length(vec2f(-1024.0f + cx * x, 1024.0f - cy * y) - vec2f(570.0f, -250.0f));
 					const float r = 150.0f;
 
 					if (l < r) {
-						glm::vec2 direction = as_normalized(glm::vec2(570.0f, -250.0f) - glm::vec2(-1024.0f + cx * x, 1024.0f - cy * y));
+						vec2f direction = as_normalized(vec2f(570.0f, -250.0f) - vec2f(-1024.0f + cx * x, 1024.0f - cy * y));
 						x = std::clamp((570.0f + r * direction.x) + 1024.0f / cx, 0.0f, w - 1.0f);
 						y = std::clamp((-250.0f + r * direction.y) - 1024.0f / -cy, 0.0f, h - 1.0f);
 
@@ -1311,10 +1311,10 @@ namespace engine {
 
 					const float scale_xyz = (engine::random(300.0f, 800.0f));
 
-					glm::mat4 wtr(scale_xyz);
+					mat4f wtr(scale_xyz);
 					wtr[3][3] = 1.0f;
-					rotateMatrix_xyz(wtr, glm::vec3(engine::random(-0.1f, 0.1f), engine::random(-0.1f, 0.1f), engine::random(-3.1415926, 3.1415926)));
-					translateMatrixTo(wtr, glm::vec3(-1024.0f + cx * x, 1024.0f - cy * y, 0.0f));
+					rotateMatrix_xyz(wtr, vec3f(engine::random(-0.1f, 0.1f), engine::random(-0.1f, 0.1f), engine::random(-3.1415926, 3.1415926)));
+					translateMatrixTo(wtr, vec3f(-1024.0f + cx * x, 1024.0f - cy * y, 0.0f));
 					instanceTransforms[i] = std::move(wtr);
 				}
 			}
@@ -1349,14 +1349,14 @@ namespace engine {
 
 				/////////////////////
 				//grassMesh->setGraphics(asset);
-				glm::mat4 wtr(1.0f);
-				//scaleMatrix(wtr, glm::vec3(10000.0f));
-				//rotateMatrix_xyz(wtr, glm::vec3(1.57f, 0.0f, 0.0f));
-				//translateMatrixTo(wtr, glm::vec3(200.0f, -100.0f, 0.0f));
+				mat4f wtr(1.0f);
+				//scaleMatrix(wtr, vec3f(10000.0f));
+				//rotateMatrix_xyz(wtr, vec3f(1.57f, 0.0f, 0.0f));
+				//translateMatrixTo(wtr, vec3f(200.0f, -100.0f, 0.0f));
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
-				node->value().setBoundingVolume(BoundingVolume::make<CubeVolume>(glm::vec3(-1024.0f, -1024.0f, 0.0f), glm::vec3(1024.0f, 1024.0f, 40.0f)));
+				node->value().setBoundingVolume(BoundingVolume::make<CubeVolume>(vec3f(-1024.0f, -1024.0f, 0.0f), vec3f(1024.0f, 1024.0f, 40.0f)));
 				rootNode->addChild(node);
 
 				grenderer->setMesh(asset);
@@ -1369,7 +1369,7 @@ namespace engine {
 				asset->setParamByName("u_texture", texture_forest_tree2, false);
 				asset->getRenderDataAt(1)->setParamByName("u_texture", texture_forest_tree1, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
-				asset->setParamByName("color", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), true);
+				asset->setParamByName("color", vec4f(1.0f, 1.0f, 1.0f, 1.0f), true);
 				asset->setParamByName("lighting", 0.25f, true);
 
 				asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
@@ -1377,11 +1377,11 @@ namespace engine {
 				});
 
 				////////////////////
-				glm::mat4 wtr(1.0f);
-				rotateMatrix_xyz(wtr, glm::vec3(1.57f, 0.0f, 0.0f));
+				mat4f wtr(1.0f);
+				rotateMatrix_xyz(wtr, vec3f(1.57f, 0.0f, 0.0f));
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
-				node->value().setBoundingVolume(BoundingVolume::make<CubeVolume>(glm::vec3(-1024.0f, 0.0f, -1024.0f), glm::vec3(1024.0f, 200.0f, 1024.0f)));
+				node->value().setBoundingVolume(BoundingVolume::make<CubeVolume>(vec3f(-1024.0f, 0.0f, -1024.0f), vec3f(1024.0f, 200.0f, 1024.0f)));
 				rootNode->addChild(node);
 
 				forestRenderer->setGraphics(asset);
@@ -1394,17 +1394,17 @@ namespace engine {
 			planeTest = new NodeRenderer<Plane>();
 			planeUpdateSystem.registerObject(planeTest);
 			{
-				glm::mat4 wtr(1.0f);
-				//scaleMatrix(wtr, glm::vec3(1.0f));
-				//rotateMatrix_xyz(wtr, glm::vec3(1.57f, 0.0f, 0.0f));
-				//translateMatrixTo(wtr, glm::vec3(200.0f, -300.0f, 50.0f));
-				translateMatrixTo(wtr, glm::vec3(0.0f, 0.0f, -1.0f));
+				mat4f wtr(1.0f);
+				//scaleMatrix(wtr, vec3f(1.0f));
+				//rotateMatrix_xyz(wtr, vec3f(1.57f, 0.0f, 0.0f));
+				//translateMatrixTo(wtr, vec3f(200.0f, -300.0f, 50.0f));
+				translateMatrixTo(wtr, vec3f(0.0f, 0.0f, -1.0f));
 
 				H_Node* node = new H_Node();
 				node->value().setLocalMatrix(wtr);
 				uiNode->addChild(node);
 
-				//planeTest->setGraphics(new Plane(glm::vec2(100.0f, 100.0f)));
+				//planeTest->setGraphics(new Plane(vec2f(100.0f, 100.0f)));
 
 				planeTest->setGraphics(new Plane(
 				std::shared_ptr<TextureFrame>(new TextureFrame(
@@ -1517,7 +1517,7 @@ namespace engine {
                 renderState.depthState.depthTestEnabled = false;
             });
 
-			planeTest->getNode()->setBoundingVolume(BoundingVolume::make<CubeVolume>(glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(256, 256, 1.0f)));
+			planeTest->getNode()->setBoundingVolume(BoundingVolume::make<CubeVolume>(vec3f(0.0f, 0.0f, -1.0f), vec3f(256, 256, 1.0f)));
 
             {
                 std::vector<engine::ProgramStageInfo> psi;
@@ -1531,7 +1531,7 @@ namespace engine {
 			//planeTest->getNode()->setBoundingVolume(nullptr);
 			//const float wf = frame->_vtx[2] - frame->_vtx[0];
 			//const float hf = frame->_vtx[5] - frame->_vtx[1];
-			//planeTest->getNode()->setBoundingVolume(BoundingVolume::make<CubeVolume>(glm::vec3(0.0f, 0.0f, -0.1f), glm::vec3(wf, hf, 0.1f)));
+			//planeTest->getNode()->setBoundingVolume(BoundingVolume::make<CubeVolume>(vec3f(0.0f, 0.0f, -0.1f), vec3f(wf, hf, 0.1f)));
 
 			/*FontLibrary lib;
 			Font font("resources/assets/fonts/Roboto/Roboto-Regular.ttf");
@@ -1728,8 +1728,8 @@ namespace engine {
                 }
 
                 grassNode->getRenderObject()->getRenderDescriptor()->setParamByName("u_time", &t, false);
-                //const_cast<glm::mat4&>(grassNode->model())[0][0] = t;
-                //grassNode->setLocalMatrix(glm::mat4(t));
+                //const_cast<mat4f&>(grassNode->model())[0][0] = t;
+                //grassNode->setLocalMatrix(mat4f(t));
             }
 		}
 
@@ -1844,7 +1844,7 @@ namespace engine {
 			commandBuffer.cmdSetDepthBias(0.0f, 0.0f, 0.0f);
             //commandBuffer.cmdSetLineWidth(1.0f);
 
-			const glm::mat4& cameraMatrix = camera->getTransform();
+			const mat4f& cameraMatrix = camera->getTransform();
 
 			//mesh->draw(cameraMatrix, wtr, commandBuffer, currentFrame);
 			//mesh2->draw(cameraMatrix, wtr2, commandBuffer, currentFrame);
@@ -1921,8 +1921,8 @@ namespace engine {
 				};
 
 				vulkan::RenderData renderDataFloor(const_cast<vulkan::VulkanPipeline*>(pipeline_shadow_test));
-				renderDataFloor.setParamForLayout(mvp_layout2, &const_cast<glm::mat4&>(cameraMatrix), false);
-				const glm::mat4& viewTransform = camera->getViewTransform();
+				renderDataFloor.setParamForLayout(mvp_layout2, &const_cast<mat4f&>(cameraMatrix), false);
+				const mat4f& viewTransform = camera->getViewTransform();
 
 				renderDataFloor.setParamByName("u_texture_arr", texture_array_test, false);
 				renderDataFloor.setParamByName("u_texture_mask", texture_floor_mask, false);
@@ -1980,14 +1980,14 @@ namespace engine {
 				TextureFrameBounds frameBounds(frame.get());
 
 				planeTest->graphics()->setFrame(frame);
-				planeTest->getNode()->setBoundingVolume(BoundingVolume::make<CubeVolume>(glm::vec3(frameBounds.minx, frameBounds.miny, -0.1f), glm::vec3(frameBounds.maxx, frameBounds.maxy, 0.1f)));
+				planeTest->getNode()->setBoundingVolume(BoundingVolume::make<CubeVolume>(vec3f(frameBounds.minx, frameBounds.miny, -0.1f), vec3f(frameBounds.maxx, frameBounds.maxy, 0.1f)));
 
-				glm::mat4 wtr(1.0f);
-                //scaleMatrix(wtr, glm::vec3(1.25f));
-				translateMatrixTo(wtr, glm::vec3(-(width * 0.5f) + 16.0f, height * 0.5f - 30.0f, -1.0f));
+				mat4f wtr(1.0f);
+                //scaleMatrix(wtr, vec3f(1.25f));
+				translateMatrixTo(wtr, vec3f(-(width * 0.5f) + 16.0f, height * 0.5f - 30.0f, -1.0f));
 				planeTest->getNode()->setLocalMatrix(wtr);
 
-				const glm::mat4& camera2Matrix = camera2->getTransform();
+				const mat4f& camera2Matrix = camera2->getTransform();
 
 				reloadRenderList(uiRenderList, uiNode, false, 0, engine::FrustumVisibleChecker(camera2->getFrustum()));
 
@@ -2059,12 +2059,12 @@ namespace engine {
 
 				vulkan::RenderData renderData(const_cast<vulkan::VulkanPipeline*>(pipeline));
 
-				glm::mat4 wtr5(1.0f);
+				mat4f wtr5(1.0f);
 				translateMatrixTo(wtr5, lightPos);
 
-				glm::mat4 billboardMatrix = engine::getBillboardViewMatrix(camera->getInvViewTransform());
+				mat4f billboardMatrix = engine::getBillboardViewMatrix(camera->getInvViewTransform());
 
-				glm::mat4 transform = camera->getTransform() * wtr5 * billboardMatrix;
+				mat4f transform = camera->getTransform() * wtr5 * billboardMatrix;
 				renderData.setParamForLayout(mvp_layout, &transform, false);
 				renderData.setParamByName("u_texture", texture_1, false);
 
@@ -2125,7 +2125,7 @@ namespace engine {
 
 				vulkan::RenderData renderData(const_cast<vulkan::VulkanPipeline*>(pipeline));
 
-				glm::mat4 transform(1.0f);
+				mat4f transform(1.0f);
 				renderData.setParamForLayout(mvp_layout, &transform, false);
 				renderData.setParamByName("u_texture", texture_1, false);
 
@@ -2136,18 +2136,18 @@ namespace engine {
 			}
 
 			if constexpr (0) { // ortho matrix draw
-				const glm::mat4& cameraMatrix2 = camera2->getTransform();
+				const mat4f& cameraMatrix2 = camera2->getTransform();
 
 				if (animTree2) {
 
 					static float angle = 0.0f;
 					angle -= dt;
 
-					glm::mat4 wtr4(1.0f);
-					//rotateMatrix_xyz(wtr4, glm::vec3(1.57f, 0.0f, angle));
-					scaleMatrix(wtr4, glm::vec3(50.0f));
-					rotateMatrix_xyz(wtr4, glm::vec3(0.0, angle, 0.0f));
-					translateMatrixTo(wtr4, glm::vec3(-float(width) * 0.5f + 100.0f, float(height) * 0.5f - mesh3->graphics()->getMaxCorner().y * 50.0f - 50.0f, 0.0f));
+					mat4f wtr4(1.0f);
+					//rotateMatrix_xyz(wtr4, vec3f(1.57f, 0.0f, angle));
+					scaleMatrix(wtr4, vec3f(50.0f));
+					rotateMatrix_xyz(wtr4, vec3f(0.0, angle, 0.0f));
+					translateMatrixTo(wtr4, vec3f(-float(width) * 0.5f + 100.0f, float(height) * 0.5f - mesh3->graphics()->getMaxCorner().y * 50.0f - 50.0f, 0.0f));
 					mesh3->graphics()->draw(cameraMatrix2, wtr4, commandBuffer, currentFrame);
 				}
 
@@ -2177,10 +2177,10 @@ namespace engine {
 				//////////////////////////////
 				vulkan::RenderData renderData(const_cast<vulkan::VulkanPipeline*>(pipeline));
 
-				glm::mat4 wtr5(1.0f);
-				translateMatrixTo(wtr5, glm::vec3(-float(width) * 0.5f + 150.0f, float(height) * 0.5f - 110.0f, 0.0f));
+				mat4f wtr5(1.0f);
+				translateMatrixTo(wtr5, vec3f(-float(width) * 0.5f + 150.0f, float(height) * 0.5f - 110.0f, 0.0f));
 
-				glm::mat4 transform = cameraMatrix2 * wtr5;
+				mat4f transform = cameraMatrix2 * wtr5;
 				renderData.setParamForLayout(mvp_layout, &transform, false);
 				renderData.setParamByName("u_texture", texture_1, false);
 
@@ -2217,16 +2217,16 @@ namespace engine {
 				vulkan::RenderData renderData2(const_cast<vulkan::VulkanPipeline*>(pipeline_shadow_test2));
 				renderData2.setParamForLayout(mvp_layout3, &transform, false);
 				renderData2.setParamByName("u_texture", completeDepthTexture, false);
-				//static glm::vec4 aaa(0.0f);
+				//static vec4f aaa(0.0f);
 				//renderData2.setParamByName("aaa", &aaa, false);
 
 				autoBatcher->addToDraw(&renderData2, sizeof(TexturedVertex), &vtx2[0], vertexBufferSize, &idxs[0], indexBufferSize, commandBuffer, currentFrame);*/
 
 				///////
 				/* // cascades debug
-				glm::mat4 wtr6(1.0f);
-				translateMatrixTo(wtr6, glm::vec3(-float(width) * 0.5f + 150.0f, float(height) * 0.5f - 70.0f, 0.0f));
-				glm::mat4 transform222 = cameraMatrix2 * wtr6;
+				mat4f wtr6(1.0f);
+				translateMatrixTo(wtr6, vec3f(-float(width) * 0.5f + 150.0f, float(height) * 0.5f - 70.0f, 0.0f));
+				mat4f transform222 = cameraMatrix2 * wtr6;
 				TexturedVertex vtx2[4] = {
 					{ {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f} },
 					{ {256.0f, 0.0f, 0.0f}, {1.0f, 1.0f} },
@@ -2285,10 +2285,10 @@ namespace engine {
 
 				//vulkan::VulkanPushConstant pushConstats;
 
-				glm::mat4 wtr5(1.0f);
-				translateMatrixTo(wtr5, glm::vec3(-float(width) * 0.5f + 150.0f, float(height) * 0.5f - 110.0f, 0.0f));
+				mat4f wtr5(1.0f);
+				translateMatrixTo(wtr5, vec3f(-float(width) * 0.5f + 150.0f, float(height) * 0.5f - 110.0f, 0.0f));
 
-				glm::mat4 transform = cameraMatrix2 * wtr5;
+				mat4f transform = cameraMatrix2 * wtr5;
 
 				vulkan::RenderData renderData(const_cast<vulkan::VulkanPipeline*>(pipeline));
 				renderData.vertexes = &vBuffer;
@@ -2564,7 +2564,7 @@ int main() {
 
     half half_float_value = 0.5f;
 
-	engine::Color color(glm::vec4(1.0f, 0.0f, 1.0f, 1.0f));
+	engine::Color color(engine::vec4f(1.0f, 0.0f, 1.0f, 1.0f));
 	auto const vColor = color.toVec4();
 
 	//////////////////////////////////

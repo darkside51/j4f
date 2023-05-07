@@ -10,11 +10,11 @@ namespace engine {
         float time = 0.0f;
         float mass = 0.0f;
         uint32_t color = 0u;
-        glm::vec3 position;
-        glm::vec3 rotation;
-        glm::vec3 size;
-        glm::vec3 uv;
-        glm::vec3 speed; // direction packed there
+        vec3f position;
+        vec3f rotation;
+        vec3f size;
+        vec3f uv;
+        vec3f speed; // direction packed there
     };
 
     class Emmiter;
@@ -34,8 +34,8 @@ namespace engine {
 
     private:
         bool _requestAnimUpdate = false;
-        glm::vec3 _position;
-        glm::vec3 _rotation;
+        vec3f _position;
+        vec3f _rotation;
         std::vector<Particle> _particles;
     };
 }
