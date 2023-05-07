@@ -44,6 +44,8 @@
 
 #include <Engine/Graphics/Animation/AnimationManager.h>
 
+#include <Engine/Graphics/Color/Color.h>
+
 //#include <format>
 
 #include <charconv>
@@ -2561,6 +2563,9 @@ int main() {
 	*/
 
     half half_float_value = 0.5f;
+
+	engine::Color color(glm::vec4(1.0f, 0.0f, 1.0f, 1.0f));
+	auto const vColor = color.toVec4();
 
 	//////////////////////////////////
 	engine::EngineConfig config;
