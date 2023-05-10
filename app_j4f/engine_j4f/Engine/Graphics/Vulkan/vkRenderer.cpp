@@ -197,7 +197,7 @@ namespace vulkan {
 			return false;
 		}
 
-		_useSharedMemory =_vulkanDevice->gpuProperties.deviceType != VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
+		_useSharedMemory = (_vulkanDevice->gpuProperties.deviceType != VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU);
 
 		GPU_DEBUG_MARKERS_INIT(_vulkanDevice, extensions);
 
