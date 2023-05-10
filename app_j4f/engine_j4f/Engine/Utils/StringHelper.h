@@ -43,7 +43,7 @@ namespace engine {
 	inline uint32_t FNV_Hash(const void* key, const int len, uint32_t h) {
 		// https://github.com/aappleby/smhasher/blob/master/src/Hashes.cpp
 		h ^= 2166136261UL;
-		const uint8_t* data = (const uint8_t*)key;
+		const uint8_t* data = static_cast<const uint8_t*>(key);
 		for (int i = 0; i < len; ++i) {
 			h ^= data[i];
 			h *= 16777619;

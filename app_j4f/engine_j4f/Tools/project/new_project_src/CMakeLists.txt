@@ -88,7 +88,7 @@ endif()
 add_executable(${PROJECT_NAME} application/src/main.cpp application/src/Application.cpp ${APP_RESOURCES})
 
 ########## подключаем engine
-target_link_libraries(${PROJECT_NAME} j4f_engine)
+target_link_libraries(${PROJECT_NAME} engine)
 include_directories(../engine_j4f/)
 
 ########## ресурсы
