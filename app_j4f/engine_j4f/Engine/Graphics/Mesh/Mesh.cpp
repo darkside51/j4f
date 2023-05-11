@@ -407,7 +407,7 @@ namespace engine {
 		vertexInputAttributes.reserve(static_cast<uint8_t>(gltf::AttributesSemantic::SEMANTICS_COUNT));
 		uint32_t attribute_location = 0;
 		uint32_t attribute_offset = 0;
-		for (uint8_t i = 0; i < 16; ++i) {
+		for (uint8_t i = 0; i < std::min(uint8_t(16u), static_cast<uint8_t>(gltf::AttributesSemantic::SEMANTICS_COUNT)); ++i) {
 			if (_semanticMask & (1 << i)) {
 				switch (static_cast<gltf::AttributesSemantic>(i)) {
 					case gltf::AttributesSemantic::POSITION:
