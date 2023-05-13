@@ -197,8 +197,6 @@ namespace vulkan {
 			return false;
 		}
 
-		_useSharedMemory = (_vulkanDevice->gpuProperties.deviceType != VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU);
-
 		GPU_DEBUG_MARKERS_INIT(_vulkanDevice, extensions);
 
 		const VkResult res = _vulkanDevice->createDevice(features, extensions, _deviceCreatepNextChain);
@@ -1178,7 +1176,7 @@ namespace vulkan {
 			_vulkanDevice->createBuffer(
 				VK_SHARING_MODE_EXCLUSIVE,
 				usageFlags,
-				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
 				&newDynamicBuffer->buffers[i],
 				bufferSize
 			);

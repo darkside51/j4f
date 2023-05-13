@@ -75,7 +75,7 @@ namespace engine {
 		);
 
 		primitiveTopology.topology = PrimitiveTopology::TRIANGLE_LIST;
-		_commonPipelines[static_cast<uint8_t>(CommonPipelines::COMMON_PIPELINE_COLORED_PLAINS)] = _renderer->getGraphicsPipeline(
+		_commonPipelines[static_cast<uint8_t>(CommonPipelines::COMMON_PIPELINE_COLORED_PLANES)] = _renderer->getGraphicsPipeline(
 			vertexDescription,
 			primitiveTopology,
 			rasterisation,

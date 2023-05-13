@@ -13,12 +13,12 @@ namespace engine {
         return axis * glm::dot(axis, a);
     }
 
-    inline void normalizePlain(vec4f& plain) { // нормализация плосксти
-        const float invSqrt = inv_sqrt(plain.x * plain.x + plain.y * plain.y + plain.z * plain.z);
-        plain *= invSqrt;
+    inline void normalizePlane(vec4f& plane) { // нормализация плосксти
+        const float invSqrt = inv_sqrt(plane.x * plane.x + plane.y * plane.y + plane.z * plane.z);
+        plane *= invSqrt;
     }
 
-    inline vec4f plainForm(const vec3f& p1, const vec3f& p2, const vec3f& p3) { // общее уравнение плоскости по 3м точкам
+    inline vec4f planeForm(const vec3f& p1, const vec3f& p2, const vec3f& p3) { // общее уравнение плоскости по 3м точкам
         const float a = p2.x - p1.x;
         const float b = p2.y - p1.y;
         const float c = p2.z - p1.z;
@@ -35,7 +35,7 @@ namespace engine {
         return { pA, pB, pC, pD };
     }
 
-    inline vec4f plainForm(const vec3f& normal, const vec3f& point) { // общее уравнение плоскости из нормали и точки
+    inline vec4f planeForm(const vec3f& normal, const vec3f& point) { // общее уравнение плоскости из нормали и точки
         return { normal.x, normal.y, normal.z, -glm::dot(normal, point) };
     }
 
@@ -65,23 +65,23 @@ namespace engine {
         return len;
     }
 
-    inline vec3f reflectPointWithPlain(const vec4f& plain, const vec3f& p, const bool plainIsNormalized) { // отражает точку относительно плоскости
-        const vec3f plainNormal(plain.x, plain.y, plain.z);
-        const float len = lenFromPointToPlane(plain, p);
+    inline vec3f reflectPointWithPlane(const vec4f& plane, const vec3f& p, const bool planeIsNormalized) { // отражает точку относительно плоскости
+        const vec3f planeNormal(plane.x, plane.y, plane.z);
+        const float len = lenFromPointToPlane(plane, p);
 
-        const float normalizer = plainIsNormalized ? 2.0f : 2.0f / (plain.x * plain.x + plain.y * plain.y + plain.z * plain.z);
-        return p - plainNormal * (normalizer * len);
+        const float normalizer = planeIsNormalized ? 2.0f : 2.0f / (plane.x * plane.x + plane.y * plane.y + plane.z * plane.z);
+        return p - planeNormal * (normalizer * len);
     }
 
-    inline vec3f intersectionLinePlane(const vec3f& a, const vec3f& b, const vec4f& plain) { // точка пересеченя прямой и плоскости
+    inline vec3f intersectionLinePlane(const vec3f& a, const vec3f& b, const vec4f& plane) { // точка пересеченя прямой и плоскости
         const vec3f d = as_normalized(b - a);
-        const float t = -(plain.x * a.x + plain.y * a.y + plain.z * a.z + plain.w) / (plain.x * d.x + plain.y * d.y + plain.z * d.z);
+        const float t = -(plane.x * a.x + plane.y * a.y + plane.z * a.z + plane.w) / (plane.x * d.x + plane.y * d.y + plane.z * d.z);
         return { a.x + d.x * t, a.y + d.y * t, a.z + d.z * t };
     }
 
     inline vec3f crossingLinesPoint(const vec3f& a, const vec3f& b, const vec3f& c, const vec3f& d, const float eps) { // точка "скрещивания" прямых (это точка на прямой ab в моменте скрещивания с прямой bc, такие штуки иногда полезны, например при определении различных попаданий)
         const vec3f v_v = c + glm::cross(d - c, b - a);
-        const vec4f pl = plainForm(c, d, v_v);
+        const vec4f pl = planeForm(c, d, v_v);
         const vec3f crossing = intersectionLinePlane(a, b, pl);
         return lenFromPointToLine(c, d, crossing) <= eps ? crossing : vec3f(std::numeric_limits<float>::max());
     }
@@ -144,7 +144,7 @@ namespace engine {
         const vec3f position = static_cast<vec3f>(wtr * 0.5f * vec4f(vmin.x + vmax.x, vmin.y + vmax.y, vmin.z + vmax.z, 2.0f)); // центр баундинг бокса
 
         // нижняя
-        const vec4f down = plainForm(ldb, ldt, rdt);
+        const vec4f down = planeForm(ldb, ldt, rdt);
         const vec3f intersect_d = intersectionLinePlane(begin, end, down);
         if (pointIntoTriangle(intersect_d, ldb, ldt, rdt) || pointIntoTriangle(intersect_d, ldb, rdb, rdt)) {
             const vec3f directionToVec = intersect_d - begin;
@@ -161,7 +161,7 @@ namespace engine {
         const vec4f rub(wtr * vec4f(vmax.x, vmax.y, vmin.z, 1.0f));
 
         // задняя
-        const vec4f bottom = plainForm(lub, ldb, rub);
+        const vec4f bottom = planeForm(lub, ldb, rub);
         const vec3f intersect_b = intersectionLinePlane(begin, end, bottom);
         if (pointIntoTriangle(intersect_b, lub, ldb, rub) || pointIntoTriangle(intersect_b, rdb, ldb, rub)) {
             const vec3f directionToVec = intersect_b - begin;
@@ -177,7 +177,7 @@ namespace engine {
         const vec3f lut(wtr * vec4f(vmin.x, vmax.y, vmax.z, 1.0f));
 
         // левая
-        const vec4f left = plainForm(ldb, ldt, lut);
+        const vec4f left = planeForm(ldb, ldt, lut);
         const vec3f intersect_l = intersectionLinePlane(begin, end, left);
         if (pointIntoTriangle(intersect_l, ldb, ldt, lut) || pointIntoTriangle(intersect_l, ldb, lub, lut)) {
             const vec3f directionToVec = intersect_l - begin;
@@ -193,7 +193,7 @@ namespace engine {
         const vec3f rut(wtr * vec4f(vmax.x, vmax.y, vmax.z, 1.0f));
 
         // верхняя
-        const vec4f up = plainForm(lut, lub, rut);
+        const vec4f up = planeForm(lut, lub, rut);
         const vec3f intersect_u = intersectionLinePlane(begin, end, up);
         if (pointIntoTriangle(intersect_u, lut, lub, rut) || pointIntoTriangle(intersect_u, rub, lub, rut)) {
             const vec3f directionToVec = intersect_u - begin;
@@ -207,7 +207,7 @@ namespace engine {
         }
 
         // передняя
-        const vec4f top = plainForm(ldt, lut, rut);
+        const vec4f top = planeForm(ldt, lut, rut);
         const vec3f intersect_t = intersectionLinePlane(begin, end, top);
         if (pointIntoTriangle(intersect_t, ldt, lut, rut) || pointIntoTriangle(intersect_t, ldt, rdt, rut)) {
             const vec3f directionToVec = intersect_t - begin;
@@ -221,7 +221,7 @@ namespace engine {
         }
 
         // правая
-        const vec4f right = plainForm(rdb, rdt, rut);
+        const vec4f right = planeForm(rdb, rdt, rut);
         const vec3f intersect_r = intersectionLinePlane(begin, end, right);
         if (pointIntoTriangle(intersect_r, rdb, rdt, rut) || pointIntoTriangle(intersect_r, rdb, rub, rut)) {
             const vec3f directionToVec = intersect_r - begin;

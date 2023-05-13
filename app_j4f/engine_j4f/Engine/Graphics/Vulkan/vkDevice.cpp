@@ -323,7 +323,7 @@ namespace vulkan {
 			memAlloc.pNext = nullptr;
 		}
 
-		vkAllocateMemory(device, &memAlloc, nullptr, &buffer->m_memory);
+		const auto allocateResult = vkAllocateMemory(device, &memAlloc, nullptr, &buffer->m_memory);
 
 		buffer->m_device = device;
 		buffer->m_usage = usageFlags;

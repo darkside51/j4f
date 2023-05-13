@@ -29,7 +29,7 @@ layout (set = 5, binding = 0) uniform sampler2D u_texture_normal;
 
 #import color_works.psh.glsl
 
-vec3 plainCalculateNormal() {
+vec3 planeCalculateNormal() {
 	vec2 n_uv = 2.0 * uv;//vec2(1.0 - uv.x, 1.0 - uv.y);
 	vec3 tangentNormal = texture(u_texture_normal, n_uv, 0.0).xyz * 2.0 - 1.0;
 
@@ -63,7 +63,7 @@ void main() {
 
 	vec4 color = mix(color1, color2, mixC);
 	
-	//vec3 normal = plainCalculateNormal();
+	//vec3 normal = planeCalculateNormal();
 
 	//const float light = max(dot(normal, -u_constants.lightDirection), 0.0);
 	//color.rgb *= (gl_FrontFacing ? shadow : 1.0) * clamp(light, u_constants.lightMinMax.x, 1.0);

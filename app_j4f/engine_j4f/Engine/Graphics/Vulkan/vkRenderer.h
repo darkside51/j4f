@@ -535,7 +535,6 @@ namespace vulkan {
 
 		void* _deviceCreatepNextChain = nullptr;
 
-		bool _useSharedMemory = false;
 		bool _vSync = false;
 		uint32_t _width = 0, _height = 0;
 		uint32_t _currentFrame = 0;

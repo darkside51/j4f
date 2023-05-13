@@ -44,7 +44,7 @@ namespace engine {
 		_normalized = false;
 	}
 
-	void Frustum::normalize() noexcept { // normalize frustum plains
+	void Frustum::normalize() noexcept { // normalize frustum planes
 		if (_normalized) return;
 
 		for (uint8_t i = 0; i < 6; ++i) { // приводим уравнения плоскостей к нормальному виду
