@@ -134,6 +134,20 @@ namespace engine {
             return result;
         }
 
+        template<class F> auto enqueue(const TaskType type, F&& f) -> TaskResult<typename std::invoke_result_t<std::decay_t<F>, std::decay_t<const CancellationToken&>>> {
+            using return_type = typename std::invoke_result_t<std::decay_t<F>, std::decay_t<const CancellationToken&>>;
+            TaskResult<return_type> result = makeTaskResult(type, std::forward<F>(f));
+            enqueue(0, result);
+            return result;
+        }
+
+        template<class F, class... Args> auto enqueue(const TaskType type, F&& f, Args&&... args) -> TaskResult<typename std::invoke_result_t<std::decay_t<F>, std::decay_t<const CancellationToken&>, std::decay_t<Args>...>> {
+            using return_type = typename std::invoke_result_t<std::decay_t<F>, std::decay_t<const CancellationToken&>, std::decay_t<Args>...>;
+            TaskResult<return_type> result = makeTaskResult(type, std::forward<F>(f), std::forward<Args>(args)...);
+            enqueue(0, result);
+            return result;
+        }
+
         /////////////////// taskResult enqueue
         template<class T> inline void enqueue(const uint16_t priority, TaskResult<T>& result) {
             if (result.state() == TaskState::CANCELED) return;

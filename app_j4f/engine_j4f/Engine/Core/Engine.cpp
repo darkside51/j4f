@@ -39,8 +39,8 @@ namespace engine {
 		setModule<LogManager>();
 		setModule<Statistic>();
 
-		//setModule<ThreadPool>(std::max(static_cast<uint8_t>(std::thread::hardware_concurrency()), uint8_t(1)));
-		setModule<ThreadPool2>(std::max(static_cast<uint8_t>(std::thread::hardware_concurrency()), uint8_t(1)));
+		//setModule<ThreadPool>(std::max(std::thread::hardware_concurrency(), 1u));
+		setModule<ThreadPool2>(std::max(std::thread::hardware_concurrency(), 1u));
         setModule<WorkerThreadsCommutator>();
 		setModule<MemoryManager>();
 		setModule<CacheManager>();

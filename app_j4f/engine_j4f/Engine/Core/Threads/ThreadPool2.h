@@ -8,6 +8,7 @@
 namespace engine {
 
     class ThreadPool2 : public IEngineModule {
+        using Locker = SpinLock;
         enum class TPoolState : uint8_t {
             RUN = 0,
             PAUSE = 1,
@@ -165,7 +166,7 @@ namespace engine {
         size_t _threads_count;
         std::atomic_uint16_t _taskIdx = 0u;
         std::vector<std::thread> _workers;
-        std::vector<Task2Queue<SpinLock, std::condition_variable_any>> _queues;
+        std::vector<Task2Queue<Locker, std::condition_variable_any>> _queues;
         std::vector<linked_ptr<TaskBase>> _currentTasks;
     };
 }

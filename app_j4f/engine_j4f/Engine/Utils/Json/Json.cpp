@@ -12,7 +12,7 @@ namespace engine {
 		auto&& engine = Engine::getInstance();
 
 		if (params.flags->async) {
-			engine.getModule<AssetManager>()->getThreadPool()->enqueue(TaskType::COMMON, 0, [params, callback](const CancellationToken& token) {
+			engine.getModule<AssetManager>()->getThreadPool()->enqueue(TaskType::COMMON, [params, callback](const CancellationToken& token) {
 				PROFILE_TIME_SCOPED_M(jsonLoading, params.file)
 				auto&& engine = Engine::getInstance();
 				FileManager* fm = engine.getModule<FileManager>();

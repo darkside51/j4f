@@ -1,4 +1,7 @@
 #include "Imgui.h"
+#include "../../Core/AssetManager.h"
+#include "../../Core/Threads/ThreadPool2.h"
+#include "../../Core/Threads/WorkersCommutator.h"
 #include "../../GpuProgramsManager.h"
 #include "../../Vulkan/spirv/glsl_to_spirv.h"
 #include "../../Core/Engine.h"
@@ -56,8 +59,12 @@ namespace engine {
     }
 
     ImguiGraphics::ImguiGraphics() {
-        _generateShadersTask = Engine::getInstance().getModule<ThreadPool2>()->enqueue(TaskType::COMMON, generateShaders, this);
+        Engine::getInstance().getModule<AssetManager>()->getThreadPool()->enqueue(TaskType::COMMON, generateShaders, this);
+        //Engine::getInstance().getModule<ThreadPool2>()->enqueue(TaskType::COMMON, generateShaders, this);
         //generateShaders({}, this);
+
+        //Engine::getInstance().getModule<WorkerThreadsCommutator>()->enqueue(Engine::getInstance().getThreadCommutationId(Engine::Workers::UPDATE_THREAD), generateShaders, this);
+
 
         ImGui::CreateContext();
         createFontTexture();

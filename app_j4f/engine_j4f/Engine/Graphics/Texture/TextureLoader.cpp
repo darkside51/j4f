@@ -48,7 +48,7 @@ namespace engine {
 		if (params.flags->async) {
 			if (callback) { addCallback(texture, callback); }
 
-			engine.getModule<AssetManager>()->getThreadPool()->enqueue(TaskType::COMMON, 0, [params, texture](const CancellationToken& token) {
+			engine.getModule<AssetManager>()->getThreadPool()->enqueue(TaskType::COMMON, [params, texture](const CancellationToken& token) {
 				PROFILE_TIME_SCOPED_M(textureLoading, params.files[0])
 				if (params.texData) {
 					if (!params.texData->operator bool()) {

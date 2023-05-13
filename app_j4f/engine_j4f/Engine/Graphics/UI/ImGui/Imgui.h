@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../../Core/Threads/ThreadPool2.h"
 #include "../../Render/RenderedEntity.h"
 #include "../../Render/RenderHelper.h"
 #include "../../../Input/Input.h"
@@ -49,7 +48,6 @@ namespace engine {
         vulkan::VulkanGpuProgram* _program = nullptr;
         vulkan::VulkanTexture* _fontTexture = nullptr;
         std::unordered_map<uint8_t, std::pair<uint8_t, uint8_t>> _keyMap;
-        linked_ptr<Task2<void>> _generateShadersTask;
         bool _initComplete = false;
     };
 

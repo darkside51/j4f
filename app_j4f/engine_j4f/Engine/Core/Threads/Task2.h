@@ -23,13 +23,12 @@ namespace engine {
         std::atomic_uint32_t m_counter = 0;
     };
 
-    using Locker = SpinLock;
-    using CondVar = std::condition_variable_any;
-
     template <typename T>
     class Task2;
 
     class TaskBase : public task_control_block {
+        using Locker = SpinLock;
+        using CondVar = std::condition_variable_any;
         friend class ThreadPool2;
     public:
         TaskBase() = default;

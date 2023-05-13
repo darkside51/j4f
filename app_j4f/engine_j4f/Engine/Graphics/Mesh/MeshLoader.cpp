@@ -130,7 +130,7 @@ namespace engine {
 			addCallback(mData, v, callback, params.semanticMask, params.latency, params.callbackThreadId);
 
 			if (params.flags->async) {
-				engine.getModule<AssetManager>()->getThreadPool()->enqueue(TaskType::COMMON, 0, [](const CancellationToken& token, const MeshLoadingParams params, Mesh_Data* mData) {
+				engine.getModule<AssetManager>()->getThreadPool()->enqueue(TaskType::COMMON, [](const CancellationToken& token, const MeshLoadingParams params, Mesh_Data* mData) {
 					fillMeshData(mData, params);
 				}, params, mData);
 			} else {

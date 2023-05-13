@@ -3,6 +3,7 @@
 #include "Common.h"
 #include "EngineModule.h"
 #include "Threads/ThreadPool.h"
+#include "Threads/ThreadPool2.h"
 
 #include <type_traits>
 #include <functional>
@@ -82,6 +83,7 @@ namespace engine {
 	};
 
 	class AssetManager : public IEngineModule {
+		using ThreadPoolClass = ThreadPool2;
 		/*
 		// SFINAE конечно, но работает), по другому разрулил, пусть пока полежит тут
 		template<typename Loader, typename T, typename ALP = typename AssetLoadingParams<typename raw_type_name<T>>, typename = void>
@@ -93,7 +95,7 @@ namespace engine {
 
 	public:
 		explicit AssetManager(const uint8_t loaderThreadsCount) noexcept :
-        _loaderPool(new ThreadPool(loaderThreadsCount)) {
+        _loaderPool(std::make_unique<ThreadPoolClass>(loaderThreadsCount)) {
 		}
 
 		~AssetManager() override {
@@ -103,7 +105,6 @@ namespace engine {
 			_loaders.clear();
 
 			_loaderPool->stop();
-			delete _loaderPool;
 		}
 
 		template<typename T>
@@ -156,15 +157,15 @@ namespace engine {
 			return value;
 		}
 
-		ThreadPool* getThreadPool() { return _loaderPool; }
-		const ThreadPool* getThreadPool() const { return _loaderPool; }
+		ThreadPoolClass* getThreadPool() noexcept { return _loaderPool.get(); }
+		const ThreadPoolClass* getThreadPool() const noexcept { return _loaderPool.get(); }
 
 		void deviceDestroyed() {
 			_loaderPool->stop();
 		}
 
 	private:
-		ThreadPool* _loaderPool;
+		std::unique_ptr<ThreadPoolClass> _loaderPool;
 		std::unordered_map<uint16_t, IAssetLoader*> _loaders;
 	};
 
