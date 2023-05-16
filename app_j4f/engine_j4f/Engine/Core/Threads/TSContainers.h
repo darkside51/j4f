@@ -36,7 +36,7 @@ namespace engine {
 			}
 
 			_readers.sub();
-			if constexpr (std::is_pointer<V>::value) {
+			if constexpr (std::is_pointer_v<V> || is_smart_pointer_v<V>) {
 				return (const V&)(m_null_pointer); // c - style cast, how convert this with c++ cast?
 			} else {
 				static const V empty(0);

@@ -102,6 +102,9 @@ set(
 
 	../3rd_party/half_float
 	../3rd_party/imgui
+
+	#### may be optional
+	Graphics/Spine
 )
 
 if (GLFW_PLATFORM)
@@ -259,6 +262,14 @@ message("webp library end")
 #message("libpng library end")
 # libpng library
 
+# spine library
+message("spine library begin")
+add_3rdparty_project ( ${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/spine ${CMAKE_BINARY_DIR}/3rd_party/spine)
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/spine/spine-cpp/include)
+set (SPINE_LIB spine-cpp)
+message("spine library end")
+# spine library
+
 target_link_libraries (
 	${PROJECT_NAME}
 	${USED_FRAMEWORKS}
@@ -267,6 +278,7 @@ target_link_libraries (
 	${FMT_LIB}
 	${WEBP_LIB}
 	#${PNG_LIB}
+	${SPINE_LIB}
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../3rd_party/glm)

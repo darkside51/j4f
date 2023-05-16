@@ -5,9 +5,11 @@
 #include "Hash.h"
 #include "Threads/TSContainers.h"
 
+#include <cstdint>
+#include <memory>
 #include <string>
 #include <type_traits>
-#include <cstdint>
+
 
 namespace engine {
 	template <typename T>
@@ -65,7 +67,7 @@ namespace engine {
 		~CacheManager() override = default;
 
 		template<typename K, typename V>
-		inline bool hasCache() {
+		inline bool hasCache() noexcept {
 			using key_type = no_const_no_reference_type<K>;
 			const uint16_t key = getUniqueIdTypes<key_type, V>();
 			return _caches.hasValue(key);
@@ -77,30 +79,32 @@ namespace engine {
 			const uint16_t key = getUniqueIdTypes<key_type, V>();
 
 			if (auto&& cache = _caches.getValue(key)) {
-				return static_cast<Cache<key_type, V>*>(cache);
+				return static_cast<Cache<key_type, V>*>(cache.get());
 			} else {
-				return static_cast<Cache<key_type, V>*>(_caches.getOrCreate(key, []() { return new Cache<key_type, V>(); }));
+				return static_cast<Cache<key_type, V>*>(_caches.getOrCreate(key, []() {
+                    return std::make_unique<Cache<key_type, V>>();
+                }).get());
 			}
 		}
 
 		template<typename V, typename K = std::string>
 		inline void store(K&& key, const V& v) {
 			using key_type = no_const_no_reference_type<K>;
-			Cache<key_type, V>* cache = getCache<key_type, V>();
+			auto&& cache = getCache<key_type, V>();
 			cache->setValue(std::forward<K>(key), v);
 		}
 
 		template<typename V, typename K = std::string>
 		inline auto load(K&& key) {
 			using key_type = no_const_no_reference_type<K>;
-			const Cache<key_type, V>* cache = getCache<key_type, V>();
+			const auto&& cache = getCache<key_type, V>();
 			return cache->getValue(std::forward<K>(key));
 		}
 
 		template <typename V, typename K = std::string, typename F, typename ...Args>
 		inline auto load(K&& key, F&& f, Args&&... args) {
 			using key_type = no_const_no_reference_type<K>;
-			Cache<key_type, V>* cache = getCache<key_type, V>();
+            auto&& cache = getCache<key_type, V>();
             return cache->getValueOrCreate(std::forward<K>(key), std::forward<F>(f), std::forward<Args>(args)...);
 		}
 
@@ -108,11 +112,11 @@ namespace engine {
 		inline static std::atomic_uint16_t staticId;
 
 		template <typename T1, typename T2>
-		inline static uint16_t getUniqueIdTypes() {
+		inline static uint16_t getUniqueIdTypes() noexcept {
 			static const uint16_t id = staticId.fetch_add(1, std::memory_order_release);
 			return id;
 		}
 
-		TsUnorderedMap<uint16_t, ICache*> _caches;
+        TsUnorderedMap<uint16_t, std::unique_ptr<ICache>> _caches;
 	};
 }
