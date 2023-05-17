@@ -144,7 +144,7 @@ namespace engine {
 
 		template <typename T1, typename T2>
 		inline static uint16_t getUniqueIdTypes() noexcept {
-			static const uint16_t id = staticId.fetch_add(1, std::memory_order_release);
+			static const uint16_t id = staticId.fetch_add(1, std::memory_order_relaxed);
 			return id;
 		}
 
