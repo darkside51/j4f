@@ -10,7 +10,6 @@
 #include <string>
 #include <type_traits>
 
-
 namespace engine {
 	template <typename T>
 	using no_const_no_reference_type = typename std::remove_const<typename std::remove_reference<T>::type>::type;
@@ -26,6 +25,7 @@ namespace engine {
 		using key_type = K;
 		using value_type = V;
 	public:
+        Cache() = default;
 		~Cache() override = default;
 
 		template <typename KEY = K, typename VAL = V>
@@ -44,10 +44,17 @@ namespace engine {
 		inline const V& getOrSetValue(KEY&& key, VAL&& value) { return _map.getOrSet(key, value); }
 
 		template <typename KEY = K, typename F, typename ...Args>
-		inline const V& getOrSetValue(KEY&& key, F&& f, Args&&... args) { return _map.getOrCreate(key, std::forward<F>(f), std::forward<Args>(args)...); }
+		inline const V& getOrSetValue(KEY&& key, F&& f, Args&&... args) {
+            return _map.getOrCreate(key, std::forward<F>(f), std::forward<Args>(args)...);
+        }
 
 		template <typename KEY = K, typename FC, typename F, typename ...Args>
-		inline const V& getOrSetValueWithCallback(KEY&& key, FC&& callback, F&& f, Args&&... args) { return _map.getOrCreateWithCallback(key, std::forward<FC>(callback), std::forward<F>(f), std::forward<Args>(args)...); }
+		inline const V& getOrSetValueWithCallback(KEY&& key, FC&& callback, F&& f, Args&&... args) {
+            return _map.getOrCreateWithCallback(
+                    key, std::forward<FC>(callback),
+                    std::forward<F>(f), std::forward<Args>(args)...
+                    );
+        }
 
 		template <typename KEY = K, typename F, typename ...Args>
 		inline const V& getValueOrCreate(KEY&& key, F&& f, Args&&... args) {
@@ -107,6 +114,30 @@ namespace engine {
             auto&& cache = getCache<key_type, V>();
             return cache->getValueOrCreate(std::forward<K>(key), std::forward<F>(f), std::forward<Args>(args)...);
 		}
+
+        template<typename V, typename K, typename ...Args>
+        inline void createCache(Args&&... args) {
+            using key_type = no_const_no_reference_type<K>;
+            const uint16_t key = getUniqueIdTypes<key_type, V>();
+
+            if (_caches.getValue(key)) {
+                return;
+            }
+
+            _caches.setValue(key, std::make_unique<Cache<key_type, V>>(std::forward<Args>(args)...));
+        }
+
+        template<typename V, typename K>
+        inline void emplaceCache(std::unique_ptr<ICache>&& cache) {
+            using key_type = no_const_no_reference_type<K>;
+            const uint16_t key = getUniqueIdTypes<key_type, V>();
+
+            if (_caches.getValue(key)) {
+                return;
+            }
+
+            _caches.setValue(key, std::move(cache));
+        }
 
 	private:
 		inline static std::atomic_uint16_t staticId;
