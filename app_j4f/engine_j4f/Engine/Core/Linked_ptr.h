@@ -39,11 +39,11 @@ namespace engine {
 		using type = control_block<T>;
 		using counter_type = uint32_t;
 
-		inline uint32_t _decrease_counter()			        { return --m_counter; }
-		inline uint32_t _increase_counter()			        { return ++m_counter; }
-		[[nodiscard]] inline uint32_t _use_count() const	{ return m_counter; }
+		inline uint32_t _decrease_counter()	noexcept		        { return --m_counter; }
+		inline uint32_t _increase_counter()	noexcept		        { return ++m_counter; }
+		[[nodiscard]] inline uint32_t _use_count() const noexcept	{ return m_counter; }
 
-		uint32_t m_counter = 0;
+		uint32_t m_counter = 0u;
 	};
 
 	template <typename T>
@@ -56,11 +56,11 @@ namespace engine {
 		using type = atomic_control_block<T>;
 		using counter_type = std::atomic_uint32_t;
 
-		inline uint32_t _decrease_counter()			        { return m_counter.fetch_sub(1, std::memory_order_release) - 1; }
-		inline uint32_t _increase_counter()			        { return m_counter.fetch_add(1, std::memory_order_release) + 1; }
-        [[nodiscard]] inline uint32_t _use_count() const	{ return m_counter.load(std::memory_order_consume); }
+		inline uint32_t _decrease_counter()	noexcept		        { return m_counter.fetch_sub(1, std::memory_order_release) - 1; }
+		inline uint32_t _increase_counter()	noexcept		        { return m_counter.fetch_add(1, std::memory_order_release) + 1; }
+        [[nodiscard]] inline uint32_t _use_count() const noexcept   { return m_counter.load(std::memory_order_consume); }
 
-		std::atomic_uint32_t m_counter = 0;
+		std::atomic_uint32_t m_counter = 0u;
 	};
 
 	template <typename T> // requires destroy_requirement<T>
@@ -75,6 +75,8 @@ namespace engine {
 			_ptr = nullptr;
 		}
 
+        linked_ptr(nullptr_t) : _ptr(nullptr) { }
+
         linked_ptr(element_type* ptr) : _ptr(ptr) {
 			_increase_counter();
 		}
@@ -87,15 +89,19 @@ namespace engine {
 			p._ptr = nullptr;
 		}
 
-		inline linked_ptr& operator= (nullptr_t) {
-			if (_ptr) {
-				_decrease_counter();
-				_ptr = nullptr;
-			}
+        inline void reset() noexcept {
+            if (_ptr) {
+                _decrease_counter();
+                _ptr = nullptr;
+            }
+        }
+
+		inline linked_ptr& operator= (nullptr_t) noexcept {
+            reset();
 			return *this;
 		}
 
-		inline linked_ptr& operator= (const linked_ptr& p) {
+		inline linked_ptr& operator= (const linked_ptr& p) noexcept {
 			if (&p != this && p._ptr != _ptr) {
 				_decrease_counter();
 				_ptr = p._ptr;
@@ -114,7 +120,7 @@ namespace engine {
 			return *this;
 		}
 
-		inline linked_ptr& operator= (element_type* p) {
+		inline linked_ptr& operator= (element_type* p) noexcept {
 			if (p != _ptr) {
 				_decrease_counter();
 				_ptr = p;
@@ -123,7 +129,7 @@ namespace engine {
 			return *this;
 		}
 
-		inline linked_ptr& operator= (const element_type* p) {
+		inline linked_ptr& operator= (const element_type* p) noexcept {
 			if (p != _ptr) {
 				_decrease_counter();
 				_ptr = const_cast<element_type*>(p);
@@ -132,18 +138,19 @@ namespace engine {
 			return *this;
 		}
 
-		inline bool operator== (const linked_ptr& p) const { return _ptr == p._ptr; }
-		inline bool operator== (const element_type* p) const { return _ptr == p; }
+		inline bool operator== (const linked_ptr& p) const noexcept { return _ptr == p._ptr; }
+		inline bool operator== (const element_type* p) const noexcept { return _ptr == p; }
 
-		inline element_type* operator->() { return _ptr; }
-		inline const element_type* operator->() const { return _ptr; }
+		inline element_type* operator->() noexcept { return _ptr; }
+		inline const element_type* operator->() const noexcept { return _ptr; }
 
 		inline explicit operator bool() const noexcept { return _ptr != nullptr; }
 
-		[[nodiscard]] inline uint32_t use_count() const { return _ptr->_use_count(); }
+		[[nodiscard]] inline uint32_t use_count() const noexcept { return _ptr->_use_count(); }
+        [[nodiscard]] inline bool unique() const noexcept { return (_ptr->_use_count() == 1); }
 
-		inline element_type* get() { return _ptr; }
-		inline const element_type* get() const { return _ptr; }
+		inline element_type* get() noexcept { return _ptr; }
+		inline const element_type* get() const noexcept { return _ptr; }
 
 	protected:
 		inline void _increase_counter() noexcept {
@@ -168,13 +175,13 @@ namespace engine {
 }
 
 namespace std {
-	template< class T, class U >
+	template< typename T, typename U >
 	engine::linked_ptr<T> static_pointer_cast(const engine::linked_ptr<U>& r) noexcept {
 		auto p = static_cast<typename engine::linked_ptr<T>::element_type*>(const_cast<engine::linked_ptr<U>&>(r).get());
 		return engine::linked_ptr<T>(p);
 	}
 	
-	template< class T, class U >
+	template< typename T, typename U >
 	engine::linked_ptr<T> dynamic_pointer_cast(const engine::linked_ptr<U>& r) noexcept {
 		if (auto p = dynamic_cast<typename engine::linked_ptr<T>::element_type*>(const_cast<engine::linked_ptr<U>&>(r).get())) {
 			return engine::linked_ptr<T>(p);
@@ -183,13 +190,13 @@ namespace std {
 		}
 	}
 	
-	template< class T, class U >
+	template< typename T, typename U >
 	engine::linked_ptr<T> const_pointer_cast(const engine::linked_ptr<U>& r) noexcept {
 		auto p = const_cast<typename engine::linked_ptr<T>::element_type*>(const_cast<engine::linked_ptr<U>&>(r).get());
 		return engine::linked_ptr<T>(p);
 	}
 	
-	template< class T, class U >
+	template< typename T, typename U >
 	engine::linked_ptr<T> reinterpret_pointer_cast(const engine::linked_ptr<U>& r) noexcept {
 		auto p = reinterpret_cast<typename engine::linked_ptr<T>::element_type*>(const_cast<engine::linked_ptr<U>&>(r).get());
 		return engine::linked_ptr<T>(p);
