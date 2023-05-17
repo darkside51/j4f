@@ -25,7 +25,7 @@ namespace vulkan {
 		} else {
 			auto&& cmdBuffer = _renderer->getSupportCommandBuffer();
 			fillGpuData(staging, cmdBuffer, 0, 1);
-			_renderer->addTmpBuffer(staging);
+			_renderer->markToDelete(staging);
 		}
 	}
 
@@ -38,7 +38,7 @@ namespace vulkan {
 		} else {
 			auto&& cmdBuffer = _renderer->getSupportCommandBuffer();
 			fillGpuData(staging, cmdBuffer, 0, count);
-			_renderer->addTmpBuffer(staging);
+			_renderer->markToDelete(staging);
 		}
 	}
 
