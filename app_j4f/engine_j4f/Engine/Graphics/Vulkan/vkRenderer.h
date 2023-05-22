@@ -497,19 +497,9 @@ namespace vulkan {
 			const VkBorderColor borderColor
 		);
 
-		void markToDelete(VulkanBuffer* buffer) {
-            if (buffer) {
-                engine::AtomicLock lock(_lockTmpData);
-                _buffersToDelete[_currentFrame].push_back(buffer);
-            }
-		}
-
-        void markToDelete(VulkanTexture* texture) {
-            if (texture) {
-                engine::AtomicLock lock(_lockTmpData);
-                _texturesToDelete[_currentFrame].push_back(texture);
-            }
-        }
+		void markToDelete(VulkanBuffer* buffer);
+        void markToDelete(VulkanTexture* texture);
+        void markToDelete(VulkanTexture&& texture);
 
 		void addDefferedGenerateTexture(VulkanTexture* t, VulkanBuffer* b, const uint32_t baseLayer, const uint32_t layerCount) {
 			engine::AtomicLock lock(_lockTmpData);
@@ -635,6 +625,7 @@ namespace vulkan {
 		std::vector<std::vector<VulkanBuffer*>> _buffersToDelete;
 		std::vector<std::tuple<VulkanTexture*, VulkanBuffer*, uint32_t, uint32_t>> _defferedTextureToGenerate;
         std::vector<std::vector<VulkanTexture*>> _texturesToDelete;
+        std::vector<std::vector<VulkanTexture>> _texturesToFree;
 		// empty data
 		VulkanTexture* _emptyTexture = nullptr;
 		VulkanTexture* _emptyTextureArray = nullptr;

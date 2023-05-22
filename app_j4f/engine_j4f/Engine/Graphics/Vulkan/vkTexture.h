@@ -19,7 +19,7 @@ namespace vulkan {
 
 	class VulkanTexture { 
 	public:
-		VulkanTexture(VulkanRenderer* renderer, const uint32_t w, const uint32_t h, const uint32_t d = 1) : _renderer(renderer), _width(w), _height(h), _depth(d), _img(nullptr), _sampler(VK_NULL_HANDLE), _descriptor(VK_NULL_HANDLE), _generationState(VulkanTextureCreationState::UNKNOWN), _imageLayout(VK_IMAGE_LAYOUT_MAX_ENUM), _arrayLayers(1) {}
+		VulkanTexture(VulkanRenderer* renderer, const uint32_t w, const uint32_t h, const uint32_t d = 1) noexcept : _renderer(renderer), _width(w), _height(h), _depth(d), _img(nullptr), _sampler(VK_NULL_HANDLE), _descriptor(VK_NULL_HANDLE), _generationState(VulkanTextureCreationState::UNKNOWN), _imageLayout(VK_IMAGE_LAYOUT_MAX_ENUM), _arrayLayers(1) {}
 		VulkanTexture(
 			VulkanRenderer* renderer,
 			VkImageLayout layout,
@@ -29,8 +29,47 @@ namespace vulkan {
 			const uint32_t w,
 			const uint32_t h,
 			const uint32_t d = 1
-		) : _renderer(renderer), _width(w), _height(h), _depth(d), _img(img), _descriptor(readyDescriptorSet.first), _descriptorPoolId(readyDescriptorSet.second), _sampler(sampler), _generationState(VulkanTextureCreationState::CREATION_COMPLETE), _imageLayout(layout), _arrayLayers(1) {}
-		~VulkanTexture();
+		) noexcept : _renderer(renderer), _width(w), _height(h), _depth(d), _img(img), _descriptor(readyDescriptorSet.first), _descriptorPoolId(readyDescriptorSet.second), _sampler(sampler), _generationState(VulkanTextureCreationState::CREATION_COMPLETE), _imageLayout(layout), _arrayLayers(1) {}
+
+        VulkanTexture(VulkanTexture&& t) noexcept :
+            _renderer(t._renderer),
+            _width(t._width),
+            _height(t._height),
+            _img(t._img),
+            _sampler(std::move(t._sampler)),
+            _descriptor(t._descriptor),
+            _descriptorPoolId(t._descriptorPoolId),
+            _imageLayout(t._imageLayout),
+            _binding(t._binding),
+            _arrayLayers(t._arrayLayers) {
+            _generationState = t._generationState.load(std::memory_order_relaxed);
+            t._img = nullptr;
+            t._descriptor = nullptr;
+        }
+
+        VulkanTexture& operator= (VulkanTexture&& t) noexcept {
+            if (&t == this) return *this;
+
+            _renderer = t._renderer;
+            _width = t._width;
+            _height = t._height;
+            _img = t._img;
+            _sampler = std::move(t._sampler);
+            _descriptor = t._descriptor;
+            _descriptorPoolId = t._descriptorPoolId;
+            _imageLayout = t._imageLayout;
+            _binding = t._binding;
+            _arrayLayers = t._arrayLayers ;
+            _generationState = t._generationState.load(std::memory_order_relaxed);
+            t._img = nullptr;
+            t._descriptor = nullptr;
+            return *this;
+        }
+
+        VulkanTexture(const VulkanTexture& t) = delete;
+        VulkanTexture& operator= (const VulkanTexture& t) = delete;
+
+        ~VulkanTexture();
 
 		VulkanBuffer* generateWithData(const void** data, const uint32_t count, const VkFormat format, const uint8_t bpp, const bool createMipMaps, const VkImageViewType forceType);
 

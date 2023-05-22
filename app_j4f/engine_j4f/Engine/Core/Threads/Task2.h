@@ -17,7 +17,7 @@ namespace engine {
     public:
         inline uint32_t _decrease_counter() noexcept { return m_counter.fetch_sub(1, std::memory_order_release) - 1; }
         inline uint32_t _increase_counter() noexcept { return m_counter.fetch_add(1, std::memory_order_release) + 1; }
-        [[nodiscard]] inline uint32_t _use_count() const noexcept { return m_counter.load(std::memory_order_consume); }
+        [[nodiscard]] inline uint32_t _use_count() const noexcept { return m_counter.load(std::memory_order_relaxed); }
 
     private:
         std::atomic_uint32_t m_counter = 0;

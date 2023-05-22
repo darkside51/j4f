@@ -56,6 +56,8 @@
 
 #include <imgui.h>
 
+#include <Engine/Graphics/Texture/TextureHandler.h>
+
 namespace engine {
 	vulkan::VulkanGpuProgram* grass_default = nullptr;
 
@@ -714,6 +716,12 @@ namespace engine {
 
 			auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
 			auto&& gpuProgramManager = Engine::getInstance().getModule<Graphics>()->getGpuProgramsManager();
+
+            engine::TexturePtr tPtr1 = engine::make_linked<engine::TextureHandler>(renderer, 128, 128);
+            {
+                auto tPtr2 = tPtr1;
+            }
+
 			AssetManager* assm = Engine::getInstance().getModule<AssetManager>();
 
 			std::vector<engine::ProgramStageInfo> psi0;

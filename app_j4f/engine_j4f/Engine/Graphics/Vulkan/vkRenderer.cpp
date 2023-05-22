@@ -280,6 +280,7 @@ namespace vulkan {
 
         _buffersToDelete.resize(_swapchainImagesCount);
         _texturesToDelete.resize(_swapchainImagesCount);
+        _texturesToFree.resize(_swapchainImagesCount);
 
 		createEmtyTexture();
 	}
@@ -414,6 +415,25 @@ namespace vulkan {
 			commandBuffer.end();
 		}
 	}
+
+    void VulkanRenderer::markToDelete(VulkanBuffer* buffer) {
+        if (buffer) {
+            engine::AtomicLock lock(_lockTmpData);
+            _buffersToDelete[_currentFrame].push_back(buffer);
+        }
+    }
+
+    void VulkanRenderer::markToDelete(VulkanTexture* texture) {
+        if (texture) {
+            engine::AtomicLock lock(_lockTmpData);
+            _texturesToDelete[_currentFrame].push_back(texture);
+        }
+    }
+
+    void VulkanRenderer::markToDelete(VulkanTexture&& texture) {
+        engine::AtomicLock lock(_lockTmpData);
+        _texturesToFree[_currentFrame].push_back(std::move(texture));
+    }
 
 	void VulkanRenderer::setupRenderPass(const std::vector<VkAttachmentDescription>& configuredAttachments, const std::vector<VkSubpassDependency>& configuredDependencies, const bool canContinueMainRenderPass) {
 
@@ -817,6 +837,7 @@ namespace vulkan {
                     texturesToDelete = std::move(_texturesToDelete);
                     _buffersToDelete.clear();
                     _texturesToDelete.clear();
+                    _texturesToFree.clear();
 				}
 
                 for (auto&& buffers : buffersToDelete) {
@@ -887,6 +908,7 @@ namespace vulkan {
 
             _buffersToDelete.resize(_swapchainImagesCount);
             _texturesToDelete.resize(_swapchainImagesCount);
+            _texturesToFree.resize(_swapchainImagesCount);
 
 			_currentFrame = 0;
 		}
@@ -905,7 +927,7 @@ namespace vulkan {
             }
 
 			// clear tmp frame data
-			if (!_buffersToDelete.empty() || !_texturesToDelete.empty()) {
+			if (!_buffersToDelete.empty() || !_texturesToDelete.empty() || !_texturesToFree.empty()) {
 				std::vector<VulkanBuffer*> buffersToDelete;
                 std::vector<VulkanTexture*> texturesToDelete;
 				std::vector<std::tuple<VulkanTexture*, VulkanBuffer*, uint32_t, uint32_t>> defferedTextureToGenerate;
@@ -917,6 +939,7 @@ namespace vulkan {
 					defferedTextureToGenerate = std::move(_defferedTextureToGenerate);
                     _buffersToDelete[_currentFrame].clear();
                     _texturesToDelete[_currentFrame].clear();
+                    _texturesToFree[_currentFrame].clear();
 					_defferedTextureToGenerate.clear();
 				}
 
@@ -1239,7 +1262,7 @@ namespace vulkan {
 				vkQueueWaitIdle(_mainQueue);
 				vkQueueWaitIdle(_presentQueue);
 
-				_vulkanDevice->waitIdle();
+				[[maybe_unused]] const auto result = _vulkanDevice->waitIdle();
 			}
 		}
 	}
@@ -1318,6 +1341,7 @@ namespace vulkan {
 					defferedTextureToGenerate = std::move(_defferedTextureToGenerate);
                     _buffersToDelete.clear();
                     _texturesToDelete.clear();
+                    _texturesToFree.clear();
 					_defferedTextureToGenerate.clear();
 				}
 
