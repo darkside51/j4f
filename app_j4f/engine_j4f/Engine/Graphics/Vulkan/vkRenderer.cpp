@@ -8,10 +8,12 @@
 
 #include "../../Engine/Core/Configs.h"
 #include "../../Engine/Log/Log.h"
+#include "../../Engine/Utils/Debug/Assert.h"
 
 #include <unordered_map>
 #include <unordered_set>
 #include <cassert>
+#include <cstdint>
 
 #define EXECUTE_PROC_OR_NULLIFY_AND_RETURN(x, proc, ...) if (!x->proc(__VA_ARGS__)) { delete x; return nullptr; }
 
@@ -282,25 +284,25 @@ namespace vulkan {
         _texturesToDelete.resize(_swapchainImagesCount);
         _texturesToFree.resize(_swapchainImagesCount);
 
-		createEmtyTexture();
+		createEmptyTexture();
 	}
 
-	void VulkanRenderer::createEmtyTexture() {
+	void VulkanRenderer::createEmptyTexture() {
 #ifdef _DEBUG
 		_emptyTexture = new VulkanTexture(this, 2, 2, 1);
 		_emptyTextureArray = new VulkanTexture(this, 2, 2, 1);
-		const unsigned char emptyImg[16] = { 
+		const uint8_t emptyImg[16] = {
 			100, 100, 100, 255, 160, 160, 160, 255,
 			160, 160, 160, 255, 100, 100, 100, 255
 	};
 #else
 		//_emptyTexture = new VulkanTexture(this, 1, 1, 1);
 		//_emptyTextureArray = new VulkanTexture(this, 1, 1, 1);
-		//const unsigned char emptyImg[4] = { 200, 200, 200, 255 };
+		//const uint8_t emptyImg[4] = { 200, 200, 200, 255 };
 
 		_emptyTexture = new VulkanTexture(this, 2, 2, 1);
 		_emptyTextureArray = new VulkanTexture(this, 2, 2, 1);
-		const unsigned char emptyImg[16] = { 
+		const uint8_t emptyImg[16] = {
 			100, 100, 100, 255, 160, 160, 160, 255,
 			160, 160, 160, 255, 100, 100, 100, 255
 		};
@@ -327,13 +329,13 @@ namespace vulkan {
 			VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK
 		));
 
-		const void* emtyImageAddr = &emptyImg[0];
+		const void* emptyImageAddr = &emptyImg[0];
 
-		_emptyTexture->create(&emtyImageAddr, 1, VK_FORMAT_R8G8B8A8_UNORM, 32, false, false, VK_IMAGE_VIEW_TYPE_2D);
-		_emptyTexture->createSingleDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0);
+		_emptyTexture->create(&emptyImageAddr, 1, VK_FORMAT_R8G8B8A8_UNORM, 32u, false, false, VK_IMAGE_VIEW_TYPE_2D);
+		_emptyTexture->createSingleDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0u);
 
-		_emptyTextureArray->create(&emtyImageAddr, 1, VK_FORMAT_R8G8B8A8_UNORM, 32, false, false, VK_IMAGE_VIEW_TYPE_2D_ARRAY);
-		_emptyTextureArray->createSingleDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0);
+		_emptyTextureArray->create(&emptyImageAddr, 1, VK_FORMAT_R8G8B8A8_UNORM, 32u, false, false, VK_IMAGE_VIEW_TYPE_2D_ARRAY);
+		_emptyTextureArray->createSingleDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0u);
 	}
 
 	VkSampler VulkanRenderer::getSampler(
@@ -345,7 +347,7 @@ namespace vulkan {
 		const VkSamplerAddressMode addressModeW,
 		const VkBorderColor borderColor
 	) {
-		uint16_t samplerDescription = 0;
+		uint16_t samplerDescription = 0u;
 		// filtration
 		samplerDescription |= minFilter << 0; // 1 bit
 		samplerDescription |= magFilter << 1; // 1 bit
@@ -371,7 +373,7 @@ namespace vulkan {
 		samplerInfo.minLod = 0.0f;
 		samplerInfo.maxLod = VK_REMAINING_MIP_LEVELS;
 		samplerInfo.anisotropyEnable = VK_FALSE;
-		samplerInfo.maxAnisotropy = 1.0;
+		samplerInfo.maxAnisotropy = 1.0f;
 		samplerInfo.borderColor = borderColor;
 
 		samplerInfo.minFilter = minFilter;
@@ -900,7 +902,7 @@ namespace vulkan {
 
 			_waitFences.reserve(_swapchainImagesCount);
 			// wait fences to sync command buffer access
-			for (uint32_t i = 0; i < _swapchainImagesCount; ++i) {
+			for (uint32_t i = 0u; i < _swapchainImagesCount; ++i) {
 				_waitFences.emplace_back(_vulkanDevice->device, VK_FENCE_CREATE_SIGNALED_BIT);
 			}
 
@@ -910,7 +912,7 @@ namespace vulkan {
             _texturesToDelete.resize(_swapchainImagesCount);
             _texturesToFree.resize(_swapchainImagesCount);
 
-			_currentFrame = 0;
+			_currentFrame = 0u;
 		}
 	}
 
@@ -962,7 +964,7 @@ namespace vulkan {
 	void VulkanRenderer::endFrame() {
 		_mainSupportCommandBuffers[_currentFrame].end();
 
-		uint32_t aciquireImageIndex = 0;
+		uint32_t aciquireImageIndex = 0u;
 		const VkResult result = _swapChain.acquireNextImage(_presentCompleteSemaphores[_currentFrame].semaphore, &aciquireImageIndex);
 		if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) { // acquire failed - skip this frame to present
 			const VkResult fenceStatus = vkGetFenceStatus(_vulkanDevice->device, _waitFences[_currentFrame].fence);
@@ -970,7 +972,7 @@ namespace vulkan {
 				_waitFences[_currentFrame].destroy();
 				_waitFences[_currentFrame] = vulkan::VulkanFence(_vulkanDevice->device, VK_FENCE_CREATE_SIGNALED_BIT);
 			}
-			_currentFrame = (_currentFrame + 1) % _swapchainImagesCount;
+			_currentFrame = (_currentFrame + 1u) % _swapchainImagesCount;
             LOG_TAG_LEVEL(engine::LogLevel::L_ERROR, GRAPHICS, "VulkanRenderer: swapChain acquireNextImage result = %s", string_VkResult(result));
 			return;
 		}
@@ -1002,7 +1004,7 @@ namespace vulkan {
                 break;
         }
 
-		_currentFrame = (_currentFrame + 1) % _swapchainImagesCount;
+		_currentFrame = (_currentFrame + 1u) % _swapchainImagesCount;
 	}
 
 	VulkanPipeline* VulkanRenderer::getGraphicsPipeline(
@@ -1037,19 +1039,28 @@ namespace vulkan {
 	) {
 		// todo: need synchronisations for cache it
 		// get value from cache
-		const uint8_t topologyKey = static_cast<uint8_t>(topology.topology) << 0 | static_cast<uint8_t>(topology.enableRestart) << 4;																		// 5 bit
+		const uint8_t topologyKey = static_cast<uint8_t>(topology.topology) << 0 | static_cast<uint8_t>(topology.enableRestart) << 4;   // 5 bit
 		const uint8_t rasterizationKey = static_cast<uint8_t>(rasterization.poligonMode)		<< 0 |
 										 static_cast<uint8_t>(rasterization.cullMode)			<< 2 |
 										 static_cast<uint8_t>(rasterization.faceOrientation)	<< 4 |
-										 static_cast<uint8_t>(rasterization.discardEnable)		<< 5;																										// 6 bit
-		const uint16_t depthKey = static_cast<uint16_t>(depthState.compareOp) << 0 | static_cast<uint16_t>(depthState.depthTestEnabled) << 3 | static_cast<uint16_t>(depthState.depthWriteEnabled) << 4;	// 5 bit																																							// 16 bit
-		const uint16_t programId = program->getId();																																						// 16 bit
+										 static_cast<uint8_t>(rasterization.discardEnable)		<< 5;								    // 6 bit
+
+
+        // https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkPipelineDepthStencilStateCreateInfo.html#_members
+        // depthWriteEnable controls whether depth writes are enabled when depthTestEnable is VK_TRUE.
+        // Depth writes are always disabled when depthTestEnable is VK_FALSE.
+        const bool depthTestEnable = depthState.depthTestEnabled || depthState.depthWriteEnabled;
+        const uint16_t depthKey = static_cast<uint16_t>(depthState.compareOp)           << 0 |
+                                  static_cast<uint16_t>(depthTestEnable)                << 3 |
+                                  static_cast<uint16_t>(depthState.depthWriteEnabled)   << 4;	// 5 bit							    // 16 bit
+
+                                  const uint16_t programId = program->getId();															// 16 bit
 
 		const uint64_t composite_key = static_cast<uint64_t>(topologyKey)		<< 0 |
 									   static_cast<uint64_t>(rasterizationKey)	<< 5 |
 									   static_cast<uint64_t>(depthKey)			<< 11 |
 									   static_cast<uint64_t>(programId)			<< 16 |
-									   static_cast<uint64_t>(subpass)			<< 32;																														// 40 bit
+									   static_cast<uint64_t>(subpass)			<< 32;													// 40 bit
 
 		const uint64_t stencil_key = static_cast<uint64_t>(stencilState.enabled)		<< 0 |
 									 static_cast<uint64_t>(stencilState.failOp)			<< 1 |
@@ -1058,7 +1069,7 @@ namespace vulkan {
 									 static_cast<uint64_t>(stencilState.compareOp)		<< 10 |
 									 static_cast<uint64_t>(stencilState.compareMask)	<< 13 |
 									 static_cast<uint64_t>(stencilState.writeMask)		<< 21 |
-									 static_cast<uint64_t>(stencilState.reference)		<< 29;																												// 37 bit
+									 static_cast<uint64_t>(stencilState.reference)		<< 29;										    // 37 bit
 
 		const uint32_t blendKey = blendMode();
 
@@ -1067,7 +1078,7 @@ namespace vulkan {
 		const GraphicsPipelineCacheKey cacheKey(composite_key, stencil_key, blendKey, currentRenderPass);
 		auto it = _graphicsPipelinesCache.find(cacheKey);
 		if (it != _graphicsPipelinesCache.end()) {
-			return it->second;
+			return it->second.get();
 		}
 
 		///////////////// create new value and cache it
@@ -1075,19 +1086,20 @@ namespace vulkan {
 		// this is actually overridden by the dynamic states (see below)
 		VkPipelineViewportStateCreateInfo viewportState = {};
 		viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-		viewportState.viewportCount = 1;
-		viewportState.scissorCount = 1;
+		viewportState.viewportCount = 1u;
+		viewportState.scissorCount = 1u;
 
 		// enable dynamic states
 		// most states are baked into the pipeline, but there are still a few dynamic states that can be changed within a command buffer
-		// to be able to change these we need do specify which dynamic states will be changed using this pipeline. Their actual states are set later on in the command buffer.
+		// to be able to change these we need do specify which dynamic states will be changed using this pipeline.
+        // Their actual states are set later on in the command buffer.
 		// todo: need setup this?
 		std::vector<VkDynamicState> dynamicStateEnables;
 		dynamicStateEnables.push_back(VK_DYNAMIC_STATE_VIEWPORT);
 		dynamicStateEnables.push_back(VK_DYNAMIC_STATE_SCISSOR);
 		dynamicStateEnables.push_back(VK_DYNAMIC_STATE_DEPTH_BIAS);
 
-        if (_vulkanDevice->enabledFeatures.wideLines != 0) {
+        if (_vulkanDevice->enabledFeatures.wideLines != VK_FALSE) {
             dynamicStateEnables.push_back(VK_DYNAMIC_STATE_LINE_WIDTH);
         }
 
@@ -1117,7 +1129,7 @@ namespace vulkan {
 		depthStencilState.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
 
 		// depth state
-		depthStencilState.depthTestEnable = depthState.depthTestEnabled;
+		depthStencilState.depthTestEnable = depthTestEnable;
 		depthStencilState.depthWriteEnable = depthState.depthWriteEnabled;
 		depthStencilState.depthCompareOp = depthState.compareOp;
 
@@ -1156,8 +1168,10 @@ namespace vulkan {
 		vertexInputState.pVertexAttributeDescriptions = vertexDescription.attributes;
 
 		///////////////// setup pipeline
-		VulkanPipeline* pipeline = new VulkanPipeline();
-		_graphicsPipelinesCache[cacheKey] = pipeline;
+        const auto & [iterator, success] = _graphicsPipelinesCache.emplace(cacheKey, std::make_unique<VulkanPipeline>());
+        ENGINE_BREAK_CONDITION(success);
+
+        auto && pipeline = iterator->second.get();
 
 		// get layout from gpuProgramm
 		pipeline->program = program;
@@ -1205,7 +1219,7 @@ namespace vulkan {
 
 	VulkanDynamicBuffer* VulkanRenderer::getDynamicGPUBufferForSize(const uint32_t size, const VkBufferUsageFlags usageFlags, const uint32_t maxCount) {
 		// todo: need synchronisation
-		if (size == 0) return nullptr;
+		if (size == 0u) return nullptr;
 
 		auto it = _dinamicGPUBuffers.find(size);
 		if (it != _dinamicGPUBuffers.end()) {
@@ -1232,7 +1246,7 @@ namespace vulkan {
 	}
 
 	uint32_t VulkanRenderer::updateDynamicBufferData(VulkanDynamicBuffer* dynamicBuffer, const void* data, const uint32_t offset, const uint32_t size, const bool allBuffers, const uint32_t knownOffset) const {
-		if (dynamicBuffer == nullptr) return 0;
+		if (dynamicBuffer == nullptr) return 0u;
 		// todo: think about max count of mapped dynamic buffers
 		const uint32_t bufferOffset = dynamicBuffer->alignedSize * (knownOffset == 0xffffffff ? dynamicBuffer->getCurrentOffset() : knownOffset);
 		//dynamicBuffer->map();
@@ -1293,7 +1307,6 @@ namespace vulkan {
 
                 for (auto&& [key, pipeline] : _graphicsPipelinesCache) {
                     vkDestroyPipeline(_vulkanDevice->device, pipeline->pipeline, nullptr);
-                    delete pipeline;
                 }
 				_graphicsPipelinesCache.clear();
 

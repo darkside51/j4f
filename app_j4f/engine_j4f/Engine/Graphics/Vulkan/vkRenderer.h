@@ -19,6 +19,7 @@
 #include <cstdint>
 #include <vector>
 #include <map>
+#include <memory>
 #include <unordered_map>
 #include <atomic>
 #include <utility>
@@ -463,8 +464,8 @@ namespace vulkan {
 			return VulkanCommandBuffersArrayEx<STATE>(_vulkanDevice->device, _commandPool, waitStageMask, cmdBuffersCount, signalSemFlags, signalSempAllocator, level);
 		}
 
-		inline VulkanCommandBuffer& getRenderCommandBuffer() { return _mainRenderCommandBuffers[_currentFrame]; }
-		inline VulkanCommandBuffer& getSupportCommandBuffer() { return _mainSupportCommandBuffers[_currentFrame]; }
+		inline VulkanCommandBuffer& getRenderCommandBuffer() noexcept { return _mainRenderCommandBuffers[_currentFrame]; }
+		inline VulkanCommandBuffer& getSupportCommandBuffer() noexcept { return _mainSupportCommandBuffers[_currentFrame]; }
 
 		inline const VulkanFrameBuffer& getFrameBuffer() const noexcept { return _frameBuffers[_currentFrame]; }
 
@@ -506,22 +507,26 @@ namespace vulkan {
 			_defferedTextureToGenerate.emplace_back(t, b, baseLayer, layerCount);
 		}
 
-		inline uint32_t getWidth() const { return _width; }
-		inline uint32_t getHeight() const { return _height; }
-		inline uint64_t getWH() const { 
+		inline uint32_t getWidth() const noexcept { return _width; }
+		inline uint32_t getHeight() const noexcept { return _height; }
+		inline uint64_t getWH() const noexcept {
 			const uint64_t wh = static_cast<uint64_t>(_width) << 0 | static_cast<uint64_t>(_height) << 32;
 			return wh;
 		}
 
-		inline const VulkanTexture* getEmptyTexture() const { return _emptyTexture; }
-		inline const VulkanTexture* getEmptyTextureArray() const { return _emptyTextureArray; }
+        inline auto getSize() const noexcept {
+            return std::make_pair(_width, _height);
+        }
+
+		inline const VulkanTexture* getEmptyTexture() const noexcept { return _emptyTexture; }
+		inline const VulkanTexture* getEmptyTextureArray() const noexcept { return _emptyTextureArray; }
 
         constexpr inline const char* getName() const noexcept { return "vulkan"; }
 
 	private:
 		VkResult allocateDescriptorSetsFromGlobalPool(VkDescriptorSetAllocateInfo& allocInfo, VkDescriptorSet* set);
 		void buildDefaultMainRenderCommandBuffer();
-		void createEmtyTexture();
+		void createEmptyTexture();
 
 		struct CachedDescriptorLayouts {
 			std::vector<std::vector<uint32_t>> bindingsCharacterVec;
@@ -535,10 +540,11 @@ namespace vulkan {
 		void* _deviceCreatepNextChain = nullptr;
 
 		bool _vSync = false;
-		uint32_t _width = 0, _height = 0;
-		uint32_t _currentFrame = 0;
-		uint32_t _swapchainImagesCount = 0;
-		uint8_t _mainDepthFormatBits = 24;
+		uint32_t _width = 0u;
+        uint32_t _height = 0u;
+		uint32_t _currentFrame = 0u;
+		uint32_t _swapchainImagesCount = 0u;
+		uint8_t _mainDepthFormatBits = 24u;
 
 		VkInstance _instance = VK_NULL_HANDLE;
 		VulkanDevice* _vulkanDevice = nullptr;
@@ -546,7 +552,7 @@ namespace vulkan {
 		VkPipelineCache _pipelineCache = VK_NULL_HANDLE;
 
 		std::vector<VkDescriptorPool> _globalDescriptorPools;
-		uint32_t _currentDescriptorPool = 0xffffffff;
+		uint32_t _currentDescriptorPool = 0xffffffffu;
 		std::vector<VkDescriptorPoolSize> _descriptorPoolCustomConfig;
 
 		VkCommandPool _commandPool = VK_NULL_HANDLE;
@@ -586,7 +592,7 @@ namespace vulkan {
 				hash_value = engine::hash_combine(composite_key, stencil_key, blend_key, renderPass);
 			}
 
-			inline bool operator < (const GraphicsPipelineCacheKey& key) const {
+			inline bool operator < (const GraphicsPipelineCacheKey& key) const noexcept {
 				if (composite_key < key.composite_key) return true;
 				if (composite_key == key.composite_key) {
 					if (stencil_key < key.stencil_key) return true;
@@ -602,16 +608,16 @@ namespace vulkan {
 				return false;
 			}
 
-			inline bool operator == (const GraphicsPipelineCacheKey& key) const {
+			inline bool operator == (const GraphicsPipelineCacheKey& key) const noexcept {
 				return (composite_key == key.composite_key) && (stencil_key == key.stencil_key) && (blend_key == key.blend_key) && (renderPass == key.renderPass);
 			}
 
-			[[nodiscard]] inline size_t hash() const { return hash_value; }
+			[[nodiscard]] inline size_t hash() const noexcept { return hash_value; }
 		};
 
 		std::vector<CachedDescriptorLayouts*> _descriptorLayoutsCache;
 		//std::map<GraphicsPipelineCacheKey, VulkanPipeline*> _graphicsPipelinesCache;
-		std::unordered_map<GraphicsPipelineCacheKey, VulkanPipeline*, engine::Hasher<GraphicsPipelineCacheKey>> _graphicsPipelinesCache; // try using with engine::hash
+		std::unordered_map<GraphicsPipelineCacheKey, std::unique_ptr<VulkanPipeline>, engine::Hasher<GraphicsPipelineCacheKey>> _graphicsPipelinesCache; // try using with engine::hash
 		//// caches
 
 		// dynamic buffers
