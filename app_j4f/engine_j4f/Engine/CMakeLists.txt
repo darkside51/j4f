@@ -191,7 +191,7 @@ set(
 foreach (lib ${SPIRV_LIB_NAMES})
 		set(
 			SPIRV_LIBS ${SPIRV_LIBS}
-			general ${CMAKE_BINARY_DIR}/$<CONFIG>/SpirvLibs/${lib}.lib
+			general ${CMAKE_BINARY_DIR}/$<CONFIG>_Spirv/${lib}.lib
 		)
 endforeach()
 
@@ -306,7 +306,7 @@ endif()
 if (j4f_PLATFORM STREQUAL "WINDOWS")
 	target_include_directories(${PROJECT_NAME} PUBLIC $ENV{VULKAN_SDK}/Include)
 
-set(debug_dir_spirv ${CMAKE_BINARY_DIR}/Debug/SpirvLibs)
+set(debug_dir_spirv ${CMAKE_BINARY_DIR}/Debug_Spirv)
 if(NOT EXISTS ${debug_dir_spirv})
 	file(MAKE_DIRECTORY ${debug_dir_spirv})
 	foreach (lib ${SPIRV_LIB_NAMES})
@@ -319,7 +319,7 @@ if(NOT EXISTS ${debug_dir_spirv})
 	endforeach()
 endif()
 
-set(release_dir_spirv ${CMAKE_BINARY_DIR}/Release/SpirvLibs)
+set(release_dir_spirv ${CMAKE_BINARY_DIR}/Release_Spirv)
 if(NOT EXISTS ${release_dir_spirv})
 	file(MAKE_DIRECTORY ${release_dir_spirv})
 	foreach (lib ${SPIRV_LIB_NAMES})
