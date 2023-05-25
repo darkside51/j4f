@@ -1045,12 +1045,12 @@ namespace vulkan {
 										 static_cast<uint8_t>(rasterization.faceOrientation)	<< 4 |
 										 static_cast<uint8_t>(rasterization.discardEnable)		<< 5;								    // 6 bit
 
-
         // https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkPipelineDepthStencilStateCreateInfo.html#_members
         // depthWriteEnable controls whether depth writes are enabled when depthTestEnable is VK_TRUE.
         // Depth writes are always disabled when depthTestEnable is VK_FALSE.
         const bool depthTestEnable = depthState.depthTestEnabled || depthState.depthWriteEnabled;
-        const uint16_t depthKey = static_cast<uint16_t>(depthState.compareOp)           << 0 |
+		const VkCompareOp compareOp = depthState.depthTestEnabled ? depthState.compareOp : VkCompareOp::VK_COMPARE_OP_ALWAYS;
+        const uint16_t depthKey = static_cast<uint16_t>(compareOp)						<< 0 |
                                   static_cast<uint16_t>(depthTestEnable)                << 3 |
                                   static_cast<uint16_t>(depthState.depthWriteEnabled)   << 4;	// 5 bit							    // 16 bit
 

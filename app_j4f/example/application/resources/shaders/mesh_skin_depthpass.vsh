@@ -42,11 +42,11 @@ layout (location = 0) out vec2 out_uv;
 
 void main() {
 	out_uv = a_uv;
-
-	mat4 skin = u_ubo.skin_matrixes[int(a_joints.x)] * a_weights.x
-			 	+ u_ubo.skin_matrixes[int(a_joints.y)] * a_weights.y
-			  	+ u_ubo.skin_matrixes[int(a_joints.z)] * a_weights.z
-			  	+ u_ubo.skin_matrixes[int(a_joints.w)] * a_weights.w;
+	ivec4 joints = ivec4(a_joints);
+	mat4 skin = u_ubo.skin_matrixes[joints.x] * a_weights.x
+			 	+ u_ubo.skin_matrixes[joints.y] * a_weights.y
+			  	+ u_ubo.skin_matrixes[joints.z] * a_weights.z
+			  	+ u_ubo.skin_matrixes[joints.w] * a_weights.w;
 
 	//gl_Position = u_push_const.camera_matrix * u_push_const.model_matrix * skin * vec4(a_position, 1.0);
 	//for geometry shader if use it

@@ -47,11 +47,11 @@ out gl_PerVertex {
 
 void main() {
 	out_uv = a_uv;
-
-	mat4 skin = u_ubo.skin_matrixes[int(a_joints.x)] * a_weights.x
-			 	+ u_ubo.skin_matrixes[int(a_joints.y)] * a_weights.y
-			  	+ u_ubo.skin_matrixes[int(a_joints.z)] * a_weights.z
-			  	+ u_ubo.skin_matrixes[int(a_joints.w)] * a_weights.w;
+	ivec4 joints = ivec4(a_joints);
+	mat4 skin = u_ubo.skin_matrixes[joints.x] * a_weights.x
+			 	+ u_ubo.skin_matrixes[joints.y] * a_weights.y
+			  	+ u_ubo.skin_matrixes[joints.z] * a_weights.z
+			  	+ u_ubo.skin_matrixes[joints.w] * a_weights.w;
 
 	vec3 normal = normalize((u_push_const.model_matrix * (skin * vec4(a_normal, 0.0))).xyz);
 	vec3 tangent = normalize((u_push_const.model_matrix * (skin * vec4(a_tangent.xyz, 0.0))).xyz);
