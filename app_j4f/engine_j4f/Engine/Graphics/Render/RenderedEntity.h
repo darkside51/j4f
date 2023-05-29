@@ -7,6 +7,7 @@
 #include <string>
 #include <utility>
 #include <functional>
+#include <string_view>
 #include <unordered_map>
 
 namespace engine {
@@ -23,27 +24,34 @@ namespace engine {
 		}
 
 		template <typename T>
-		inline void setParamByName(const std::string& name, T* value, bool copyData, const uint32_t count = 1) {
+		inline void setParamByName(std::string_view name, T&& value, bool copyData, const uint32_t count = 1u) {
 			for (uint32_t i = 0; i < _renderDescriptor.renderDataCount; ++i) {
-				_renderDescriptor.renderData[i]->setParamByName(name, value, copyData, count);
+				_renderDescriptor.renderData[i]->setParamByName(name, std::forward<T>(value), copyData, count);
 			}
 		}
 
 		template <typename T>
-		inline void setParamByName(const std::string& name, T&& value, bool copyData, const uint32_t count = 1) {
+		inline void setParamForLayout(const vulkan::GPUParamLayoutInfo* info, T&& value, const bool copyData, const uint32_t count = 1u) {
 			for (uint32_t i = 0; i < _renderDescriptor.renderDataCount; ++i) {
-				_renderDescriptor.renderData[i]->setParamByName(name, &value, copyData, count);
+				_renderDescriptor.renderData[i]->setParamForLayout(info, std::forward<T>(value), copyData, count);
 			}
 		}
 
 		template <typename T>
-		inline void setParamForLayout(const vulkan::GPUParamLayoutInfo* info, T* value, const bool copyData, const uint32_t count = 1) {
+		inline void setParamByName(const size_t offset, std::string_view name, T&& value, const uint32_t count = 1u) {
 			for (uint32_t i = 0; i < _renderDescriptor.renderDataCount; ++i) {
-				_renderDescriptor.renderData[i]->setParamForLayout(info, value, copyData, count);
+				_renderDescriptor.renderData[i]->setParamByName(offset, name, std::forward<T>(value), count);
 			}
 		}
 
-		const vulkan::GPUParamLayoutInfo* getParamLayout(const std::string& name) const {
+		template <typename T>
+		inline void setParamForLayout(const size_t offset, const vulkan::GPUParamLayoutInfo* info, T&& value, const uint32_t count = 1u) {
+			for (uint32_t i = 0; i < _renderDescriptor.renderDataCount; ++i) {
+				_renderDescriptor.renderData[i]->setParamForLayout(offset, info, std::forward<T>(value), count);
+			}
+		}
+
+		const vulkan::GPUParamLayoutInfo* getParamLayout(std::string name) const {
 			return _renderDescriptor.renderData[0]->getLayout(name);
 		}
 

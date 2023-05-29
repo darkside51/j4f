@@ -5,15 +5,17 @@
 #include "vkDynamicBuffer.h"
 #include <vulkan/vulkan.h>
 
+#include "../../Core/Hash.h"
+
 #include <cstddef>
 #include <vector>
 #include <cstdint>
 #include <fstream>
 #include <unordered_map>
 #include <string>
+#include <string_view>
 
 namespace vulkan {
-
 	struct PipelineDescriptorLayout {
 		VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
 		std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
@@ -104,8 +106,7 @@ namespace vulkan {
 	};
 
 
-	class VulkanShaderModule {
-	public:
+	struct VulkanShaderModule {
 		static VulkanShaderCode loadSpirVCode(const char* pass);
 
 		VulkanShaderModule(VulkanRenderer* renderer, const ShaderStageInfo& stageInfo);
@@ -113,7 +114,6 @@ namespace vulkan {
 
 		~VulkanShaderModule();
 
-	//private:
 		void reflectShaderCode(
 			VulkanRenderer* renderer,
 			const VulkanShaderCode& code
@@ -129,6 +129,7 @@ namespace vulkan {
 	};
 
 	class VulkanGpuProgram {
+		using params_type = std::unordered_map<std::string, GPUParamLayoutInfo*, engine::String_hash, std::equal_to<>>;
 		friend class VulkanRenderer;
 	public:
 		inline static constexpr uint32_t UNDEFINED = 0xffffffff;
@@ -136,7 +137,7 @@ namespace vulkan {
 		VulkanGpuProgram(VulkanRenderer* renderer, std::vector<ShaderStageInfo>& stages);
 		~VulkanGpuProgram();
 
-		inline uint16_t getId() const { return m_id; }
+		inline uint16_t getId() const noexcept { return m_id; }
 
 //		VulkanDescriptorSet* allocateDescriptorSet(const bool add);
 //		VulkanPushConstant* allocatePushConstants(const bool add);
@@ -148,14 +149,14 @@ namespace vulkan {
 
 		inline VkPipelineLayout getPipeLineLayout() const { return m_pipelineDescriptorLayout->pipelineLayout; }
 
-		const GPUParamLayoutInfo* getGPUParamLayoutByName(const std::string& name) const {
+		const GPUParamLayoutInfo* getGPUParamLayoutByName(std::string_view name) const {
 			auto&& it = m_paramLayouts.find(name);
 			if (it != m_paramLayouts.end()) { return it->second; }
 			return nullptr;
 		}
 
 		uint32_t setValueToLayout(const GPUParamLayoutInfo* paramLayout, const void* value, VulkanPushConstant* pConstant, const uint32_t knownOffset = UNDEFINED, const uint32_t knownSize = UNDEFINED, const bool allBuffers = false);
-		uint32_t setValueByName(const std::string& name, const void* value, VulkanPushConstant* pConstant, const uint32_t knownOffset = UNDEFINED, const uint32_t knownSize = UNDEFINED, const bool allBuffers = false) {
+		uint32_t setValueByName(std::string_view name, const void* value, VulkanPushConstant* pConstant, const uint32_t knownOffset = UNDEFINED, const uint32_t knownSize = UNDEFINED, const bool allBuffers = false) {
 			if (const GPUParamLayoutInfo* paramLayout = getGPUParamLayoutByName(name)) {
 				return setValueToLayout(paramLayout, value, pConstant, knownOffset, knownSize, allBuffers);
 			}
@@ -178,7 +179,7 @@ namespace vulkan {
 
 		inline uint8_t getGPUBuffersSetsTypes() const { return m_gpuBuffersSetsTypes; } // типы буферов, 0 - статический(UNIFORM_BUFFER или STORAGE_BUFFER), 1 - динамический(UNIFORM_BUFFER_DYNAMIC или STORAGE_BUFFER_DYNAMIC)
 
-		inline const std::unordered_map<std::string, GPUParamLayoutInfo*>& getParamLayouts() const { return m_paramLayouts; }
+		inline const params_type& getParamLayouts() const { return m_paramLayouts; }
 		inline const std::vector<GPUParamLayoutInfo*>& getParamsLayoutVec() const { return m_paramLayoutsVec; }
 
 	private:
@@ -197,7 +198,7 @@ namespace vulkan {
 		std::vector<VkPipelineShaderStageCreateInfo> m_shaderStages;
 		PipelineDescriptorLayout* m_pipelineDescriptorLayout = nullptr;
 
-		std::unordered_map<std::string, GPUParamLayoutInfo*> m_paramLayouts;
+		params_type m_paramLayouts;
 		std::vector<GPUParamLayoutInfo*> m_paramLayoutsVec;
 
 		std::vector<VulkanDescriptorSet*> m_descriptorSets;

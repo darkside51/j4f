@@ -396,10 +396,11 @@ namespace engine {
 		}
 
 		// fixed gpu layout works
-		_fixedGpuLayouts.resize(3);
+		_fixedGpuLayouts.resize(4);
 		_fixedGpuLayouts[0].second = { "camera_matrix", ViewParams::Ids::CAMERA_TRANSFORM };
 		_fixedGpuLayouts[1].second = { "model_matrix" };
 		_fixedGpuLayouts[2].second = { "skin_matrixes" };
+		_fixedGpuLayouts[3].second = { "skin_matrixes_count" };
 	}
 
 	std::vector<VkVertexInputAttributeDescription> Mesh::getVertexInputAttributes() const {
@@ -539,8 +540,15 @@ namespace engine {
 			if (_fixedGpuLayouts[2].first && _skeleton->dirtySkins()) {
 				if (node.skinIndex != 0xffff) {
 					r_data->setParamForLayout(_fixedGpuLayouts[2].first, &(_skeleton->_skinsMatrices[renderFrameNum][node.skinIndex][0]), false, _skeleton->_skinsMatrices[renderFrameNum][node.skinIndex].size());
+					//r_data->setParamForLayout(0u, _fixedGpuLayouts[2].first, &(_skeleton->_skinsMatrices[renderFrameNum][node.skinIndex][0]), _skeleton->_skinsMatrices[renderFrameNum][node.skinIndex].size());
+					if (_fixedGpuLayouts[3].first) {
+						r_data->setParamForLayout(_fixedGpuLayouts[3].first, _skeleton->_skinsMatrices[renderFrameNum][node.skinIndex].size(), true);
+					}
 				} else {
 					r_data->setParamForLayout(_fixedGpuLayouts[2].first, const_cast<mat4f*>(&(engine::emptyMatrix)), false, 1);
+					if (_fixedGpuLayouts[3].first) {
+						r_data->setParamForLayout(_fixedGpuLayouts[3].first, 0, true);
+					}
 				}
 			}
 

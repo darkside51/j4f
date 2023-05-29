@@ -440,7 +440,7 @@ namespace vulkan {
 		descriptorSetLayoutBindings.resize(m_maxSetNum + 1);
 		m_pushConstantsRanges.resize(m_pushConstantsCount);
 
-		auto&& parseParamLayoutChilds = [](uint8_t &paramId, GPUParamLayoutInfo* parentInfo, std::unordered_map<std::string, GPUParamLayoutInfo*>& paramLayouts, const std::vector<VulkanUniformInfo>& childInfos, const GPUParamLayoutType type) {
+		auto&& parseParamLayoutChilds = [](uint8_t &paramId, GPUParamLayoutInfo* parentInfo, VulkanGpuProgram::params_type& paramLayouts, const std::vector<VulkanUniformInfo>& childInfos, const GPUParamLayoutType type) {
 			for (const VulkanUniformInfo& childInfo : childInfos) {
 				auto* info = new GPUParamLayoutInfo{ paramId++, parentInfo->set, childInfo.offset, childInfo.sizeInBytes, nullptr, nullptr, type, 0 };
 				info->parentLayout = parentInfo;

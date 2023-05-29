@@ -1,7 +1,8 @@
 #pragma once
 
-#include <vector>
+#include <algorithm>
 #include <cstdint>
+#include <vector>
 
 namespace engine {
 
@@ -53,12 +54,48 @@ namespace engine {
 			size = sz;
 		}
 
+		inline void setRawDataPart(void* v, const size_t sz, const size_t offset) {
+			assert(sz != 0);
+			const size_t minSize = sz + offset;
+			if (mustFreeMemory) {
+				if (size <= minSize) {
+					auto oldValue = value;
+					if (value = malloc(minSize)) {
+						memcpy(value, oldValue, size); // copy old data
+						const auto ptr = reinterpret_cast<void*>(reinterpret_cast<size_t>(value) + offset);
+						memcpy(ptr, v, sz); // copy new data
+					}
+
+					free(oldValue);
+				} else {
+					const auto ptr = reinterpret_cast<void*>(reinterpret_cast<size_t>(value) + offset);
+					if (memcmp(ptr, v, sz) != 0) {
+						memcpy(ptr, v, sz); // copy new data
+					}
+				}
+			} else {
+				if (value = malloc(minSize)) {
+					const auto ptr = reinterpret_cast<void*>(reinterpret_cast<size_t>(value) + offset);
+					memcpy(ptr, v, sz); // copy new data
+				}
+			}
+
+			mustFreeMemory = true;
+			size = std::max(sz, minSize);
+		}
+
+
 		template <typename T>
-		inline void setValue(T* v, const uint32_t count, const bool copyData) {
+		inline void setValue(T* v, const uint32_t count, const bool copyData) noexcept {
 			setRawData(v, sizeof(T) * count, copyData);
 		}
 
-		inline const void* getValue() const { return value; }
+		template <typename T>
+		inline void setValueWithOffset(T* v, const uint32_t count, const size_t offset) noexcept {
+			setRawDataPart(v, sizeof(T) * count, offset);
+		}
+
+		inline const void* getValue() const noexcept { return value; }
 	};
 
 	using GpuProgramParams = std::vector<engine::GpuProgramParam>;

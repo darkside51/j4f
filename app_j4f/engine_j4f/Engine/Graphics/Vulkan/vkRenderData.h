@@ -13,10 +13,12 @@
 #include "../../Core/Handler.h"
 #include "../Graphics.h"
 
-#include <cstdint>
 #include <algorithm>
+#include <cstdint>
 #include <map>
 #include <memory>
+#include <type_traits>
+#include <string_view>
 
 namespace vulkan {
 
@@ -137,7 +139,7 @@ namespace vulkan {
 			renderParts = parts;
 		}
 
-		[[nodiscard]] inline const GPUParamLayoutInfo* getLayout(const std::string& name) const {
+		[[nodiscard]] inline const GPUParamLayoutInfo* getLayout(std::string_view name) const {
 			return pipeline->program->getGPUParamLayoutByName(name);
 		}
 
@@ -145,7 +147,7 @@ namespace vulkan {
 			params->operator[](info->id).setRawData(value, valueSize, copyData);
 		}
 
-		inline bool setRawDataByName(const std::string& name, void* value, const bool copyData, const size_t valueSize) {
+		inline bool setRawDataByName(std::string_view name, void* value, const bool copyData, const size_t valueSize) {
 			if (auto&& layout = getLayout(name)) {
 				setRawDataForLayout(layout, value, copyData, valueSize);
 				return true;
@@ -154,28 +156,36 @@ namespace vulkan {
 		}
 
 		template <typename T>
-		inline void setParamForLayout(const GPUParamLayoutInfo* info, T* value, const bool copyData, const uint32_t count = 1) {
-			params->operator[](info->id).setValue(value, count, copyData);
+		inline void setParamForLayout(const GPUParamLayoutInfo* info, T&& value, const bool copyData, const uint32_t count = 1u) {
+			if constexpr (std::is_pointer_v<std::remove_reference_t<T>>) {
+				params->operator[](info->id).setValue(value, count, copyData);
+			} else {
+				params->operator[](info->id).setValue(&value, count, copyData);
+			}
 		}
 
 		template <typename T>
-		inline void setParamForLayout(const GPUParamLayoutInfo* info, T&& value, const bool copyData, const uint32_t count = 1) {
-			params->operator[](info->id).setValue(&value, count, copyData);
+		inline void setParamForLayout(const size_t offset, const GPUParamLayoutInfo* info, T&& value, const uint32_t count = 1u) {
+			if constexpr (std::is_pointer_v<std::remove_reference_t<T>>) {
+				params->operator[](info->id).setValueWithOffset(value, count, offset);
+			} else {
+				params->operator[](info->id).setValueWithOffset(&value, count, offset);
+			}
 		}
 
 		template <typename T>
-		inline bool setParamByName(const std::string& name, T* value, bool copyData, const uint32_t count = 1) {
+		inline bool setParamByName(std::string_view name, T&& value, bool copyData, const uint32_t count = 1u) {
 			if (auto&& layout = getLayout(name)) {
-				setParamForLayout(layout, value, copyData, count);
+				setParamForLayout(layout, std::forward<T>(value), copyData, count);
 				return true;
 			}
 			return false;
 		}
 
 		template <typename T>
-		inline bool setParamByName(const std::string& name, T&& value, bool copyData, const uint32_t count = 1) {
+		inline bool setParamByName(const size_t offset, std::string_view name, T&& value, const uint32_t count = 1u) {
 			if (auto&& layout = getLayout(name)) {
-				setParamForLayout(layout, value, copyData, count);
+				setParamForLayout(offset, layout, std::forward<T>(value), count);
 				return true;
 			}
 			return false;
