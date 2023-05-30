@@ -14,7 +14,7 @@ namespace engine {
 	class MeshAnimationTree;
 
 	struct Mesh_Node {
-		uint16_t skinIndex = 0xffff;
+		uint16_t skinIndex = 0xffffu;
 		vec3f translation;
 		vec3f scale;
 		quatf rotation;
@@ -198,14 +198,15 @@ namespace engine {
 		std::vector<linked_ptr<Task2<void>>> _animCalculationResult;
 
 		uint8_t _latency;
-		uint8_t _updateFrameNum = 0;
+		uint8_t _updateFrameNum = 0u;
 		bool _dirtySkins = true;
         bool _requestAnimUpdate = false;
 
-        std::atomic<uint8_t> _updatedFrameNum = {0};
+        std::atomic<uint8_t> _updatedFrameNum = {0u};
 	};
 
 	class Mesh : public RenderedEntity {
+        friend class MultyMesh; // class for mesh instance rendering
 	public:
 		~Mesh() override;
 
@@ -245,7 +246,7 @@ namespace engine {
 
 		Mesh_Data* _meshData = nullptr;
 
-		uint16_t _semanticMask = 0;
+		uint16_t _semanticMask = 0u;
 
 		std::shared_ptr<MeshSkeleton> _skeleton;
 		bool _modelMatrixChanged = true;

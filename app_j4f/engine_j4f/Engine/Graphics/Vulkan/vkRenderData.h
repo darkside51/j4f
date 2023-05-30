@@ -36,12 +36,12 @@ namespace vulkan {
 
 	struct RenderData {
 		struct RenderPart {
-			uint32_t firstIndex = 0;				// номер первого индекса
-			uint32_t indexCount = 0;				// количество индексов
-			uint32_t vertexCount = 0;				// количество вершин
-			uint32_t firstVertex = 0;				// номер первой вершины
-			uint32_t instanceCount = 1;				// количество инстансов
-			uint32_t firstInstance = 0;				// номер первого инстанса
+			uint32_t firstIndex = 0u;				// номер первого индекса
+			uint32_t indexCount = 0u;				// количество индексов
+			uint32_t vertexCount = 0u;				// количество вершин
+			uint32_t firstVertex = 0u;				// номер первой вершины
+			uint32_t instanceCount = 1u;				// количество инстансов
+			uint32_t firstInstance = 0u;				// номер первого инстанса
 			VkDeviceSize vbOffset = 0;				// оффсет в вершинном буфере
 			VkDeviceSize ibOffset = 0;				// оффсет в индексном буфере
 		};
@@ -56,14 +56,14 @@ namespace vulkan {
 		const VulkanBuffer* vertexes = nullptr;		// вершины
 		const VulkanBuffer* indexes = nullptr;		// индексы
 
-        size_t vertexSize = 0;
+        size_t vertexSize = 0u;
         BatchingParams* batchingParams = nullptr;
         VkIndexType indexType = VK_INDEX_TYPE_UINT32;
 
 		std::vector<VkDescriptorSet> externalDescriptorsSets;
 
 		RenderPart* renderParts = nullptr;
-		uint8_t renderPartsCount = 0;
+		uint8_t renderPartsCount = 0u;
 		bool visible = true;
 
 		RenderData() : pipeline(nullptr), renderParts(nullptr), params(std::make_shared<engine::GpuProgramParams>()) { }

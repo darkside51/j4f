@@ -45,7 +45,7 @@ namespace engine {
 		setModule<MemoryManager>();
 		setModule<CacheManager>();
 		setModule<FileManager>();
-		setModule<AssetManager>(2);
+		setModule<AssetManager>(2u);
 		setModule<Input>();
         setModule<Graphics>(config.graphicsCfg);
 		setModule<Device>();

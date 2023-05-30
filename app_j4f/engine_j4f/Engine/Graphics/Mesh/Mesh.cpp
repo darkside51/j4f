@@ -480,7 +480,7 @@ namespace engine {
 		return vertexInputAttributes;
 	}
 
-	uint32_t Mesh::sizeOfVertex() const { return _meshData ? (sizeof(float) * _meshData->vertexSize) : 0; }
+	uint32_t Mesh::sizeOfVertex() const { return _meshData ? (sizeof(float) * _meshData->vertexSize) : 0u; }
 
 	void Mesh::draw(const mat4f& cameraMatrix, const mat4f& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame) {
 		if (!_skeleton) return;

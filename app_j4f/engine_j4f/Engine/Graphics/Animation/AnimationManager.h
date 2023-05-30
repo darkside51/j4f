@@ -35,11 +35,9 @@ namespace engine {
                 _animationsTargets.erase(
                         std::remove(_animationsTargets.begin(), _animationsTargets.end(), _animationsTargets[i]),
                         _animationsTargets.end());
-                std::swap(*it, _animations.back());
-                _animations.pop_back();
-//                _animations.erase(std::remove_if(_animations.begin(), _animations.end(), [animation](const std::pair<T*, float>& p){
-//                    return p.first == animation;
-//                }), _animations.end());
+                //std::swap(*it, _animations.back());
+                //_animations.pop_back();
+                _animations.erase(std::remove(_animations.begin(), _animations.end(), *it), _animations.end());
             }
         }
 
@@ -71,7 +69,7 @@ namespace engine {
                 bool requestUpdate = anim->getNeedUpdate();
                 if (requestUpdate == false) {
                     for (auto &&target: _animationsTargets[i]) {
-                        if (requestUpdate = target->requestAnimUpdate()) {
+                        if ((requestUpdate = target->requestAnimUpdate())) {
                             break;
                         }
                     }
