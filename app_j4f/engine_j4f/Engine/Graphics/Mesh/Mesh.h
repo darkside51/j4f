@@ -206,7 +206,6 @@ namespace engine {
 	};
 
 	class Mesh : public RenderedEntity {
-        friend class MultyMesh; // class for mesh instance rendering
 	public:
 		~Mesh() override;
 

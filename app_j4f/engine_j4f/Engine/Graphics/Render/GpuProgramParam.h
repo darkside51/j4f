@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <cstdlib>
 #include <vector>
 
 namespace engine {
@@ -9,7 +10,7 @@ namespace engine {
 	struct GpuProgramParam {
 		void* value = nullptr;
 		bool mustFreeMemory = false;
-		size_t size = 0;
+		size_t size = 0u;
 
 		~GpuProgramParam() {
 			if (mustFreeMemory) {
@@ -17,12 +18,12 @@ namespace engine {
 				mustFreeMemory = false;
 			}
 
-			size = 0;
+			size = 0u;
 			value = nullptr;
 		}
 
 		inline void setRawData(void* v, const size_t sz, const bool copyData) {
-			assert(sz != 0);
+			assert(sz != 0u);
 			if (copyData) {
 				if (mustFreeMemory) {
 					if (size != sz) {
@@ -55,7 +56,7 @@ namespace engine {
 		}
 
 		inline void setRawDataPart(void* v, const size_t sz, const size_t offset) {
-			assert(sz != 0);
+			assert(sz != 0u);
 			const size_t minSize = sz + offset;
 			if (mustFreeMemory) {
 				if (size <= minSize) {
@@ -84,6 +85,19 @@ namespace engine {
 			size = std::max(sz, minSize);
 		}
 
+        inline void allocValueMemory(const size_t sz) {
+            assert(sz != 0u);
+            if (mustFreeMemory) {
+                if (size != sz) {
+                    realloc(value, sz);
+                }
+            } else {
+                value = malloc(sz);
+            }
+
+            mustFreeMemory = true;
+            size = sz;
+        }
 
 		template <typename T>
 		inline void setValue(T* v, const uint32_t count, const bool copyData) noexcept {
