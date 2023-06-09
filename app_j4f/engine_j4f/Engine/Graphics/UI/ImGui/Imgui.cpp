@@ -252,7 +252,7 @@ namespace engine {
             renderData->vertexes = &vBuffer;
             renderData->indexes = &iBuffer;
 
-            uint32_t indexBufferOffset = 0;
+            uint32_t indexBufferOffset = 0u;
             const uint32_t firstIndex = iOffset / sizeof(ImDrawIdx);
 
             for (int j = 0; j < drawList->CmdBuffer.Size; ++j) {
@@ -273,10 +273,10 @@ namespace engine {
                         indexBufferOffset							// ibOffset
                 };
 
-                renderData->setRenderParts(&renderPart, 1);
+                renderData->setRenderParts(&renderPart, 1u);
                 renderData->prepareRender();
                 renderData->render(commandBuffer, currentFrame);
-                renderData->setRenderParts(nullptr, 0);
+                renderData->setRenderParts(nullptr, 0u);
 
                 indexBufferOffset += cmd.ElemCount * sizeof(ImDrawIdx);
             }
@@ -292,42 +292,41 @@ namespace engine {
 
     void ImguiGraphics::setupKeyMap() {
         ImGuiIO& io = ImGui::GetIO();
-        io.KeyMap[ImGuiKey_LeftArrow] = static_cast<uint8_t>(KeyboardKey::K_LEFT);
-        io.KeyMap[ImGuiKey_RightArrow] = static_cast<uint8_t>(KeyboardKey::K_RIGHT);
-        io.KeyMap[ImGuiKey_UpArrow] = static_cast<uint8_t>(KeyboardKey::K_UP);
-        io.KeyMap[ImGuiKey_DownArrow] = static_cast<uint8_t>(KeyboardKey::K_DOWN);
-        io.KeyMap[ImGuiKey_Delete] = static_cast<uint8_t>(KeyboardKey::K_DELETE);
-        io.KeyMap[ImGuiKey_Backspace] = static_cast<uint8_t>(KeyboardKey::K_BACKSPACE);
-        io.KeyMap[ImGuiKey_Space] = static_cast<uint8_t>(KeyboardKey::K_SPACE);
-        io.KeyMap[ImGuiKey_Enter] = static_cast<uint8_t>(KeyboardKey::K_ENTER);
+        io.KeyMap[ImGuiKey_LeftArrow] =     static_cast<uint8_t>(KeyboardKey::K_LEFT);
+        io.KeyMap[ImGuiKey_RightArrow] =    static_cast<uint8_t>(KeyboardKey::K_RIGHT);
+        io.KeyMap[ImGuiKey_UpArrow] =       static_cast<uint8_t>(KeyboardKey::K_UP);
+        io.KeyMap[ImGuiKey_DownArrow] =     static_cast<uint8_t>(KeyboardKey::K_DOWN);
+        io.KeyMap[ImGuiKey_Delete] =        static_cast<uint8_t>(KeyboardKey::K_DELETE);
+        io.KeyMap[ImGuiKey_Backspace] =     static_cast<uint8_t>(KeyboardKey::K_BACKSPACE);
+        io.KeyMap[ImGuiKey_Space] =         static_cast<uint8_t>(KeyboardKey::K_SPACE);
+        io.KeyMap[ImGuiKey_Enter] =         static_cast<uint8_t>(KeyboardKey::K_ENTER);
 
-        _keyMap[static_cast<uint8_t>(KeyboardKey::K_BACKSPACE)] = {8, 8};
-        _keyMap[static_cast<uint8_t>(KeyboardKey::K_TAB)] = {9, 9};
-        _keyMap[static_cast<uint8_t>(KeyboardKey::K_SPACE)] = {32, 32};
-        _keyMap[static_cast<uint8_t>(KeyboardKey::K_LEFT)] = {17, 17};
-        _keyMap[static_cast<uint8_t>(KeyboardKey::K_RIGHT)] = {18, 18};
-        _keyMap[static_cast<uint8_t>(KeyboardKey::K_UP)] = {19, 19};
-        _keyMap[static_cast<uint8_t>(KeyboardKey::K_DOWN)] = {20, 20};
-        _keyMap[static_cast<uint8_t>(KeyboardKey::K_MINUS)] = {45, 95};
-        _keyMap[static_cast<uint8_t>(KeyboardKey::K_SLASH)] = {47, 47};
-        _keyMap[static_cast<uint8_t>(KeyboardKey::K_0)] = {48, 41};
-        _keyMap[static_cast<uint8_t>(KeyboardKey::K_1)] = {49, 33};
-        _keyMap[static_cast<uint8_t>(KeyboardKey::K_2)] = {50, 64};
-        _keyMap[static_cast<uint8_t>(KeyboardKey::K_3)] = {51, 35};
-        _keyMap[static_cast<uint8_t>(KeyboardKey::K_4)] = {52, 36};
-        _keyMap[static_cast<uint8_t>(KeyboardKey::K_5)] = {53, 37};
-        _keyMap[static_cast<uint8_t>(KeyboardKey::K_6)] = {54, 94};
-        _keyMap[static_cast<uint8_t>(KeyboardKey::K_7)] = {55, 38};
-        _keyMap[static_cast<uint8_t>(KeyboardKey::K_8)] = {56, 42};
-        _keyMap[static_cast<uint8_t>(KeyboardKey::K_9)] = {57, 40};
-        _keyMap[static_cast<uint8_t>(KeyboardKey::K_EQUAL)] = {61, 43};
+        _keyMap[static_cast<uint8_t>(KeyboardKey::K_BACKSPACE)] =   {8u, 8u};
+        _keyMap[static_cast<uint8_t>(KeyboardKey::K_TAB)] =         {9u, 9u};
+        _keyMap[static_cast<uint8_t>(KeyboardKey::K_SPACE)] =       {32u, 32u};
+        _keyMap[static_cast<uint8_t>(KeyboardKey::K_LEFT)] =        {17u, 17u};
+        _keyMap[static_cast<uint8_t>(KeyboardKey::K_RIGHT)] =       {18u, 18u};
+        _keyMap[static_cast<uint8_t>(KeyboardKey::K_UP)] =          {19u, 19u};
+        _keyMap[static_cast<uint8_t>(KeyboardKey::K_DOWN)] =        {20u, 20u};
+        _keyMap[static_cast<uint8_t>(KeyboardKey::K_MINUS)] =       {45u, 95u};
+        _keyMap[static_cast<uint8_t>(KeyboardKey::K_SLASH)] =       {47u, 47u};
+        _keyMap[static_cast<uint8_t>(KeyboardKey::K_0)] =           {48u, 41u};
+        _keyMap[static_cast<uint8_t>(KeyboardKey::K_1)] =           {49u, 33u};
+        _keyMap[static_cast<uint8_t>(KeyboardKey::K_2)] =           {50u, 64u};
+        _keyMap[static_cast<uint8_t>(KeyboardKey::K_3)] =           {51u, 35u};
+        _keyMap[static_cast<uint8_t>(KeyboardKey::K_4)] =           {52u, 36u};
+        _keyMap[static_cast<uint8_t>(KeyboardKey::K_5)] =           {53u, 37u};
+        _keyMap[static_cast<uint8_t>(KeyboardKey::K_6)] =           {54u, 94u};
+        _keyMap[static_cast<uint8_t>(KeyboardKey::K_7)] =           {55u, 38u};
+        _keyMap[static_cast<uint8_t>(KeyboardKey::K_8)] =           {56u, 42u};
+        _keyMap[static_cast<uint8_t>(KeyboardKey::K_9)] =           {57u, 40u};
+        _keyMap[static_cast<uint8_t>(KeyboardKey::K_EQUAL)] =       {61u, 43u};
+        _keyMap[static_cast<uint8_t>(KeyboardKey::K_DELETE)] =      {127u, 127u};
 
         for (uint8_t k = static_cast<uint8_t>(KeyboardKey::K_A); k <= static_cast<uint8_t>(KeyboardKey::K_Z); ++k) {
             uint8_t i = k - static_cast<uint8_t>(KeyboardKey::K_A);
-            _keyMap[k] = {97 + i, 65 + i};
+            _keyMap[k] = {97u + i, 65u + i};
         }
-
-        _keyMap[static_cast<uint8_t>(KeyboardKey::K_DELETE)] = {127, 127};
     }
 
     bool ImguiGraphics::onInputPointerEvent(const PointerEvent& event) {
@@ -340,15 +339,11 @@ namespace engine {
             case InputEventState::IES_RELEASE:
                 io.AddMouseButtonEvent(static_cast<int>(event.button), false);
                 break;
-            case InputEventState::IES_NONE:
-            {
-                io.MousePos = ImVec2(event.x, io.DisplaySize.y - event.y);
-            }
-                break;
             default:
                 break;
         }
 
+        io.MousePos = ImVec2(event.x, io.DisplaySize.y - event.y);
         return io.WantCaptureMouse;
     }
 
@@ -366,7 +361,7 @@ namespace engine {
         io.KeyCtrl = Engine::getInstance().getModule<Input>()->isCtrlPressed();
         io.KeysDown[static_cast<uint8_t>(event.key)] = event.state == InputEventState::IES_PRESS;
 
-        if (event.state == InputEventState::IES_PRESS) {
+        if (event.state == InputEventState::IES_PRESS || event.state == InputEventState::IES_REPEAT) {
             const auto& [key, keyWithShift] = _keyMap[static_cast<uint8_t>(event.key)];
             io.AddInputCharacter(io.KeyShift ? keyWithShift: key);
         }
