@@ -138,7 +138,8 @@ namespace engine {
 		_rotationOrder(RotationsOrder::RO_XYZ),
 		_scale(unitVec3),
 		_rotation(emptyVec3),
-		_position(emptyVec3)
+		_position(emptyVec3),
+        _padding(emptyVec2)
 	{}
 
 	Camera::Camera(const vec2f& sz) :
@@ -149,7 +150,8 @@ namespace engine {
 		_rotationOrder(RotationsOrder::RO_XYZ),
 		_scale(unitVec3),
 		_rotation(emptyVec3),
-		_position(emptyVec3)
+		_position(emptyVec3),
+        _padding(emptyVec2)
 	{}
 
 	void Camera::makeProjection(const float fov, const float aspect, const float znear, const float zfar) noexcept {

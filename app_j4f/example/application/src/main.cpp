@@ -40,6 +40,7 @@
 #include <Engine/Graphics/Render/InstanceHelper.h>
 
 #include <Engine/Utils/ImguiStatObserver.h>
+#include <Engine/Utils/ImGuiCameraInfo.h>
 #include <Engine/Graphics/UI/ImGui/Imgui.h>
 
 #include <Engine/Graphics/Animation/AnimationManager.h>
@@ -130,6 +131,7 @@ namespace engine {
 	bool cameraMatrixChanged = true;
 
     ImguiStatObserver *statObserver = nullptr;
+    ImGuiCameraInfo *cameraInfo = nullptr;
 
 	//constexpr bool renderBounds = false;
 	bool renderBounds = false;
@@ -514,6 +516,7 @@ namespace engine {
             Engine::getInstance().getModule<Input>()->addObserver(this);
 
             statObserver = new ImguiStatObserver(ImguiStatObserver::Location::top_right);
+            cameraInfo = new ImGuiCameraInfo();
         }
 
 		ApplicationCustomData() {
@@ -529,6 +532,7 @@ namespace engine {
 			log("~ApplicationCustomData");
 
             delete statObserver;
+            delete cameraInfo;
 
 			delete bitmapFont;
 
@@ -2037,6 +2041,7 @@ namespace engine {
 				if (imgui) {
 					imgui->graphics()->update(dt);
 					statObserver->draw();
+                    cameraInfo->draw(*camera, "main_camera");
 					//ImGui::ShowDemoWindow();
 				}
 
