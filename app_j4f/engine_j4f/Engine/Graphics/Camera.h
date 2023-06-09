@@ -83,16 +83,16 @@ namespace engine {
 
 	class Camera {
 		struct DirtyFlags {
-			bool transform : 1;
-			bool invTransform : 1;
-			bool invViewTransform : 1;
+			uint8_t transform;
+            uint8_t invTransform;
+            uint8_t invViewTransform;
 		};
 
 		union DirtyValue {
 			DirtyFlags flags;
-			uint8_t v = 0;
+			uint32_t v = 0u;
 
-			DirtyValue(const uint8_t value) : v(value) {}
+			DirtyValue(const uint32_t value) : v(value) {}
 
 			DirtyFlags* operator->() noexcept { return &flags; }
 			const DirtyFlags* operator->() const noexcept { return &flags; }
@@ -117,6 +117,7 @@ namespace engine {
 		inline const vec3f& getScale() const noexcept { return _scale; }
 		inline const vec3f& getRotation() const noexcept { return _rotation; }
 		inline const vec3f& getPosition() const noexcept { return _position; }
+        inline const vec2f getPadding() const noexcept { return _padding; }
 
 		inline const mat4f& getTransform() const noexcept { return _transform; }
 		inline const mat4f& getViewTransform() const noexcept { return _viewTransform; }
@@ -125,7 +126,7 @@ namespace engine {
 		inline const mat4f& getInvTransform() noexcept {
 			if (_dirty->invTransform) {
 				_invTransform = glm::inverse(_transform);
-				_dirty->invTransform = 0;
+				_dirty->invTransform = 0u;
 			}
 			return _invTransform;
 		}
@@ -133,7 +134,7 @@ namespace engine {
 		inline const mat4f& getInvViewTransform() noexcept {
 			if (_dirty->invViewTransform) {
 				_invViewTransform = glm::inverse(_viewTransform);
-				_dirty->invViewTransform = 0;
+				_dirty->invViewTransform = 0u;
 			}
 			return _invViewTransform;
 		}
@@ -141,7 +142,7 @@ namespace engine {
 		inline void setRotationOrder(const RotationsOrder ro) noexcept {
 			if (_rotationOrder != ro) {
 				_rotationOrder = ro;
-				_dirty->transform = 1;
+				_dirty->transform = 1u;
 			}
 		}
 
@@ -149,7 +150,7 @@ namespace engine {
 		inline void setScale(VEC3&& s) noexcept {
 			if (_scale != s) {
 				_scale = s;
-				_dirty->transform = 1;
+				_dirty->transform = 1u;
 			}
 		}
 
@@ -157,7 +158,7 @@ namespace engine {
 		inline void setRotation(VEC3&& r) noexcept {
 			if (_rotation != r) {
 				_rotation = r;
-				_dirty->transform = 1;
+				_dirty->transform = 1u;
 			}
 		}
 
@@ -165,9 +166,17 @@ namespace engine {
 		inline void setPosition(VEC3&& p) noexcept {
 			if (_position != p) {
 				_position = p;
-				_dirty->transform = 1;
+				_dirty->transform = 1u;
 			}
 		}
+
+        template <typename VEC2 = const vec2f&>
+        inline void setPadding(VEC2&& p)  noexcept {
+            if (_padding != p) {
+                _padding = p;
+                _dirty->transform = 1u;
+            }
+        }
 
 		template <typename VEC3 = const vec3f&>
 		inline void movePosition(VEC3&& p) noexcept {
@@ -178,7 +187,7 @@ namespace engine {
 				_position.y += move.y;
 				_position.z += move.z;
 
-				_dirty->transform = 1;
+				_dirty->transform = 1u;
 			}
 		}
 
@@ -233,6 +242,7 @@ namespace engine {
 		vec3f _scale;
 		vec3f _rotation;
 		vec3f _position;
+        vec2f _padding;
 
 		std::vector<ICameraTransformChangeObserver*> _observers;
 	};

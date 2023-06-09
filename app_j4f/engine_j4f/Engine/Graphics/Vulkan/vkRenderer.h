@@ -89,15 +89,15 @@ namespace vulkan {
 	struct VulkanPrimitiveTopology {
 		VulkanPrimitiveTopology() : topology(PrimitiveTopology::TRIANGLE_LIST), enableRestart(false) {}
 		VulkanPrimitiveTopology(const PrimitiveTopology t, const bool er) : topology(t), enableRestart(er) {}
-		PrimitiveTopology topology : 4;
-		bool enableRestart : 1;
+		PrimitiveTopology topology;
+		bool enableRestart;
 	};
 
 	struct VulkanRasterizationState {
-		PoligonMode poligonMode : 2;
-		CullMode cullMode : 2;
-		FaceOrientation faceOrientation : 1;
-		bool discardEnable : 1;
+		PoligonMode poligonMode;
+		CullMode cullMode;
+		FaceOrientation faceOrientation;
+		bool discardEnable;
 
 		explicit VulkanRasterizationState(CullMode cm, PoligonMode pm = PoligonMode::POLYGON_MODE_FILL,
                                  FaceOrientation fo = FaceOrientation::FACE_COUNTER_CLOCKWISE,
@@ -259,7 +259,7 @@ namespace vulkan {
 		}
 
 		BlendParameters _parameters;
-		uint32_t _blendMode = 0;
+		uint32_t _blendMode = 0u;
 	};
 
 	namespace CommonBlendModes {

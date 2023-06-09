@@ -610,23 +610,53 @@ namespace engine {
             }
 
 			switch (event.key) {
+                case KeyboardKey::K_R:
+                    if (event.state != InputEventState::IES_RELEASE) {
+                        auto const & p = camera->getPadding();
+                        camera->setPadding(vec2f(p.x + 1.0f, p.y));
+                    }
+                    break;
+                case KeyboardKey::K_T:
+                    if (event.state != InputEventState::IES_RELEASE) {
+                        auto const & p = camera->getPadding();
+                        camera->setPadding(vec2f(p.x - 1.0f, p.y));
+                    }
+                    break;
+                case KeyboardKey::K_F:
+                    if (event.state != InputEventState::IES_RELEASE) {
+                        auto const & p = camera->getPadding();
+                        camera->setPadding(vec2f(p.x, p.y + 1.0f));
+                    }
+                    break;
+                case KeyboardKey::K_G:
+                    if (event.state != InputEventState::IES_RELEASE) {
+                        auto const & p = camera->getPadding();
+                        camera->setPadding(vec2f(p.x, p.y - 1.0f));
+                    }
+                    break;
 				case KeyboardKey::K_E:
-					event.state == InputEventState::IES_RELEASE ? wasd.y -= 0.5f : wasd.y += 0.5f;
+					event.state == InputEventState::IES_RELEASE ? wasd.y -= 0.5f :
+                            event.state == InputEventState::IES_PRESS ? wasd.y += 0.5f : 0.0f;
 					break;
 				case KeyboardKey::K_Q:
-					event.state == InputEventState::IES_RELEASE ? wasd.y += 0.5f : wasd.y -= 0.5f;
+					event.state == InputEventState::IES_RELEASE ? wasd.y += 0.5f :
+                            event.state == InputEventState::IES_PRESS ? wasd.y -= 0.5f : 0.0f;
 					break;
 				case KeyboardKey::K_W:
-					event.state == InputEventState::IES_RELEASE ? wasd.z -= 1.0f : wasd.z += 1.0f;
+					event.state == InputEventState::IES_RELEASE ? wasd.z -= 1.0f :
+                            event.state == InputEventState::IES_PRESS ? wasd.z += 1.0f : 0.0f;
 					break;
 				case KeyboardKey::K_S:
-					event.state == InputEventState::IES_RELEASE ? wasd.z += 1.0f : wasd.z -= 1.0f;
+					event.state == InputEventState::IES_RELEASE ? wasd.z += 1.0f :
+                            event.state == InputEventState::IES_PRESS ? wasd.z -= 1.0f : 0.0f;
 					break;
 				case KeyboardKey::K_A:
-					event.state == InputEventState::IES_RELEASE ? wasd.x += 1.0f : wasd.x -= 1.0f;
+					event.state == InputEventState::IES_RELEASE ? wasd.x += 1.0f :
+                            event.state == InputEventState::IES_PRESS ? wasd.x -= 1.0f : 0.0f;
 					break;
 				case KeyboardKey::K_D:
-					event.state == InputEventState::IES_RELEASE ? wasd.x -= 1.0f : wasd.x += 1.0f;
+					event.state == InputEventState::IES_RELEASE ? wasd.x -= 1.0f :
+                            event.state == InputEventState::IES_PRESS ? wasd.x += 1.0f: 0.0f;
 					break;
 				case KeyboardKey::K_ESCAPE:
 					if (event.state != InputEventState::IES_RELEASE) break;

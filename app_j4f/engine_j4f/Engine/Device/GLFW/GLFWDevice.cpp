@@ -201,6 +201,9 @@ namespace engine {
 				}
 				Engine::getInstance().getModule<Input>()->onKeyEvent(KeyEvent(k, InputEventState::IES_RELEASE));
 				break;
+            case GLFW_REPEAT:
+                Engine::getInstance().getModule<Input>()->onKeyEvent(KeyEvent(k, InputEventState::IES_REPEAT));
+                break;
 			default:
 				break;
 		}

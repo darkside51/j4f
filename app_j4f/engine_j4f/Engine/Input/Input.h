@@ -11,7 +11,8 @@ namespace engine {
 	enum class InputEventState : uint8_t {
 		IES_NONE = 0,
 		IES_PRESS = 1,
-		IES_RELEASE = 2
+		IES_RELEASE = 2,
+        IES_REPEAT = 3
 	};
 
 	enum class PointerButton : uint8_t {

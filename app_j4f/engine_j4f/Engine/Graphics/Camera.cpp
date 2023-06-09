@@ -132,7 +132,7 @@ namespace engine {
 
 	Camera::Camera(const uint32_t w, const uint32_t h) :
 		_projectionType(ProjectionType::PERSPECTIVE),
-		_dirty(0),
+		_dirty(0u),
 		_size(w, h),
 		_frustum(nullptr),
 		_rotationOrder(RotationsOrder::RO_XYZ),
@@ -143,7 +143,7 @@ namespace engine {
 
 	Camera::Camera(const vec2f& sz) :
 		_projectionType(ProjectionType::PERSPECTIVE),
-		_dirty(0),
+		_dirty(0u),
 		_size(sz),
 		_frustum(nullptr),
 		_rotationOrder(RotationsOrder::RO_XYZ),
@@ -157,7 +157,7 @@ namespace engine {
 		_projectionTransform = glm::perspective(fov, aspect, znear, zfar);
 		_projectionTransform[1][1] *= -1.0f;
 		_near_far = vec2f(znear, zfar);
-		_dirty->transform = 1;
+		_dirty->transform = 1u;
 
 		/* // parameters calculation variant(считает кажется правильно, но точности не хватает немного)
 		auto fov2 = 2.0f * atanf(1.0f / _projectionTransform[1][1]);
@@ -172,7 +172,7 @@ namespace engine {
 		_projectionTransform[3][2] = 0.0f; // для большей точности в буфере глубины
 		_projectionTransform[1][1] *= -1.0f;
 		_near_far = vec2f(znear, zfar);
-		_dirty->transform = 1;
+		_dirty->transform = 1u;
 	}
 
 	void Camera::resize(const float w, const float h) noexcept {
@@ -194,11 +194,11 @@ namespace engine {
 
 		_size.x = w;
 		_size.y = h;
-		_dirty->transform = 1;
+		_dirty->transform = 1u;
 	}
 
 	bool Camera::calculateTransform() noexcept {
-		if (_dirty->transform == 0) return false;
+		if (_dirty->transform == 0u) return false;
 
 		_viewTransform = mat4f(1.0f);
 		
@@ -215,10 +215,15 @@ namespace engine {
 			translateMatrix(_viewTransform, -_position);
 		}
 
+        if (_padding != emptyVec2) {
+            _viewTransform[3][0] += _padding.x;
+            _viewTransform[3][1] += _padding.y;
+        }
+
 		_transform = _projectionTransform * _viewTransform;
-		_dirty->transform = 0;
-		_dirty->invTransform = 1;
-		_dirty->invViewTransform = 1;
+		_dirty->transform = 0u;
+		_dirty->invTransform = 1u;
+		_dirty->invViewTransform = 1u;
 
 		if (_frustum) {
 			_frustum->calculate(_transform);

@@ -49,6 +49,7 @@ namespace engine {
 
     inline static const mat4f emptyMatrix   = mat4f(1.0f);
     inline static const quatf emptyQuat     = quatf(0.0f, 0.0f, 0.0f, 0.0f);
+    inline static const vec2f emptyVec2     = vec2f(0.0f, 0.0f);
     inline static const vec3f emptyVec3     = vec3f(0.0f, 0.0f, 0.0f);
     inline static const vec3f unitVec3      = vec3f(1.0f, 1.0f, 1.0f);
 
