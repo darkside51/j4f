@@ -975,6 +975,10 @@ namespace vulkan {
 	void VulkanRenderer::endFrame() {
 		_mainSupportCommandBuffers[_currentFrame].end();
 
+        for (auto&& [size, buffer] : _dinamicGPUBuffers) {
+            buffer->unmap(_currentFrame);
+        }
+
 		uint32_t aciquireImageIndex = 0u;
 		const VkResult result = _swapChain.acquireNextImage(_presentCompleteSemaphores[_currentFrame].semaphore, &aciquireImageIndex);
 		if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) { // acquire failed - skip this frame to present
@@ -1234,7 +1238,6 @@ namespace vulkan {
 
 		auto it = _dinamicGPUBuffers.find(size);
 		if (it != _dinamicGPUBuffers.end()) {
-            it->second->map();
 			return it->second;
 		}
 
@@ -1251,7 +1254,7 @@ namespace vulkan {
 			);
 		}
 
-		newDynamicBuffer->map();
+		//newDynamicBuffer->map();
 
 		_dinamicGPUBuffers.emplace(size, newDynamicBuffer);
 		return newDynamicBuffer;
