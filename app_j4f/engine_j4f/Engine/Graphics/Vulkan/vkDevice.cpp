@@ -237,7 +237,9 @@ namespace vulkan {
 		vkAllocateCommandBuffers(device, &cmdBufAllocateInfo, pCommandBuffers);
 	}
 
-	VkResult VulkanDevice::createBuffer(const VkSharingMode sharingMode, const VkBufferUsageFlags usageFlags, const VkMemoryPropertyFlags memoryPropertyFlags, const VkDeviceSize size, VkBuffer* buffer, VkDeviceMemory* memory, void* data) const {
+	VkResult VulkanDevice::createBuffer(const VkSharingMode sharingMode, const VkBufferUsageFlags usageFlags,
+                                        const VkMemoryPropertyFlags memoryPropertyFlags, const VkDeviceSize size,
+                                        VkBuffer* buffer, VkDeviceMemory* memory, void* data) const {
 		// create the buffer handle
 		VkBufferCreateInfo bufferCreateInfo;
 		bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -292,7 +294,9 @@ namespace vulkan {
 		return VkResult::VK_SUCCESS;
 	}
 
-	void VulkanDevice::createBuffer(const VkSharingMode sharingMode, const VkBufferUsageFlags usageFlags, const VkMemoryPropertyFlags memoryPropertyFlags, VulkanBuffer* buffer, const VkDeviceSize size) const {
+	void VulkanDevice::createBuffer(const VkSharingMode sharingMode, const VkBufferUsageFlags usageFlags,
+                                    const VkMemoryPropertyFlags memoryPropertyFlags, VulkanBuffer* buffer,
+                                    const VkDeviceSize size) const {
 		VkBufferCreateInfo bufferCreateInfo;
 		bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 		bufferCreateInfo.sharingMode = sharingMode;
@@ -335,7 +339,9 @@ namespace vulkan {
 		vkBindBufferMemory(device, buffer->m_buffer, buffer->m_memory, 0);
 	}
 
-	void VulkanDevice::createBuffer(const VkSharingMode sharingMode, const VkBufferUsageFlags usageFlags, const VkMemoryPropertyFlags memoryPropertyFlags, VulkanDeviceBuffer* buffer, const VkDeviceSize size0, const VkDeviceSize size1) const {
+	void VulkanDevice::createBuffer(const VkSharingMode sharingMode, const VkBufferUsageFlags usageFlags,
+                                    const VkMemoryPropertyFlags memoryPropertyFlags, VulkanDeviceBuffer* buffer,
+                                    const VkDeviceSize size0, const VkDeviceSize size1) const {
 		createBuffer(
 			sharingMode,
 			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
@@ -354,6 +360,9 @@ namespace vulkan {
 	}
 
 	VkQueue VulkanDevice::getQueue(const GPUQueueFamily gpuQueue, const uint32_t idx) const {
+        auto const queueCount = getQueueFamilyCount(static_cast<VkQueueFlagBits>(1u << static_cast<uint8_t>(gpuQueue)));
+        assert(idx < queueCount);
+
 		VkQueue queue;
 		switch (gpuQueue) {
 		case GPUQueueFamily::F_GRAPHICS:
@@ -374,9 +383,9 @@ namespace vulkan {
 	}
 
 	VkQueue VulkanDevice::getPresentQueue() const {
-		if (queueFamilyIndices.present == queueFamilyIndices.graphics) {
+		if (queueFamilyIndices.present != 0xffffffffu) {
 			VkQueue queue;
-			vkGetDeviceQueue(device, queueFamilyIndices.graphics, 0, &queue);
+			vkGetDeviceQueue(device, queueFamilyIndices.graphics, 0u, &queue);
 			return queue;
 		}
 

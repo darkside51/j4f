@@ -45,12 +45,12 @@ namespace vulkan {
 				}
 			}
 		}
+
+        const bool isPresentSupport = _vkDevice->checkPresentSupport(surface);
+        assert(isPresentSupport);
 	}
 
 	void VulkanSwapChain::resize(const uint32_t width, const uint32_t height, const bool vsync) {
-		const bool isPresentSupport = _vkDevice->checkPresentSupport(surface);
-		assert(isPresentSupport);
-
 		// store the old swapchain
 		VkSwapchainKHR oldSwapchain = swapChain;
 

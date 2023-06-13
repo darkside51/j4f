@@ -13,16 +13,16 @@
 namespace vulkan {
 
 	struct GPUQueueFamilyIndices {
-		uint32_t graphics;
-		uint32_t compute;
-		uint32_t transfer;
-		uint32_t present;
+		uint32_t graphics = 0xffffffffu;
+		uint32_t compute = 0xffffffffu;
+		uint32_t transfer = 0xffffffffu;
+		uint32_t present = 0xffffffffu;
 	};
 
 	enum class GPUQueueFamily : uint8_t {
-		F_GRAPHICS = 0,
-		F_COMPUTE = 1,
-		F_TRANSFER = 2
+		F_GRAPHICS = 0u,
+		F_COMPUTE = 1u,
+		F_TRANSFER = 2u
 	};
 
 	class VulkanDevice {
@@ -179,7 +179,7 @@ namespace vulkan {
 																			createCommandPool(queueFamilyIndices.compute) : cmdPools[static_cast<uint8_t>(GPUQueueFamily::F_GRAPHICS)]);
 
 			cmdPools[static_cast<uint8_t>(GPUQueueFamily::F_TRANSFER)] = ((queueFamilyIndices.transfer != queueFamilyIndices.graphics) ?
-				((queueFamilyIndices.transfer != queueFamilyIndices.compute) ? createCommandPool(queueFamilyIndices.transfer) : cmdPools[static_cast<uint8_t>(GPUQueueFamily::F_COMPUTE)]) : 
+				((queueFamilyIndices.transfer != queueFamilyIndices.compute) ? createCommandPool(queueFamilyIndices.transfer) : cmdPools[static_cast<uint8_t>(GPUQueueFamily::F_COMPUTE)]) :
 					cmdPools[static_cast<uint8_t>(GPUQueueFamily::F_GRAPHICS)]);
 			
 		}

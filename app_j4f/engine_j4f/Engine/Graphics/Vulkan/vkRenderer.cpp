@@ -225,8 +225,12 @@ namespace vulkan {
 		_commandPool = _vulkanDevice->getCommandPool(vulkan::GPUQueueFamily::F_GRAPHICS);
 
 		// createCommandBuffers
-		_mainRenderCommandBuffers = VulkanCommandBuffersArray(_vulkanDevice->device, _commandPool, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, _swapchainImagesCount);
-		_mainSupportCommandBuffers = VulkanCommandBuffersArray(_vulkanDevice->device, _commandPool, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, _swapchainImagesCount);
+		_mainRenderCommandBuffers = VulkanCommandBuffersArray(_vulkanDevice->device, _commandPool,
+                                                              VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                                                              _swapchainImagesCount);
+		_mainSupportCommandBuffers = VulkanCommandBuffersArray(_vulkanDevice->device, _commandPool,
+                                                               VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                                                               _swapchainImagesCount);
 
 		// create synchronization objects
 		// create a semaphore used to synchronize image presentation
@@ -248,7 +252,9 @@ namespace vulkan {
 		_mainDepthFormat = _vulkanDevice->getSupportedDepthFormat(_mainDepthFormatBits);
 
 		// setupDepthStencil
-		_depthStencil = vulkan::VulkanImage(_vulkanDevice, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_IMAGE_TYPE_2D, _mainDepthFormat, 1, _width, _height);
+		_depthStencil = vulkan::VulkanImage(_vulkanDevice, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+                                            VK_IMAGE_TYPE_2D, _mainDepthFormat,
+                                            1, _width, _height);
 		_depthStencil.createImageView();
 
 		// createPipelineCache
@@ -889,8 +895,12 @@ namespace vulkan {
 			}
 
 			// createCommandBuffers
-			_mainRenderCommandBuffers = VulkanCommandBuffersArray(_vulkanDevice->device, _commandPool, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, _swapchainImagesCount);
-			_mainSupportCommandBuffers = VulkanCommandBuffersArray(_vulkanDevice->device, _commandPool, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, _swapchainImagesCount);
+			_mainRenderCommandBuffers = VulkanCommandBuffersArray(_vulkanDevice->device, _commandPool,
+                                                                  VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                                                                  _swapchainImagesCount);
+			_mainSupportCommandBuffers = VulkanCommandBuffersArray(_vulkanDevice->device, _commandPool,
+                                                                   VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                                                                   _swapchainImagesCount);
 
 			_presentCompleteSemaphores.reserve(_swapchainImagesCount);
 			for (size_t i = 0; i < _swapchainImagesCount; ++i) {
@@ -926,6 +936,7 @@ namespace vulkan {
 		if (_mainSupportCommandBuffers[_currentFrame].begin() == VK_SUCCESS) {
             for (auto&& [size, buffer] : _dinamicGPUBuffers) {
                 buffer->resetOffset();
+                buffer->unmap();
             }
 
 			// clear tmp frame data
@@ -977,10 +988,10 @@ namespace vulkan {
 			return;
 		}
 
-		VkSubmitInfo submitInfos[2];
-
-		submitInfos[0] = _mainSupportCommandBuffers.prepareToSubmit(_currentFrame);
-		submitInfos[1] = _mainRenderCommandBuffers.prepareToSubmit(_currentFrame);
+		const VkSubmitInfo submitInfos[2] = {
+        _mainSupportCommandBuffers.prepareToSubmit(_currentFrame),
+        _mainRenderCommandBuffers.prepareToSubmit(_currentFrame)
+        };
 
         const VkResult queueResult = vkQueueSubmit(_mainQueue, 2, &submitInfos[0], _waitFences[_currentFrame].fence);
 
@@ -1223,6 +1234,7 @@ namespace vulkan {
 
 		auto it = _dinamicGPUBuffers.find(size);
 		if (it != _dinamicGPUBuffers.end()) {
+            it->second->map();
 			return it->second;
 		}
 
@@ -1251,10 +1263,12 @@ namespace vulkan {
 		const uint32_t bufferOffset = dynamicBuffer->alignedSize * (knownOffset == 0xffffffff ? dynamicBuffer->getCurrentOffset() : knownOffset);
 		//dynamicBuffer->map();
 		if (allBuffers) {
+            dynamicBuffer->map();
             for (auto&& memory : dynamicBuffer->memory) {
                 memcpy(reinterpret_cast<void*>(reinterpret_cast<size_t>(memory) + bufferOffset + offset), data, size);
             }
 		} else {
+            dynamicBuffer->map(_currentFrame);
 			memcpy(reinterpret_cast<void*>(reinterpret_cast<size_t>(dynamicBuffer->memory[_currentFrame]) + bufferOffset + offset), data, size);
 		}
 		//dynamicBuffer->unmap();
