@@ -81,7 +81,7 @@ namespace engine {
 			return _specialPipelines[static_cast<uint8_t>(p)];
 		}
 
-		CascadeShadowMap(const uint16_t dim, const uint8_t count, const vec2f& nearFar, const float minZ, const float maxZ);
+		CascadeShadowMap(const uint16_t dim, const uint8_t textureBits, const uint8_t count, const vec2f& nearFar, const float minZ, const float maxZ);
 
 		~CascadeShadowMap();
 
@@ -167,6 +167,7 @@ namespace engine {
 		ShadowMapTechnique _technique;
 		uint32_t _cascadesCount;
 		uint16_t _dimension;
+		uint8_t _targetBits;
 		float _cascadeSplitLambda = 1.0f;
 		float _frustumRadiusLambda = 1.0f;
 		float _cascadeLigthLambda = 1.0f;

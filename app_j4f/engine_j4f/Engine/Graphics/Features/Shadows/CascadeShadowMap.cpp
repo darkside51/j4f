@@ -110,17 +110,18 @@ namespace engine {
 		}
 	}
 
-	CascadeShadowMap::CascadeShadowMap(const uint16_t dim, const uint8_t count, const vec2f& nearFar, const float minZ, const float maxZ) :
+	CascadeShadowMap::CascadeShadowMap(const uint16_t dim, const uint8_t textureBits, const uint8_t count, const vec2f& nearFar, const float minZ, const float maxZ) :
 		_dimension(dim),
+		_targetBits(textureBits),
 		_cascadesCount(count),
 		_cascadeSplits(count),
-		_splitDepths(4),
+		_splitDepths(count),
 		_cascadeViewProjects(count),
 		_cascadeFrustums(count)
 	{
 		if (Engine::getInstance().getModule<Graphics>()->getRenderer()->getDevice()->enabledFeatures.geometryShader) {
 			_technique = ShadowMapTechnique::SMT_GEOMETRY_SH;
-			_cascades.resize(1);
+			_cascades.resize(1u);
 		} else {
 			_technique = ShadowMapTechnique::SMT_DEFAULT;
 			_cascades.resize(count);
@@ -149,7 +150,7 @@ namespace engine {
 		_shadowClearValues.depthStencil = { 1.0f, 0 };
 
 		auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
-		const auto depthFormat = renderer->getDevice()->getSupportedDepthFormat(16);
+		const auto depthFormat = renderer->getDevice()->getSupportedDepthFormat(_targetBits);
 
 		// create render pass
 		std::vector<VkAttachmentDescription> attachments(1);
@@ -206,11 +207,12 @@ namespace engine {
 		auto depthSampler = renderer->getSampler(
 			VK_FILTER_LINEAR,
 			VK_FILTER_LINEAR,
-			VK_SAMPLER_MIPMAP_MODE_LINEAR,
+			VK_SAMPLER_MIPMAP_MODE_NEAREST,
 			VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER, // VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE?
 			VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER, // VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE?
 			VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER, // VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE?
-			VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE
+			VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE,
+			VK_COMPARE_OP_LESS						// to enable sampler2DShadow and sampler2DArrayShadow works
 		);
 
 		////// depthImageDescriptorSet

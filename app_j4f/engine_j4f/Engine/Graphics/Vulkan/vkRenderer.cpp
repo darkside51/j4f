@@ -351,9 +351,10 @@ namespace vulkan {
 		const VkSamplerAddressMode addressModeU,
 		const VkSamplerAddressMode addressModeV,
 		const VkSamplerAddressMode addressModeW,
-		const VkBorderColor borderColor
+		const VkBorderColor borderColor,
+		const VkCompareOp compareOp
 	) {
-		uint16_t samplerDescription = 0u;
+		uint32_t samplerDescription = 0u;
 		// filtration
 		samplerDescription |= minFilter << 0; // 1 bit
 		samplerDescription |= magFilter << 1; // 1 bit
@@ -363,6 +364,9 @@ namespace vulkan {
 		samplerDescription |= addressModeV << 6; // 3 bits
 		samplerDescription |= addressModeW << 9; // 3 bits
 		samplerDescription |= borderColor << 12; // 3 bits
+
+		const uint32_t cmpOp = (compareOp == VK_COMPARE_OP_MAX_ENUM) ? 8u : static_cast<uint32_t>(compareOp); 
+		samplerDescription |= cmpOp << 15; // 4 bits
 
 		auto it = _samplers.find(samplerDescription);
 		if (it != _samplers.end()) {
@@ -374,8 +378,15 @@ namespace vulkan {
 		samplerInfo.pNext = nullptr;
 		samplerInfo.mipLodBias = 0.0f;
 		samplerInfo.unnormalizedCoordinates = VK_FALSE;
-		samplerInfo.compareEnable = VK_FALSE;
-		samplerInfo.compareOp = VK_COMPARE_OP_NEVER;
+		
+		if (compareOp == VK_COMPARE_OP_MAX_ENUM) {
+			samplerInfo.compareEnable = VK_FALSE;
+			samplerInfo.compareOp = VK_COMPARE_OP_NEVER;
+		} else {
+			samplerInfo.compareEnable = VK_TRUE;
+			samplerInfo.compareOp = compareOp;
+		}
+
 		samplerInfo.minLod = 0.0f;
 		samplerInfo.maxLod = VK_REMAINING_MIP_LEVELS;
 		samplerInfo.anisotropyEnable = VK_FALSE;

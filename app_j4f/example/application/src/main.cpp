@@ -122,8 +122,8 @@ namespace engine {
 
 	vec4f lightColor(1.0f, 1.0f, 1.0f, 1.0f);
 	//vec2f lightMinMax(0.075f, 3.0f);
-	vec2f lightMinMax(0.5f, 1.0f);
-	const float saturation = 1.2f;
+	vec2f lightMinMax(0.65f, 1.0f);
+	const float saturation = 1.0f;
 
 	H_Node* rootNode;
 	H_Node* uiNode;
@@ -725,7 +725,7 @@ namespace engine {
 
 			//////////////////////////////////
 			const vec2f nearFar(1.0f, 5500.0f);
-			shadowMap = new CascadeShadowMap(SHADOWMAP_DIM, SHADOW_MAP_CASCADE_COUNT, nearFar, 250.0f, 2500.0f);
+			shadowMap = new CascadeShadowMap(SHADOWMAP_DIM, 32u, SHADOW_MAP_CASCADE_COUNT, nearFar, 250.0f, 2500.0f);
 			shadowMap->setLamdas(1.0f, 1.0f, 1.0f);
 			shadowMap->setLightPosition(lightPos);
 		}
@@ -1435,6 +1435,7 @@ namespace engine {
 
 			planeTest = new NodeRenderer<Plane>();
 			planeUpdateSystem.registerObject(planeTest);
+
 			{
 				mat4f wtr(1.0f);
 				//scaleMatrix(wtr, vec3f(1.0f));

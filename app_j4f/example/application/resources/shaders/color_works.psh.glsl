@@ -1,19 +1,23 @@
 float textureProj(vec4 shCoord, vec2 offset, uint cascade, float minLight) {
-	float d = step(-0.0, shCoord.z) * step(shCoord.z, 1.0);
-	if (d > 0.0) {
-		float dist = texture(u_shadow_map, vec3(shCoord.xy + offset, cascade)).r;
-		float bias = 0.001;
-		float depth = shCoord.z - bias;
-		return mix(1.0, minLight, step(dist, depth));
-	}
-	return 1.0;
+	//float dist = texture(u_shadow_map, vec3(shCoord.xy + offset, cascade)).r; // for sampler2DArray u_shadow_map;
+		
+	//float bias = 0.001;
+	float bias = 0.0025;
+	float depth = shCoord.z - bias;
+	//return mix(1.0, minLight, step(dist, depth));
+
+	float dist = 1.0 - texture(u_shadow_map, vec4(shCoord.xy + offset, cascade, depth)).r; // for sampler2DArrayShadow u_shadow_map;
+	return mix(1.0, minLight, dist);
 }
 
 float filterPCF(vec4 sc, uint cascade, float minLight) {
+	//float d = step(-0.0, sc.z) * step(sc.z, 1.0);
+	//if (d <= 0.0) { return 1.0; }
+
 	ivec2 texDim = textureSize(u_shadow_map, 0).xy;
-	float scale = 0.7;
-	float dx = scale * 1.0 / float(texDim.x);
-	float dy = scale * 1.0 / float(texDim.y);
+	float scale = 1.0;
+	float dx = scale / float(texDim.x);
+	float dy = scale / float(texDim.y);
 
 	float shadowFactor = 0.0;
 	int count = 0;

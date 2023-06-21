@@ -30,7 +30,7 @@ layout (set = 3, binding = 0) uniform UBO {
 	vec4 color;
 } u_ubo;
 
-layout (set = 1, binding = 0) uniform sampler2DArray u_shadow_map;
+layout (set = 1, binding = 0) uniform sampler2DArrayShadow u_shadow_map;
 layout (set = 4, binding = 0) uniform sampler2DArray u_texture;
 
 #import color_works.psh.glsl
