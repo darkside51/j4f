@@ -7,6 +7,9 @@
 #include "../Vulkan/vkTexture.h"
 #include "../../Utils/Debug/Profiler.h"
 
+//
+#include "TextureCache.h"
+
 namespace engine {
 
 	void TextureLoader::addCallback(vulkan::VulkanTexture* t, const TextureLoadingCallback& c) {
@@ -120,6 +123,10 @@ namespace engine {
 
 			if (callback) { callback(texture, AssetLoadingResult::LOADING_SUCCESS); }
 		}
+
+//        auto&& cache = engine.getModule<CacheManager>()->getCache<TextureCache>();
+//        TexturePtr tptr = make_linked<TextureHandler>(std::move(*texture));
+//        cache->setValue("test_texture", std::move(tptr), {true});
 
 		return texture;
 	}

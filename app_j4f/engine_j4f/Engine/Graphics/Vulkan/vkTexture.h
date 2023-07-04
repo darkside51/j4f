@@ -35,6 +35,7 @@ namespace vulkan {
             _renderer(t._renderer),
             _width(t._width),
             _height(t._height),
+            _depth(t._depth),
             _img(t._img),
             _sampler(std::move(t._sampler)),
             _descriptor(t._descriptor),
@@ -53,6 +54,7 @@ namespace vulkan {
             _renderer = t._renderer;
             _width = t._width;
             _height = t._height;
+            _depth = t._depth;
             _img = t._img;
             _sampler = std::move(t._sampler);
             _descriptor = t._descriptor;

@@ -22,9 +22,10 @@ namespace engine {
 
 	template <typename K, typename V>
 	class Cache final : public ICache {
-		using key_type = K;
-		using value_type = V;
 	public:
+        using key_type = K;
+        using value_type = V;
+
         Cache() = default;
 		~Cache() override = default;
 
@@ -93,6 +94,19 @@ namespace engine {
                 }).get());
 			}
 		}
+
+        template<typename T>
+        inline T* getCache() {
+            using key_type = T::key_type;
+            using value_type = T::value_type;
+
+            const uint16_t key = getUniqueIdTypes<key_type, value_type>();
+            if (auto&& cache = _caches.getValue(key)) {
+                return static_cast<T*>(cache.get());
+            }
+
+            return nullptr;
+        }
 
 		template<typename V, typename K = std::string>
 		inline void store(K&& key, const V& v) {

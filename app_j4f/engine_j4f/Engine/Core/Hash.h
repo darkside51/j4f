@@ -116,6 +116,18 @@ namespace engine {
 		inline std::size_t operator()(const uint64_t&& k) const noexcept { return k; }
 	};
 
+    // for heterogenious search
+    template<>
+    struct Hasher<std::string> {
+        using hash_type = std::hash<std::string_view>;
+        using is_transparent = void;
+
+        std::size_t operator()(const char* str) const { return hash_type{}(str); }
+        std::size_t operator()(std::string_view str) const { return hash_type{}(str); }
+        std::size_t operator()(std::string const& str) const { return hash_type{}(str); }
+    };
+
+    // for heterogenious search
 	struct String_hash {
 		using hash_type = std::hash<std::string_view>;
 		using is_transparent = void;

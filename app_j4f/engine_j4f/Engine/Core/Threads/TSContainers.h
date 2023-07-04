@@ -39,7 +39,7 @@ namespace engine {
 			if constexpr (std::is_pointer_v<V> || is_smart_pointer_v<V>) {
 				return (const V&)(m_null_pointer); // c - style cast, how convert this with c++ cast?
 			} else {
-				static const V empty(0);
+				static const V empty;
 				return empty;
 			}
 		}
@@ -48,8 +48,8 @@ namespace engine {
 		const V& setValue(KEY&& key, VAL&& val) {
 			AtomicLock lock(_writer);
 			_readers.waitForEmpty();
-			_map[key] = val;
-			return _map[key];
+            auto && [iterator, result] = _map.emplace(std::move(key), std::move(val));
+			return iterator->second;
 		}
 
 		template <typename KEY = K, typename VAL = V>
@@ -62,8 +62,8 @@ namespace engine {
 			}
 
 			_readers.waitForEmpty();
-			_map[key] = val;
-			return _map[key];
+            auto && [iterator, result] = _map.emplace(std::move(key), std::move(val));
+			return iterator->second;
 		}
 
 		template <typename KEY = K, typename F, typename ...Args>
@@ -76,8 +76,8 @@ namespace engine {
 			}
 
 			_readers.waitForEmpty();
-			_map[key] = f(std::forward<Args>(args)...);
-			return _map[key];
+            auto && [iterator, result] = _map.emplace(std::move(key), f(std::forward<Args>(args)...));
+			return iterator->second;
 		}
 
 		template <typename KEY = K, typename FC, typename F, typename ...Args>
@@ -91,9 +91,9 @@ namespace engine {
 			}
 
 			_readers.waitForEmpty();
-			_map[key] = f(std::forward<Args>(args)...);
-			callback(_map[key]);
-			return _map[key];
+            auto && [iterator, result] = _map.emplace(std::move(key), f(std::forward<Args>(args)...));
+			callback(iterator->second);
+			return iterator->second;
 		}
 
 		template <typename KEY = K>

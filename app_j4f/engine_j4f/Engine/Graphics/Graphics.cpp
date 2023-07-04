@@ -12,6 +12,7 @@
 #include "Render/RenderHelper.h"
 #include "Features/Shadows/CascadeShadowMap.h"
 #include "Animation/AnimationManager.h"
+#include "Texture/TextureCache.h"
 
 #include <cstdint>
 
@@ -80,6 +81,12 @@ namespace engine {
     }
 
     void Graphics::createLoaders() {
+        // create texture cache
+        Engine::getInstance().getModule<CacheManager>()
+                ->emplaceCache<TextureCache::value_type, TextureCache::key_type>(
+                        std::make_unique<TextureCache>()
+                                );
+
         Engine::getInstance().getModule<AssetManager>()->setLoader<TextureLoader>();
         Engine::getInstance().getModule<AssetManager>()->setLoader<MeshLoader>();
         Engine::getInstance().getModule<AssetManager>()->setLoader<FontLoader>();
