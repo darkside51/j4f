@@ -2,6 +2,7 @@
 
 #include "Common.h"
 #include "EngineModule.h"
+#include "Linked_ptr.h"
 #include "Threads/ThreadPool.h"
 #include "Threads/ThreadPool2.h"
 
@@ -24,6 +25,11 @@ namespace engine {
 			using type = T;
 		};
 
+        template<typename T>
+        struct remove_shared_pointer<linked_ptr<T>> {
+            using type = T;
+        };
+
 		template <typename T>
 		using raw_type_name = typename std::remove_pointer<typename remove_shared_pointer<typename std::remove_reference<typename std::remove_const<T>::type>::type>::type>::type;
 	}
@@ -39,16 +45,16 @@ namespace engine {
 
 	struct AssetLoadingFlags {
 		struct Flags {
-			uint8_t async : 1;
-			uint8_t use_cache : 1;
+			uint8_t async;
+			uint8_t use_cache;
 		};
 
 		union LoadingFlags {
-			uint8_t mask;
+			uint16_t mask;
 			Flags flags;
 
 			LoadingFlags() : mask(0) {}
-			explicit LoadingFlags(const uint8_t f) : mask(f) {}
+			explicit LoadingFlags(const uint16_t f) : mask(f) {}
 
 			Flags* operator->() { return &flags; }
 			const Flags* operator->() const { return &flags; }
