@@ -156,7 +156,7 @@ namespace engine {
 				return value;
 			}
 
-			T value(0);
+			T value{};
 			if (const AssetLoadingCallback<T>& c = callback) {
 				c(value, AssetLoadingResult::LOADER_NO_EXIST);
 			}

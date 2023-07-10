@@ -201,4 +201,12 @@ namespace std {
 		auto p = reinterpret_cast<typename engine::linked_ptr<T>::element_type*>(const_cast<engine::linked_ptr<U>&>(r).get());
 		return engine::linked_ptr<T>(p);
 	}
+
+    template <typename T>
+    struct hash<typename engine::linked_ptr<T>> {
+        size_t operator() (const engine::linked_ptr<T> & p) const noexcept {
+            using element_type = typename engine::linked_ptr<T>::element_type*;
+            return std::hash<element_type>()(const_cast<element_type>(p.get()));
+        }
+    };
 }

@@ -8,6 +8,7 @@
 #include <Engine/Core/AssetManager.h>
 #include <Engine/Graphics/GpuProgramsManager.h>
 #include <Engine/Graphics/Texture/TextureLoader.h>
+#include <Engine/Graphics/Texture/TexturePtrLoader.h>
 #include <Engine/Graphics/Mesh/Mesh.h>
 #include <Engine/Graphics/Mesh/MeshLoader.h>
 #include <Engine/Graphics/Mesh/AnimationTree.h>
@@ -88,6 +89,8 @@ namespace engine {
 	MeshAnimationTree* animTree = nullptr;
 	MeshAnimationTree* animTree2 = nullptr;
 	MeshAnimationTree* animTreeWindMill = nullptr;
+
+    TexturePtr texturePtr_logo = nullptr;
 
 	vulkan::VulkanTexture* texture_1 = nullptr;
 	vulkan::VulkanTexture* texture_text = nullptr;
@@ -541,6 +544,8 @@ namespace engine {
 			delete camera;
 			delete camera2;
 
+            texturePtr_logo.reset();
+
 			//delete mesh;
 			//delete mesh2;
 			//delete mesh3;
@@ -811,6 +816,13 @@ namespace engine {
 			assignGPUParams(program_mesh_skin_with_stroke);
 			assignGPUParams(program_mesh_instance);
 
+            TexturePtrLoadingParams text_params_logo;
+            text_params_logo.files = { "resources/assets/textures/vulkan-logo.jpg" };
+            text_params_logo.flags->async = 1;
+            text_params_logo.flags->use_cache = 1;
+            text_params_logo.cacheName = "vulkan_logo";
+            texturePtr_logo = assm->loadAsset<TexturePtr>(text_params_logo);
+
 			TextureLoadingParams tex_params;
 			tex_params.files = { 
 				"resources/assets/models/chaman/textures/Ti-Pche_Mat_baseColor.png",
@@ -910,11 +922,11 @@ namespace engine {
 			};
 			auto texture_t7 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
-			TextureLoadingParams tex_params_logo;
-			tex_params_logo.files = { "resources/assets/textures/sun2.jpg" };
-			tex_params_logo.flags->async = 1;
-			tex_params_logo.flags->use_cache = 1;
-			texture_1 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params_logo);
+			TextureLoadingParams tex_params_sun;
+            tex_params_sun.files = { "resources/assets/textures/sun2.jpg" };
+            tex_params_sun.flags->async = 1;
+            tex_params_sun.flags->use_cache = 1;
+			texture_1 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params_sun);
 
 			meshesGraphicsBuffer = new MeshGraphicsDataBuffer(10 * 1024 * 1024, 10 * 1024 * 1024); // or create with default constructor for unique buffer for mesh
 
@@ -2110,7 +2122,7 @@ namespace engine {
 
 				mat4f transform = camera->getTransform() * wtr5 * billboardMatrix;
 				renderData.setParamForLayout(mvp_layout, &transform, false);
-				renderData.setParamByName("u_texture", texture_1, false);
+				renderData.setParamByName("u_texture", texturePtr_logo.get(), false);
 
 				GPU_DEBUG_MARKER_INSERT(commandBuffer.m_commandBuffer, "project render vulkan sprite", 0.5f, 0.5f, 0.5f, 1.0f);
 				autoBatcher->addToDraw(renderData.pipeline, sizeof(TexturedVertex), &vtx[0], vertexBufferSize, &idxs[0], indexBufferSize, renderData.params, commandBuffer, currentFrame);
@@ -2171,7 +2183,7 @@ namespace engine {
 
 				mat4f transform(1.0f);
 				renderData.setParamForLayout(mvp_layout, &transform, false);
-				renderData.setParamByName("u_texture", texture_1, false);
+				renderData.setParamByName("u_texture", texturePtr_logo.get(), false);
 
 				GPU_DEBUG_MARKER_INSERT(commandBuffer.m_commandBuffer, "project render vulkan sprite", 0.5f, 0.5f, 0.5f, 1.0f);
 				autoBatcher->addToDraw(renderData.pipeline, sizeof(TexturedVertex), &vtx[0], vertexBufferSize, &idxs[0], indexBufferSize, renderData.params, commandBuffer, currentFrame);
@@ -2226,7 +2238,7 @@ namespace engine {
 
 				mat4f transform = cameraMatrix2 * wtr5;
 				renderData.setParamForLayout(mvp_layout, &transform, false);
-				renderData.setParamByName("u_texture", texture_1, false);
+				renderData.setParamByName("u_texture", texturePtr_logo.get(), false);
 
 				GPU_DEBUG_MARKER_INSERT(commandBuffer.m_commandBuffer, "project render vulkan sprite", 0.5f, 0.5f, 0.5f, 1.0f);
 				autoBatcher->addToDraw(renderData.pipeline, sizeof(TexturedVertex), &vtx[0], vertexBufferSize, &idxs[0], indexBufferSize, renderData.params, commandBuffer, currentFrame);

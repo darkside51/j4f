@@ -52,6 +52,14 @@ namespace engine {
 			return iterator->second;
 		}
 
+        template <typename KEY = K, typename VAL = V>
+        auto setValueItr(KEY&& key, VAL&& val) {
+            AtomicLock lock(_writer);
+            _readers.waitForEmpty();
+            auto && [iterator, result] = _map.emplace(std::move(key), std::move(val));
+            return iterator;
+        }
+
 		template <typename KEY = K, typename VAL = V>
 		const V& getOrSet(KEY&& key, VAL&& val) {
 			AtomicLock lock(_writer);
@@ -79,6 +87,20 @@ namespace engine {
             auto && [iterator, result] = _map.emplace(std::move(key), f(std::forward<Args>(args)...));
 			return iterator->second;
 		}
+
+        template <typename KEY = K, typename F, typename ...Args>
+        auto getOrCreateItr(KEY&& key, F&& f, Args&&... args) {
+            AtomicLock lock(_writer);
+
+            auto it = _map.find(key);
+            if (it != _map.end()) {
+                return it;
+            }
+
+            _readers.waitForEmpty();
+            auto && [iterator, result] = _map.emplace(std::move(key), f(std::forward<Args>(args)...));
+            return iterator;
+        }
 
 		template <typename KEY = K, typename FC, typename F, typename ...Args>
 		const V& getOrCreateWithCallback(KEY&& key, FC&& callback, F&& f, Args&&... args) {

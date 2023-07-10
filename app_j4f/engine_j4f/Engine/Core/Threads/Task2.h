@@ -63,7 +63,7 @@ namespace engine {
         template<class F, typename... Args>
         TaskBase(const TaskType type, F&& f, Args&&...args) : _type(type) {
             using return_type = typename std::invoke_result_t<std::decay_t<F>, const CancellationToken&, std::decay_t<Args>...>;
-            _function = [this, f = std::forward<F>(f), args...]() {
+            _function = [this, f = std::forward<F>(f), args...]() mutable {
                 TaskState state = TaskState::IDLE;
                 if (_state.compare_exchange_strong(state, TaskState::RUN, std::memory_order_release, std::memory_order_relaxed)) {
                     if constexpr (std::is_same_v<return_type, void>) {

@@ -2,6 +2,7 @@
 
 #include "../Core/AssetManager.h"
 #include "Texture/TextureLoader.h"
+#include "Texture/TexturePtrLoader.h"
 #include "Mesh/MeshLoader.h"
 #include "Text/FontLoader.h"
 
@@ -87,6 +88,7 @@ namespace engine {
                         std::make_unique<TextureCache>()
                                 );
 
+        Engine::getInstance().getModule<AssetManager>()->setLoader<TexturePtrLoader>();
         Engine::getInstance().getModule<AssetManager>()->setLoader<TextureLoader>();
         Engine::getInstance().getModule<AssetManager>()->setLoader<MeshLoader>();
         Engine::getInstance().getModule<AssetManager>()->setLoader<FontLoader>();

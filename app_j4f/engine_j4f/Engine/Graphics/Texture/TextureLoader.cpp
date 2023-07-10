@@ -95,7 +95,7 @@ namespace engine {
 					texture->noGenerate();
 					return texture;
 				}
-				texture->create(params.texData->data(), params.texData->format(), params.texData->bpp(), params.textureFlags->useMipMaps, true, params.imageViewTypeForce);
+				texture->create(params.texData->data(), params.texData->format(), params.texData->bpp(), params.textureFlags->useMipMaps, params.textureFlags->deffered, params.imageViewTypeForce);
 			} else {
 				const size_t size = params.files.size();
 				std::vector<TextureData> imgs;
