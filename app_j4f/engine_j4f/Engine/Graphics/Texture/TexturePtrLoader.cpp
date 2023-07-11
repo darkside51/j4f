@@ -1,11 +1,8 @@
 #include "TexturePtrLoader.h"
 #include "TextureHandler.h"
 
-#include "../../Core/Engine.h"
-#include "../../Core/Cache.h"
-#include "../../File/FileManager.h"
 #include "../Graphics.h"
-#include "../Vulkan/vkTexture.h"
+#include "../../File/FileManager.h"
 #include "../../Utils/Debug/Profiler.h"
 
 namespace engine {
@@ -146,7 +143,7 @@ namespace engine {
         auto &&cache = engine.getModule<CacheManager>()->getCache<TextureCache>();
 
         if (params.flags->use_cache) {
-            auto generate = [&v, &cache, &callback, &params](const std::string& name) mutable{
+            auto generate = [&v, &cache, &callback, &params](const std::string& name){
                 v = cache->getValue(name);
                 if (v) {
                     if (callback) {
