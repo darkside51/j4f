@@ -24,10 +24,10 @@ namespace engine {
         inline bool hasValue(KEY&& key) const noexcept { return _map.hasValue(key); }
 
         template <typename KEY = key_type, typename VAL = value_type>
-        inline void setValue(KEY&& key, VAL&& value, CacheParams&& p) {
-            auto && itr = _map.setValueItr(key, std::move(value));
-            value_type & ptr = const_cast<value_type &>(itr->second);
-            ptr->m_key = itr->first;
+        inline void setValue(KEY&& key, VAL&& value, CacheParams const & p) {
+            auto && [name, pointer] = *_map.setValueExt(key, std::move(value));
+            value_type & ptr = const_cast<value_type &>(pointer);
+            ptr->m_key = name;
             ptr->m_flags = p.storeForever ? TextureHandler::Flags::ForeverInCache : TextureHandler::Flags::Cached;
         }
 
@@ -35,10 +35,10 @@ namespace engine {
         inline const value_type& getValue(KEY&& key) noexcept { return _map.getValue(key); }
 
         template <typename KEY = key_type, typename F, typename ...Args>
-        inline const value_type& getOrSetValue(KEY&& key, F&& f, CacheParams&& p, Args&&... args) {
-            auto && itr = _map.getOrCreateItr(key, std::forward<F>(f), std::forward<Args>(args)...);
-            value_type & ptr = const_cast<value_type &>(itr->second);
-            ptr->m_key = itr->first;
+        inline const value_type& getOrSetValue(KEY&& key, F&& f, CacheParams const & p, Args&&... args) {
+            auto && [name, pointer] = *_map.getOrCreateExt(key, std::forward<F>(f), std::forward<Args>(args)...);
+            value_type & ptr = const_cast<value_type &>(pointer);
+            ptr->m_key = name;
             ptr->m_flags = p.storeForever ? TextureHandler::Flags::ForeverInCache : TextureHandler::Flags::Cached;
             return ptr;
         }
@@ -47,7 +47,7 @@ namespace engine {
             onTextureFree(value.get());
         }
 
-        inline void onTextureFree(TextureHandler const * value) noexcept {
+        inline void onTextureFree(value_type::element_type const * value) noexcept {
             if (value->m_flags == TextureHandler::Flags::Cached) {
                 _map.erase(value->m_key);
             }

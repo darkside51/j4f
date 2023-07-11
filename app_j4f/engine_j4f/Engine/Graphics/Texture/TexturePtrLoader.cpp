@@ -1,6 +1,5 @@
 #include "TexturePtrLoader.h"
 #include "TextureHandler.h"
-#include "TextureCache.h"
 
 #include "../../Core/Engine.h"
 #include "../../Core/Cache.h"
@@ -168,7 +167,7 @@ namespace engine {
 
                 v = cache->getOrSetValue(name, [](const TexturePtrLoadingParams& params, const TexturePtrLoadingCallback& callback) {
                     return createTexture(params, callback);
-                }, {false}, params, callback);
+                }, params.cacheParams, params, callback);
             };
 
             if (params.cacheName.empty()) {

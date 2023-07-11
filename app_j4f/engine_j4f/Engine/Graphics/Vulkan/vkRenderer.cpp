@@ -1333,41 +1333,43 @@ namespace vulkan {
                 }
 				_dinamicGPUBuffers.clear();
 
-                // clear tmp frame data
-                std::vector<std::vector<VulkanBuffer*>> buffersToDelete;
-                std::vector<std::vector<VulkanTexture*>> texturesToDelete;
-                std::vector<std::tuple<VulkanTexture*, VulkanBuffer*, uint32_t, uint32_t>> defferedTextureToGenerate;
                 {
-                    engine::AtomicLock lock(_lockTmpData);
-                    buffersToDelete = std::move(_buffersToDelete);
-                    texturesToDelete = std::move(_texturesToDelete);
-                    defferedTextureToGenerate = std::move(_defferedTextureToGenerate);
-                    _buffersToDelete.clear();
-                    _texturesToDelete.clear();
-                    _texturesToFree.clear();
-                    _defferedTextureToGenerate.clear();
-                }
-
-                for (auto&& buffers : buffersToDelete) {
-                    for (auto* buffer : buffers) {
-                        delete buffer;
+                    // clear tmp frame data
+                    std::vector<std::vector<VulkanBuffer *>> buffersToDelete;
+                    std::vector<std::vector<VulkanTexture *>> texturesToDelete;
+                    std::vector<std::tuple<VulkanTexture *, VulkanBuffer *, uint32_t, uint32_t>> defferedTextureToGenerate;
+                    {
+                        engine::AtomicLock lock(_lockTmpData);
+                        buffersToDelete = std::move(_buffersToDelete);
+                        texturesToDelete = std::move(_texturesToDelete);
+                        defferedTextureToGenerate = std::move(_defferedTextureToGenerate);
+                        _buffersToDelete.clear();
+                        _texturesToDelete.clear();
+                        _texturesToFree.clear();
+                        _defferedTextureToGenerate.clear();
                     }
-                }
 
-                for (auto&& textures : texturesToDelete) {
-                    for (auto* texture : textures) {
-                        delete texture;
+                    for (auto &&buffers: buffersToDelete) {
+                        for (auto *buffer: buffers) {
+                            delete buffer;
+                        }
                     }
-                }
 
-                for (auto&& p : defferedTextureToGenerate) {
-                    delete std::get<VulkanBuffer*>(p);
-                }
+                    for (auto &&textures: texturesToDelete) {
+                        for (auto *texture: textures) {
+                            delete texture;
+                        }
+                    }
 
-                buffersToDelete.clear();
-                texturesToDelete.clear();
-                defferedTextureToGenerate.clear();
-                // clear tmp frame data
+                    for (auto &&p: defferedTextureToGenerate) {
+                        delete std::get<VulkanBuffer *>(p);
+                    }
+
+                    buffersToDelete.clear();
+                    texturesToDelete.clear();
+                    defferedTextureToGenerate.clear();
+                    // clear tmp frame data
+                }
 
                 for (auto&& [key, pipeline] : _graphicsPipelinesCache) {
                     vkDestroyPipeline(_vulkanDevice->device, pipeline->pipeline, nullptr);

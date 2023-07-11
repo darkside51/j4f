@@ -75,9 +75,9 @@ namespace engine {
             }
 
             //render_type = Render_Type::VULKAN;
-            const uint64_t wh = _renderer->getWH();
-            _size.first = static_cast<uint16_t>(wh >> 0);
-            _size.second = static_cast<uint16_t>(wh >> 32);
+            const auto [w, h] = _renderer->getSize();
+            _size.first = static_cast<uint16_t>(w);
+            _size.second = static_cast<uint16_t>(h);
         }
     }
 
@@ -88,10 +88,12 @@ namespace engine {
                         std::make_unique<TextureCache>()
                                 );
 
-        Engine::getInstance().getModule<AssetManager>()->setLoader<TexturePtrLoader>();
-        Engine::getInstance().getModule<AssetManager>()->setLoader<TextureLoader>();
-        Engine::getInstance().getModule<AssetManager>()->setLoader<MeshLoader>();
-        Engine::getInstance().getModule<AssetManager>()->setLoader<FontLoader>();
+        auto && assetManager = Engine::getInstance().getModule<AssetManager>();
+
+        assetManager->setLoader<TexturePtrLoader>();
+        assetManager->setLoader<TextureLoader>();
+        assetManager->setLoader<MeshLoader>();
+        assetManager->setLoader<FontLoader>();
     }
 
     void Graphics::createRenderHelper() {

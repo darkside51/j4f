@@ -2,7 +2,7 @@
 
 #include "../../Core/AssetManager.h"
 #include "../../Core/Linked_ptr.h"
-
+#include "TextureCache.h"
 #include "TextureData.h"
 
 #include <vulkan/vulkan.h>
@@ -35,7 +35,7 @@ namespace engine {
 
         std::vector<std::string> files;
         VkImageLayout imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        uint32_t binding = 0;
+        uint32_t binding = 0u;
 
         TextureData *texData = nullptr;
         TextureFormatType formatType = TextureFormatType::UNORM;
@@ -44,6 +44,7 @@ namespace engine {
         TextureLoadingFlags textureFlags;
 
         std::string cacheName;
+        CacheParams cacheParams;
     };
 
     using TexturePtrLoadingParams = AssetLoadingParams<TextureHandler>;

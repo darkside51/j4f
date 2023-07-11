@@ -53,7 +53,7 @@ namespace engine {
 		}
 
         template <typename KEY = K, typename VAL = V>
-        auto setValueItr(KEY&& key, VAL&& val) {
+        auto setValueExt(KEY&& key, VAL&& val) {
             AtomicLock lock(_writer);
             _readers.waitForEmpty();
             auto && [iterator, result] = _map.emplace(std::move(key), std::move(val));
@@ -89,7 +89,7 @@ namespace engine {
 		}
 
         template <typename KEY = K, typename F, typename ...Args>
-        auto getOrCreateItr(KEY&& key, F&& f, Args&&... args) {
+        auto getOrCreateExt(KEY&& key, F&& f, Args&&... args) {
             AtomicLock lock(_writer);
 
             auto it = _map.find(key);
