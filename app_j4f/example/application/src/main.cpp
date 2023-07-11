@@ -91,12 +91,13 @@ namespace engine {
 	MeshAnimationTree* animTreeWindMill = nullptr;
 
     TexturePtr texturePtr_logo = nullptr;
+    TexturePtr texture_array_test = nullptr;
 
 	vulkan::VulkanTexture* texture_1 = nullptr;
 	vulkan::VulkanTexture* texture_text = nullptr;
 	vulkan::VulkanTexture* texture_floor_mask = nullptr;
 	vulkan::VulkanTexture* texture_floor_normal = nullptr;
-	vulkan::VulkanTexture* texture_array_test = nullptr;
+	//vulkan::VulkanTexture* texture_array_test = nullptr;
 
 	vulkan::VulkanGpuProgram* program_mesh_skin = nullptr;
 	vulkan::VulkanGpuProgram* program_mesh = nullptr;
@@ -545,6 +546,7 @@ namespace engine {
 			delete camera2;
 
             texturePtr_logo.reset();
+            texture_array_test.reset();
 
 			//delete mesh;
 			//delete mesh2;
@@ -1486,7 +1488,7 @@ namespace engine {
 				planeTest->getRenderDescriptor()->order = 10;
 			}
 
-			TextureLoadingParams tex_params_floorArray;
+			TexturePtrLoadingParams tex_params_floorArray;
 			/*tex_params_floorArray.files = {
 				"resources/assets/textures/swamp5.jpg",
 				"resources/assets/textures/ground133.jpg"
@@ -1497,10 +1499,11 @@ namespace engine {
 			};
 			tex_params_floorArray.flags->async = 1;
 			tex_params_floorArray.flags->use_cache = 1;
+            tex_params_floorArray.cacheName = "floorTextures";
 			//tex_params_floorArray.formatType = engine::TextureFormatType::SRGB;
-			texture_array_test = assm->loadAsset<vulkan::VulkanTexture*>(tex_params_floorArray, [](vulkan::VulkanTexture* asset, const AssetLoadingResult result) {
+			texture_array_test = assm->loadAsset<TexturePtr>(tex_params_floorArray, [](TexturePtr const & asset, const AssetLoadingResult result) {
 				auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
-				texture_array_test->setSampler(
+				texture_array_test->get()->setSampler(
 					renderer->getSampler(
 						VK_FILTER_LINEAR,
 						VK_FILTER_LINEAR,
@@ -1979,7 +1982,7 @@ namespace engine {
 				renderDataFloor.setParamForLayout(mvp_layout2, &const_cast<mat4f&>(cameraMatrix), false);
 				const mat4f& viewTransform = camera->getViewTransform();
 
-				renderDataFloor.setParamByName("u_texture_arr", texture_array_test, false);
+				renderDataFloor.setParamByName("u_texture_arr", texture_array_test->get(), false);
 				renderDataFloor.setParamByName("u_texture_mask", texture_floor_mask, false);
 				renderDataFloor.setParamByName("u_texture_normal", texture_floor_normal, false);
 				renderDataFloor.setParamByName("u_shadow_map", shadowMap->getTexture(), false);

@@ -34,8 +34,8 @@ namespace engine {
             return m_counter.load(std::memory_order_relaxed);
         }
 
-        value_type* texture() noexcept { return &m_texture; }
-        const value_type* texture() const noexcept { return &m_texture; }
+        value_type* get() noexcept { return &m_texture; }
+        const value_type* get() const noexcept { return &m_texture; }
 
     private:
         TextureCache& evaluateCache() const noexcept;

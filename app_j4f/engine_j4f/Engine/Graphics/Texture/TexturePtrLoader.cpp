@@ -52,7 +52,7 @@ namespace engine {
                     const CancellationToken &token) mutable {
                 PROFILE_TIME_SCOPED_M(textureLoading, params.files[0])
 
-                auto texture_value = texture->texture();
+                auto texture_value = texture->get();
 
                 if (params.texData) {
                     if (!params.texData->operator bool()) {
@@ -93,7 +93,7 @@ namespace engine {
         } else {
             PROFILE_TIME_SCOPED_M(textureLoading, params.files[0])
 
-            auto texture_value = texture->texture();
+            auto texture_value = texture->get();
             if (params.texData) {
                 if (!params.texData->operator bool()) {
                     executeCallbacks(texture, AssetLoadingResult::LOADING_ERROR);
@@ -147,7 +147,7 @@ namespace engine {
                 v = cache->getValue(name);
                 if (v) {
                     if (callback) {
-                        switch (v->texture()->generationState()) {
+                        switch (v->get()->generationState()) {
                             case vulkan::VulkanTextureCreationState::NO_CREATED:
                                 callback(v, AssetLoadingResult::LOADING_ERROR);
                                 break;

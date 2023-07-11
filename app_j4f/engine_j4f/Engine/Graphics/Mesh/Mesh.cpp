@@ -4,6 +4,7 @@
 #include "Loader_gltf.h"
 #include "../Render/RenderHelper.h"
 #include "AnimationTree.h"
+#include "../VertexAttributes.h"
 #include "../../Utils/Debug/Assert.h"
 #include <limits>
 
@@ -404,53 +405,26 @@ namespace engine {
 	}
 
 	std::vector<VkVertexInputAttributeDescription> Mesh::getVertexInputAttributes() const {
-		std::vector<VkVertexInputAttributeDescription> vertexInputAttributes;
-		vertexInputAttributes.reserve(static_cast<uint8_t>(gltf::AttributesSemantic::SEMANTICS_COUNT));
-		uint32_t attribute_location = 0;
-		uint32_t attribute_offset = 0;
-		for (uint8_t i = 0; i < std::min(uint8_t(16u), static_cast<uint8_t>(gltf::AttributesSemantic::SEMANTICS_COUNT)); ++i) {
+        VertexAttributes attributes;
+		for (uint8_t i = 0; i < std::min(static_cast<uint8_t>(16u), static_cast<uint8_t>(gltf::AttributesSemantic::SEMANTICS_COUNT)); ++i) {
 			if (_semanticMask & (1 << i)) {
 				switch (static_cast<gltf::AttributesSemantic>(i)) {
 					case gltf::AttributesSemantic::POSITION:
 					case gltf::AttributesSemantic::NORMAL:
 					{
-						vertexInputAttributes.emplace_back(
-							VkVertexInputAttributeDescription{
-								attribute_location++,		// location
-								0,							// binding
-								VK_FORMAT_R32G32B32_SFLOAT, // format
-								attribute_offset			// offset
-							}
-						);
-						attribute_offset += 12;
+                        attributes.set<float>(3u);
 					}
 						break;
 					case gltf::AttributesSemantic::TANGENT:
 					case gltf::AttributesSemantic::JOINTS:
 					case gltf::AttributesSemantic::WEIGHT:
 					{
-						vertexInputAttributes.emplace_back(
-							VkVertexInputAttributeDescription{
-								attribute_location++,			// location
-								0,								// binding
-								VK_FORMAT_R32G32B32A32_SFLOAT,	// format
-								attribute_offset				// offset
-							}
-						);
-						attribute_offset += 16;
+                        attributes.set<float>(4u);
 					}
 						break;
                     case gltf::AttributesSemantic::COLOR:
                     {
-                        vertexInputAttributes.emplace_back(
-                                VkVertexInputAttributeDescription{
-                                        attribute_location++,			// location
-                                        0,								// binding
-                                        VK_FORMAT_R8G8B8A8_UNORM,	// format
-                                        attribute_offset				// offset
-                                }
-                        );
-                        attribute_offset += 4;
+                        attributes.set<uint8_t>(4u);
                     }
                         break;
 					case gltf::AttributesSemantic::TEXCOORD_0:
@@ -459,15 +433,7 @@ namespace engine {
 					case gltf::AttributesSemantic::TEXCOORD_3:
 					case gltf::AttributesSemantic::TEXCOORD_4:
 					{
-						vertexInputAttributes.emplace_back(
-							VkVertexInputAttributeDescription{
-								attribute_location++,		// location
-								0,							// binding
-								VK_FORMAT_R32G32_SFLOAT,	// format
-								attribute_offset			// offset
-							}
-						);
-						attribute_offset += 8;
+                        attributes.set<float>(2u);
 					}
 						break;
 					default:
@@ -476,8 +442,7 @@ namespace engine {
 			}
 		}
 
-		vertexInputAttributes.shrink_to_fit();
-		return vertexInputAttributes;
+        return VulkanAttributesProvider::convert(attributes);
 	}
 
 	uint32_t Mesh::sizeOfVertex() const { return _meshData ? (sizeof(float) * _meshData->vertexSize) : 0u; }
