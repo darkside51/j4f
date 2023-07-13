@@ -11,12 +11,20 @@
 #include "../../Utils/Statistic.h"
 
 #include <vulkan/vulkan.h>
-#include <vector>
-#include <array>
-#include <type_traits>
 #include <algorithm>
+#include <array>
 #include <cassert>
+#include <cstdint>
 #include <optional>
+#include <type_traits>
+#include <vector>
+
+#ifdef min
+#undef min
+#endif
+#ifdef max
+#undef max
+#endif
 
 namespace vulkan {
 

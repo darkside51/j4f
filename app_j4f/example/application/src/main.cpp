@@ -818,13 +818,6 @@ namespace engine {
 			assignGPUParams(program_mesh_skin_with_stroke);
 			assignGPUParams(program_mesh_instance);
 
-            TexturePtrLoadingParams text_params_logo;
-            text_params_logo.files = { "resources/assets/textures/vulkan-logo.jpg" };
-            text_params_logo.flags->async = 1;
-            text_params_logo.flags->use_cache = 1;
-            text_params_logo.cacheName = "vulkan_logo";
-            texturePtr_logo = assm->loadAsset<TexturePtr>(text_params_logo);
-
 			TextureLoadingParams tex_params;
 			tex_params.files = { 
 				"resources/assets/models/chaman/textures/Ti-Pche_Mat_baseColor.png",
@@ -1446,6 +1439,15 @@ namespace engine {
 
 				shadowCastNodes.push_back(node);
 			});
+
+			
+			TexturePtrLoadingParams text_params_logo;
+			text_params_logo.files = { "resources/assets/textures/vulkan-logo.jpg" };
+			text_params_logo.flags->async = 1;
+			text_params_logo.flags->use_cache = 1;
+			text_params_logo.cacheName = "vulkan_logo";
+			texturePtr_logo = assm->loadAsset<TexturePtr>(text_params_logo);
+			
 
 			planeTest = new NodeRenderer<Plane>();
 			planeUpdateSystem.registerObject(planeTest);

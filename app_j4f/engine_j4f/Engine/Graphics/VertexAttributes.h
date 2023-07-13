@@ -19,10 +19,10 @@ namespace engine {
                     d.type = static_cast<Type>(componentsCount - 1);
                     d.sizeInBytes = componentsCount * sizeof(float);
                 } else if constexpr (std::is_signed_v<T>) {
-                    d.type = normalized ? static_cast<Type>(8u + componentsCount) : static_cast<Type>(16u + componentsCount);
+                    d.type = normalized ? static_cast<Type>(8u + componentsCount - 1u) : static_cast<Type>(16u + componentsCount - 1u);
                     d.sizeInBytes = componentsCount * sizeof(uint8_t);
                 } else {
-                    d.type = normalized ? static_cast<Type>(4u + componentsCount) : static_cast<Type>(12u + componentsCount);
+                    d.type = normalized ? static_cast<Type>(4u + componentsCount - 1u) : static_cast<Type>(12u + componentsCount - 1u);
                     d.sizeInBytes = componentsCount * sizeof(uint8_t);
                 }
 
@@ -62,7 +62,7 @@ namespace engine {
         };
 
         const std::vector<std::vector<AttributeDescription>> & attributes() const noexcept { return _attributes; }
-        inline size_t count() const noexcept { return _count; }
+        inline uint32_t count() const noexcept { return _count; }
 
         template<typename T, typename... Args>
         void set(Args&&... args) {
@@ -71,10 +71,11 @@ namespace engine {
                 _attributes.resize(binding + 1u);
             }
             _attributes[binding].push_back(std::move(d));
+            ++_count;
         }
 
     private:
-        size_t _count = 0u;
+        uint32_t _count = 0u;
         std::vector<std::vector<AttributeDescription>> _attributes; // separate by bindings
     };
 
@@ -134,8 +135,8 @@ namespace engine {
 
         static std::vector<VkVertexInputAttributeDescription> convert(VertexAttributes const & attributesCollection) {
             std::vector<VkVertexInputAttributeDescription> vkAttributes;
-            auto const &attributesVec = attributesCollection.attributes();
             vkAttributes.reserve(attributesCollection.count());
+            auto const& attributesVec = attributesCollection.attributes();
             uint32_t attribute_location = 0u;
             uint32_t attribute_binding = 0u;
             for (auto const &attributes: attributesVec) {

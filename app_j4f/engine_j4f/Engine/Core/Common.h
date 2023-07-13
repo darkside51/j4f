@@ -1,8 +1,5 @@
 ﻿#pragma once
 
-#include "Linked_ptr.h"
-#include "Linked_ext_ptr.h"
-
 #ifdef _DEBUG
 #include "../Utils/Debug/MemoryLeakChecker.h"
 #endif
@@ -11,9 +8,22 @@
 #include <cstdint>
 #include <memory>
 
+#ifdef min
+#undef min
+#endif
+#ifdef max
+#undef max
+#endif
+
 #define offset_of(type, p) (reinterpret_cast<size_t>(&((reinterpret_cast<type*>(0))->p)))
 
 namespace engine {
+	template <typename T>
+	class linked_ptr;
+
+	template <typename T>
+	class linked_ext_ptr;
+
 	inline uint32_t alignValue(const uint32_t value, const uint32_t align) noexcept {
 		return (value + align - 1) & ~(align - 1);
 	}

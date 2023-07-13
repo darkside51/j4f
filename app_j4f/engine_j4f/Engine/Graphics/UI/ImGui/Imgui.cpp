@@ -5,6 +5,7 @@
 #include "../../GpuProgramsManager.h"
 #include "../../Vulkan/spirv/glsl_to_spirv.h"
 #include "../../Core/Engine.h"
+#include "../../Graphics/VertexAttributes.h"
 
 #include <imgui.h>
 
@@ -100,28 +101,14 @@ namespace engine {
         _renderState.depthState = vulkan::VulkanDepthState(false, false, VK_COMPARE_OP_LESS);
         _renderState.stencilState = vulkan::VulkanStencilState(false);
 
-        _vertexInputAttributes = []() -> std::vector<VkVertexInputAttributeDescription>{
-            std::vector<VkVertexInputAttributeDescription> vertexInputAttributs(3);
-            // attribute location 0: position
-            vertexInputAttributs[0].binding = 0;
-            vertexInputAttributs[0].location = 0;
-            vertexInputAttributs[0].format = VK_FORMAT_R32G32_SFLOAT;
-            vertexInputAttributs[0].offset = offset_of(ImDrawVert, pos);
-            // attribute location 1: uv
-            vertexInputAttributs[1].binding = 0;
-            vertexInputAttributs[1].location = 1;
-            vertexInputAttributs[1].format = VK_FORMAT_R32G32_SFLOAT;
-            vertexInputAttributs[1].offset = offset_of(ImDrawVert, uv);
-            // attribute location 2: color
-            vertexInputAttributs[2].binding = 0;
-            vertexInputAttributs[2].location = 2;
-            vertexInputAttributs[2].format = VK_FORMAT_R8G8B8A8_UNORM;
-            vertexInputAttributs[2].offset = offset_of(ImDrawVert, col);
+        VertexAttributes attributes;
+        attributes.set<float>(2u); // position
+        attributes.set<float>(2u); // uv
+        attributes.set<uint8_t>(4u); // color
 
-            return vertexInputAttributs;
-        }();
+        _vertexInputAttributes = VulkanAttributesProvider::convert(attributes);
 
-        _renderState.vertexDescription.attributesCount = static_cast<uint32_t>(_vertexInputAttributes.size());
+        _renderState.vertexDescription.attributesCount = _vertexInputAttributes.size();
         _renderState.vertexDescription.attributes = _vertexInputAttributes.data();
 
         _renderDescriptor.renderDataCount = 1;
