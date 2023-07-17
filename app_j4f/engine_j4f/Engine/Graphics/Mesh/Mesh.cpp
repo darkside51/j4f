@@ -412,19 +412,19 @@ namespace engine {
 					case gltf::AttributesSemantic::POSITION:
 					case gltf::AttributesSemantic::NORMAL:
 					{
-                        attributes.set<float>(3u);
+                        attributes.set<float, 0u>(3u);
 					}
 						break;
 					case gltf::AttributesSemantic::TANGENT:
 					case gltf::AttributesSemantic::JOINTS:
 					case gltf::AttributesSemantic::WEIGHT:
 					{
-                        attributes.set<float>(4u);
+                        attributes.set<float, 0u>(4u);
 					}
 						break;
                     case gltf::AttributesSemantic::COLOR:
                     {
-                        attributes.set<uint8_t>(4u);
+                        attributes.set<uint8_t, 0u>(4u);
                     }
                         break;
 					case gltf::AttributesSemantic::TEXCOORD_0:
@@ -433,7 +433,7 @@ namespace engine {
 					case gltf::AttributesSemantic::TEXCOORD_3:
 					case gltf::AttributesSemantic::TEXCOORD_4:
 					{
-                        attributes.set<float>(2u);
+                        attributes.set<float, 0u>(2u);
 					}
 						break;
 					default:

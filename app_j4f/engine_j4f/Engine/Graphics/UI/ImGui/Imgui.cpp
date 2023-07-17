@@ -101,10 +101,10 @@ namespace engine {
         _renderState.depthState = vulkan::VulkanDepthState(false, false, VK_COMPARE_OP_LESS);
         _renderState.stencilState = vulkan::VulkanStencilState(false);
 
-        VertexAttributes attributes;
-        attributes.set<float>(2u); // position
-        attributes.set<float>(2u); // uv
-        attributes.set<uint8_t>(4u); // color
+        VertexAttributes attributes({3});
+        attributes.set<float, 0u>(2u);          // position
+        attributes.set<float, 0u>(2u);          // uv
+        attributes.set<uint8_t, 0u>(4u, true);  // color
 
         _vertexInputAttributes = VulkanAttributesProvider::convert(attributes);
 
