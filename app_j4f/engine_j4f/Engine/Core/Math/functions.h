@@ -3,6 +3,7 @@
 
 #include "mathematic.h"
 
+#include <cstdint>
 #include <limits>
 #include <vector>
 
@@ -239,7 +240,7 @@ namespace engine {
     }
 
     template<typename T>
-    int sign(T val) {
+    inline int32_t sign(T && val) noexcept {
         return (T(0) < val) - (val < T(0));
     }
 }

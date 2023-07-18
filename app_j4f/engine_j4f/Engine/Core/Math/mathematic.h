@@ -53,7 +53,7 @@ namespace engine {
     inline static const vec3f emptyVec3     = vec3f(0.0f, 0.0f, 0.0f);
     inline static const vec3f unitVec3      = vec3f(1.0f, 1.0f, 1.0f);
 
-    inline float inv_sqrt(const float x) { // "инверсный(1.0f/sqrt) квадратный корень Кармака"(алгоритм Ньютона)
+    inline float inv_sqrt(const float x) { // "инверсный(1.0f / sqrt) квадратный корень Кармака"
         const float xhalf = 0.5f * x;
         union {
             float x = 0.0f;
@@ -97,12 +97,12 @@ namespace engine {
     }
 
     enum class RotationsOrder : uint8_t {
-        RO_XYZ = 0,
-        RO_XZY = 1,
-        RO_YXZ = 2,
-        RO_YZX = 3,
-        RO_ZXY = 4,
-        RO_ZYX = 5
+        RO_XYZ = 0u,
+        RO_XZY = 1u,
+        RO_YXZ = 2u,
+        RO_YZX = 3u,
+        RO_ZXY = 4u,
+        RO_ZYX = 5u
     };
 
     inline void rotateMatrix_x(mat4f& m, const float angle) {

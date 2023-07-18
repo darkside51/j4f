@@ -11,15 +11,15 @@
 
 namespace engine {
     enum class AttributeLayout : uint8_t {
-        Forward = 0,
-        Backward = 1
+        Forward = 0u,
+        Backward = 1u
     };
 
     class VertexAttributes {
     public:
         struct AttributeDescription {
             //template <typename T, typename std::enable_if<std::is_fundamental_v<T>, int>::type = 0>
-            template <typename T, uint32_t binding> requires(std::is_fundamental_v<T>)
+            template <typename T, uint32_t binding = 0u> requires(std::is_fundamental_v<T>)
             static AttributeDescription make(uint32_t componentsCount, bool normalized = false, AttributeLayout layout = AttributeLayout::Forward) {
                 AttributeDescription d;
                 if constexpr (std::is_same_v<T, float>) {
