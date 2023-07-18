@@ -313,8 +313,10 @@ namespace engine {
 			_animator->value().apply(target, updateFrame);
 		}
 
-        inline bool getNeedUpdate() const noexcept { return _needUpdate; }
+        inline bool needUpdate() const noexcept { return _needUpdate; }
         inline void setNeedUpdate(const bool n) noexcept { _needUpdate = n; }
+
+        inline bool finished() const noexcept { return false; }
 
         inline void updateAnimation(const float delta) {
             _updateFrameNum = (_updateFrameNum + 1) % _animator->value().getLatency();

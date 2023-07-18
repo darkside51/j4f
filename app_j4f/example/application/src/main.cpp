@@ -1704,6 +1704,16 @@ namespace engine {
 			});
 
 			bus->sendEvent<TestBusEvent>({ 1.0f, 2.0f });
+
+
+            auto&& animationManager = Engine::getInstance().getModule<Graphics>()->getAnimationManager();
+            auto *actionAnim0 = new ActionAnimation([](const float dt) ->bool {
+                static float time = 0.0f;
+                time += dt;
+                LOG_TAG(TEST, "time : %f/%f", dt, time);
+                return time >= 5.0f;
+            });
+            animationManager->registerAnimation(actionAnim0);
 		}
 
 		void update(const float delta) { // update thread
@@ -1747,7 +1757,7 @@ namespace engine {
             }
 
             // check update for animation needed (object visible etc...)
-            Engine::getInstance().getModule<Graphics>()->getAnimationManager()->update<MeshAnimationTree>(dt);
+            Engine::getInstance().getModule<Graphics>()->getAnimationManager()->update<MeshAnimationTree, ActionAnimation>(dt);
 
 //            if (animTree) {
 //                // v0
