@@ -8,6 +8,7 @@ namespace engine {
     class IAnimationUpdater {
     public:
         virtual ~IAnimationUpdater() = default;
+        virtual void update(const float delta) noexcept = 0;
     };
 
     template<class T> concept AllowTarget = requires {
@@ -35,7 +36,7 @@ namespace engine {
             }
         }
 
-        inline void update(const float delta) noexcept {
+        inline void update(const float delta) noexcept override {
             size_t i = 0;
             std::vector<uint32_t> toRemove;
             toRemove.reserve(_animations.size());
@@ -116,7 +117,7 @@ namespace engine {
             }
         }
 
-        inline void update(const float delta) noexcept {
+        inline void update(const float delta) noexcept override {
             size_t i = 0;
             std::vector<uint32_t> toRemove;
             toRemove.reserve(_animations.size());

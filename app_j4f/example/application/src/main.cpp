@@ -1758,6 +1758,7 @@ namespace engine {
 
             // check update for animation needed (object visible etc...)
             Engine::getInstance().getModule<Graphics>()->getAnimationManager()->update<MeshAnimationTree, ActionAnimation>(dt);
+//            Engine::getInstance().getModule<Graphics>()->getAnimationManager()->update(dt);
 
 //            if (animTree) {
 //                // v0

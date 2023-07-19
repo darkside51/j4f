@@ -93,6 +93,12 @@ namespace engine {
             }
         }
 
+        inline void update(const float delta) noexcept { // virtual update mechanic
+            for (auto & updater : _animUpdaters) {
+                updater->update(delta);
+            }
+        }
+
         template<typename T, typename... Args>
         inline void update(const float delta) noexcept {
             if (delta == 0.0f) { // disable update if delta is 0.0f
@@ -110,10 +116,9 @@ namespace engine {
         template<typename T>
         inline void update_strict(const float delta) noexcept {
             static const auto animId = UniqueTypeId<Animation>::getUniqueId<T>();
-            if (_animUpdaters.size() <= animId) {
-                _animUpdaters.push_back(std::make_unique<AnimationUpdater<T>>());
+            if (_animUpdaters.size() > animId) {
+                static_cast<AnimationUpdater<T> *>(_animUpdaters[animId].get())->update(delta);
             }
-            static_cast<AnimationUpdater<T> *>(_animUpdaters[animId].get())->update(delta);
         }
 
         std::vector<std::unique_ptr<IAnimationUpdater>> _animUpdaters;

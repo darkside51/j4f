@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include "../../Core/Math/mathematic.h"
+#include "BezierEasing.h"
 
 namespace engine::easing {
     inline float easeLinear(const float t) noexcept { return t; }
