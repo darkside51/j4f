@@ -1707,12 +1707,12 @@ namespace engine {
 
 
             auto&& animationManager = Engine::getInstance().getModule<Graphics>()->getAnimationManager();
-            auto *actionAnim0 = new ActionAnimation([](const float dt) ->bool {
+            auto *actionAnim0 = new ActionAnimation(makeDurationExecutor( 2.0f, [](const float dt) ->bool {
                 static float time = 0.0f;
                 time += dt;
                 LOG_TAG(TEST, "time : %f/%f", dt, time);
-                return time >= 5.0f;
-            });
+                return false;
+            }));
             animationManager->registerAnimation(actionAnim0);
 		}
 

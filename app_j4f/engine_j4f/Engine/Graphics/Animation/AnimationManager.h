@@ -2,6 +2,7 @@
 
 #include "../../Core/Common.h"
 #include "AnimationUpdater.h"
+#include "Easings.h"
 
 #include <functional>
 #include <vector>
@@ -11,7 +12,32 @@
 namespace engine {
 
 //    template <typename ActionExecutor>
-    using ActionExecutor = std::function<bool(const float )>;
+
+    using ActionExecutor = std::function<bool(const float)>;
+
+    inline auto makeProgressionExecutor(const float duration, ActionExecutor && executor, const easing::Easing e) -> ActionExecutor {
+        return [elapsed = 0.0f, duration,
+            executor = std::move(executor), e] (const float dt) mutable -> bool {
+            const float progress = easing::calculateProgress(elapsed / duration, e); // [0.0f, 1.0f]
+            if (const bool finished = executor(progress); !finished) {
+                elapsed += dt;
+                return (elapsed >= duration);
+            }
+            return true;
+        };
+    }
+
+    inline auto makeDurationExecutor(const float duration, ActionExecutor && executor) -> ActionExecutor {
+        return [elapsed = 0.0f, duration,
+                executor = std::move(executor)] (const float dt) mutable -> bool {
+            if (const bool finished = executor(dt); !finished) {
+                elapsed += dt;
+                return (elapsed >= duration);
+            }
+            return true;
+        };
+    }
+
     class ActionAnimation {
     public:
         ActionAnimation(ActionExecutor && executor) : _executor(std::move(executor)) {}
