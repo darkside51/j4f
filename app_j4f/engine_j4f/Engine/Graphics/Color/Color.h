@@ -101,7 +101,7 @@ namespace engine {
 
 		explicit Color(const uint32_t rgba) noexcept : _rgba(rgba) {}
 
-		inline vec4f toVec4() const noexcept {
+		inline vec4f vec4() const noexcept {
 			return {
 					static_cast<float>((_rgba >> 24) & 0xff) / 255.0f,
 					static_cast<float>((_rgba >> 16) & 0xff) / 255.0f,
@@ -110,7 +110,13 @@ namespace engine {
 			};
 		}
 
-		inline operator uint32_t() const noexcept { return _rgba; }
+        [[maybe_unused]] inline uint32_t rgba() const noexcept { return _rgba; }
+        [[maybe_unused]] inline uint32_t abgr() const noexcept {
+            return ((_rgba & 0xFF000000) >> 24) |
+                   ((_rgba & 0x00FF0000) >> 8) |
+                   ((_rgba & 0x0000FF00) << 8) |
+                   ((_rgba & 0x000000FF) << 24);
+        }
 
 		inline uint8_t r() const noexcept { return (_rgba >> 24) & 0xff; }
 		inline uint8_t g() const noexcept { return (_rgba >> 16) & 0xff; }

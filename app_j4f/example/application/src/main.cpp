@@ -2636,7 +2636,7 @@ int main() {
     half half_float_value = 0.5f;
 
 	engine::Color color(engine::vec4f(1.0f, 0.0f, 1.0f, 1.0f));
-	auto const vColor = color.toVec4();
+	auto const vColor = color.vec4();
 
 	//////////////////////////////////
 	engine::EngineConfig config;
