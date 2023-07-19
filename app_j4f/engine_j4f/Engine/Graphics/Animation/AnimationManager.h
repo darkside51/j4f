@@ -94,6 +94,10 @@ namespace engine {
         }
 
         inline void update(const float delta) noexcept { // virtual update mechanic
+            if (delta == 0.0f) { // disable update if delta is 0.0f
+                return;
+            }
+
             for (auto & updater : _animUpdaters) {
                 updater->update(delta);
             }
