@@ -836,6 +836,19 @@ namespace vulkan {
 			vkCmdBlitImage(m_commandBuffer, srcImage.image, srcImageLayout, dstImage.image, dstImageLayout, regionCount, &blit, filter);
 		}
 
+        inline void cmdCopyImageToImage(
+                const VulkanImage& srcImage,
+                const VkImageLayout srcImageLayout,
+                const VulkanImage& dstImage,
+                const VkImageLayout dstImageLayout,
+                const uint32_t regionCount,
+                const VkImageCopy* regions
+        ) const {
+            vkCmdCopyImage(m_commandBuffer,
+                           srcImage.image, srcImageLayout,
+                           dstImage.image, dstImageLayout,
+                           regionCount,regions);
+        }
 		////
 
 		//// advanced commands
