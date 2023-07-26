@@ -16,7 +16,7 @@
 #include "../Utils/Json/Json.h"
 #include "../Input/Input.h"
 #include "../Events/Bus.h"
-//#include "Threads/Looper.h"
+#include "../Time/TimerManager.h"
 
 #include <cstdint>
 #include <chrono>
@@ -50,6 +50,7 @@ namespace engine {
         setModule<Graphics>(config.graphicsCfg);
 		setModule<Device>();
 		setModule<Bus>();
+        setModule<TimerManager>();
 		
 		_statistic = getModule<Statistic>();
 		_graphics = getModule<Graphics>();

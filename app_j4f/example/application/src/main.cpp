@@ -59,6 +59,7 @@
 #include <imgui.h>
 
 #include <Engine/Graphics/Texture/TextureHandler.h>
+#include <Engine/Time/TimerManager.h>
 
 namespace engine {
 	vulkan::VulkanGpuProgram* grass_default = nullptr;
@@ -2432,6 +2433,12 @@ namespace engine {
 
     void Application::onEngineInitComplete() {
         _customData->onEngineInitComplete();
+        auto * timerManager = engine::Engine::getInstance().getModule<engine::TimerManager>();
+        timerManager->registerTimer({}, []()->TimerState{
+            static uint8_t i = 0;
+            engine::log("timerEvent, %d", ++i);
+            return i == 10u ? TimerState::Finish : TimerState::Continue;
+            }, 2000u);
     }
 
 	void Application::render(const float delta) {
@@ -2440,6 +2447,7 @@ namespace engine {
 
 	void Application::update(const float delta) {
 		_customData->update(delta);
+        engine::Engine::getInstance().getModule<engine::TimerManager>()->update({});
 	}
 
 	void Application::resize(const uint16_t w, const uint16_t h) {
