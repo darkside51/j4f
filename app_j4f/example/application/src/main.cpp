@@ -2434,7 +2434,7 @@ namespace engine {
     void Application::onEngineInitComplete() {
         _customData->onEngineInitComplete();
         auto * timerManager = engine::Engine::getInstance().getModule<engine::TimerManager>();
-        timerManager->registerTimer({}, []()->TimerState{
+        timerManager->registerTimer({}, []()->TimerState {
             static uint8_t i = 0;
             engine::log("timerEvent, %d", ++i);
             return i == 10u ? TimerState::Finish : TimerState::Continue;

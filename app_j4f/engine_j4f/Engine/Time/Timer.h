@@ -8,7 +8,8 @@ namespace engine {
 
     enum class TimerState : uint8_t {
         Finish = 0u,
-        Continue
+        Continue,
+        NotReady
     };
 
     using TimerExecutor = std::function<TimerState()>;
@@ -37,6 +38,7 @@ namespace engine {
         Timer &operator=(const Timer &t) = delete;
 
         inline TimerState operator()(uint64_t time) {
+            if (_fireTime > time) return TimerState::NotReady;
             const auto result = _executor();
             if (result == TimerState::Continue) {
                 _fireTime = time + _period;
