@@ -14,12 +14,8 @@ namespace engine {
 		virtual ~IEventObserver() = default;
 	};
 
-	template <typename T>
-	class EventObserverImpl : public IEventObserver {
-	public:
-		~EventObserverImpl() override = default;
-		virtual bool processEvent(const T& evt) = 0;
-	};
+    template <typename T>
+    class EventObserverImpl;
 
     class IEventSubscriber {
     public:
@@ -38,7 +34,7 @@ namespace engine {
 			const uint16_t observer_type_id = UniqueTypeId<IEventObserver>::getUniqueId<EVENT>();
             std::vector<IEventObserver*>& observers = _eventObservers[observer_type_id];
             if (std::find(observers.begin(), observers.end(), o) == observers.end()) {
-                observers.emplace_back(o);
+                observers.emplace_back(o)->_bus = this;
             }
         }
 
@@ -124,6 +120,21 @@ namespace engine {
 	};
 
     template <typename T>
+    class EventObserverImpl : public IEventObserver {
+        friend class Bus;
+    public:
+        ~EventObserverImpl() override {
+            if (_bus) {
+                _bus->removeObserver(this);
+                _bus = nullptr;
+            }
+        }
+        virtual bool processEvent(const T& evt) = 0;
+    private:
+        Bus* _bus = nullptr;
+    };
+
+    template <typename T>
     class EventSubscriber : public IEventSubscriber {
         friend class Bus;
     public:
@@ -133,8 +144,8 @@ namespace engine {
         ~EventSubscriber() override {
             if (_bus && _callback) {
                 _bus->removeSubscriber(this);
+                _bus = nullptr;
             }
-            _bus = nullptr;
         }
 
         explicit EventSubscriber(Callback&& callback) : _callback(std::move(callback)) {}
