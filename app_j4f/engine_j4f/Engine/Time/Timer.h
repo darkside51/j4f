@@ -15,11 +15,22 @@ namespace engine {
     using TimerExecutor = std::function<TimerState()>;
 
     class Timer {
+        friend class TimerManager;
+
     public:
-        Timer(TimerExecutor && executor, uint64_t milliseconds) : _period(milliseconds),
+        Timer(TimerExecutor &&executor, uint64_t milliseconds) : _period(milliseconds),
                                                                  _fireTime(steadyTime<std::chrono::milliseconds>() +
                                                                            _period),
                                                                  _executor(std::move(executor)) {
+
+        }
+
+        Timer(TimerExecutor &&executor, SteadyTimePoint timePoint) :
+                _period(time<SteadyTimePoint, std::chrono::milliseconds>(timePoint) -
+                        steadyTime<std::chrono::milliseconds>()),
+                _fireTime(steadyTime<std::chrono::milliseconds>() +
+                          _period),
+                _executor(std::move(executor)) {
 
         }
 
@@ -38,7 +49,7 @@ namespace engine {
         Timer &operator=(const Timer &t) = delete;
 
         inline TimerState operator()(uint64_t time) {
-            if (_fireTime > time) return TimerState::NotReady;
+//            if (_fireTime > time) return TimerState::NotReady;
             const auto result = _executor();
             if (result == TimerState::Continue) {
                 _fireTime = time + _period;

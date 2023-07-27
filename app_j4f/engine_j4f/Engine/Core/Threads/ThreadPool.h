@@ -22,7 +22,7 @@ namespace engine {
 //
 //
 
-    class ThreadPool : public IEngineModule {
+    class ThreadPool final : public IEngineModule {
         enum class TPoolState : uint8_t {
             RUN = 0,
             PAUSE = 1,

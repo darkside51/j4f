@@ -73,7 +73,7 @@ namespace engine {
 #endif
 
 namespace engine {
-	class LogManager : public IEngineModule {
+	class LogManager final : public IEngineModule {
 	public:
 		LogManager() {
 			setupConsole();

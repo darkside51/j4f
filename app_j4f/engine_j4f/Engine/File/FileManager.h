@@ -10,7 +10,7 @@
 
 namespace engine {
 
-	class FileManager : public IEngineModule { // todo: syncronisations
+	class FileManager final : public IEngineModule { // todo: syncronisations
 	public:
 		FileManager() {}
 

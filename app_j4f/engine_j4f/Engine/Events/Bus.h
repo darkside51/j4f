@@ -29,7 +29,7 @@ namespace engine {
     template <typename T>
     class EventSubscriber;
 
-	class Bus : public IEngineModule {
+	class Bus final : public IEngineModule {
 	public:
 		~Bus() override = default;
 

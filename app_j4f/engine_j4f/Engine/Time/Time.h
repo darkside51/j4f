@@ -6,25 +6,34 @@
 
 namespace engine {
 
+    using SteadyClock = std::chrono::steady_clock;
+    using SteadyTimePoint = SteadyClock::time_point;
+
+    using SystemClock = std::chrono::system_clock;
+    using SystemTimePoint = SystemClock::time_point;
+
+    using HighResolutionClock = std::chrono::high_resolution_clock;
+    using HighResolutionTimePoint = HighResolutionClock::time_point;
+
+    template <typename TimePoint, typename T = std::chrono::milliseconds>
+    [[maybe_unused]] inline uint64_t time(const TimePoint t) noexcept {
+        const auto time = std::chrono::time_point_cast<T>(t);
+        return static_cast<uint64_t>(time.time_since_epoch().count());
+    }
+
 	template <typename T = std::chrono::milliseconds>
-	inline uint64_t steadyTime() noexcept {
-		const auto now = std::chrono::steady_clock::now();
-		auto now_time = std::chrono::time_point_cast<T>(now);
-		return static_cast<uint64_t>(now_time.time_since_epoch().count());
+    [[maybe_unused]] inline uint64_t steadyTime() noexcept {
+		return time<SteadyTimePoint, T>(SteadyClock::now());
 	}
 
 	template <typename T = std::chrono::milliseconds>
-	inline uint64_t systemTime() noexcept {
-		const auto now = std::chrono::system_clock::now();
-		auto now_time = std::chrono::time_point_cast<T>(now);
-		return static_cast<uint64_t>(now_time.time_since_epoch().count());
+    [[maybe_unused]] inline uint64_t systemTime() noexcept {
+        return time<SystemTimePoint, T>(SystemClock::now());
 	}
 
 	template <typename T = std::chrono::milliseconds>
-	inline uint64_t highResoutionTime() noexcept {
-		const auto now = std::chrono::high_resolution_clock::now();
-		auto now_time = std::chrono::time_point_cast<T>(now);
-		return static_cast<uint64_t>(now_time.time_since_epoch().count());
+    [[maybe_unused]] inline uint64_t highResoutionTime() noexcept {
+        return time<HighResolutionTimePoint, T>(HighResolutionClock::now());
 	}
 
 	inline uint64_t unixUTCTime() noexcept {

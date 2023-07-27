@@ -88,7 +88,7 @@ namespace engine {
 		}
 	};
 
-	class AssetManager : public IEngineModule {
+	class AssetManager final : public IEngineModule {
 		using ThreadPoolClass = ThreadPool2;
 		/*
 		// SFINAE конечно, но работает), по другому разрулил, пусть пока полежит тут

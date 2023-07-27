@@ -14,7 +14,7 @@ namespace engine {
 	class RenderHelper;
 	class AnimationManager;
 
-	class Graphics : public IEngineModule {
+	class Graphics final : public IEngineModule {
 	public:
 		explicit Graphics(const GraphicConfig& cfg);
 		~Graphics() override;

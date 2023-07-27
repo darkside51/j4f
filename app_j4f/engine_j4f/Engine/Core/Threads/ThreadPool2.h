@@ -7,7 +7,7 @@
 
 namespace engine {
 
-    class ThreadPool2 : public IEngineModule {
+    class ThreadPool2 final : public IEngineModule {
         using Locker = SpinLock;
         enum class TPoolState : uint8_t {
             RUN = 0,

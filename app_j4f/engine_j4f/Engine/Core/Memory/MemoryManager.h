@@ -15,7 +15,7 @@ namespace engine {
 	};
 
 	template <typename T>
-	struct TMemoryPool : public IMemoryPool {
+	struct TMemoryPool final : public IMemoryPool {
 		ChunkedMemoryPool<T> pool;
 
 		explicit TMemoryPool(const size_t sz) : pool(sz) {}
@@ -25,7 +25,7 @@ namespace engine {
 		}
 	};
 
-	class MemoryManager : public IEngineModule {
+	class MemoryManager final : public IEngineModule {
 	public:
 		~MemoryManager() override {
             for (auto&& [id, pool] : _pools) {

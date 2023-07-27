@@ -8,7 +8,7 @@ struct GLFWwindow;
 namespace engine {
 	class IRenderSurfaceInitializer;
 
-	class GLFWDevice : public IEngineModule {
+	class GLFWDevice final : public IEngineModule {
 	public:
 		GLFWDevice();
 		~GLFWDevice() override;

@@ -10,7 +10,7 @@
 
 namespace engine {
 
-    class WorkerThreadsCommutator : public IEngineModule {
+    class WorkerThreadsCommutator final : public IEngineModule {
     public:
         ~WorkerThreadsCommutator() override = default;
 

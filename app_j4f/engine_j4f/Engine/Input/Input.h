@@ -183,7 +183,7 @@ namespace engine {
 		uint16_t _priority = 0;
 	};
 
-	class Input : public IEngineModule {
+	class Input final : public IEngineModule {
 	public:
 		inline static constexpr uint8_t ALT_PRESSED_BIT = 0;
 		inline static constexpr uint8_t CTRL_PRESSED_BIT = 1;

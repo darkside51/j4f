@@ -20,7 +20,7 @@ namespace engine {
 		virtual void statisticUpdate(const Statistic* s) = 0;
 	};
 
-	class Statistic : public IEngineModule {
+	class Statistic final : public IEngineModule {
 	public:
         explicit Statistic(const float time = 1.0f) : _calculationTime(time) {}
 

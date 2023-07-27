@@ -2435,10 +2435,10 @@ namespace engine {
         _customData->onEngineInitComplete();
         auto * timerManager = engine::Engine::getInstance().getModule<engine::TimerManager>();
         timerManager->registerTimer({}, []()->TimerState {
-            static uint8_t i = 0;
+            static uint8_t i = 0u;
             engine::log("timerEvent, %d", ++i);
             return i == 10u ? TimerState::Finish : TimerState::Continue;
-            }, 2000u);
+            }, 1000u);
     }
 
 	void Application::render(const float delta) {
