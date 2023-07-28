@@ -24,6 +24,7 @@
 #include <atomic>
 #include <utility>
 #include <tuple>
+#include <limits>
 
 namespace engine {
 	class IRenderSurfaceInitialiser;
@@ -342,9 +343,29 @@ namespace vulkan {
 	};
 
 	struct VertexDescription {
+        inline static constexpr uint64_t kUndefined = std::numeric_limits<uint64_t>::max();
+        uint64_t id = kUndefined;
 		std::vector<std::pair<uint32_t, uint32_t>> bindings_strides{}; // pair of binding, stride
-		uint32_t attributesCount = 0;
-		VkVertexInputAttributeDescription* attributes = nullptr;
+        std::vector<VkVertexInputAttributeDescription> attributes{};
+
+        inline uint32_t getId() noexcept {
+            if (id == kUndefined) {
+                calculateId();
+            }
+            return id;
+        }
+
+        void calculateId() noexcept {
+            id = 0u;
+            for (auto && attribute : attributes) {
+                auto const l = static_cast<uint8_t>(attribute.location);
+                auto const b = static_cast<uint8_t>(attribute.binding);
+                auto const o = static_cast<uint16_t>(attribute.offset);
+                auto const f = static_cast<uint32_t>(attribute.format);
+                const uint64_t k = (f << 0u | o << 32u | b << 48u | l << 56u);
+                id |= k;
+            }
+        }
 	};
 
 	struct VulkanRenderState {
@@ -581,16 +602,18 @@ namespace vulkan {
 			uint64_t composite_key = 0;
 			uint64_t stencil_key = 0;
 			uint32_t blend_key = 0;
+            uint64_t vertex_descriptor_id = 0;
 			VkRenderPass renderPass = VK_NULL_HANDLE;
 			size_t hash_value = 0xffffffff;
 
-			GraphicsPipelineCacheKey(const uint64_t cmpst, const uint64_t stncl, const uint32_t blnd, VkRenderPass rp) : 
+			GraphicsPipelineCacheKey(const uint64_t cmpst, const uint64_t stncl, const uint32_t blnd, uint64_t vdescr, VkRenderPass rp) :
 				composite_key(cmpst),
 				stencil_key(stncl),
 				blend_key(blnd),
+                vertex_descriptor_id(vdescr),
 				renderPass(rp)
 			{
-				hash_value = engine::hash_combine(composite_key, stencil_key, blend_key, renderPass);
+				hash_value = engine::hash_combine(composite_key, stencil_key, blend_key, vertex_descriptor_id, renderPass);
 			}
 
 			inline bool operator < (const GraphicsPipelineCacheKey& key) const noexcept {
@@ -600,7 +623,10 @@ namespace vulkan {
 					if (stencil_key == key.stencil_key) {
 						if (blend_key < key.blend_key) return true;
 						if (blend_key == key.blend_key) {
-							return (renderPass < key.renderPass);
+                            if (vertex_descriptor_id < key.vertex_descriptor_id) return true;
+                            if (vertex_descriptor_id == key.vertex_descriptor_id) {
+                                return (renderPass < key.renderPass);
+                            }
 						}
 						return false;
 					}
@@ -610,7 +636,8 @@ namespace vulkan {
 			}
 
 			inline bool operator == (const GraphicsPipelineCacheKey& key) const noexcept {
-				return (composite_key == key.composite_key) && (stencil_key == key.stencil_key) && (blend_key == key.blend_key) && (renderPass == key.renderPass);
+				return (composite_key == key.composite_key) && (stencil_key == key.stencil_key) && (blend_key == key.blend_key) &&
+                       (vertex_descriptor_id == key.vertex_descriptor_id) && (renderPass == key.renderPass);
 			}
 
 			[[nodiscard]] inline size_t hash() const noexcept { return hash_value; }

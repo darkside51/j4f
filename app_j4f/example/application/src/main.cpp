@@ -189,11 +189,7 @@ namespace engine {
 			_renderState.depthState = vulkan::VulkanDepthState(true, true, VK_COMPARE_OP_LESS);
 			_renderState.stencilState = vulkan::VulkanStencilState(false);
 
-			_vertexInputAttributes = SkyBoxVertex::getVertexAttributesDescription();
-			if (!_vertexInputAttributes.empty()) {
-				_renderState.vertexDescription.attributesCount = static_cast<uint32_t>(_vertexInputAttributes.size());
-				_renderState.vertexDescription.attributes = _vertexInputAttributes.data();
-			}
+            _renderState.vertexDescription.attributes = SkyBoxVertex::getVertexAttributesDescription();
 
 			// fixed gpu layout works
 			_fixedGpuLayouts.resize(2);
@@ -2097,11 +2093,9 @@ namespace engine {
 				vulkan::VulkanDepthState depthState(true, false, VK_COMPARE_OP_LESS);
 				vulkan::VulkanStencilState stencilState(false);
 
-				std::vector<VkVertexInputAttributeDescription> vertexInputAttributs = TexturedVertex::getVertexAttributesDescription();
 				vulkan::VertexDescription vertexDescription;
 				vertexDescription.bindings_strides.push_back(std::make_pair(0, sizeof(TexturedVertex)));
-				vertexDescription.attributesCount = static_cast<uint32_t>(vertexInputAttributs.size());
-				vertexDescription.attributes = vertexInputAttributs.data();
+				vertexDescription.attributes = TexturedVertex::getVertexAttributesDescription();
 
 				auto&& pipeline = renderer->getGraphicsPipeline(
 					vertexDescription,
@@ -2163,11 +2157,9 @@ namespace engine {
 				vulkan::VulkanDepthState depthState(false, false, VK_COMPARE_OP_LESS);
 				vulkan::VulkanStencilState stencilState(false);
 
-				std::vector<VkVertexInputAttributeDescription> vertexInputAttributs = TexturedVertex::getVertexAttributesDescription();
 				vulkan::VertexDescription vertexDescription;
 				vertexDescription.bindings_strides.push_back(std::make_pair(0, sizeof(TexturedVertex)));
-				vertexDescription.attributesCount = static_cast<uint32_t>(vertexInputAttributs.size());
-				vertexDescription.attributes = vertexInputAttributs.data();
+				vertexDescription.attributes = TexturedVertex::getVertexAttributesDescription();
 
 				auto&& pipeline = renderer->getGraphicsPipeline(
 					vertexDescription,

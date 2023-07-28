@@ -383,18 +383,13 @@ namespace engine {
 				break;
 		}
 
-		_renderState.vertexDescription.bindings_strides.emplace_back(0, sizeOfVertex());
 		_renderState.topology = { topology, enableRestartTopology };
 		_renderState.rasterizationState = vulkan::VulkanRasterizationState(vulkan::CullMode::CULL_MODE_BACK, vulkan::PoligonMode::POLYGON_MODE_FILL);
 		_renderState.blendMode = vulkan::CommonBlendModes::blend_none;
 		_renderState.depthState = vulkan::VulkanDepthState(true, true, VK_COMPARE_OP_LESS);
 		_renderState.stencilState = vulkan::VulkanStencilState(false);
-
-		_vertexInputAttributes = getVertexInputAttributes();
-		if (!_vertexInputAttributes.empty()) {
-			_renderState.vertexDescription.attributesCount = static_cast<uint32_t>(_vertexInputAttributes.size());
-			_renderState.vertexDescription.attributes = _vertexInputAttributes.data();
-		}
+        _renderState.vertexDescription.bindings_strides.emplace_back(0, sizeOfVertex());
+        _renderState.vertexDescription.attributes = getVertexInputAttributes();
 
 		// fixed gpu layout works
 		_fixedGpuLayouts.resize(4);

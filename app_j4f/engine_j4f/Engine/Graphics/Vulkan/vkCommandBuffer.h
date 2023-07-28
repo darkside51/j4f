@@ -102,6 +102,8 @@ namespace vulkan {
 		VkViewport m_viewport = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 		VkRect2D m_scissor = { {0, 0}, {0, 0} };
 
+        std::vector<VkBuffer> m_vertexBuffersVec = {};
+        std::vector<VkDeviceSize> m_vertexBufferOffsetsVec = {};
 		VkBuffer m_vertexBuffer = VK_NULL_HANDLE;
 		VkDeviceSize m_vertexBufferOffset = 0;
 
@@ -123,6 +125,12 @@ namespace vulkan {
 
 			m_vertexBuffer = VK_NULL_HANDLE;
 			m_vertexBufferOffset = 0;
+
+            auto const vbSize = m_vertexBuffersVec.size();
+            m_vertexBuffersVec.clear();
+            m_vertexBufferOffsetsVec.clear();
+            m_vertexBuffersVec.resize(vbSize);
+            m_vertexBufferOffsetsVec.resize(vbSize);
 
 			m_indexBuffer = VK_NULL_HANDLE;
 			m_indexBufferOffset = 0;
@@ -215,8 +223,20 @@ namespace vulkan {
 		}
 
 		inline bool bindVertexBuffers(VkBuffer* buffers, const VkDeviceSize* offsets, const uint32_t first, const uint32_t count) {
-			// this check so ugly
-			return true;
+            auto const size = count + first;
+            if (m_vertexBuffersVec.size() < size) {
+                m_vertexBuffersVec.resize(size);
+                m_vertexBufferOffsetsVec.resize(size);
+            }
+            bool result = false;
+            for (uint32_t i = first; i < size; ++i) {
+                if (buffers[i] != m_vertexBuffersVec[i] || offsets[i] != m_vertexBufferOffsetsVec[i]) {
+                    m_vertexBuffersVec[i] = buffers[i];
+                    m_vertexBufferOffsetsVec[i] = offsets[i];
+                    result = true;
+                }
+            }
+			return result;
 		}
 
 		inline bool bindVertexBuffer(const VkBuffer& buffer, const VkDeviceSize offset) {

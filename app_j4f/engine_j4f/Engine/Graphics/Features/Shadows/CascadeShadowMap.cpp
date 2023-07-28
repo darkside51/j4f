@@ -21,11 +21,9 @@ namespace engine {
 	void CascadeShadowMap::initPipelines() { // init special pipelines
 		using namespace vulkan;
 
-		std::vector<VkVertexInputAttributeDescription> vertexInputAttributs = std::move(TexturedVertex::getVertexAttributesDescription());
 		VertexDescription vertexDescription;
 		vertexDescription.bindings_strides.push_back(std::make_pair(0, sizeof(TexturedVertex)));
-		vertexDescription.attributesCount = static_cast<uint32_t>(vertexInputAttributs.size());
-		vertexDescription.attributes = vertexInputAttributs.data();
+		vertexDescription.attributes = TexturedVertex::getVertexAttributesDescription();
 
 		VulkanPrimitiveTopology primitiveTopology = { PrimitiveTopology::TRIANGLE_LIST , false };
 		VulkanRasterizationState rasterisation(CullMode::CULL_MODE_NONE, PoligonMode::POLYGON_MODE_FILL);

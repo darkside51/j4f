@@ -108,7 +108,7 @@ namespace engine {
 
 		inline vulkan::VulkanGpuProgram* setProgram(vulkan::VulkanGpuProgram* program, VkRenderPass renderPass = nullptr) {
 			if (_renderDescriptor.renderDataCount == 0) return nullptr;
-			if (_vertexInputAttributes.empty()) return nullptr;
+			if (_renderState.vertexDescription.attributes.empty()) return nullptr;
 
 			auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
 			vulkan::VulkanPipeline* pipeline = renderer->getGraphicsPipeline(_renderState, program, renderPass);
@@ -133,7 +133,6 @@ namespace engine {
 	protected:
 		RenderDescriptor _renderDescriptor;
 		vulkan::VulkanRenderState _renderState;
-		std::vector<VkVertexInputAttributeDescription> _vertexInputAttributes;
 		std::vector<std::pair<const vulkan::GPUParamLayoutInfo*, FixedLayoutDescriptor>> _fixedGpuLayouts;
 		std::unordered_map<vulkan::VulkanPipeline*, std::vector<const vulkan::GPUParamLayoutInfo*>> _pipelinesLayoutsMap;
 	};

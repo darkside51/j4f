@@ -89,10 +89,7 @@ namespace engine {
 		_renderState.blendMode = vulkan::CommonBlendModes::blend_none;
 		_renderState.depthState = vulkan::VulkanDepthState(true, true, VK_COMPARE_OP_LESS);
 		_renderState.stencilState = vulkan::VulkanStencilState(false);
-
-		_vertexInputAttributes = TexturedVertex::getVertexAttributesDescription();
-		_renderState.vertexDescription.attributesCount = static_cast<uint32_t>(_vertexInputAttributes.size());
-		_renderState.vertexDescription.attributes = _vertexInputAttributes.data();
+		_renderState.vertexDescription.attributes = TexturedVertex::getVertexAttributesDescription();
 
 		_fixedGpuLayouts.resize(1);
 		_fixedGpuLayouts[0].second = { "mvp", ViewParams::Ids::CAMERA_TRANSFORM };

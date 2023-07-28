@@ -1101,7 +1101,7 @@ namespace vulkan {
 
 		const VkRenderPass currentRenderPass = (renderPass == VK_NULL_HANDLE) ? _mainRenderPass : renderPass;
 
-		const GraphicsPipelineCacheKey cacheKey(composite_key, stencil_key, blendKey, currentRenderPass);
+		const GraphicsPipelineCacheKey cacheKey(composite_key, stencil_key, blendKey, const_cast<VertexDescription&>(vertexDescription).getId(), currentRenderPass);
 		auto it = _graphicsPipelinesCache.find(cacheKey);
 		if (it != _graphicsPipelinesCache.end()) {
 			return it->second.get();
@@ -1190,8 +1190,8 @@ namespace vulkan {
 		vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 		vertexInputState.vertexBindingDescriptionCount = vertexBindingsSize;
 		vertexInputState.pVertexBindingDescriptions = vertexInputBindings.data();
-		vertexInputState.vertexAttributeDescriptionCount = vertexDescription.attributesCount;
-		vertexInputState.pVertexAttributeDescriptions = vertexDescription.attributes;
+		vertexInputState.vertexAttributeDescriptionCount = vertexDescription.attributes.size();
+		vertexInputState.pVertexAttributeDescriptions = vertexDescription.attributes.data();
 
 		///////////////// setup pipeline
         const auto & [iterator, success] = _graphicsPipelinesCache.emplace(cacheKey, std::make_unique<VulkanPipeline>());

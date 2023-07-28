@@ -106,10 +106,7 @@ namespace engine {
         attributes.set<float, 0u>(2u);          // uv
         attributes.set<uint8_t, 0u>(4u, true);  // color
 
-        _vertexInputAttributes = VulkanAttributesProvider::convert(attributes);
-
-        _renderState.vertexDescription.attributesCount = _vertexInputAttributes.size();
-        _renderState.vertexDescription.attributes = _vertexInputAttributes.data();
+        _renderState.vertexDescription.attributes = VulkanAttributesProvider::convert(attributes);
 
         _renderDescriptor.renderDataCount = 1;
         _renderDescriptor.renderData = new vulkan::RenderData *[1];

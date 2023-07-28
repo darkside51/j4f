@@ -52,12 +52,9 @@ namespace engine {
 		psiColored.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/color.psh.spv");
 		VulkanGpuProgram* programColored = reinterpret_cast<VulkanGpuProgram*>(_gpuProgramManager->getProgram(psiColored));
 
-		std::vector<VkVertexInputAttributeDescription> vertexInputAttributs = ColoredVertex::getVertexAttributesDescription();
-
 		VertexDescription vertexDescription;
 		vertexDescription.bindings_strides.push_back(std::make_pair(0, sizeof(ColoredVertex)));
-		vertexDescription.attributesCount = static_cast<uint32_t>(vertexInputAttributs.size());
-		vertexDescription.attributes = vertexInputAttributs.data();
+		vertexDescription.attributes = ColoredVertex::getVertexAttributesDescription();
 
 		VulkanPrimitiveTopology primitiveTopology = { PrimitiveTopology::LINE_LIST , false };
 		VulkanRasterizationState rasterisation(CullMode::CULL_MODE_NONE, PoligonMode::POLYGON_MODE_FILL);
@@ -91,10 +88,8 @@ namespace engine {
 		psiCTextured.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/texture.psh.spv");
 		VulkanGpuProgram* programTextured = reinterpret_cast<VulkanGpuProgram*>(_gpuProgramManager->getProgram(psiCTextured));
 
-		vertexInputAttributs = TexturedVertex::getVertexAttributesDescription();
 		vertexDescription.bindings_strides[0] = std::make_pair(0, sizeof(TexturedVertex));
-		vertexDescription.attributesCount = static_cast<uint32_t>(vertexInputAttributs.size());
-		vertexDescription.attributes = vertexInputAttributs.data();
+		vertexDescription.attributes = TexturedVertex::getVertexAttributesDescription();
 
 		_commonPipelines[static_cast<uint8_t>(CommonPipelines::COMMON_PIPELINE_TEXTURED_DEPTH_RW)] = _renderer->getGraphicsPipeline(
 			vertexDescription,
