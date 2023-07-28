@@ -29,15 +29,15 @@ namespace vulkan {
 		}
 	}
 
-	void VulkanTexture::create(const void** data, const uint32_t count, const VkFormat format, const uint8_t bpp, const bool createMipMaps, const bool deffered, const VkImageViewType forceType) {
+	void VulkanTexture::create(const void** data, const uint32_t layerCount, const VkFormat format, const uint8_t bpp, const bool createMipMaps, const bool deffered, const VkImageViewType forceType) {
 		_generationState.store(VulkanTextureCreationState::CREATION_STARTED, std::memory_order_release);
-		VulkanBuffer* staging = generateWithData(data, count, format, bpp, createMipMaps, forceType);
+		VulkanBuffer* staging = generateWithData(data, layerCount, format, bpp, createMipMaps, forceType);
 
 		if (deffered) {
-			_renderer->addDefferedGenerateTexture(this, staging, 0, count);
+			_renderer->addDefferedGenerateTexture(this, staging, 0, layerCount);
 		} else {
 			auto&& cmdBuffer = _renderer->getSupportCommandBuffer();
-			fillGpuData(staging, cmdBuffer, 0, count);
+			fillGpuData(staging, cmdBuffer, 0, layerCount);
 			_renderer->markToDelete(staging);
 		}
 	}

@@ -71,7 +71,7 @@ namespace engine {
         VertexAttributes() = default;
 
         VertexAttributes(std::initializer_list<uint32_t> && l) : _attributes(l.size()) {
-            size_t i = 0;
+            size_t i = 0u;
             for (auto v : l) {
                 _count += v;
                 _attributes[i++].reserve(v);

@@ -101,7 +101,7 @@ namespace engine {
         _renderState.depthState = vulkan::VulkanDepthState(false, false, VK_COMPARE_OP_LESS);
         _renderState.stencilState = vulkan::VulkanStencilState(false);
 
-        VertexAttributes attributes({3});
+        VertexAttributes attributes({3u});
         attributes.set<float, 0u>(2u);          // position
         attributes.set<float, 0u>(2u);          // uv
         attributes.set<uint8_t, 0u>(4u, true);  // color
@@ -165,7 +165,7 @@ namespace engine {
         ));
 
         const void* imageData = &uploadData[0];
-        _fontTexture->create(&imageData, 1, VK_FORMAT_R8G8B8A8_UNORM, 32, false,
+        _fontTexture->create(imageData, VK_FORMAT_R8G8B8A8_UNORM, 32, false,
                              false, VK_IMAGE_VIEW_TYPE_2D);
         _fontTexture->createSingleDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0);
         free(uploadData);

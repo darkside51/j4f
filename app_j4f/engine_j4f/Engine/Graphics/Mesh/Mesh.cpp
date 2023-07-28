@@ -401,8 +401,8 @@ namespace engine {
 
 	std::vector<VkVertexInputAttributeDescription> Mesh::getVertexInputAttributes() const {
         VertexAttributes attributes;
-		for (uint8_t i = 0; i < std::min(static_cast<uint8_t>(16u), static_cast<uint8_t>(gltf::AttributesSemantic::SEMANTICS_COUNT)); ++i) {
-			if (_semanticMask & (1 << i)) {
+		for (uint8_t i = 0u; i < std::min(static_cast<uint8_t>(16u), static_cast<uint8_t>(gltf::AttributesSemantic::SEMANTICS_COUNT)); ++i) {
+			if (_semanticMask & (1u << i)) {
 				switch (static_cast<gltf::AttributesSemantic>(i)) {
 					case gltf::AttributesSemantic::POSITION:
 					case gltf::AttributesSemantic::NORMAL:
