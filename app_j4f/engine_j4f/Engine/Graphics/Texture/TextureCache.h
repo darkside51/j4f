@@ -53,6 +53,10 @@ namespace engine {
             }
         }
 
+        inline void eraseTexture(value_type::element_type const * value) noexcept { // force erase (for erase forever stored values available)
+            _map.erase(value->m_key);
+        }
+
     private:
         TsUnorderedMap<key_type, value_type, Hasher<key_type>, std::equal_to<>> _map;
     };

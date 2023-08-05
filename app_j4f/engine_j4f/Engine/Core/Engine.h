@@ -39,7 +39,7 @@ namespace engine {
 		void destroy();
 
 		template<typename T>
-		inline T* getModule() { 
+		inline T* getModule() noexcept {
 			const uint16_t moduleId = UniqueTypeId<IEngineModule>::getUniqueId<T>();
 			if (moduleId < _modules.size()) {
 				return static_cast<T*>(_modules[moduleId]);
@@ -49,7 +49,7 @@ namespace engine {
 		}
 
 		template<typename T>
-		inline const T* getModule() const { 
+		inline const T* getModule() const noexcept {
 			const uint16_t moduleId = UniqueTypeId<IEngineModule>::getUniqueId<T>();
 			if (moduleId < _modules.size()) {
 				return static_cast<T*>(_modules[moduleId]);

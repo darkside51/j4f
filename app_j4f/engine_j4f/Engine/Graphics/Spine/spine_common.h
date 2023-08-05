@@ -1,10 +1,11 @@
 #pragma once
 
 #include <spine/spine.h>
+#include "../Texture/TextureHandler.h"
+
+#include <vector>
 
 namespace engine {
-    class J4SpineAtlas;
-
     class J4SpineAtlasAttachmentLoader: public spine::AtlasAttachmentLoader {
     public:
         explicit J4SpineAtlasAttachmentLoader(spine::Atlas* atlas);
@@ -14,19 +15,13 @@ namespace engine {
 
     class J4SpineTextureLoader: public spine::TextureLoader {
     public:
-//        struct LoadParams {
-//            J4SpineAtlas *atlas = nullptr;
-//        };
-
         J4SpineTextureLoader();
         ~J4SpineTextureLoader() override;
 
         void load(spine::AtlasPage& page, const spine::String& path) override;
         void unload(void* texture) override;
-//        void setLoadParams(LoadParams params);
-
     private:
-//        LoadParams _params;
+        std::vector<TexturePtr> _textures;
     };
 
     class J4SpineExtension: public spine::DefaultSpineExtension {

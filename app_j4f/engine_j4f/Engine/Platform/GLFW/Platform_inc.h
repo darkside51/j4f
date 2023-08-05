@@ -2,10 +2,11 @@
 
 #include "../../Device/GLFW/GLFWDevice.h"
 #include "../../File/CommonFileSystem.h"
+#include "../../Graphics/Vulkan/vkRenderer.h"
 
-namespace vulkan {
-    class VulkanRenderer;
-}
+//namespace vulkan {
+//    class VulkanRenderer;
+//}
 
 namespace engine {
 	using Device = GLFWDevice;

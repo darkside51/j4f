@@ -38,9 +38,7 @@ namespace engine {
             }
 
             AttributeDescription() = default;
-            AttributeDescription(AttributeDescription&&) = default;
-            AttributeDescription& operator=(AttributeDescription&&) = default;
-
+            
             enum class Type : uint8_t {
                 FLOAT_1x32 = 0u,
                 FLOAT_2x32,

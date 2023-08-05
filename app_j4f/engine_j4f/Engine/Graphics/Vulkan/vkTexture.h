@@ -92,6 +92,9 @@ namespace vulkan {
 
 		void setImage(VulkanImage* img) { _img = img; }
 
+		inline uint32_t width() const noexcept { return _width; }
+		inline uint32_t height() const noexcept { return _height; }
+
 	private:
 
 		void generateMipMaps(VulkanCommandBuffer& cmdBuffer) const;

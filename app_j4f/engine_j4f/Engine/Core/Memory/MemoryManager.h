@@ -25,6 +25,9 @@ namespace engine {
 		}
 	};
 
+    template <typename T>
+    inline constexpr size_t memoryPoolCapacity() noexcept { return 128; }
+
 	class MemoryManager final : public IEngineModule {
 	public:
 		~MemoryManager() override {
@@ -51,7 +54,7 @@ namespace engine {
 			if (it != _pools.end()) {
 				pool = it->second;
 			} else {
-				pool = new TMemoryPool<T>(128);
+				pool = new TMemoryPool<T>(memoryPoolCapacity<T>());
 				_pools.insert(type_id, pool);
 			}
 

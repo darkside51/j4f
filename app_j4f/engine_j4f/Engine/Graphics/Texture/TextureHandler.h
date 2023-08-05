@@ -13,8 +13,9 @@ namespace engine {
     class TextureHandler {
         friend class TextureCache;
         using counter_type = std::atomic_uint32_t;
-        using value_type = vulkan::VulkanTexture;
     public:
+        using value_type = vulkan::VulkanTexture;
+
         template <typename ...Args>
         explicit TextureHandler(Args&&...args) :
         m_texture(std::forward<Args>(args)...),
