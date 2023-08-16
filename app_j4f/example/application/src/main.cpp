@@ -488,11 +488,12 @@ namespace engine {
 	NodeRenderer<SkyBoxRenderer>* skyBox = nullptr;
 	NodeRenderer<InstanceMeshRenderer>* forest = nullptr;
 
-	GraphicsTypeUpdateSystem<Mesh> meshUpdateSystem;
-	GraphicsTypeUpdateSystem<GrassRenderer> grassUpdateSystem;
-	GraphicsTypeUpdateSystem<SkyBoxRenderer> skyBoxUpdateSystem;
-	GraphicsTypeUpdateSystem<InstanceMeshRenderer> instanceMeshUpdateSystem;
-	GraphicsTypeUpdateSystem<Plane> planeUpdateSystem;
+    GraphicsDataUpdater graphicsDataUpdater;
+    GraphicsDataUpdateSystem<Mesh> meshUpdateSystem;
+    GraphicsDataUpdateSystem<GrassRenderer> grassUpdateSystem;
+    GraphicsDataUpdateSystem<SkyBoxRenderer> skyBoxUpdateSystem;
+    GraphicsDataUpdateSystem<InstanceMeshRenderer> instanceMeshUpdateSystem;
+    GraphicsDataUpdateSystem<Plane> planeUpdateSystem;
 	
 	class ApplicationCustomData : public InputObserver, public ICameraTransformChangeObserver {
 	public:
@@ -527,6 +528,12 @@ namespace engine {
 			FileManager* fm = Engine::getInstance().getModule<FileManager>();
 			auto&& fs = fm->getFileSystem<DefaultFileSystem>();
 			fm->mapFileSystem(fs);
+
+            graphicsDataUpdater.registerSystem(&meshUpdateSystem);
+            graphicsDataUpdater.registerSystem(&grassUpdateSystem);
+            graphicsDataUpdater.registerSystem(&skyBoxUpdateSystem);
+            graphicsDataUpdater.registerSystem(&instanceMeshUpdateSystem);
+            graphicsDataUpdater.registerSystem(&planeUpdateSystem);
 		}
 
 		~ApplicationCustomData() {
@@ -1850,12 +1857,20 @@ namespace engine {
 			reloadRenderList(shadowRenderList, shadowCastNodes.data(), shadowCastNodes.size(), false, 0, engine::FrustumVisibleChecker(camera->getFrustum()));
 			cameraMatrixChanged = false;
 
-			meshUpdateSystem.updateRenderData();
-			grassUpdateSystem.updateRenderData();
-			skyBoxUpdateSystem.updateRenderData();
-			planeUpdateSystem.updateRenderData();
-			instanceMeshUpdateSystem.updateRenderData();
+//			meshUpdateSystem.updateRenderData();
+//			grassUpdateSystem.updateRenderData();
+//			skyBoxUpdateSystem.updateRenderData();
+//			planeUpdateSystem.updateRenderData();
+//			instanceMeshUpdateSystem.updateRenderData();
 
+            graphicsDataUpdater.updateData<
+                    GraphicsDataUpdateSystem<Mesh>,
+                    GraphicsDataUpdateSystem<GrassRenderer>,
+                    GraphicsDataUpdateSystem<SkyBoxRenderer>,
+                    GraphicsDataUpdateSystem<InstanceMeshRenderer>,
+                    GraphicsDataUpdateSystem<Plane>
+                            >();
+            // or graphicsDataUpdater.updateData() for call all registered updaters
 
 			const uint64_t wh = renderer->getWH();
 			const uint32_t width = static_cast<uint32_t>(wh >> 0);

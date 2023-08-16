@@ -2,9 +2,10 @@
 
 #include "../../Core/Common.h"
 #include "../../Core/Math/mathematic.h"
-#include <vulkan/vulkan.h>
+#include "../../Utils/Debug/Assert.h"
 #include "Node.h"
 
+#include <vulkan/vulkan.h>
 #include <vector>
 
 namespace vulkan {
@@ -119,26 +120,32 @@ namespace engine {
 		type _graphics = nullptr;
 	};
 
+    class IGraphicsDataUpdateSystem {
+    public:
+        virtual ~IGraphicsDataUpdateSystem() = default;
+        virtual void updateRenderData() = 0;
+    };
+
 	template <typename T>
-	class GraphicsTypeUpdateSystem {
+	class GraphicsDataUpdateSystem final : public IGraphicsDataUpdateSystem {
 	public:
 		using type = NodeRenderer<T>*;
 
-		GraphicsTypeUpdateSystem() = default;
+        GraphicsDataUpdateSystem() = default;
 
-		~GraphicsTypeUpdateSystem() {
+		~GraphicsDataUpdateSystem() override {
 			_objects.clear();
 		}
 
-		GraphicsTypeUpdateSystem(GraphicsTypeUpdateSystem&& system) noexcept : _objects(std::move(system._objects)) { system._objects.clear(); }
-		GraphicsTypeUpdateSystem& operator= (GraphicsTypeUpdateSystem&& system) noexcept {
+        GraphicsDataUpdateSystem(GraphicsDataUpdateSystem&& system) noexcept : _objects(std::move(system._objects)) { system._objects.clear(); }
+        GraphicsDataUpdateSystem& operator= (GraphicsDataUpdateSystem&& system) noexcept {
 			_objects = std::move(system._objects);
 			system._objects.clear();
 			return *this;
 		}
 
-		GraphicsTypeUpdateSystem(const GraphicsTypeUpdateSystem& system) = delete;
-		GraphicsTypeUpdateSystem& operator= (const GraphicsTypeUpdateSystem& system) = delete;
+        GraphicsDataUpdateSystem(const GraphicsDataUpdateSystem& system) = delete;
+        GraphicsDataUpdateSystem& operator= (const GraphicsDataUpdateSystem& system) = delete;
 
 		inline void registerObject(type o) {
 			_objects.push_back(o);
@@ -148,7 +155,7 @@ namespace engine {
 			_objects.erase(std::remove(_objects.begin(), _objects.end(), o), _objects.end());
 		}
 
-		inline void updateRenderData() {
+		inline void updateRenderData() override {
 			for (auto&& o : _objects) {
 				o->updateRenderData();
 			}
@@ -157,4 +164,56 @@ namespace engine {
 	private:
 		std::vector<type> _objects;
 	};
+
+    class GraphicsDataUpdater final {
+    public:
+        template <typename T>
+        inline void registerSystem(T* s) {
+            static const auto id = UniqueTypeId<IGraphicsDataUpdateSystem>::getUniqueId<T>();
+            if (_systems.size() <= id) {
+                _systems.resize(id + 1u);
+            } else if (_systems[id] != nullptr) {
+                ENGINE_BREAK_CONDITION(false);
+                return;
+            }
+
+            _systems[id] = s;
+        }
+
+        template <typename T>
+        inline void unregisterSystem(T* s) noexcept {
+            static const auto id = UniqueTypeId<IGraphicsDataUpdateSystem>::getUniqueId<T>();
+            if (_systems.size() > id) {
+                _systems[id] = nullptr;
+            }
+        }
+
+        void updateData() {
+            for (auto && s: _systems) {
+                if (s) {
+                    s->updateRenderData();
+                }
+            }
+        }
+
+        template<typename T, typename... Args>
+        inline void updateData() {
+            update_data_strict<T>();
+            updateData<Args...>();
+        }
+
+    private:
+        template<typename... Args>
+        inline typename std::enable_if<sizeof...(Args) == 0>::type updateData() noexcept {}
+
+        template<typename T>
+        inline void update_data_strict() {
+            static const auto id = UniqueTypeId<IGraphicsDataUpdateSystem>::getUniqueId<T>();
+            if (_systems.size() > id) {
+                static_cast<T*>(_systems[id])->updateRenderData();
+            }
+        }
+
+        std::vector<IGraphicsDataUpdateSystem*> _systems;
+    };
 }
