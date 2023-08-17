@@ -16,24 +16,24 @@ namespace engine {
     using HighResolutionTimePoint = HighResolutionClock::time_point;
 
     template <typename TimePoint, typename T = std::chrono::milliseconds>
-    [[maybe_unused]] inline uint64_t time(const TimePoint t) noexcept {
-        const auto time = std::chrono::time_point_cast<T>(t);
-        return static_cast<uint64_t>(time.time_since_epoch().count());
+    [[maybe_unused]] inline uint64_t current_time(const TimePoint t) noexcept {
+        const auto timePoint = std::chrono::time_point_cast<T>(t);
+        return static_cast<uint64_t>(timePoint.time_since_epoch().count());
     }
 
 	template <typename T = std::chrono::milliseconds>
     [[maybe_unused]] inline uint64_t steadyTime() noexcept {
-		return time<SteadyTimePoint, T>(SteadyClock::now());
+		return current_time<SteadyTimePoint, T>(SteadyClock::now());
 	}
 
 	template <typename T = std::chrono::milliseconds>
     [[maybe_unused]] inline uint64_t systemTime() noexcept {
-        return time<SystemTimePoint, T>(SystemClock::now());
+        return current_time<SystemTimePoint, T>(SystemClock::now());
 	}
 
 	template <typename T = std::chrono::milliseconds>
     [[maybe_unused]] inline uint64_t highResoutionTime() noexcept {
-        return time<HighResolutionTimePoint, T>(HighResolutionClock::now());
+        return current_time<HighResolutionTimePoint, T>(HighResolutionClock::now());
 	}
 
 	inline uint64_t unixUTCTime() noexcept {

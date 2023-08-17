@@ -26,7 +26,7 @@ namespace engine {
         }
 
         Timer(TimerExecutor &&executor, SteadyTimePoint timePoint) :
-                _period(time<SteadyTimePoint, std::chrono::milliseconds>(timePoint) -
+                _period(current_time<SteadyTimePoint, std::chrono::milliseconds>(timePoint) -
                         steadyTime<std::chrono::milliseconds>()),
                 _fireTime(steadyTime<std::chrono::milliseconds>() +
                           _period),
