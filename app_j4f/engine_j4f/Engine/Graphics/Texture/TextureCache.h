@@ -60,7 +60,8 @@ namespace engine {
             }
         }
 
-        inline void eraseTexture(value_type::element_type const * value) noexcept { // force erase (for erase forever stored values available)
+        inline void eraseTexture(value_type::element_type * value) noexcept { // force erase (for erase forever stored values available)
+            value->m_flags = TextureHandler::Flags::None;
             _map.erase(value->m_key);
         }
 
