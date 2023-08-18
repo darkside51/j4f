@@ -352,21 +352,26 @@ namespace vulkan {
 		const VkSamplerAddressMode addressModeV,
 		const VkSamplerAddressMode addressModeW,
 		const VkBorderColor borderColor,
+		const float anisotropy,
 		const VkCompareOp compareOp
 	) {
-		uint32_t samplerDescription = 0u;
+		uint64_t samplerDescription = 0u;
 		// filtration
-		samplerDescription |= minFilter << 0; // 1 bit
-		samplerDescription |= magFilter << 1; // 1 bit
-		samplerDescription |= mipmapMode << 2; // 1 bit
+		samplerDescription |= minFilter << 0u; // 1 bit
+		samplerDescription |= magFilter << 1u; // 1 bit
+		samplerDescription |= mipmapMode << 2u; // 1 bit
 		// addressModes
-		samplerDescription |= addressModeU << 3; // 3 bits
-		samplerDescription |= addressModeV << 6; // 3 bits
-		samplerDescription |= addressModeW << 9; // 3 bits
-		samplerDescription |= borderColor << 12; // 3 bits
+		samplerDescription |= addressModeU << 3u; // 3 bits
+		samplerDescription |= addressModeV << 6u; // 3 bits
+		samplerDescription |= addressModeW << 9u; // 3 bits
+		samplerDescription |= borderColor << 12u; // 3 bits
 
 		const uint32_t cmpOp = (compareOp == VK_COMPARE_OP_MAX_ENUM) ? 8u : static_cast<uint32_t>(compareOp); 
-		samplerDescription |= cmpOp << 15; // 4 bits
+		samplerDescription |= cmpOp << 15u; // 4 bits
+
+		// anisotropy filtration
+		const uint32_t anisotropyValue = *reinterpret_cast<const uint32_t*>(&anisotropy);
+		samplerDescription |= anisotropyValue << 19u; // 32 bits
 
 		auto it = _samplers.find(samplerDescription);
 		if (it != _samplers.end()) {
@@ -389,8 +394,9 @@ namespace vulkan {
 
 		samplerInfo.minLod = 0.0f;
 		samplerInfo.maxLod = VK_REMAINING_MIP_LEVELS;
-		samplerInfo.anisotropyEnable = VK_FALSE;
-		samplerInfo.maxAnisotropy = 1.0f;
+//		samplerInfo.maxLod = 0.25f; // https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkSamplerCreateInfo.html
+		samplerInfo.anisotropyEnable = anisotropy != 0.0f ? VK_TRUE: VK_FALSE;
+		samplerInfo.maxAnisotropy = anisotropy;
 		samplerInfo.borderColor = borderColor;
 
 		samplerInfo.minFilter = minFilter;

@@ -23,6 +23,16 @@ namespace engine {
 			_map.clear();
 		}
 
+        template <typename T>
+        void execute(T && executor) {
+            AtomicLock::wait(_writer);
+            _readers.add();
+            for (auto & [_, v] : _map) {
+                executor(v);
+            }
+            _readers.sub();
+        }
+
 		template <typename KEY = K> // KEY may be const K& there
 		inline const V& getValue(KEY&& key) {
 			AtomicLock::wait(_writer);

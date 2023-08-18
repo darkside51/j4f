@@ -517,6 +517,7 @@ namespace vulkan {
 			const VkSamplerAddressMode addressModeV,
 			const VkSamplerAddressMode addressModeW,
 			const VkBorderColor borderColor,
+            const float anisotropy = 0.0f,
 			const VkCompareOp compareOp = VK_COMPARE_OP_MAX_ENUM
 		);
 
@@ -661,7 +662,7 @@ namespace vulkan {
 			}
 		};*/
 
-		std::unordered_map<uint32_t, VkSampler> _samplers;
+		std::unordered_map<uint64_t, VkSampler> _samplers;
 
 		// tmp frame data
 		std::atomic_bool _lockTmpData = {};

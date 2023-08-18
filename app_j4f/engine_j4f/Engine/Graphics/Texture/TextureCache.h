@@ -20,6 +20,13 @@ namespace engine {
         using key_type = std::string;
         using value_type = TexturePtr;
 
+        ~TextureCache() override {
+            // fix for destroy texture cache before textures
+            _map.execute([](value_type & value){
+                value->m_flags = TextureHandler::Flags::None;
+            });
+        }
+
         template <typename KEY = key_type>
         inline bool hasValue(KEY&& key) const noexcept { return _map.hasValue(key); }
 

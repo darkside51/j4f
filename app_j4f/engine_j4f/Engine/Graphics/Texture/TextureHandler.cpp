@@ -12,7 +12,10 @@ namespace engine {
     }
 
     TextureHandler::~TextureHandler() {
-        Engine::getInstance().getModule<Graphics>()->getRenderer()->markToDelete(std::move(m_texture));
+        if (auto && graphics = Engine::getInstance().getModule<Graphics>()) {
+            graphics->getRenderer()->markToDelete(std::move(m_texture));
+        }
+
     }
 
     uint32_t TextureHandler::_decrease_counter() noexcept {

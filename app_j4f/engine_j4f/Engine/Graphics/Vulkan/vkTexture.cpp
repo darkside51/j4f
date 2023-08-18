@@ -68,7 +68,7 @@ namespace vulkan {
 			_img->createImageView((count > 1 ? VK_IMAGE_VIEW_TYPE_2D_ARRAY : VK_IMAGE_VIEW_TYPE_2D), VK_IMAGE_ASPECT_COLOR_BIT);
 		}
 		
-		if (_sampler == VK_NULL_HANDLE) { // трилинейная фильтрация + MODE_REPEAT по умолчанию
+		if (_sampler == VK_NULL_HANDLE) { // билинейная фильтрация + MODE_REPEAT по умолчанию
 			_sampler = _renderer->getSampler(
 				VK_FILTER_LINEAR,
 				VK_FILTER_LINEAR,
