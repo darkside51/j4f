@@ -10,6 +10,7 @@ namespace engine {
     public:
         using TargetType = SpineSkeleton*;
         void updateAnimation(const float delta);
+
     private:
     };
 
