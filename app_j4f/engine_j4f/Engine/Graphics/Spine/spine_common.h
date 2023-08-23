@@ -6,17 +6,17 @@
 #include <vector>
 
 namespace engine {
-    class J4SpineAtlasAttachmentLoader: public spine::AtlasAttachmentLoader {
-    public:
-        explicit J4SpineAtlasAttachmentLoader(spine::Atlas* atlas);
-        ~J4SpineAtlasAttachmentLoader() override;
-        void configureAttachment(spine::Attachment* attachment) override;
-    };
+//    class J4SpineAtlasAttachmentLoader: public spine::AtlasAttachmentLoader {
+//    public:
+//        explicit J4SpineAtlasAttachmentLoader(spine::Atlas* atlas);
+//        ~J4SpineAtlasAttachmentLoader() override;
+//        void configureAttachment(spine::Attachment* attachment) override;
+//    };
 
-    class J4SpineTextureLoader: public spine::TextureLoader {
+    class SpineTextureLoader: public spine::TextureLoader {
     public:
-        J4SpineTextureLoader();
-        ~J4SpineTextureLoader() override;
+        SpineTextureLoader();
+        ~SpineTextureLoader() override;
 
         void load(spine::AtlasPage& page, const spine::String& path) override;
         void unload(void* texture) override;
@@ -24,10 +24,10 @@ namespace engine {
         std::vector<TexturePtr> _textures;
     };
 
-    class J4SpineExtension: public spine::DefaultSpineExtension {
+    class SpineExtension: public spine::DefaultSpineExtension {
     public:
-        J4SpineExtension();
-        ~J4SpineExtension() override;
+        SpineExtension();
+        ~SpineExtension() override;
     protected:
         char *_readFile(const spine::String &path, int *length) override;
     };

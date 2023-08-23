@@ -13,7 +13,7 @@ namespace engine {
 	class RenderList {
 	public:
 
-		void addDescriptor(RenderDescriptor* d, const uint16_t layer = 0);
+		void addDescriptor(RenderDescriptor* d, const uint16_t layer = 0u);
 
 		void clear();
 		void eraseLayersData();

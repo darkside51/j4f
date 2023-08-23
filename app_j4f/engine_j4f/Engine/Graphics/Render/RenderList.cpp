@@ -1,5 +1,8 @@
 #include "RenderList.h"
 #include "RenderDescriptor.h"
+#include "RenderHelper.h"
+#include "AutoBatchRender.h"
+
 #include <algorithm>
 
 namespace engine {
@@ -28,23 +31,27 @@ namespace engine {
 		}
 	}
 
+    template<typename VP>
+    inline void renderList(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, VP&& viewParams,
+                std::vector<std::vector<RenderDescriptor*>>& descriptors) {
+        auto&& renderHelper = Engine::getInstance().getModule<Graphics>()->getRenderHelper();
+        auto&& autoBatcher = renderHelper->getAutoBatchRenderer();
+
+        for (auto&& vec : descriptors) { // get layers and draw it
+            for (auto&& descriptor : vec) {
+                if (descriptor->visible) {
+                    descriptor->render(commandBuffer, currentFrame, viewParams);
+                }
+            }
+            autoBatcher->draw(commandBuffer, currentFrame);
+        }
+    }
+
 	void RenderList::render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const ViewParams& viewParams) {
-		for (auto&& vec : _descriptors) {
-			for (auto&& descriptor : vec) {
-				if (descriptor->visible) {
-					descriptor->render(commandBuffer, currentFrame, viewParams);
-				}
-			}
-		}
+        renderList(commandBuffer, currentFrame, viewParams, _descriptors);
 	}
 
 	void RenderList::render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, ViewParams&& viewParams) {
-		for (auto&& vec : _descriptors) {
-			for (auto&& descriptor : vec) {
-				if (descriptor->visible) {
-					descriptor->render(commandBuffer, currentFrame, viewParams);
-				}
-			}
-		}
+        renderList(commandBuffer, currentFrame, std::move(viewParams), _descriptors);
 	}
 }
