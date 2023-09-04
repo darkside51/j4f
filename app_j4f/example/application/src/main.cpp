@@ -1709,7 +1709,7 @@ namespace engine {
 
 			bus->sendEvent<TestBusEvent>({ 1.0f, 2.0f });
 
-
+			/*
             auto&& animationManager = Engine::getInstance().getModule<Graphics>()->getAnimationManager();
             auto *actionAnim0 = new ActionAnimation(makeDurationExecutor( 2.0f, [](const float dt) ->bool {
                 static float time = 0.0f;
@@ -1718,6 +1718,7 @@ namespace engine {
                 return false;
             }));
             animationManager->registerAnimation(actionAnim0);
+			*/
 		}
 
 		void update(const float delta) { // update thread

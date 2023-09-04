@@ -70,6 +70,11 @@ namespace engine {
         return (n > 0) && (!(n & (n - 1)));
     }
 
+    template<typename T>
+    inline int32_t sign(T&& val) noexcept {
+        return (T(0) < val) - (val < T(0));
+    }
+
     template <typename VEC>
     inline float vec_length(VEC&& v) {
         return 1.0f / inv_sqrt(glm::dot(v, v));

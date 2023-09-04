@@ -238,9 +238,4 @@ namespace engine {
         len = std::numeric_limits<float>::max();
         return false;
     }
-
-    template<typename T>
-    inline int32_t sign(T && val) noexcept {
-        return (T(0) < val) - (val < T(0));
-    }
 }
