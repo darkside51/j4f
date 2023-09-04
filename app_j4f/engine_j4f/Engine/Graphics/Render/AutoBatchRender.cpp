@@ -34,8 +34,10 @@ namespace engine {
 
 		// add data to vtx & idx vectors
 		const size_t vtxSize = _vtx.size();
-        _vtx.resize(vtxSize + vtxDataSize / sizeof(float));
-        memcpy(&_vtx[vtxSize], vtxData, vtxDataSize);
+		if (vtxDataSize > 0u) {
+			_vtx.resize(vtxSize + vtxDataSize / sizeof(float));
+			memcpy(&_vtx[vtxSize], vtxData, vtxDataSize);
+		}
 
         const size_t idxSize = _idx.size();
         _idx.resize(idxSize + idxDataSize / sizeof(uint32_t));
