@@ -33,7 +33,7 @@ namespace engine {
 			}
 		}
 		break;
-		case RenderDescritorMode::AUTOBATCHING:
+		case RenderDescritorMode::AUTO_BATCHING:
 		{
 			for (uint32_t i = 0; i < renderDataCount; ++i) {
 				vulkan::RenderData* r_data = renderData[i];

@@ -77,7 +77,7 @@ namespace engine {
 
 		const vulkan::RenderDataGpuParamsType gpu_params = params ? params : std::make_shared<engine::GpuProgramParams>();
 
-		_renderDescriptor.mode = RenderDescritorMode::AUTOBATCHING;
+		_renderDescriptor.mode = RenderDescritorMode::AUTO_BATCHING;
 
         _renderDescriptor.renderDataCount = 1;
 		_renderDescriptor.renderData = new vulkan::RenderData *[1];

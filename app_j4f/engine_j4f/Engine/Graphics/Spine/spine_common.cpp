@@ -17,21 +17,21 @@ namespace engine {
 //
 //    static void setAttachmentVertices(spine::RegionAttachment* attachment) {}
 
-    J4SpineAtlasAttachmentLoader::J4SpineAtlasAttachmentLoader(spine::Atlas* atlas) : AtlasAttachmentLoader(atlas) { }
-    J4SpineAtlasAttachmentLoader::~J4SpineAtlasAttachmentLoader() = default;
-
-    void J4SpineAtlasAttachmentLoader::configureAttachment(spine::Attachment* attachment) {
-//        const spine::RTTI &attacmentRTTI = attachment->getRTTI();
+//    J4SpineAtlasAttachmentLoader::J4SpineAtlasAttachmentLoader(spine::Atlas* atlas) : AtlasAttachmentLoader(atlas) { }
+//    J4SpineAtlasAttachmentLoader::~J4SpineAtlasAttachmentLoader() = default;
 //
-//        if (attacmentRTTI.isExactly(spine::RegionAttachment::rtti)) {
-//            setAttachmentVertices(static_cast<spine::RegionAttachment*>(attachment));
-//        } else if (attacmentRTTI.isExactly(spine::MeshAttachment::rtti)) {
-//            setAttachmentVertices(static_cast<spine::MeshAttachment*>(attachment));
-//        }
-    }
-    
-    J4SpineTextureLoader::J4SpineTextureLoader() = default;
-    J4SpineTextureLoader::~J4SpineTextureLoader() = default;
+//    void J4SpineAtlasAttachmentLoader::configureAttachment(spine::Attachment* attachment) {
+////        const spine::RTTI &attacmentRTTI = attachment->getRTTI();
+////
+////        if (attacmentRTTI.isExactly(spine::RegionAttachment::rtti)) {
+////            setAttachmentVertices(static_cast<spine::RegionAttachment*>(attachment));
+////        } else if (attacmentRTTI.isExactly(spine::MeshAttachment::rtti)) {
+////            setAttachmentVertices(static_cast<spine::MeshAttachment*>(attachment));
+////        }
+//    }
+
+    SpineTextureLoader::SpineTextureLoader() = default;
+    SpineTextureLoader::~SpineTextureLoader() = default;
 
     VkFilter convertFilter(spine::TextureFilter f) {
         switch(f) {
@@ -55,7 +55,7 @@ namespace engine {
         }
     }
 
-    void J4SpineTextureLoader::load(spine::AtlasPage& page, const spine::String& path) {
+    void SpineTextureLoader::load(spine::AtlasPage& page, const spine::String& path) {
         auto* assm = Engine::getInstance().getModule<AssetManager>();
 
         TexturePtrLoadingParams loadingParams;
@@ -83,18 +83,25 @@ namespace engine {
         _textures.push_back(texture);
     }
 
-    void J4SpineTextureLoader::unload(void* texture) {
+    void SpineTextureLoader::unload(void* texture) {
         _textures.erase(std::remove_if(_textures.begin(), _textures.end(), [texture](const auto& t){
             return t->get() == texture;
         }), _textures.end());
     }
 
-    ///////
-    char* J4SpineExtension::_readFile(const spine::String &path, int *length) {
+    // spine extension for read file with engine::FileManager
+    char* SpineExtension::_readFile(const spine::String &path, int *length) {
         const auto* fileManager = Engine::getInstance().getModule<FileManager>();
-        size_t l = 0;
+        size_t l = 0u;
         char * result = fileManager->readFile(path.buffer(), l);
         *length = static_cast<int>(l);
         return result;
+    }
+}
+
+namespace spine {
+    // use our extension here
+    SpineExtension *getDefaultExtension() {
+        return new engine::SpineExtension();
     }
 }

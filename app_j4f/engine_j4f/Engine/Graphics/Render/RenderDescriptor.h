@@ -9,17 +9,17 @@
 namespace engine {
 
 	enum class RenderDescritorMode : uint8_t {
-		SINGLE_DRAW = 0,
-		AUTOBATCHING = 1,
-        CUSTOM_DRAW = 2
+		SINGLE_DRAW = 0u,
+		AUTO_BATCHING = 1u,
+        CUSTOM_DRAW = 2u
 	};
 
 	struct ViewParams {
 		enum class Ids : uint8_t {
-			CAMERA_TRANSFORM = 0,
-			VIEW_TRANSFORM = 1,
-			PROJECTION_TRANSFROM = 2,
-			UNKNOWN = 0xff
+			CAMERA_TRANSFORM = 0u,
+			VIEW_TRANSFORM = 1u,
+			PROJECTION_TRANSFROM = 2u,
+			UNKNOWN = 0xffu
 		};
 
 		struct Params {
@@ -30,7 +30,7 @@ namespace engine {
 
 		union {
 			Params params;
-			std::array<const mat4f*, 3> values;
+			std::array<const mat4f*, 3u> values;
 		} v;
 
 		const mat4f* operator[](const uint8_t i) const {
