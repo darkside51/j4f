@@ -174,31 +174,31 @@ namespace engine {
 				worldMatrix * vec4f(c2.x, c2.y, c2.z, 1.0f),
 			};
 
-			const ColoredVertex vtx[8] = {
-				{ {vtxCoords[0].x, vtxCoords[0].y, vtxCoords[0].z}, {0.0f, 0.0f, 0.0f}},
-				{ {vtxCoords[1].x, vtxCoords[1].y, vtxCoords[1].z}, {0.0f, 1.0f, 0.0f} },
-				{ {vtxCoords[2].x, vtxCoords[2].y, vtxCoords[2].z}, {1.0f, 0.0f, 0.0f} },
-				{ {vtxCoords[3].x, vtxCoords[3].y, vtxCoords[3].z}, {1.0f, 1.0f, 0.0f} },
+            const ColoredVertex vtx[8] = {
+                    { {vtxCoords[0].x, vtxCoords[0].y, vtxCoords[0].z}, 0xff000000},
+                    { {vtxCoords[1].x, vtxCoords[1].y, vtxCoords[1].z}, 0xff00ff00 },
+                    { {vtxCoords[2].x, vtxCoords[2].y, vtxCoords[2].z}, 0xff0000ff },
+                    { {vtxCoords[3].x, vtxCoords[3].y, vtxCoords[3].z}, 0xff00ffff },
 
-				{ {vtxCoords[4].x, vtxCoords[4].y, vtxCoords[4].z}, {0.0f, 0.0f, 1.0f} },
-				{ {vtxCoords[5].x, vtxCoords[5].y, vtxCoords[5].z}, {0.0f, 1.0f, 1.0f} },
-				{ {vtxCoords[6].x, vtxCoords[6].y, vtxCoords[6].z}, {1.0f, 0.0f, 1.0f} },
-				{ {vtxCoords[7].x, vtxCoords[7].y, vtxCoords[7].z}, {1.0f, 1.0f, 1.0f} }
-			};
+                    { {vtxCoords[4].x, vtxCoords[4].y, vtxCoords[4].z}, 0xffff0000 },
+                    { {vtxCoords[5].x, vtxCoords[5].y, vtxCoords[5].z}, 0xffffff00 },
+                    { {vtxCoords[6].x, vtxCoords[6].y, vtxCoords[6].z}, 0xffff00ff },
+                    { {vtxCoords[7].x, vtxCoords[7].y, vtxCoords[7].z}, 0xffffffff }
+            };
 
 			_autoBatchRenderer->addToDraw(_debugDrawRenderData, sizeof(ColoredVertex), &vtx[0], vertexBufferSize, &idxs[0], indexBufferSize, commandBuffer, currentFrame);
 		} else {
-			const ColoredVertex vtx[8] = {
-				{ {c1.x, c1.y, c1.z}, {0.0f, 0.0f, 0.0f} },
-				{ {c1.x, c2.y, c1.z}, {0.0f, 1.0f, 0.0f} },
-				{ {c2.x, c1.y, c1.z}, {1.0f, 0.0f, 0.0f} },
-				{ {c2.x, c2.y, c1.z}, {0.0f, 0.0f, 0.0f} },
+            const ColoredVertex vtx[8] = {
+                    { {c1.x, c1.y, c1.z}, 0xff000000 },
+                    { {c1.x, c2.y, c1.z}, 0xff00ff00 },
+                    { {c2.x, c1.y, c1.z}, 0xff0000ff },
+                    { {c2.x, c2.y, c1.z}, 0xff00ffff },
 
-				{ {c1.x, c1.y, c2.z}, {0.0f, 0.0f, 1.0f} },
-				{ {c1.x, c2.y, c2.z}, {0.0f, 0.0f, 0.0f} },
-				{ {c2.x, c1.y, c2.z}, {0.0f, 0.0f, 0.0f} },
-				{ {c2.x, c2.y, c2.z}, {1.0f, 1.0f, 1.0f} }
-			};
+                    { {c1.x, c1.y, c2.z}, 0xffff0000 },
+                    { {c1.x, c2.y, c2.z}, 0xffffff00 },
+                    { {c2.x, c1.y, c2.z}, 0xffff00ff },
+                    { {c2.x, c2.y, c2.z}, 0xffffffff }
+            };
 
 			const mat4f transform = cameraMatrix * worldMatrix;
 
@@ -237,7 +237,7 @@ namespace engine {
 
 			const uint8_t j = vtxCount + i;
 
-			vtx[j] = { {x, y, z}, {0.0f, 0.0f, 1.0f} };
+            vtx[j] = { {x, y, z}, 0xffff0000 };
 
 			idxs[2 * j] = j;
 			idxs[2 * j + 1] = i == (segments - 1) ? vtxCount : j + 1;
@@ -254,7 +254,7 @@ namespace engine {
 
 			const uint8_t j = vtxCount + i;
 
-			vtx[j] = { {x, y, z}, {0.0f, 1.0f, 0.0f} };
+            vtx[j] = { {x, y, z}, 0xff00ff00 };
 
 			idxs[2 * j] = j;
 			idxs[2 * j + 1] = i == (segments - 1) ? vtxCount : j + 1;
@@ -271,7 +271,7 @@ namespace engine {
 
 			const uint8_t j = vtxCount + i;
 
-			vtx[j] = { {x, y, z}, {1.0f, 0.0f, 0.0f} };
+            vtx[j] = { {x, y, z}, 0xff0000ff };
 
 			idxs[2 * j] = j;
 			idxs[2 * j + 1] = i == (segments - 1) ? vtxCount : j + 1;

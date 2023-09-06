@@ -24,14 +24,15 @@ namespace engine {
 	template <typename T>
 	class linked_ext_ptr;
 
-	inline uint32_t alignValue(const uint32_t value, const uint32_t align) noexcept {
+    template <typename T, typename U = T>
+	inline std::decay_t<T> alignValue(const T value, const U align) noexcept {
 		return (value + align - 1) & ~(align - 1);
 	}
 
 	template<typename T>
 	inline uint16_t getUniqueId() noexcept {
-		static std::atomic_uint16_t staticId = 0;
-		const uint16_t newId = staticId.fetch_add(1, std::memory_order_relaxed);
+		static std::atomic_uint16_t staticId = 0u;
+		const uint16_t newId = staticId.fetch_add(1u, std::memory_order_relaxed);
 		return newId;
 	}
 
@@ -43,7 +44,7 @@ namespace engine {
 			return newId;
 		}
 	private:
-		inline static std::atomic_uint16_t staticId = 0;
+		inline static std::atomic_uint16_t staticId = 0u;
 	};
 
 	struct CommonType;
@@ -72,7 +73,7 @@ namespace engine {
 		template <typename T, typename U>
 		class Conversion {
 			using first_type = uint8_t;
-			class second_type { first_type dummy[2]; };
+			class second_type { first_type dummy[2u]; };
 			static first_type ftest(U);
 			static second_type ftest(...);
 			static T makeT();
