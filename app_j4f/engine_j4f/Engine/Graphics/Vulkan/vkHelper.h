@@ -19,7 +19,7 @@ namespace vulkan {
 	}
 
 	inline void getVulkanInstanceSupportedExtensions(std::vector<VkExtensionProperties>& extensions) {
-		uint32_t extensionCount = 0;
+		uint32_t extensionCount = 0U;
 		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
 
 		extensions.resize(extensionCount);
