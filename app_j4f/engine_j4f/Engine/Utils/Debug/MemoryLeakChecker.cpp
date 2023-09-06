@@ -1,5 +1,7 @@
 #include "MemoryLeakChecker.h"
 
+#ifdef _DEBUG
+
 #ifndef j4f_PLATFORM_WINDOWS
 
 #include <atomic>
@@ -145,3 +147,5 @@ namespace engine {
 }
 
 #endif // j4f_PLATFORM_WINDOWS
+
+#endif _DEBUG
