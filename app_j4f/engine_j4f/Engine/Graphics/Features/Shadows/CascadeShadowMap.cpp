@@ -56,7 +56,7 @@ namespace engine {
 			psi_shadow_plane.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/shadows_plane.psh.spv");
 			VulkanGpuProgram* program = gpuProgramManager->getProgram(psi_shadow_plane);
 
-			_specialPipelines[static_cast<uint8_t>(ShadowMapSpecialPipelines::SH_PIPEINE_PLANE)] = renderer->getGraphicsPipeline(
+			_specialPipelines[static_cast<uint8_t>(ShadowMapSpecialPipelines::SH_PIPELINE_PLANE)] = renderer->getGraphicsPipeline(
 				vertexDescription,
 				primitiveTopology,
 				rasterisation,
@@ -71,15 +71,18 @@ namespace engine {
 	void CascadeShadowMap::registerCommonShadowPrograms() {
 		auto&& gpuProgramManager = Engine::getInstance().getModule<Graphics>()->getGpuProgramsManager();
 
+        const bool useGeometryShader = ((preferredTechnique == ShadowMapTechnique::SMT_AUTO || preferredTechnique == ShadowMapTechnique::SMT_GEOMETRY_SH) &&
+                                        Engine::getInstance().getModule<Graphics>()->getRenderer()->getDevice()->enabledFeatures.geometryShader);
+
 		{
 			std::vector<ProgramStageInfo> infos;
 			infos.emplace_back(ProgramStage::VERTEX, "resources/shaders/mesh_skin_depthpass.vsh.spv");
 			infos.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/mesh_depthpass.psh.spv");
-			if (Engine::getInstance().getModule<Graphics>()->getRenderer()->getDevice()->enabledFeatures.geometryShader) {
+			if (useGeometryShader) {
 				infos.emplace_back(ProgramStage::GEOMETRY, "resources/shaders/mesh_depthpass.gsh.spv");
 			}
-			vulkan::VulkanGpuProgram* program = gpuProgramManager->getProgram(infos);
 
+			vulkan::VulkanGpuProgram* program = gpuProgramManager->getProgram(infos);
 			registerShadowProgram<MeshSkinnedShadow>(program);
 		}
 
@@ -87,11 +90,11 @@ namespace engine {
 			std::vector<ProgramStageInfo> infos;
 			infos.emplace_back(ProgramStage::VERTEX, "resources/shaders/mesh_depthpass.vsh.spv");
 			infos.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/mesh_depthpass.psh.spv");
-			if (Engine::getInstance().getModule<Graphics>()->getRenderer()->getDevice()->enabledFeatures.geometryShader) {
+			if (useGeometryShader) {
 				infos.emplace_back(ProgramStage::GEOMETRY, "resources/shaders/mesh_depthpass.gsh.spv");
 			}
-			vulkan::VulkanGpuProgram* program = gpuProgramManager->getProgram(infos);
 
+			vulkan::VulkanGpuProgram* program = gpuProgramManager->getProgram(infos);
 			registerShadowProgram<MeshStaticShadow>(program);
 		}
 
@@ -99,16 +102,17 @@ namespace engine {
 			std::vector<ProgramStageInfo> infos;
 			infos.emplace_back(ProgramStage::VERTEX, "resources/shaders/mesh_depthpass_instance.vsh.spv");
 			infos.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/mesh_depthpass.psh.spv");
-			if (Engine::getInstance().getModule<Graphics>()->getRenderer()->getDevice()->enabledFeatures.geometryShader) {
+			if (useGeometryShader) {
 				infos.emplace_back(ProgramStage::GEOMETRY, "resources/shaders/mesh_depthpass.gsh.spv");
 			}
-			vulkan::VulkanGpuProgram* program = gpuProgramManager->getProgram(infos);
 
+			vulkan::VulkanGpuProgram* program = gpuProgramManager->getProgram(infos);
 			registerShadowProgram<MeshStaticInstanceShadow>(program);
 		}
 	}
 
-	CascadeShadowMap::CascadeShadowMap(const uint16_t dim, const uint8_t textureBits, const uint8_t count, const vec2f& nearFar, const float minZ, const float maxZ) :
+	CascadeShadowMap::CascadeShadowMap(const uint16_t dim, const uint8_t textureBits, const uint8_t count,
+                                       const vec2f& nearFar, const float minZ, const float maxZ) :
 		_dimension(dim),
 		_targetBits(textureBits),
 		_cascadesCount(count),
@@ -117,7 +121,8 @@ namespace engine {
 		_cascadeViewProjects(count),
 		_cascadeFrustums(count)
 	{
-		if (Engine::getInstance().getModule<Graphics>()->getRenderer()->getDevice()->enabledFeatures.geometryShader) {
+		if ((preferredTechnique == ShadowMapTechnique::SMT_AUTO || preferredTechnique == ShadowMapTechnique::SMT_GEOMETRY_SH) &&
+            Engine::getInstance().getModule<Graphics>()->getRenderer()->getDevice()->enabledFeatures.geometryShader) {
 			_technique = ShadowMapTechnique::SMT_GEOMETRY_SH;
 			_cascades.resize(1u);
 		} else {

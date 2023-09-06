@@ -48,7 +48,7 @@ void main() {
 			  	+ u_ubo.skin_matrixes[joints.z] * a_weights.z
 			  	+ u_ubo.skin_matrixes[joints.w] * a_weights.w;
 
-	//gl_Position = u_push_const.camera_matrix * u_push_const.model_matrix * skin * vec4(a_position, 1.0);
+	gl_Position = u_push_const.camera_matrix * u_push_const.model_matrix * skin * vec4(a_position, 1.0);
 	//for geometry shader if use it
-	gl_Position = u_push_const.model_matrix * skin * vec4(a_position, 1.0);
+	//gl_Position = u_push_const.model_matrix * skin * vec4(a_position, 1.0);
 }

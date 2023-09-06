@@ -42,7 +42,7 @@ layout (location = 0) out vec2 out_uv;
 void main() {
 	out_uv = a_uv;
 
-	//gl_Position = u_push_const.camera_matrix * u_push_const.model_matrix * vec4(a_position, 1.0);
+	gl_Position = u_push_const.camera_matrix * u_push_const.model_matrix * vec4(a_position, 1.0);
 	//for geometry shader if use it
-	gl_Position = u_push_const.model_matrix * vec4(a_position, 1.0);
+	//gl_Position = u_push_const.model_matrix * vec4(a_position, 1.0);
 }

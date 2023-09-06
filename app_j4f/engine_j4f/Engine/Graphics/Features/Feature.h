@@ -11,10 +11,10 @@ namespace engine {
 
     class Features {
     public:
-        template<typename T>// requires IsFeature<T>
-        inline void request() noexcept {
+        template<typename T, typename... Args>// requires IsFeature<T>
+        inline void request(Args&&... args) noexcept {
             _features.setBit(UniqueTypeId<Features>::getUniqueId<T>(), 1);
-            _initializers.emplace_back([](){ T::initFeatureData();});
+            _initializers.emplace_back([... args = std::move(args)](){ T::initFeatureData(std::move(args...)); });
         }
 
         template<typename T>// requires IsFeature<T>

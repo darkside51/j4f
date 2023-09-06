@@ -804,7 +804,7 @@ namespace engine {
 			program_mesh_with_stroke = program_gltf2;
 			program_mesh_skin_with_stroke = program_gltf3;
 			program_mesh_instance = program_gltf4;
-			VulkanGpuProgram* shadowPlaneProgram = const_cast<VulkanGpuProgram*>(CascadeShadowMap::getSpecialPipeline(ShadowMapSpecialPipelines::SH_PIPEINE_PLANE)->program);
+			VulkanGpuProgram* shadowPlaneProgram = const_cast<VulkanGpuProgram*>(CascadeShadowMap::getSpecialPipeline(ShadowMapSpecialPipelines::SH_PIPELINE_PLANE)->program);
 
 			auto assignGPUParams = [](VulkanGpuProgram* program) {
 				vec3f lightDir = as_normalized(-lightPos);
@@ -1824,7 +1824,7 @@ namespace engine {
 			camera->calculateTransform();
 			camera2->calculateTransform();
 
-			//auto&& shadowProgram = const_cast<vulkan::VulkanGpuProgram*>(CascadeShadowMap::getSpecialPipeline(ShadowMapSpecialPipelines::SH_PIPEINE_PLANE)->program);
+			//auto&& shadowProgram = const_cast<vulkan::VulkanGpuProgram*>(CascadeShadowMap::getSpecialPipeline(ShadowMapSpecialPipelines::SH_PIPELINE_PLANE)->program);
 
 			//shadowMap->updateShadowUniforms(shadowProgram, camera->getViewTransform());
 			//shadowMap->updateShadowUniforms(program_mesh_default, camera->getViewTransform());
@@ -1993,7 +1993,7 @@ namespace engine {
 				constexpr uint32_t indexBufferSize = 6 * sizeof(uint32_t);
 
 				//// floor
-				static auto&& pipeline_shadow_test = CascadeShadowMap::getSpecialPipeline(ShadowMapSpecialPipelines::SH_PIPEINE_PLANE);
+				static auto&& pipeline_shadow_test = CascadeShadowMap::getSpecialPipeline(ShadowMapSpecialPipelines::SH_PIPELINE_PLANE);
 				static const vulkan::GPUParamLayoutInfo* mvp_layout2 = pipeline_shadow_test->program->getGPUParamLayoutByName("mvp");
 
 				const float tc = 16.0f;
@@ -2428,7 +2428,8 @@ namespace engine {
 	}
 
     void Application::requestFeatures() {
-        Engine::getInstance().getModule<Graphics>()->features().request<CascadeShadowMap>();
+//        Engine::getInstance().getModule<Graphics>()->features().request<CascadeShadowMap>(ShadowMapTechnique::SMT_AUTO);
+        Engine::getInstance().getModule<Graphics>()->features().request<CascadeShadowMap>(ShadowMapTechnique::SMT_DEFAULT);
     }
 
 	void Application::freeCustomData() {
@@ -2661,9 +2662,10 @@ int main() {
     config.fpsLimitUpdate = engine::FpsLimit(60, engine::FpsLimitType::F_CPU_SLEEP);
     config.graphicsCfg = { engine::GpuType::DISCRETE, true, false,
                         engine::Version(1, 2, 182) }; // INTEGRATED, DISCRETE
+
     config.graphicsCfg.gpu_features.geometryShader = 1;
-    //config.graphicsCfg.gpu_features.wideLines = 1;
-	//config.graphicsCfg.gpu_features.fillModeNonSolid = 1; // example to enable POLYGON_MODE_LINE or POLYGON_MODE_POINT
+//    config.graphicsCfg.gpu_features.wideLines = 1;
+//	config.graphicsCfg.gpu_features.fillModeNonSolid = 1; // example to enable POLYGON_MODE_LINE or POLYGON_MODE_POINT
 
 	engine::Engine::getInstance().init(config);
 	return 123;

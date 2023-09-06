@@ -22,14 +22,15 @@ namespace engine {
 	class Graphics;
 
 	enum class ShadowMapSpecialPipelines : uint8_t {
-		SH_PIPELINE_DEBUG = 0,
-		SH_PIPEINE_PLANE = 1,
-		SH_PIPELINES_COUNT = 2
+		SH_PIPELINE_DEBUG = 0u,
+		SH_PIPELINE_PLANE = 1u,
+		SH_PIPELINES_COUNT = 2u
 	};
 
 	enum class ShadowMapTechnique : uint8_t {
-		SMT_DEFAULT = 0,
-		SMT_GEOMETRY_SH = 1
+		SMT_DEFAULT = 0u,
+		SMT_GEOMETRY_SH = 1u,
+        SMT_AUTO
 	};
 
 	class MeshSkinnedShadow {};
@@ -81,7 +82,9 @@ namespace engine {
 			return _specialPipelines[static_cast<uint8_t>(p)];
 		}
 
-		CascadeShadowMap(const uint16_t dim, const uint8_t textureBits, const uint8_t count, const vec2f& nearFar, const float minZ, const float maxZ);
+		CascadeShadowMap(const uint16_t dim, const uint8_t textureBits,
+                         const uint8_t count, const vec2f& nearFar,
+                         const float minZ, const float maxZ);
 
 		~CascadeShadowMap();
 
@@ -154,7 +157,9 @@ namespace engine {
 		static void initPipelines();
 		static void registerCommonShadowPrograms();
 
-		inline void static initFeatureData() {
+        inline static ShadowMapTechnique preferredTechnique = ShadowMapTechnique::SMT_AUTO;
+		inline void static initFeatureData(ShadowMapTechnique technique = ShadowMapTechnique::SMT_AUTO) {
+            preferredTechnique = technique;
 			initPipelines();
 			registerCommonShadowPrograms();
 		}
