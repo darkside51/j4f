@@ -17,14 +17,15 @@ namespace {
         uint32_t line = 0u;
         const char *file = nullptr;
         size_t bytes = 0u;
+        bool check = true;
 
         MemInfo *left = nullptr;
         MemInfo *right = nullptr;
 
 
-        MemInfo(uint64_t allocationId, size_t bytes, uint32_t line, const char *file) : allocationId(allocationId),
+        MemInfo(uint64_t allocationId, size_t bytes, uint32_t line, const char *file, bool check) : allocationId(allocationId),
                                                                                         bytes(bytes), line(line),
-                                                                                        file(file) {}
+                                                                                        file(file), check(check) {}
 
         ~MemInfo() {
             left = nullptr;
@@ -33,6 +34,7 @@ namespace {
             bytes = 0u;
             line = 0u;
             file = nullptr;
+            check = true;
         }
 
         void *operator new(size_t size) {
@@ -47,12 +49,12 @@ namespace {
     MemInfo *currentInfo = nullptr;
     std::mutex info_mutex;
 
-    MemInfo *record_info(uint64_t allocationId, size_t bytes, uint32_t line, const char *file) {
+    MemInfo *record_info(uint64_t allocationId, size_t bytes, uint32_t line, const char *file, bool checkMemory) {
         std::lock_guard<std::mutex> lock(info_mutex);
         if (currentInfo == nullptr) {
-            currentInfo = new MemInfo(allocationId, bytes, line, file);
+            currentInfo = new MemInfo(allocationId, bytes, line, file, checkMemory);
         } else {
-            auto info = new MemInfo(allocationId, bytes, line, file);
+            auto info = new MemInfo(allocationId, bytes, line, file, checkMemory);
             info->left = currentInfo;
             currentInfo->right = info;
             currentInfo = currentInfo->right;
@@ -81,6 +83,7 @@ namespace {
 
 thread_local const char *__file__ = "<unknown>";
 thread_local uint32_t __line__ = 0u;
+thread_local bool __skip_check_memory__ = false;
 
 void operator delete(void *ptr) {
     if (ptr == nullptr) return;
@@ -98,7 +101,8 @@ void *operator new(size_t size) {
 
     void *result = malloc(size + kAlign);
     // poison memory
-    *reinterpret_cast<size_t *>(result) = reinterpret_cast<size_t>(record_info(allocId, size, __line__, __file__));
+    *reinterpret_cast<size_t *>(result) = reinterpret_cast<size_t>(record_info(allocId, size, __line__, __file__,
+                                                                               !__skip_check_memory__));
     __line__ = 0u;
     __file__ = "<unknown>";
     return static_cast<void *>(reinterpret_cast<uint8_t *>(result) + kAlign);
@@ -120,14 +124,16 @@ namespace engine {
         uint64_t bytes = 0U;
         MemInfo *memory = currentInfo;
         while (memory) {
-            ++leaks_count;
-            bytes += memory->bytes;
+            if (memory->check) {
+                ++leaks_count;
+                bytes += memory->bytes;
 
-            const std::string_view sv(memory->file);
-            auto const str = sv.substr(sv.find_last_of('/') + 1u, std::string_view::npos);
-            printf("memory leak detected (id: %llu / %llu bytes): file: %s, line: %u\n", memory->allocationId,
-                   memory->bytes, str.data(),
-                   memory->line);
+                const std::string_view sv(memory->file);
+                auto const str = sv.substr(sv.find_last_of('/') + 1u, std::string_view::npos);
+                printf("memory leak detected (id: %llu / %llu bytes): file: %s, line: %u\n", memory->allocationId,
+                       memory->bytes, str.data(),
+                       memory->line);
+            }
 
             if (memory = memory->left) {
                 delete memory->right;
@@ -142,6 +148,8 @@ namespace engine {
 
         if (leaks_count) {
             printf("detected memory leaks: %lu / %llu bytes\n", leaks_count, bytes);
+        } else {
+            printf("+++++ no memory leaks detected +++++");
         }
     }
 }

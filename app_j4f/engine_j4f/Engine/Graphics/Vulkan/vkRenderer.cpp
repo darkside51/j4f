@@ -43,7 +43,9 @@ namespace vulkan {
 		vk_applicationInfo.apiVersion           = VK_MAKE_VERSION(apiVersion->major, apiVersion->minor, apiVersion->patch);
 
 		std::vector<VkExtensionProperties> supportedExtensions;
+        SKIP_DEBUG_MEMORY_LEAKS(true)
 		getVulkanInstanceSupportedExtensions(supportedExtensions);
+        SKIP_DEBUG_MEMORY_LEAKS(false)
 
 		std::vector<const char*> instanceExtensions = { "VK_KHR_surface" };
 

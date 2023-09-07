@@ -19,6 +19,8 @@ namespace engine {
     inline void enableMemoryLeaksDebugger() { _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF); }
 }
 
+#define SKIP_DEBUG_MEMORY_LEAKS(x)
+
 #else // j4f_PLATFORM_WINDOWS
 
 #include <cstdint>
@@ -30,8 +32,11 @@ namespace engine {
 
 extern thread_local const char* __file__;
 extern thread_local uint32_t __line__;
+extern thread_local bool __skip_check_memory__;
 #define debug_new (__file__=__FILE__, __line__=__LINE__) && 0 ? NULL : new
 //#define new debug_new // - can use this on target cpp file
+
+#define SKIP_DEBUG_MEMORY_LEAKS(x) __skip_check_memory__ = x;
 
 namespace engine {
     inline void enableMemoryLeaksDebugger() noexcept {}
@@ -47,5 +52,7 @@ namespace engine {
 }
 #endif // j4f_PLATFORM_WINDOWS
 
+#else
+#define SKIP_DEBUG_MEMORY_LEAKS(x)
 
 #endif // _DEBUG

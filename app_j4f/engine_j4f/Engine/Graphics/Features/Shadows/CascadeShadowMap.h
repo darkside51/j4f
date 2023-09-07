@@ -111,7 +111,11 @@ namespace engine {
 
 		inline void beginRenderPass(vulkan::VulkanCommandBuffer& commandBuffer, const uint8_t cascadeId) const {
 			GPU_DEBUG_MARKER_BEGIN_REGION(commandBuffer.m_commandBuffer, engine::fmt_string("j4f shadow render pass %d", cascadeId), 0.0f, 0.0f, 1.0f, 1.0f);
-			commandBuffer.cmdBeginRenderPass(_depthRenderPass, { {0, 0}, {_dimension, _dimension} }, &_shadowClearValues, 1, _cascades[cascadeId].frameBuffer->m_framebuffer, VK_SUBPASS_CONTENTS_INLINE);
+			commandBuffer.cmdBeginRenderPass(_depthRenderPass, { {0, 0},
+                                                                 {_dimension, _dimension} },
+                                             &_shadowClearValues, 1,
+                                             _cascades[cascadeId].frameBuffer->m_framebuffer,
+                                             VK_SUBPASS_CONTENTS_INLINE);
 		}
 
 		inline void endRenderPass(vulkan::VulkanCommandBuffer& commandBuffer) const {
