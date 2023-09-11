@@ -6,7 +6,7 @@
 #include <atomic>
 
 #ifdef ENABLE_STATISTIC
-#define STATISTIC_ADD_DRAW_CALL engine::Engine::getInstance().getModule<engine::Statistic>()->addDrawCall();
+#define STATISTIC_ADD_DRAW_CALL engine::Engine::getInstance().getModule<engine::Statistic>().addDrawCall();
 #else
 #define STATISTIC_ADD_DRAW_CALL
 #endif

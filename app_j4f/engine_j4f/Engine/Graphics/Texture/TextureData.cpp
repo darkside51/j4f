@@ -26,11 +26,11 @@ namespace engine {
 
 	TextureData::TextureData(const std::string& path, const TextureFormatType ft) {
 		auto&& engine = Engine::getInstance();
-		auto* fm = engine.getModule<engine::FileManager>();
+		auto& fm = engine.getModule<engine::FileManager>();
 
 		size_t fsize;
 		
-		if (const char* imgBuffer = fm->readFile(path, fsize)) {
+		if (const char* imgBuffer = fm.readFile(path, fsize)) {
 			_data = loadImageDataFromBuffer(reinterpret_cast<const unsigned char*>(imgBuffer), fsize, &_width, &_height, &_channels);
 			_bpp = 32; // todo!
 

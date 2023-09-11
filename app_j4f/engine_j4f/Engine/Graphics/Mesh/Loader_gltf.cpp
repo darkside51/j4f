@@ -255,9 +255,9 @@ namespace gltf {
 				std::memmove(buffer.data, data.data(), buffer.byteLength);
 				buffer.data[buffer.byteLength] = '\0';
 			} else { // is file path
-				engine::FileManager* fm = engine::Engine::getInstance().getModule<engine::FileManager>();
+				auto & fm = engine::Engine::getInstance().getModule<engine::FileManager>();
 				size_t fsize;
-				buffer.data = fm->readFile((folder + uri), fsize);
+				buffer.data = fm.readFile((folder + uri), fsize);
 			}
 		}
 	}
@@ -478,7 +478,7 @@ namespace gltf {
 		}
 
 		engine::JsonLoadingParams jsParams(file);
-		const Json js = engine::Engine::getInstance().getModule<engine::AssetManager>()->loadAsset<Json>(jsParams);
+		const Json js = engine::Engine::getInstance().getModule<engine::AssetManager>().loadAsset<Json>(jsParams);
 
 		const static map_type<std::string, AttributesSemantic> semantics = {
 			{"POSITION", AttributesSemantic::POSITION},

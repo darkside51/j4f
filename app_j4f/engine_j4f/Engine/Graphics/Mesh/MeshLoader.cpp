@@ -10,7 +10,7 @@
 namespace engine {
 
 	MeshGraphicsDataBuffer::MeshGraphicsDataBuffer(const size_t vbSize, const size_t ibSize) : vb(new vulkan::VulkanBuffer()), ib(new vulkan::VulkanBuffer()), vbOffset(0), ibOffset(0) {
-		auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
+		auto&& renderer = Engine::getInstance().getModule<Graphics>().getRenderer();
 
 		renderer->getDevice()->createBuffer(
 			VK_SHARING_MODE_EXCLUSIVE,
@@ -51,7 +51,7 @@ namespace engine {
 		for (auto&& c : callbacks) {
 			c.mesh->createWithData(m, c.semanticMask, c.latency);
 
-            threadCommutator->enqueue(c.targetThreadId,
+            threadCommutator.enqueue(c.targetThreadId,
                                       [callback = std::move(c.callback), v = c.mesh](const CancellationToken &){
                 if (callback) {
                     callback(v, AssetLoadingResult::LOADING_SUCCESS);
@@ -100,7 +100,7 @@ namespace engine {
         auto && engine = Engine::getInstance();
         auto && threadCommutator = engine.getModule<WorkerThreadsCommutator>();
 
-        threadCommutator->enqueue(engine.getThreadCommutationId(Engine::Workers::RENDER_THREAD),
+        threadCommutator.enqueue(engine.getThreadCommutationId(Engine::Workers::RENDER_THREAD),
                                   [mData](const CancellationToken &){ mData->fillGpuData(); });
 
 		executeCallbacks(mData, AssetLoadingResult::LOADING_SUCCESS);
@@ -111,7 +111,7 @@ namespace engine {
 		v = new Mesh();
 		
 		auto&& engine = Engine::getInstance();
-		auto&& meshDataCache = engine.getModule<CacheManager>()->getCache<std::string, Mesh_Data*>();
+		auto&& meshDataCache = engine.getModule<CacheManager>().getCache<std::string, Mesh_Data*>();
 
 		if (Mesh_Data* mData = meshDataCache->getValue(params.file)) {			
 			if (mData->indicesBuffer && mData->verticesBuffer) {
@@ -130,7 +130,7 @@ namespace engine {
 			addCallback(mData, v, callback, params.semanticMask, params.latency, params.callbackThreadId);
 
 			if (params.flags->async) {
-				engine.getModule<AssetManager>()->getThreadPool()->enqueue(TaskType::COMMON, [](const CancellationToken& token, const MeshLoadingParams params, Mesh_Data* mData) {
+				engine.getModule<AssetManager>().getThreadPool()->enqueue(TaskType::COMMON, [](const CancellationToken& token, const MeshLoadingParams params, Mesh_Data* mData) {
 					fillMeshData(mData, params);
 				}, params, mData);
 			} else {

@@ -12,12 +12,12 @@ namespace engine {
 		auto&& engine = Engine::getInstance();
 
 		if (params.flags->async) {
-			engine.getModule<AssetManager>()->getThreadPool()->enqueue(TaskType::COMMON, [params, callback](const CancellationToken& token) {
+			engine.getModule<AssetManager>().getThreadPool()->enqueue(TaskType::COMMON, [params, callback](const CancellationToken& token) {
 				PROFILE_TIME_SCOPED_M(jsonLoading, params.file)
 				auto&& engine = Engine::getInstance();
-				FileManager* fm = engine.getModule<FileManager>();
+				auto&& fm = engine.getModule<FileManager>();
 				size_t fsize;
-				if (const char* data = fm->readFile(params.file, fsize)) {
+				if (const char* data = fm.readFile(params.file, fsize)) {
 					Json v = Json::parse(std::string(data));
 					if (callback) { callback(v, AssetLoadingResult::LOADING_SUCCESS); }
 					delete data;
@@ -27,9 +27,9 @@ namespace engine {
 			});
 		} else {
 			PROFILE_TIME_SCOPED_M(jsonLoading, params.file)
-			FileManager* fm = engine.getModule<FileManager>();
+			auto&& fm = engine.getModule<FileManager>();
 			size_t fsize;
-			if (const char* data = fm->readFile(params.file, fsize)) {
+			if (const char* data = fm.readFile(params.file, fsize)) {
 				v = Json::parse(std::string(data));
 				if (callback) { callback(v, AssetLoadingResult::LOADING_SUCCESS); }
 				delete data;

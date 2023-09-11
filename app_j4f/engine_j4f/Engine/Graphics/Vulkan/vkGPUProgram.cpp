@@ -89,9 +89,9 @@ namespace vulkan {
 	}
 
 	VulkanShaderCode VulkanShaderModule::loadSpirVCode(const char* pass) {
-		auto* fm = engine::Engine::getInstance().getModule<engine::FileManager>();
+		auto& fm = engine::Engine::getInstance().getModule<engine::FileManager>();
 		VulkanShaderCode code;
-		fm->readFile(pass, code);
+		fm.readFile(pass, code);
 		return code;
 	}
 
@@ -379,7 +379,7 @@ namespace vulkan {
 
 		size_t i = 0;
 		for (const ShaderStageInfo& stageInfo : stages) {
-			auto&& module = Engine::getInstance().getModule<CacheManager>()->load<VulkanShaderModule*>(
+			auto&& module = Engine::getInstance().getModule<CacheManager>().load<VulkanShaderModule*>(
 					std::string(stageInfo.modulePass),
 					[](VulkanRenderer* renderer, const ShaderStageInfo& stageInfo) -> VulkanShaderModule* {
                             if (stageInfo.shaderCode) {

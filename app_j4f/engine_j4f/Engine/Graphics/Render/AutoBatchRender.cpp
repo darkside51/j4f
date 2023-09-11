@@ -59,7 +59,7 @@ namespace engine {
 
 		const size_t idx_count = _idx.size();
 
-		auto&& renderHelper = Engine::getInstance().getModule<Graphics>()->getRenderHelper();
+		auto&& renderHelper = Engine::getInstance().getModule<Graphics>().getRenderHelper();
 
 		auto&& vBuffer = renderHelper->addDynamicVerteces(&_vtx[0], _vtx.size() * sizeof(float), vOffset);
 		_vtx.clear();

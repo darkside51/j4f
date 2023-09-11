@@ -221,7 +221,7 @@ namespace engine {
 		const float atime = animation->start + currentAnimTime;
 
 		//_animCalculationResult[_updateFrameNum] = Engine::getInstance().getModule<ThreadPool>()->enqueue(TaskType::COMMON, 0, updateSkeletonAnimation, this, atime, animation, _updateFrameNum);
-		_animCalculationResult[_updateFrameNum] = Engine::getInstance().getModule<ThreadPool2>()->enqueue(TaskType::COMMON, updateSkeletonAnimation, this, atime, animation, _updateFrameNum);
+		_animCalculationResult[_updateFrameNum] = Engine::getInstance().getModule<ThreadPool2>().enqueue(TaskType::COMMON, updateSkeletonAnimation, this, atime, animation, _updateFrameNum);
 	}
 
 	void MeshSkeleton::updateAnimation(const float time, MeshAnimationTree* animTree) {
@@ -232,7 +232,7 @@ namespace engine {
 		animTree->update(time, _updateFrameNum); // просто пересчет времени
 
 		//_animCalculationResult[_updateFrameNum] = Engine::getInstance().getModule<ThreadPool>()->enqueue(TaskType::COMMON, 0, updateSkeletonAnimationTree, this, animTree, _updateFrameNum);
-		_animCalculationResult[_updateFrameNum] = Engine::getInstance().getModule<ThreadPool2>()->enqueue(TaskType::COMMON, updateSkeletonAnimationTree, this, animTree, _updateFrameNum);
+		_animCalculationResult[_updateFrameNum] = Engine::getInstance().getModule<ThreadPool2>().enqueue(TaskType::COMMON, updateSkeletonAnimationTree, this, animTree, _updateFrameNum);
 	}
 
     void MeshSkeleton::applyFrame(MeshAnimationTree* animTree) {
@@ -248,7 +248,7 @@ namespace engine {
             }
 
             _updateFrameNum = frameNum;
-            _animCalculationResult[_updateFrameNum] = Engine::getInstance().getModule<ThreadPool2>()->enqueue(
+            _animCalculationResult[_updateFrameNum] = Engine::getInstance().getModule<ThreadPool2>().enqueue(
                     TaskType::COMMON, updateSkeletonAnimationTree, this, animTree, _updateFrameNum);
         }
     }
@@ -542,7 +542,7 @@ namespace engine {
 
 	void Mesh::drawBoundingBox(const mat4f& cameraMatrix, const mat4f& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame) {
 		if (!_skeleton) return;
-		Engine::getInstance().getModule<Graphics>()->getRenderHelper()->drawBoundingBox(_minCorner, _maxCorner, cameraMatrix, worldMatrix, commandBuffer, currentFrame, true);
+		Engine::getInstance().getModule<Graphics>().getRenderHelper()->drawBoundingBox(_minCorner, _maxCorner, cameraMatrix, worldMatrix, commandBuffer, currentFrame, true);
 		//Engine::getInstance().getModule<Graphics>()->getRenderHelper()->drawSphere((_minCorner + _maxCorner) * 0.5f, 1.0f, cameraMatrix, worldMatrix, commandBuffer, currentFrame, true);
 	}
 

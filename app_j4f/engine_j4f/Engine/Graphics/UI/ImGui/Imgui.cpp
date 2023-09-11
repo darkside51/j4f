@@ -60,7 +60,7 @@ namespace engine {
     }
 
     ImguiGraphics::ImguiGraphics() {
-        Engine::getInstance().getModule<AssetManager>()->getThreadPool()->enqueue(TaskType::COMMON, generateShaders, this);
+        Engine::getInstance().getModule<AssetManager>().getThreadPool()->enqueue(TaskType::COMMON, generateShaders, this);
         //Engine::getInstance().getModule<ThreadPool2>()->enqueue(TaskType::COMMON, generateShaders, this);
         //generateShaders({}, this);
 
@@ -113,7 +113,9 @@ namespace engine {
         _renderDescriptor.renderData[0] = new vulkan::RenderData();
         _renderDescriptor.renderData[0]->indexType = VK_INDEX_TYPE_UINT16;
 
-        auto&& gpuProgramManager = Engine::getInstance().getModule<Graphics>()->getGpuProgramsManager();
+        auto&& graphics = Engine::getInstance().getModule<Graphics>();
+
+        auto&& gpuProgramManager = graphics.getGpuProgramsManager();
 
         std::vector<engine::ProgramStageInfo> psiCTextured;
         psiCTextured.emplace_back(ProgramStage::VERTEX, "imgui.vertex", reinterpret_cast<const std::vector<std::byte>*>(&imguiVsh));
@@ -126,7 +128,7 @@ namespace engine {
         _fixedGpuLayouts[1].second = { "u_translate" };
         _fixedGpuLayouts[2].second = { "u_texture" };
 
-        setPipeline(Engine::getInstance().getModule<Graphics>()->getRenderer()->getGraphicsPipeline(_renderState, _program));
+        setPipeline(graphics.getRenderer()->getGraphicsPipeline(_renderState, _program));
         _initComplete = true;
     }
 
@@ -152,7 +154,7 @@ namespace engine {
             dstPtr += 4;
         }
 
-        auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
+        auto&& renderer = Engine::getInstance().getModule<Graphics>().getRenderer();
         _fontTexture = new vulkan::VulkanTexture(renderer, width, height,1);
         _fontTexture->setSampler(renderer->getSampler(
                 VK_FILTER_LINEAR,
@@ -186,7 +188,7 @@ namespace engine {
         ImGuiIO& io = ImGui::GetIO();
         io.DeltaTime = (delta > 0.0) ? delta : (1.0f / 60.0f);
 
-        const auto [width, height] = Engine::getInstance().getModule<Graphics>()->getSize();
+        const auto [width, height] = Engine::getInstance().getModule<Graphics>().getSize();
         io.DisplaySize = ImVec2(width, height);
         ImGui::NewFrame();
     }
@@ -198,7 +200,7 @@ namespace engine {
             return;
         }
 
-        const uint8_t swapChainImagesCount = Engine::getInstance().getModule<Graphics>()->getRenderer()->getSwapchainImagesCount();
+        const uint8_t swapChainImagesCount = Engine::getInstance().getModule<Graphics>().getRenderer()->getSwapchainImagesCount();
 
         if (swapChainImagesCount != _dynamic_vertices.size()) {
             _dynamic_vertices.resize(swapChainImagesCount);
@@ -269,7 +271,7 @@ namespace engine {
         if (currentScissor.has_value()) {
             commandBuffer.cmdSetScissor(currentScissor.value());
         } else {
-            const auto [width, height] = Engine::getInstance().getModule<Graphics>()->getSize();
+            const auto [width, height] = Engine::getInstance().getModule<Graphics>().getSize();
             commandBuffer.cmdSetScissor(0, 0, width, height);
         }
     }
@@ -339,10 +341,11 @@ namespace engine {
 
     bool ImguiGraphics::onInpuKeyEvent(const KeyEvent& event) {
         ImGuiIO& io = ImGui::GetIO();
-        io.KeyShift = Engine::getInstance().getModule<Input>()->isShiftPressed();
-        io.KeyAlt = Engine::getInstance().getModule<Input>()->isAltPressed();
-        io.KeySuper = Engine::getInstance().getModule<Input>()->isSuperPressed();
-        io.KeyCtrl = Engine::getInstance().getModule<Input>()->isCtrlPressed();
+        auto&& input = Engine::getInstance().getModule<Input>();
+        io.KeyShift = input.isShiftPressed();
+        io.KeyAlt = input.isAltPressed();
+        io.KeySuper = input.isSuperPressed();
+        io.KeyCtrl = input.isCtrlPressed();
         io.KeysDown[static_cast<uint8_t>(event.key)] = event.state == InputEventState::IES_PRESS;
 
         if (event.state == InputEventState::IES_PRESS || event.state == InputEventState::IES_REPEAT) {

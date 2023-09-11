@@ -35,15 +35,15 @@ namespace engine {
 
 	vulkan::VulkanTexture* TextureLoader::createTexture(const TextureLoadingParams& params, const TextureLoadingCallback& callback) {
 		auto&& engine = Engine::getInstance();
-		auto&& renderer = engine.getModule<engine::Graphics>()->getRenderer();
+		auto&& renderer = engine.getModule<engine::Graphics>().getRenderer();
 
 		vulkan::VulkanTexture* texture;
 		if (params.texData) {
 			texture = new vulkan::VulkanTexture(renderer, params.texData->width(), params.texData->height(), 1);
 		} else {
-			auto* fm = engine.getModule<engine::FileManager>();
+			auto& fm = engine.getModule<engine::FileManager>();
 			int width, height, channels;
-			TextureData::getInfo(fm->getFullPath(params.files[0]).c_str(), &width, &height, &channels); // texture dimensions + channels without load
+			TextureData::getInfo(fm.getFullPath(params.files[0]).c_str(), &width, &height, &channels); // texture dimensions + channels without load
 
 			texture = new vulkan::VulkanTexture(renderer, width, height, 1);
 		}
@@ -51,7 +51,7 @@ namespace engine {
 		if (params.flags->async) {
 			if (callback) { addCallback(texture, callback); }
 
-			engine.getModule<AssetManager>()->getThreadPool()->enqueue(TaskType::COMMON, [params, texture](const CancellationToken& token) {
+			engine.getModule<AssetManager>().getThreadPool()->enqueue(TaskType::COMMON, [params, texture](const CancellationToken& token) {
 				PROFILE_TIME_SCOPED_M(textureLoading, params.files[0])
 				if (params.texData) {
 					if (!params.texData->operator bool()) {
@@ -134,7 +134,7 @@ namespace engine {
 	void TextureLoader::loadAsset(vulkan::VulkanTexture*& v, const TextureLoadingParams& params, const TextureLoadingCallback& callback) {
 
 		auto&& engine = Engine::getInstance();
-		auto&& cache = engine.getModule<CacheManager>()->getCache<std::string, vulkan::VulkanTexture*>();
+		auto&& cache = engine.getModule<CacheManager>().getCache<std::string, vulkan::VulkanTexture*>();
 
 		if (params.flags->use_cache) {
 			if (params.cacheName.empty()) {

@@ -8,14 +8,12 @@
 namespace engine {
 
     TextureCache& TextureHandler::evaluateCache() const noexcept {
-        return *Engine::getInstance().getModule<CacheManager>()->getCache<TextureCache>();
+        return *Engine::getInstance().getModule<CacheManager>().getCache<TextureCache>();
     }
 
     TextureHandler::~TextureHandler() {
-        if (auto && graphics = Engine::getInstance().getModule<Graphics>()) {
-            graphics->getRenderer()->markToDelete(std::move(m_texture));
-        }
-
+        auto && graphics = Engine::getInstance().getModule<Graphics>();
+        graphics.getRenderer()->markToDelete(std::move(m_texture));
     }
 
     uint32_t TextureHandler::_decrease_counter() noexcept {

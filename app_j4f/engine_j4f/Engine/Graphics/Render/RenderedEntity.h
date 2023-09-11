@@ -110,7 +110,7 @@ namespace engine {
 			if (_renderDescriptor.renderDataCount == 0) return nullptr;
 			if (_renderState.vertexDescription.attributes.empty()) return nullptr;
 
-			auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
+			auto&& renderer = Engine::getInstance().getModule<Graphics>().getRenderer();
 			vulkan::VulkanPipeline* pipeline = renderer->getGraphicsPipeline(_renderState, program, renderPass);
 			vulkan::VulkanPipeline* currentPipeline = _renderDescriptor.renderData[0]->pipeline;
 
@@ -123,7 +123,7 @@ namespace engine {
 		}
 
 		inline void pipelineAttributesChanged() {
-			setPipeline(Engine::getInstance().getModule<Graphics>()->getRenderer()->getGraphicsPipeline(_renderState, _renderDescriptor.renderData[0]->pipeline->program));
+			setPipeline(Engine::getInstance().getModule<Graphics>().getRenderer()->getGraphicsPipeline(_renderState, _renderDescriptor.renderData[0]->pipeline->program));
 		}
 
 		inline void render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const ViewParams& viewParams) {

@@ -34,7 +34,7 @@ namespace engine {
     template<typename VP>
     inline void renderList(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, VP&& viewParams,
                 std::vector<std::vector<RenderDescriptor*>>& descriptors) {
-        auto&& renderHelper = Engine::getInstance().getModule<Graphics>()->getRenderHelper();
+        auto&& renderHelper = Engine::getInstance().getModule<Graphics>().getRenderHelper();
         auto&& autoBatcher = renderHelper->getAutoBatchRenderer();
 
         for (auto&& vec : descriptors) { // get layers and draw it

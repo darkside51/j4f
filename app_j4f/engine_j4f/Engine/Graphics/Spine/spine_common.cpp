@@ -56,15 +56,15 @@ namespace engine {
     }
 
     void SpineTextureLoader::load(spine::AtlasPage& page, const spine::String& path) {
-        auto* assm = Engine::getInstance().getModule<AssetManager>();
+        auto && assm = Engine::getInstance().getModule<AssetManager>();
 
         TexturePtrLoadingParams loadingParams;
         loadingParams.files = { path.buffer() };
         loadingParams.flags->async = 1;
         loadingParams.flags->use_cache = 1;
 
-        TexturePtr texture = assm->loadAsset<TexturePtr>(loadingParams, [&page](TexturePtr const & asset, const AssetLoadingResult result) {
-            auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
+        TexturePtr texture = assm.loadAsset<TexturePtr>(loadingParams, [&page](TexturePtr const & asset, const AssetLoadingResult result) {
+            auto&& renderer = Engine::getInstance().getModule<Graphics>().getRenderer();
             const_cast<TextureHandler::value_type*>(asset->get())->setSampler(
                     renderer->getSampler(
                             convertFilter(page.minFilter),
@@ -91,9 +91,9 @@ namespace engine {
 
     // spine extension for read file with engine::FileManager
     char* SpineExtension::_readFile(const spine::String &path, int *length) {
-        const auto* fileManager = Engine::getInstance().getModule<FileManager>();
+        const auto& fileManager = Engine::getInstance().getModule<FileManager>();
         size_t l = 0u;
-        char * result = fileManager->readFile(path.buffer(), l);
+        char * result = fileManager.readFile(path.buffer(), l);
         *length = static_cast<int>(l);
         return result;
     }

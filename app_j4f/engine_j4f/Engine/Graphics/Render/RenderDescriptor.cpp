@@ -8,7 +8,7 @@ namespace engine {
 	void RenderDescriptor::render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const ViewParams& viewParams) {
 		GPU_DEBUG_MARKER_INSERT(commandBuffer.m_commandBuffer, " j4f renderDescriptor render", 0.5f, 0.5f, 0.5f, 1.0f);
 
-		auto&& renderHelper = Engine::getInstance().getModule<Graphics>()->getRenderHelper();
+		auto&& renderHelper = Engine::getInstance().getModule<Graphics>().getRenderHelper();
 		auto&& autoBatcher = renderHelper->getAutoBatchRenderer();
 
 		switch (mode) {

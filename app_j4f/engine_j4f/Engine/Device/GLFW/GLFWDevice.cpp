@@ -73,7 +73,7 @@ namespace engine {
 //        LOG_TAG_LEVEL(LogLevel::L_MESSAGE, DEVICE, "resize %d x %d", w, h);
 		const auto uw = static_cast<uint16_t>(w);
 		const auto uh = static_cast<uint16_t>(h);
-		Engine::getInstance().getModule<GLFWDevice>()->setSize(uw, uh);
+		Engine::getInstance().getModule<GLFWDevice>().setSize(uw, uh);
 	}
 
 //	void glfwOnFrameBufferResize(GLFWwindow*, int w, int h) {
@@ -90,7 +90,7 @@ namespace engine {
 	void glfwOnMouseMove(GLFWwindow* window, double x, double y) {
 		int w, h;
 		glfwGetWindowSize(window, &w, &h);
-		Engine::getInstance().getModule<Input>()->onPointerEvent(PointerEvent(PointerButton::PBUTTON_NONE,
+		Engine::getInstance().getModule<Input>().onPointerEvent(PointerEvent(PointerButton::PBUTTON_NONE,
                                                                               InputEventState::IES_NONE,
                                                                               static_cast<float>(x), static_cast<float>(h) - static_cast<float>(y)));
 	}
@@ -100,13 +100,13 @@ namespace engine {
 		int w, h;
 		glfwGetCursorPos(window, &x, &y);
 		glfwGetWindowSize(window, &w, &h);
-		Engine::getInstance().getModule<Input>()->onPointerEvent(PointerEvent(static_cast<PointerButton>(button),
+		Engine::getInstance().getModule<Input>().onPointerEvent(PointerEvent(static_cast<PointerButton>(button),
                                                                               (action == 0 ? InputEventState::IES_RELEASE : InputEventState::IES_PRESS),
                                                                               static_cast<float>(x), static_cast<float>(h) - static_cast<float>(y)));
 	}
 
 	void glfwOnScroll(GLFWwindow* /*window*/, double xoffset, double yoffset) { // mouse wheel
-		Engine::getInstance().getModule<Input>()->onWheelEvent(static_cast<float>(xoffset), static_cast<float>(yoffset));
+		Engine::getInstance().getModule<Input>().onWheelEvent(static_cast<float>(xoffset), static_cast<float>(yoffset));
 	}
 
 	void glfwOnKeyboard(GLFWwindow* /*window*/, int key, int /*scancode*/, int action, int /*mods*/) {
@@ -188,21 +188,23 @@ namespace engine {
 			}
 		}
 
+        auto && input = Engine::getInstance().getModule<Input>();
+
 		switch (action) {
 			case GLFW_PRESS:
 				if (specialMask) {
-					Engine::getInstance().getModule<Input>()->changeSpecialMask(specialMask, InputEventState::IES_PRESS);
+                    input.changeSpecialMask(specialMask, InputEventState::IES_PRESS);
 				}
-				Engine::getInstance().getModule<Input>()->onKeyEvent(KeyEvent(k, InputEventState::IES_PRESS));
+                input.onKeyEvent(KeyEvent(k, InputEventState::IES_PRESS));
 				break;
 			case GLFW_RELEASE:
 				if (specialMask) {
-					Engine::getInstance().getModule<Input>()->changeSpecialMask(specialMask, InputEventState::IES_RELEASE);
+                    input.changeSpecialMask(specialMask, InputEventState::IES_RELEASE);
 				}
-				Engine::getInstance().getModule<Input>()->onKeyEvent(KeyEvent(k, InputEventState::IES_RELEASE));
+                input.onKeyEvent(KeyEvent(k, InputEventState::IES_RELEASE));
 				break;
             case GLFW_REPEAT:
-                Engine::getInstance().getModule<Input>()->onKeyEvent(KeyEvent(k, InputEventState::IES_REPEAT));
+                input.onKeyEvent(KeyEvent(k, InputEventState::IES_REPEAT));
                 break;
 			default:
 				break;
@@ -210,7 +212,7 @@ namespace engine {
 	}
 
 	void glfwOnChar(GLFWwindow* /*window*/, unsigned int codepoint) {
-		Engine::getInstance().getModule<Input>()->onCharEvent(codepoint);
+		Engine::getInstance().getModule<Input>().onCharEvent(codepoint);
 	}
 
 	GLFWDevice::GLFWDevice() {

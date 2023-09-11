@@ -1,3 +1,4 @@
+// в™Јв™ в™¦в™Ґ
 #include "ShadowMapHelper.h"
 #include "CascadeShadowMap.h"
 #include "../../Render/RenderList.h"
@@ -21,7 +22,7 @@ namespace engine {
 				for (uint32_t i = 0; i < shadowMap->getCascadesCount(); ++i) {
 					shadowMap->beginRenderPass(commandBuffer, i);
 
-					//todo: проверять в какой каскад меш попадает и только там его и рисовать
+					//todo: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 					//mesh->setCameraMatrix(cascadesViewProjMatrixes[i]);
 					//mesh2->setCameraMatrix(cascadesViewProjMatrixes[i]);
 					//mesh3->setCameraMatrix(cascadesViewProjMatrixes[i]);
@@ -56,7 +57,7 @@ namespace engine {
 			{
 				for (uint32_t i = 0; i < shadowMap->getCascadesCount(); ++i) {
 					shadowMap->beginRenderPass(commandBuffer, i);
-					//todo: проверять в какой каскад меш попадает и только там его и рисовать
+					//todo: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 					for (size_t j = 0; j < count; ++j) {
 						list[j]->render(commandBuffer, currentFrame, { &shadowMap->getVPMatrix(i), nullptr, nullptr });
 					}

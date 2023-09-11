@@ -14,7 +14,7 @@ namespace engine {
     FontData::FontData(char* data, const size_t size) : fdata(data), fileSize(size) { }
 
     FontData::FontData(const std::string& path) {
-        fdata = Engine::getInstance().getModule<FileManager>()->readFile(path, fileSize);
+        fdata = Engine::getInstance().getModule<FileManager>().readFile(path, fileSize);
     }
 
     FT_Error ftc_face_requester(FTC_FaceID faceID, FT_Library lib, FT_Pointer reqData, FT_Face* face) {
@@ -85,7 +85,7 @@ namespace engine {
     }
 
     vulkan::VulkanTexture* FontRenderer::createFontTexture() const {
-        auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
+        auto&& renderer = Engine::getInstance().getModule<Graphics>().getRenderer();
         auto texture = new vulkan::VulkanTexture(renderer, imgWidth, imgHeight);
 
         texture->setSampler(renderer->getSampler(

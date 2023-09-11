@@ -184,7 +184,7 @@ namespace engine {
 		std::vector<CascadeFrameBuffer> _cascades;		// _cascadesCount
 		std::vector<float> _cascadeSplits;				// _cascadesCount
 		std::vector<float> _splitDepths;				// _cascadesCount
-		std::vector<mat4f> _cascadeViewProjects;	// _cascadesCount
+		std::vector<mat4f> _cascadeViewProjects;	    // _cascadesCount
 		std::vector<Frustum> _cascadeFrustums;			// _cascadesCount
 
 		VkClearValue _shadowClearValues;

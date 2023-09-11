@@ -33,7 +33,7 @@ namespace engine {
 	void FontLoader::loadAsset(Font*& v, const FontLoadingParams& params, const FontLoadingCallback& callback) {
 		PROFILE_TIME_SCOPED_M(fontLoading, params.file)
 		auto&& engine = Engine::getInstance();
-		auto&& cache = engine.getModule<CacheManager>()->getCache<std::string, Font*>();
+		auto&& cache = engine.getModule<CacheManager>().getCache<std::string, Font*>();
 
 		if (params.flags->use_cache) {
 			if (v = cache->getValue(params.file)) {
@@ -59,7 +59,7 @@ namespace engine {
 
 
 		v = cache->getOrSetValue(params.file, [](const std::string& fileName) {
-			auto&& fontsManager = Engine::getInstance().getModule<Graphics>()->getFontsManager();
+			auto&& fontsManager = Engine::getInstance().getModule<Graphics>().getFontsManager();
 			return new Font(fontsManager->getLibrary(), fileName);
 		}, params.file);
 

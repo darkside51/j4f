@@ -43,7 +43,7 @@ namespace engine {
 				default:
 				{
 					if (handler->readyToRun()) {
-						Engine::getInstance().getModule<ThreadPool>()->enqueue(0, handler);
+						Engine::getInstance().getModule<ThreadPool>().enqueue(0, handler);
 					}
 				}
 					break;
@@ -61,7 +61,7 @@ namespace engine {
 		inline void callDepend() {
 			for (auto&& h : _dependTasks) {
 				if (h->readyToRun()) {
-					Engine::getInstance().getModule<ThreadPool>()->enqueue(0, h);
+					Engine::getInstance().getModule<ThreadPool>().enqueue(0, h);
 				}
 			}
 			_dependTasks.clear();

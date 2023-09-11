@@ -399,7 +399,7 @@ namespace engine {
 		const uint32_t vertexBufferSize = static_cast<uint32_t>(vertexBuffer.size()) * sizeof(float);
 		const uint32_t indexBufferSize = static_cast<uint32_t>(indexBuffer.size()) * sizeof(uint32_t);
 
-		auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
+		auto&& renderer = Engine::getInstance().getModule<Graphics>().getRenderer();
 
 		stage_vertices = new vulkan::VulkanBuffer();
 		stage_indices = new vulkan::VulkanBuffer();
@@ -457,7 +457,7 @@ namespace engine {
 	void Mesh_Data::fillGpuData() {
 		if (stage_vertices == nullptr || stage_indices == nullptr) return;
 
-		auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
+		auto&& renderer = Engine::getInstance().getModule<Graphics>().getRenderer();
 		auto&& copyPool = renderer->getDevice()->getCommandPool(vulkan::GPUQueueFamily::F_GRAPHICS);
 		auto&& cmdBuffer = renderer->getDevice()->createVulkanCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, copyPool);
 		cmdBuffer.begin();

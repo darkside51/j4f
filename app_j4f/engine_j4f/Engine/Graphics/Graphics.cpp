@@ -41,7 +41,7 @@ namespace engine {
         }
 
         auto &&device = Engine::getInstance().getModule<Device>();
-        const IRenderSurfaceInitializer *surfaceInitializer = device->getSurfaceInitializer();
+        const IRenderSurfaceInitializer *surfaceInitializer = device.getSurfaceInitializer();
 
         {
             using namespace vulkan;
@@ -84,16 +84,16 @@ namespace engine {
     void Graphics::createLoaders() {
         // create texture cache
         Engine::getInstance().getModule<CacheManager>()
-                ->emplaceCache<TextureCache::value_type, TextureCache::key_type>(
+                .emplaceCache<TextureCache::value_type, TextureCache::key_type>(
                         std::make_unique<TextureCache>()
                                 );
 
         auto && assetManager = Engine::getInstance().getModule<AssetManager>();
 
-        assetManager->setLoader<TexturePtrLoader>();
-        assetManager->setLoader<TextureLoader>();
-        assetManager->setLoader<MeshLoader>();
-        assetManager->setLoader<FontLoader>();
+        assetManager.setLoader<TexturePtrLoader>();
+        assetManager.setLoader<TextureLoader>();
+        assetManager.setLoader<MeshLoader>();
+        assetManager.setLoader<FontLoader>();
     }
 
     void Graphics::createRenderHelper() {

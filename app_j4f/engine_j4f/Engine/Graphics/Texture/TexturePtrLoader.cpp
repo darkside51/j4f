@@ -31,15 +31,15 @@ namespace engine {
     TexturePtr
     TexturePtrLoader::createTexture(const TexturePtrLoadingParams &params, const TexturePtrLoadingCallback &callback) {
         auto &&engine = Engine::getInstance();
-        auto &&renderer = engine.getModule<engine::Graphics>()->getRenderer();
+        auto &&renderer = engine.getModule<engine::Graphics>().getRenderer();
 
         TexturePtr texture;
         if (params.texData) {
             texture = make_linked<TextureHandler>(renderer, params.texData->width(), params.texData->height(), 1);
         } else {
-            auto *fm = engine.getModule<engine::FileManager>();
+            auto &fm = engine.getModule<engine::FileManager>();
             int width, height, channels;
-            TextureData::getInfo(fm->getFullPath(params.files[0]).c_str(), &width, &height,
+            TextureData::getInfo(fm.getFullPath(params.files[0]).c_str(), &width, &height,
                                  &channels); // texture dimensions + channels without load
 
             texture = make_linked<TextureHandler>(renderer, width, height, 1);
@@ -48,7 +48,7 @@ namespace engine {
         if (params.flags->async) {
             if (callback) { addCallback(texture, callback); }
 
-            engine.getModule<AssetManager>()->getThreadPool()->enqueue(TaskType::COMMON, [params, texture](
+            engine.getModule<AssetManager>().getThreadPool()->enqueue(TaskType::COMMON, [params, texture](
                     const CancellationToken &token) mutable {
                 PROFILE_TIME_SCOPED_M(textureLoading, params.files[0])
 
@@ -140,7 +140,7 @@ namespace engine {
     void TexturePtrLoader::loadAsset(asset_type &v, const TexturePtrLoadingParams &params,
                                      const TexturePtrLoadingCallback &callback) {
         auto &&engine = Engine::getInstance();
-        auto &&cache = engine.getModule<CacheManager>()->getCache<TextureCache>();
+        auto &&cache = engine.getModule<CacheManager>().getCache<TextureCache>();
 
         if (params.flags->use_cache) {
             auto generate = [&v, &cache, &callback, &params](const std::string& name){

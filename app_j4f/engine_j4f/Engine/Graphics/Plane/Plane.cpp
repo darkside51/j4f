@@ -72,7 +72,7 @@ namespace engine {
 	}
 
 	void Plane::createRenderData(const vulkan::RenderDataGpuParamsType& params) {
-		auto&& renderHelper = Engine::getInstance().getModule<Graphics>()->getRenderHelper();
+		auto&& renderHelper = Engine::getInstance().getModule<Graphics>().getRenderHelper();
 		auto&& pipeline = renderHelper->getPipeline(CommonPipelines::COMMON_PIPELINE_TEXTURED);
 
 		const vulkan::RenderDataGpuParamsType gpu_params = params ? params : std::make_shared<engine::GpuProgramParams>();
@@ -94,7 +94,7 @@ namespace engine {
 		_fixedGpuLayouts.resize(1);
 		_fixedGpuLayouts[0].second = { "mvp", ViewParams::Ids::CAMERA_TRANSFORM };
 
-		setPipeline(Engine::getInstance().getModule<Graphics>()->getRenderer()->getGraphicsPipeline(_renderState, pipeline->program));
+		setPipeline(Engine::getInstance().getModule<Graphics>().getRenderer()->getGraphicsPipeline(_renderState, pipeline->program));
 	}
 
 	void Plane::updateRenderData(const mat4f& worldMatrix, const bool worldMatrixChanged) {

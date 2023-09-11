@@ -37,7 +37,10 @@ namespace engine {
 		initPlatform();
 
 		setModule<LogManager>();
+
+#ifdef ENABLE_STATISTIC
 		setModule<Statistic>();
+#endif
 
 		//setModule<ThreadPool>(std::max(std::thread::hardware_concurrency(), 1u));
 		setModule<ThreadPool2>(std::max(std::thread::hardware_concurrency(), 1u));
@@ -51,12 +54,12 @@ namespace engine {
 		setModule<Device>();
 		setModule<Bus>();
         setModule<TimerManager>();
-		
-		_statistic = getModule<Statistic>();
-		_graphics = getModule<Graphics>();
 
-		getModule<FileManager>()->createFileSystem<DefaultFileSystem>();
-		getModule<AssetManager>()->setLoader<JsonLoader>();
+		_statistic = hasModule<Statistic>() ? &getModule<Statistic>() : nullptr;
+		_graphics = &getModule<Graphics>();
+
+		getModule<FileManager>().createFileSystem<DefaultFileSystem>();
+		getModule<AssetManager>().setLoader<JsonLoader>();
 
         // create application
         _application = std::make_unique<Application>();
@@ -71,17 +74,16 @@ namespace engine {
         _updateThread->setTargetFrameTime(1.0f / config.fpsLimitUpdate.fpsMax);
         _updateThread->setFpsLimitType(config.fpsLimitUpdate.limitType);
 
-        auto workersCommutator = getModule<WorkerThreadsCommutator>();
-        _workerIds[static_cast<uint8_t>(Workers::RENDER_THREAD)] = workersCommutator->emplaceWorkerThread(_renderThread.get());
-        _workerIds[static_cast<uint8_t>(Workers::UPDATE_THREAD)] = workersCommutator->emplaceWorkerThread(_updateThread.get());
+        auto & workersCommutator = getModule<WorkerThreadsCommutator>();
+        _workerIds[static_cast<uint8_t>(Workers::RENDER_THREAD)] = workersCommutator.emplaceWorkerThread(_renderThread.get());
+        _workerIds[static_cast<uint8_t>(Workers::UPDATE_THREAD)] = workersCommutator.emplaceWorkerThread(_updateThread.get());
 
-		initComplete(); // after all
-
-		run(); // start
+		initComplete(); // after all and before run
+		run(); // start work
 	}
 
 	void Engine::initComplete() {
-        getModule<Device>()->setTittle(_application->getName());
+        getModule<Device>().setTittle(_application->getName());
 		_graphics->onEngineInitComplete();
         _application->onEngineInitComplete();
 	}
@@ -95,16 +97,13 @@ namespace engine {
 			_updateThread->run();
 		}
 
-		getModule<Device>()->start();
+		getModule<Device>().start();
 	}
 
 	void Engine::destroy() {
 		_renderThread = nullptr;
 		_updateThread = nullptr;
 
-		for (auto&& m : _modules) {
-			delete m;
-		}
 		_modules.clear();
 
 		if (_application) {
@@ -127,9 +126,9 @@ namespace engine {
 
 				if (w > 0 && h > 0) {
 					_renderThread->resume();
-					getModule<ThreadPool2>()->resume();
+					getModule<ThreadPool2>().resume();
 				} else {
-					getModule<ThreadPool2>()->pause();
+					getModule<ThreadPool2>().pause();
 				}
 			} else {
 				if (w > 0 && h > 0) {
@@ -140,9 +139,9 @@ namespace engine {
                     }
 
 					_renderThread->resume();
-					getModule<ThreadPool2>()->resume();
+					getModule<ThreadPool2>().resume();
 				} else {
-					getModule<ThreadPool2>()->pause();
+					getModule<ThreadPool2>().pause();
 				}
 			}
 		} else {
@@ -153,9 +152,9 @@ namespace engine {
             }
 
 			if (w > 0 && h > 0) {
-				getModule<ThreadPool2>()->resume();
+				getModule<ThreadPool2>().resume();
 			} else {
-				getModule<ThreadPool2>()->pause();
+				getModule<ThreadPool2>().pause();
 			}
 		}
 	}
@@ -169,8 +168,8 @@ namespace engine {
 			_updateThread->stop();
 		}
 
-		getModule<ThreadPool2>()->stop();
-		getModule<AssetManager>()->deviceDestroyed();
+		getModule<ThreadPool2>().stop();
+		getModule<AssetManager>().deviceDestroyed();
 		_graphics->deviceDestroyed();
 
         if (_application) {

@@ -14,7 +14,7 @@ namespace engine {
 	class Mesh;
 
 	CascadeShadowMap::CascadeFrameBuffer::~CascadeFrameBuffer() {
-		auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
+		auto&& renderer = Engine::getInstance().getModule<Graphics>().getRenderer();
 		destroy(renderer->getDevice()->device);
 	}
 
@@ -30,8 +30,8 @@ namespace engine {
 		VulkanDepthState depthState(true, true, VK_COMPARE_OP_LESS);
 		VulkanStencilState stencilState(false);
 
-		auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
-		auto&& gpuProgramManager = Engine::getInstance().getModule<Graphics>()->getGpuProgramsManager();
+		auto&& renderer = Engine::getInstance().getModule<Graphics>().getRenderer();
+		auto&& gpuProgramManager = Engine::getInstance().getModule<Graphics>().getGpuProgramsManager();
 
 		{
 			std::vector<engine::ProgramStageInfo> psi_shadow_debug;
@@ -69,10 +69,10 @@ namespace engine {
 	}
 
 	void CascadeShadowMap::registerCommonShadowPrograms() {
-		auto&& gpuProgramManager = Engine::getInstance().getModule<Graphics>()->getGpuProgramsManager();
+		auto&& gpuProgramManager = Engine::getInstance().getModule<Graphics>().getGpuProgramsManager();
 
         const bool useGeometryShader = ((preferredTechnique == ShadowMapTechnique::SMT_AUTO || preferredTechnique == ShadowMapTechnique::SMT_GEOMETRY_SH) &&
-                                        Engine::getInstance().getModule<Graphics>()->getRenderer()->getDevice()->enabledFeatures.geometryShader);
+                                        Engine::getInstance().getModule<Graphics>().getRenderer()->getDevice()->enabledFeatures.geometryShader);
 
 		{
 			std::vector<ProgramStageInfo> infos;
@@ -122,7 +122,7 @@ namespace engine {
 		_cascadeFrustums(count)
 	{
 		if ((preferredTechnique == ShadowMapTechnique::SMT_AUTO || preferredTechnique == ShadowMapTechnique::SMT_GEOMETRY_SH) &&
-            Engine::getInstance().getModule<Graphics>()->getRenderer()->getDevice()->enabledFeatures.geometryShader) {
+            Engine::getInstance().getModule<Graphics>().getRenderer()->getDevice()->enabledFeatures.geometryShader) {
 			_technique = ShadowMapTechnique::SMT_GEOMETRY_SH;
 			_cascades.resize(1u);
 		} else {
@@ -144,7 +144,7 @@ namespace engine {
 	}
 
 	CascadeShadowMap::~CascadeShadowMap() {
-		auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
+		auto&& renderer = Engine::getInstance().getModule<Graphics>().getRenderer();
 		renderer->getDevice()->destroyRenderPass(_depthRenderPass);
 		delete _shadowMapTexture;
 	}
@@ -152,7 +152,7 @@ namespace engine {
 	void CascadeShadowMap::initVariables() {
 		_shadowClearValues.depthStencil = { 1.0f, 0 };
 
-		auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
+		auto&& renderer = Engine::getInstance().getModule<Graphics>().getRenderer();
 		const auto depthFormat = renderer->getDevice()->getSupportedDepthFormat(_targetBits);
 
 		// create render pass
@@ -373,7 +373,7 @@ namespace engine {
 			lastSplitDist = _cascadeSplits[i];
 		}
 
-		_dirtyCascades = Engine::getInstance().getModule<Graphics>()->getRenderer()->getSwapchainImagesCount();
+		_dirtyCascades = Engine::getInstance().getModule<Graphics>().getRenderer()->getSwapchainImagesCount();
 	}
 
 	void CascadeShadowMap::registerProgramAsReciever(vulkan::VulkanGpuProgram* program) {

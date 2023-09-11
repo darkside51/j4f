@@ -325,22 +325,22 @@ namespace vulkan {
 							} else {
 								switch (l->imageType) {
 									case ImageType::sampler2D_ARRAY:
-										externalDescriptorsSets[externalSetNum++] = engine::Engine::getInstance().getModule<engine::Graphics>()->getRenderer()->getEmptyTextureArray()->getSingleDescriptor();
+										externalDescriptorsSets[externalSetNum++] = engine::Engine::getInstance().getModule<engine::Graphics>().getRenderer()->getEmptyTextureArray()->getSingleDescriptor();
 										break;
 									case ImageType::sampler2D:
 									default:
-										externalDescriptorsSets[externalSetNum++] = engine::Engine::getInstance().getModule<engine::Graphics>()->getRenderer()->getEmptyTexture()->getSingleDescriptor();
+										externalDescriptorsSets[externalSetNum++] = engine::Engine::getInstance().getModule<engine::Graphics>().getRenderer()->getEmptyTexture()->getSingleDescriptor();
 										break;
 								}
 							}
 						} else {
 							switch (l->imageType) {
 								case ImageType::sampler2D_ARRAY:
-									externalDescriptorsSets[externalSetNum++] = engine::Engine::getInstance().getModule<engine::Graphics>()->getRenderer()->getEmptyTextureArray()->getSingleDescriptor();
+									externalDescriptorsSets[externalSetNum++] = engine::Engine::getInstance().getModule<engine::Graphics>().getRenderer()->getEmptyTextureArray()->getSingleDescriptor();
 									break;
 								case ImageType::sampler2D:
 								default:
-									externalDescriptorsSets[externalSetNum++] = engine::Engine::getInstance().getModule<engine::Graphics>()->getRenderer()->getEmptyTexture()->getSingleDescriptor();
+									externalDescriptorsSets[externalSetNum++] = engine::Engine::getInstance().getModule<engine::Graphics>().getRenderer()->getEmptyTexture()->getSingleDescriptor();
 									break;
 							}
 						}

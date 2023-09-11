@@ -8,6 +8,7 @@
 #include <deque>
 
 #include <array>
+#include <cassert>
 #include <vector>
 #include <cstdint>
 #include <chrono>
@@ -19,12 +20,16 @@ namespace engine {
 	class Statistic;
 	class Application;
 	class WorkerThread;
-	
+
 	class Engine {
+        private:
+            class EngineModuleEnumerator;
+            class EmplacedModuleEnumerator; // focus :)
+
 	public:
         enum class Workers: uint8_t {
-            RENDER_THREAD = 0,
-            UPDATE_THREAD = 1,
+            RENDER_THREAD = 0u,
+            UPDATE_THREAD = 1u,
             MAX_VALUE
         };
 
@@ -39,59 +44,39 @@ namespace engine {
 		void destroy();
 
 		template<typename T>
-		inline T* getModule() noexcept {
-			const uint16_t moduleId = UniqueTypeId<IEngineModule>::getUniqueId<T>();
-			if (moduleId < _modules.size()) {
-				return static_cast<T*>(_modules[moduleId]);
-			}
-
-			return nullptr;
+		inline T& getModule() noexcept {
+			const auto moduleId = UniqueTypeId<EngineModuleEnumerator>::getUniqueId<T>();
+            assert(moduleId < _modules.size());
+            return static_cast<T&>(*_modules[moduleId]);
 		}
 
 		template<typename T>
-		inline const T* getModule() const noexcept {
-			const uint16_t moduleId = UniqueTypeId<IEngineModule>::getUniqueId<T>();
-			if (moduleId < _modules.size()) {
-				return static_cast<T*>(_modules[moduleId]);
-			}
-
-			return nullptr;
-		}
-
-		template<typename T>
-        T* replaceModule(T* module) {
-			const uint16_t moduleId = UniqueTypeId<IEngineModule>::getUniqueId<T>();
-			T* oldModule = nullptr;
-			if (_modules.size() <= moduleId) {
-				_modules.resize(moduleId + 1);
-			} else {
-				oldModule = static_cast<T*>(_modules[moduleId]);
-			}
-			
-			_modules[moduleId] = module;
-			return oldModule;
+		inline const T& getModule() const noexcept {
+			const auto moduleId = UniqueTypeId<EngineModuleEnumerator>::getUniqueId<T>();
+            assert(moduleId < _modules.size());
+            return static_cast<const T&>(*_modules[moduleId]);
 		}
 
 		template<typename T, typename...Args>
-		T* setModule(Args&&...args) {
-			const uint16_t moduleId = UniqueTypeId<IEngineModule>::getUniqueId<T>();
-			T* oldModule = nullptr;
-			if (_modules.size() <= moduleId) {
-				_modules.resize(moduleId + 1);
-			} else {
-				oldModule = static_cast<T*>(_modules[moduleId]);
-			}
-
-			_modules[moduleId] = new T(std::forward<Args>(args)...);
-			return oldModule;
+		void setModule(Args&&...args) {
+            UniqueTypeId<EmplacedModuleEnumerator>::getUniqueId<T>();
+			const auto moduleId = UniqueTypeId<EngineModuleEnumerator>::getUniqueId<T>();
+            assert(moduleId >= _modules.size()); // module already exist
+            _modules.resize(moduleId + 1u);
+			_modules[moduleId] = std::make_unique<T>(std::forward<Args>(args)...);
 		}
+
+        template <typename T>
+        inline bool hasModule() const noexcept {
+            return UniqueTypeId<EmplacedModuleEnumerator>::getUniqueId<T>() == UniqueTypeId<EngineModuleEnumerator>::getUniqueId<T>();
+        }
 
 		void resize(const uint16_t w, const uint16_t h);
 		void deviceDestroyed();
 
 		void run();
 
-		inline void setTimeMultiply(const float m) { _timeMultiply = m; }
+		inline void setTimeMultiply(const float m) noexcept { _timeMultiply = m; }
 		[[nodiscard]] inline float getTimeMultiply() const noexcept { return _timeMultiply; }
 
         [[nodiscard]] inline static Version version() noexcept { return {0, 0, 1}; }
@@ -114,7 +99,7 @@ namespace engine {
 		void render(const float delta, const std::chrono::steady_clock::time_point& currentTime, std::deque<linked_ptr<TaskBase>>&& tasks);
 		void update(const float delta, const std::chrono::steady_clock::time_point& currentTime, std::deque<linked_ptr<TaskBase>>&& tasks);
 
-		std::vector<IEngineModule*> _modules;
+		std::vector<std::unique_ptr<IEngineModule>> _modules;
 
 		Statistic* _statistic = nullptr;
 		Graphics* _graphics = nullptr;

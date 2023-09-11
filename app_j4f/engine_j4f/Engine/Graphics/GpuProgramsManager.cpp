@@ -35,7 +35,7 @@ namespace engine {
 	GpuProgram* GpuProgramsManager::getProgram(const std::vector<ProgramStageInfo>& stages) const {
 		GpuProgramKey key(stages);
 
-		GpuProgram* value = Engine::getInstance().getModule<CacheManager>()->load<GpuProgram*>(
+		GpuProgram* value = Engine::getInstance().getModule<CacheManager>().load<GpuProgram*>(
 			key,
 			[](const std::vector<ProgramStageInfo>& stages) {
 				const size_t sz = stages.size();
@@ -47,7 +47,7 @@ namespace engine {
                     shaderStagesInfo[i].shaderCode = stages[i].pShaderCode;
 				}
 
-				auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
+				auto&& renderer = Engine::getInstance().getModule<Graphics>().getRenderer();
 				return reinterpret_cast<GpuProgram*>(new vulkan::VulkanGpuProgram(renderer, shaderStagesInfo));
 			},
 			stages

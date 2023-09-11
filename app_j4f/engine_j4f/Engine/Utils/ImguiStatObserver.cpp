@@ -9,9 +9,8 @@
 namespace engine {
 
     ImguiStatObserver::ImguiStatObserver(const Location location) : _location(location) {
-        if (auto &&stat = Engine::getInstance().getModule<Statistic>()) {
-            stat->addObserver(this);
-        }
+        auto &&stat = Engine::getInstance().getModule<Statistic>();
+        stat.addObserver(this);
 
 #if defined j4f_PLATFORM_LINUX
         _os = "linux";
@@ -20,7 +19,7 @@ namespace engine {
 #endif
 
         auto &&engineInstance = Engine::getInstance();
-        auto &&renderer = engineInstance.getModule<Graphics>()->getRenderer();
+        auto &&renderer = engineInstance.getModule<Graphics>().getRenderer();
 
         CPUInfo cpuInfo;
         _cpuName = fmtString("cpu: {}", cpuInfo.model());
@@ -53,7 +52,7 @@ namespace engine {
         _ram = fmtString("ram: {:.2f} GB", static_cast<double>(getTotalSystemMemory()) / toGB);
 
         const auto engineVersion = engineInstance.version();
-        const auto apiVersion = engineInstance.getModule<Graphics>()->config().render_api_version;
+        const auto apiVersion = engineInstance.getModule<Graphics>().config().render_api_version;
         const auto applicationVersion = engineInstance.applicationVersion();
 
         _versions = fmtString("application version {}\nengine version {}\ngpu api: {}, version {}",
@@ -67,9 +66,7 @@ namespace engine {
     }
 
     ImguiStatObserver::~ImguiStatObserver() {
-        if (auto &&stat = Engine::getInstance().getModule<Statistic>()) {
-            stat->removeObserver(this);
-        }
+        Engine::getInstance().getModule<Statistic>().removeObserver(this);
     }
 
     void ImguiStatObserver::statisticUpdate(const Statistic *statistic) {
@@ -78,10 +75,12 @@ namespace engine {
 
         _timeString = fmtString("time: {:%H:%M:%S}", time);
 
-        auto &&renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
-        const bool vsync = Engine::getInstance().getModule<Graphics>()->config().v_sync;
+        auto && graphics = Engine::getInstance().getModule<Graphics>();
 
-        auto [width, height] = Engine::getInstance().getModule<Graphics>()->getSize();
+        auto &&renderer = graphics.getRenderer();
+        const bool vsync = graphics.config().v_sync;
+
+        auto [width, height] = graphics.getSize();
 
         _statString = fmtString("resolution: {}x{}\nv_sync: {}\ndraw calls: {}\n"
                                 "cpu frame time: {:.5f}\nspeed mult: {:.3}",

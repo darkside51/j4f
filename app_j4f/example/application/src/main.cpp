@@ -196,7 +196,7 @@ namespace engine {
 			_fixedGpuLayouts[0].second = { "camera_matrix", ViewParams::Ids::CAMERA_TRANSFORM };
 			_fixedGpuLayouts[1].second = { "model_matrix" };
 
-			auto&& gpuProgramManager = Engine::getInstance().getModule<Graphics>()->getGpuProgramsManager();
+			auto&& gpuProgramManager = Engine::getInstance().getModule<Graphics>().getGpuProgramsManager();
 			std::vector<engine::ProgramStageInfo> psi;
 			psi.emplace_back(ProgramStage::VERTEX, "resources/shaders/skyBox.vsh.spv");
 			psi.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/skyBox.psh.spv");
@@ -281,7 +281,7 @@ namespace engine {
 			const uint32_t vertexBufferSize = static_cast<uint32_t>(vtx.size()) * sizeof(SkyBoxVertex);
 			const uint32_t indexBufferSize = static_cast<uint32_t>(idx.size()) * sizeof(uint32_t);
 
-			auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
+			auto&& renderer = Engine::getInstance().getModule<Graphics>().getRenderer();
 
 			vulkan::VulkanBuffer stage_vertices;
 			vulkan::VulkanBuffer stage_indices;
@@ -347,7 +347,7 @@ namespace engine {
 	class GrassRenderer {
 	public:
 		GrassRenderer(const uint32_t instanceCount) : _instanceCount(instanceCount), _mesh(nullptr) {
-			auto&& gpuProgramManager = Engine::getInstance().getModule<Graphics>()->getGpuProgramsManager();
+			auto&& gpuProgramManager = Engine::getInstance().getModule<Graphics>().getGpuProgramsManager();
 			std::vector<engine::ProgramStageInfo> psi;
 			psi.emplace_back(ProgramStage::VERTEX, "resources/shaders/grass.vsh.spv");
 			psi.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/grass.psh.spv");
@@ -386,7 +386,7 @@ namespace engine {
 		}
 
 		GrassRenderer(const TextureData& img) : _mesh(nullptr) {
-			auto&& gpuProgramManager = Engine::getInstance().getModule<Graphics>()->getGpuProgramsManager();
+			auto&& gpuProgramManager = Engine::getInstance().getModule<Graphics>().getGpuProgramsManager();
 			std::vector<engine::ProgramStageInfo> psi;
 			psi.emplace_back(ProgramStage::VERTEX, "resources/shaders/grass.vsh.spv");
 			psi.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/grass.psh.spv");
@@ -515,7 +515,7 @@ namespace engine {
             create();
 
             camera->addObserver(this);
-            Engine::getInstance().getModule<Input>()->addObserver(this);
+            Engine::getInstance().getModule<Input>().addObserver(this);
 
             statObserver = new ImguiStatObserver(ImguiStatObserver::Location::top_right);
             cameraInfo = new ImGuiCameraInfo();
@@ -525,9 +525,9 @@ namespace engine {
 			PROFILE_TIME_SCOPED(ApplicationLoading)
 			log("ApplicationCustomData");
 
-			FileManager* fm = Engine::getInstance().getModule<FileManager>();
-			auto&& fs = fm->getFileSystem<DefaultFileSystem>();
-			fm->mapFileSystem(fs);
+			FileManager& fm = Engine::getInstance().getModule<FileManager>();
+			auto&& fs = fm.getFileSystem<DefaultFileSystem>();
+			fm.mapFileSystem(fs);
 
             graphicsDataUpdater.registerSystem(&meshUpdateSystem);
             graphicsDataUpdater.registerSystem(&grassUpdateSystem);
@@ -675,12 +675,12 @@ namespace engine {
 					break;
 				case KeyboardKey::K_ESCAPE:
 					if (event.state != InputEventState::IES_RELEASE) break;
-					Engine::getInstance().getModule<Device>()->leaveMainLoop();
+					Engine::getInstance().getModule<Device>().leaveMainLoop();
 					break;
 				case KeyboardKey::K_ENTER:
-					if (Engine::getInstance().getModule<Input>()->isAltPressed()) {
+					if (Engine::getInstance().getModule<Input>().isAltPressed()) {
 						if (event.state != InputEventState::IES_RELEASE) break;
-						Engine::getInstance().getModule<Device>()->setFullscreen(!Engine::getInstance().getModule<Device>()->isFullscreen());
+						Engine::getInstance().getModule<Device>().setFullscreen(!Engine::getInstance().getModule<Device>().isFullscreen());
 					}
 					break;
 				case KeyboardKey::K_TAB:
@@ -694,7 +694,7 @@ namespace engine {
 					break;
 				case KeyboardKey::K_EQUAL:
 					if (event.state == InputEventState::IES_RELEASE) {
-						if (Engine::getInstance().getModule<Input>()->isShiftPressed()) {
+						if (Engine::getInstance().getModule<Input>().isShiftPressed()) {
 							Engine::getInstance().setTimeMultiply(Engine::getInstance().getTimeMultiply() + 0.1f);
 						} else {
 							Engine::getInstance().setTimeMultiply(1.0f);
@@ -711,7 +711,7 @@ namespace engine {
 		bool onInpuCharEvent(const uint16_t code) override { return false; };
 
 		void initCamera() {
-			const uint64_t wh = Engine::getInstance().getModule<Graphics>()->getRenderer()->getWH();
+			const uint64_t wh = Engine::getInstance().getModule<Graphics>().getRenderer()->getWH();
 			const uint32_t width = static_cast<uint32_t>(wh >> 0);
 			const uint32_t height = static_cast<uint32_t>(wh >> 32);
 
@@ -759,15 +759,15 @@ namespace engine {
 				imgui->getRenderDescriptor()->order = 100;
 			}
 
-			auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
-			auto&& gpuProgramManager = Engine::getInstance().getModule<Graphics>()->getGpuProgramsManager();
+			auto&& renderer = Engine::getInstance().getModule<Graphics>().getRenderer();
+			auto&& gpuProgramManager = Engine::getInstance().getModule<Graphics>().getGpuProgramsManager();
 
             engine::TexturePtr tPtr1 = engine::make_linked<engine::TextureHandler>(renderer, 128, 128);
             {
                 auto tPtr2 = tPtr1;
             }
 
-			AssetManager* assm = Engine::getInstance().getModule<AssetManager>();
+			AssetManager& assm = Engine::getInstance().getModule<AssetManager>();
 
 			std::vector<engine::ProgramStageInfo> psi0;
 			psi0.emplace_back(ProgramStage::VERTEX, "resources/shaders/mesh.vsh.spv");
@@ -832,7 +832,7 @@ namespace engine {
 			tex_params.flags->use_cache = 1;
 			//tex_params.formatType = engine::TextureFormatType::SRGB;
 			tex_params.imageViewTypeForce = VkImageViewType::VK_IMAGE_VIEW_TYPE_2D_ARRAY;
-			auto texture_zombi = assm->loadAsset<vulkan::VulkanTexture*>(tex_params);
+			auto texture_zombi = assm.loadAsset<vulkan::VulkanTexture*>(tex_params);
 
 			TextureLoadingParams tex_params2;
 			tex_params2.files = { 
@@ -845,19 +845,19 @@ namespace engine {
 
 			//tex_params2.formatType = engine::TextureFormatType::SRGB;
 			tex_params2.imageViewTypeForce = VkImageViewType::VK_IMAGE_VIEW_TYPE_2D_ARRAY;
-			auto texture_v = assm->loadAsset<vulkan::VulkanTexture*>(tex_params2);
+			auto texture_v = assm.loadAsset<vulkan::VulkanTexture*>(tex_params2);
 			tex_params2.files = { 
 				"resources/assets/models/warcraft3/textures/body_baseColor.png",
 				"resources/assets/models/warcraft3/textures/body_normal.png",
 				"resources/assets/models/warcraft3/textures/body_metallicRoughness.png"
 			};
-			auto texture_v2 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params2);
+			auto texture_v2 = assm.loadAsset<vulkan::VulkanTexture*>(tex_params2);
 			tex_params2.files = { 
 				"resources/assets/models/warcraft3/textures/Metal_baseColor.png",
 				"resources/assets/models/warcraft3/textures/Metal_normal.png",
 				"resources/assets/models/warcraft3/textures/Metal_metallicRoughness.png"
 			};
-			auto texture_v3 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params2);
+			auto texture_v3 = assm.loadAsset<vulkan::VulkanTexture*>(tex_params2);
 
 			TextureLoadingParams tex_params3;
 			tex_params3.flags->async = 1;
@@ -870,13 +870,13 @@ namespace engine {
 				"resources/assets/models/tree1/textures/tree2_normal.png",
 				"resources/assets/models/tree1/textures/tree2_metallicRoughness.png"
 			};
-			auto texture_t = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
+			auto texture_t = assm.loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
 			tex_params3.files = { 
 				"resources/assets/models/tree1/textures/branches_baseColor.png",
 				"resources/assets/models/tree1/textures/branches_normal.png"
 			};
-			auto texture_t2 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
+			auto texture_t2 = assm.loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
 			//tex_params3.files = { 
 			//	"resources/assets/models/pineTree/textures/Leavs_baseColor.png",
@@ -895,7 +895,7 @@ namespace engine {
 				"resources/assets/models/portal/textures/portal_normal.png",
 				"resources/assets/models/portal/textures/portal_specularGlossiness.png"
 			};
-			auto texture_t3 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
+			auto texture_t3 = assm.loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
 			tex_params3.files = { 
 				"resources/assets/models/vikingHut/textures/texture1.jpg",
@@ -903,7 +903,7 @@ namespace engine {
 				"resources/assets/models/vikingHut/textures/Main_Material2_metallicRoughness.png"
 			};
 			
-			auto texture_t5 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
+			auto texture_t5 = assm.loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
 			tex_params3.files = { 
 				"resources/assets/models/grass/textures/new/grass75.png",
@@ -912,20 +912,20 @@ namespace engine {
 				"resources/assets/models/grass/textures/flowers16.png",
 				"resources/assets/models/grass/textures/flowers26.png"
 			};
-			auto texture_t6 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
+			auto texture_t6 = assm.loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
 			tex_params3.files = { 
 				"resources/assets/models/windmill/textures/standardSurface1_baseColor.png",
 				"resources/assets/models/windmill/textures/standardSurface1_normal.png",
 				"resources/assets/models/windmill/textures/standardSurface1_metallicRoughness.png"
 			};
-			auto texture_t7 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params3);
+			auto texture_t7 = assm.loadAsset<vulkan::VulkanTexture*>(tex_params3);
 
 			TextureLoadingParams tex_params_sun;
             tex_params_sun.files = { "resources/assets/textures/sun2.jpg" };
             tex_params_sun.flags->async = 1;
             tex_params_sun.flags->use_cache = 1;
-			texture_1 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params_sun);
+			texture_1 = assm.loadAsset<vulkan::VulkanTexture*>(tex_params_sun);
 
 			meshesGraphicsBuffer = new MeshGraphicsDataBuffer(10 * 1024 * 1024, 10 * 1024 * 1024); // or create with default constructor for unique buffer for mesh
 
@@ -992,7 +992,7 @@ namespace engine {
 				"resources/assets/models/pine/textures/Branches_lp_metallicRoughness2.png"
 			};
 			
-			auto texture_forest_tree1 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params_forest_tree);
+			auto texture_forest_tree1 = assm.loadAsset<vulkan::VulkanTexture*>(tex_params_forest_tree);
 
 			tex_params_forest_tree.files = {
 				"resources/assets/models/pine/textures/Tree_bark_baseColor.jpeg",
@@ -1000,7 +1000,7 @@ namespace engine {
 				"resources/assets/models/pine/textures/Tree_bark_metallicRoughness.png"
 
 			};
-			auto texture_forest_tree2 = assm->loadAsset<vulkan::VulkanTexture*>(tex_params_forest_tree);
+			auto texture_forest_tree2 = assm.loadAsset<vulkan::VulkanTexture*>(tex_params_forest_tree);
 
 			MeshLoadingParams mesh_params_forestTree;
 			mesh_params_forestTree.file = "resources/assets/models/pine/tree.gltf";
@@ -1058,7 +1058,7 @@ namespace engine {
 				(*node)->setRenderObject(skyBox); // (*node)-> == node->value().
 			}
 			
-			assm->loadAsset<Mesh*>(mesh_params, [texture_zombi, this](Mesh* asset, const AssetLoadingResult result) {
+			assm.loadAsset<Mesh*>(mesh_params, [texture_zombi, this](Mesh* asset, const AssetLoadingResult result) {
 				asset->setProgram(program_mesh_skin_with_stroke);
 				asset->setParamByName("u_texture", texture_zombi, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
@@ -1069,7 +1069,7 @@ namespace engine {
 				animTree->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[2], 1.0f, asset->getSkeleton()->getLatency()));
 				animTree->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[1], 0.0f, asset->getSkeleton()->getLatency()));
 
-                auto&& animationManager = Engine::getInstance().getModule<Graphics>()->getAnimationManager();
+                auto&& animationManager = Engine::getInstance().getModule<Graphics>().getAnimationManager();
                 animationManager->registerAnimation(animTree);
                 animationManager->addTarget(animTree, asset->getSkeleton().get());
 
@@ -1094,7 +1094,7 @@ namespace engine {
 				shadowCastNodes.push_back(node);
 				});
 
-			assm->loadAsset<Mesh*>(mesh_params, [texture_zombi](Mesh* asset, const AssetLoadingResult result) {
+			assm.loadAsset<Mesh*>(mesh_params, [texture_zombi](Mesh* asset, const AssetLoadingResult result) {
 				asset->setProgram(program_mesh_skin);
 				asset->setParamByName("u_texture", texture_zombi, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
@@ -1125,7 +1125,7 @@ namespace engine {
 				});
 
 			for (auto&& meshObj : testMehsesVec) {
-				assm->loadAsset<Mesh*>(mesh_params, [meshObj, texture_zombi](Mesh* asset, const AssetLoadingResult result) {
+				assm.loadAsset<Mesh*>(mesh_params, [meshObj, texture_zombi](Mesh* asset, const AssetLoadingResult result) {
 					asset->setProgram(program_mesh_skin);
 					asset->setParamByName("u_texture", texture_zombi, false);
 					asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
@@ -1156,7 +1156,7 @@ namespace engine {
 					});
 			}
 
-			assm->loadAsset<Mesh*>(mesh_params2, [texture_v, texture_v2, texture_v3](Mesh* asset, const AssetLoadingResult result) {
+			assm.loadAsset<Mesh*>(mesh_params2, [texture_v, texture_v2, texture_v3](Mesh* asset, const AssetLoadingResult result) {
 				asset->setProgram(program_mesh_skin);
 				asset->setParamByName("u_texture", texture_v, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
@@ -1182,7 +1182,7 @@ namespace engine {
 				animTree2->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[10], 0.0f, asset->getSkeleton()->getLatency(), 1.0f));
 				animTree2->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[0], 0.0f, asset->getSkeleton()->getLatency(), 1.4f));
 
-                auto&& animationManager = Engine::getInstance().getModule<Graphics>()->getAnimationManager();
+                auto&& animationManager = Engine::getInstance().getModule<Graphics>().getAnimationManager();
                 animationManager->registerAnimation(animTree2);
                 animationManager->addTarget(animTree2, asset->getSkeleton().get());
 
@@ -1204,7 +1204,7 @@ namespace engine {
 				shadowCastNodes.push_back(node);
 				});
 
-			assm->loadAsset<Mesh*>(mesh_params3, [texture_t, texture_t2, this](Mesh* asset, const AssetLoadingResult result) {
+			assm.loadAsset<Mesh*>(mesh_params3, [texture_t, texture_t2, this](Mesh* asset, const AssetLoadingResult result) {
 				asset->setProgram(program_mesh);
 				asset->setParamByName("u_texture", texture_t, false);
 				asset->getRenderDataAt(1)->setParamByName("u_texture", texture_t2, false);
@@ -1233,7 +1233,7 @@ namespace engine {
 				shadowCastNodes.push_back(node);
 				});
 
-			assm->loadAsset<Mesh*>(mesh_params4, [texture_t3, this](Mesh* asset, const AssetLoadingResult result) {
+			assm.loadAsset<Mesh*>(mesh_params4, [texture_t3, this](Mesh* asset, const AssetLoadingResult result) {
 				asset->setProgram(program_mesh);
 				asset->setParamByName("u_texture", texture_t3, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
@@ -1261,7 +1261,7 @@ namespace engine {
 				shadowCastNodes.push_back(node);
 				});
 
-			assm->loadAsset<Mesh*>(mesh_params5, [texture_t5, texture_t6, this](Mesh* asset, const AssetLoadingResult result) {
+			assm.loadAsset<Mesh*>(mesh_params5, [texture_t5, texture_t6, this](Mesh* asset, const AssetLoadingResult result) {
 				asset->setProgram(program_mesh);
 				asset->setParamByName("u_texture", texture_t5, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
@@ -1289,7 +1289,7 @@ namespace engine {
 				shadowCastNodes.push_back(node);
 				});
 
-			assm->loadAsset<Mesh*>(mesh_params6, [texture_t7, texture_t6, this](Mesh* asset, const AssetLoadingResult result) {
+			assm.loadAsset<Mesh*>(mesh_params6, [texture_t7, texture_t6, this](Mesh* asset, const AssetLoadingResult result) {
 				asset->setProgram(program_mesh);
 				asset->setParamByName("u_texture", texture_t7, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
@@ -1302,7 +1302,7 @@ namespace engine {
 
 				animTreeWindMill = new MeshAnimationTree(&asset->getMeshData()->animations[0],1.0f, asset->getSkeleton()->getLatency());
 
-                auto&& animationManager = Engine::getInstance().getModule<Graphics>()->getAnimationManager();
+                auto&& animationManager = Engine::getInstance().getModule<Graphics>().getAnimationManager();
                 animationManager->registerAnimation(animTreeWindMill);
                 animationManager->addTarget(animTreeWindMill, asset->getSkeleton().get());
 
@@ -1380,7 +1380,7 @@ namespace engine {
 			tex_params_floor_mask.flags->use_cache = 1;
 			tex_params_floor_mask.texData = &img;
 			tex_params_floor_mask.files = { "grass_mask" };
-			texture_floor_mask = assm->loadAsset<vulkan::VulkanTexture*>(tex_params_floor_mask);
+			texture_floor_mask = assm.loadAsset<vulkan::VulkanTexture*>(tex_params_floor_mask);
 
 			TextureLoadingParams tex_params_floor_normal;
 			tex_params_floor_normal.flags->async = 1;
@@ -1389,9 +1389,9 @@ namespace engine {
 				"resources/assets/textures/normal1.jpg"
 			};
 
-			texture_floor_normal = assm->loadAsset<vulkan::VulkanTexture*>(tex_params_floor_normal);
+			texture_floor_normal = assm.loadAsset<vulkan::VulkanTexture*>(tex_params_floor_normal);
 
-			assm->loadAsset<Mesh*>(mesh_params_grass, [texture_t6, grenderer, this](Mesh* asset, const AssetLoadingResult result) {
+			assm.loadAsset<Mesh*>(mesh_params_grass, [texture_t6, grenderer, this](Mesh* asset, const AssetLoadingResult result) {
 				asset->setProgram(grass_default);
 				asset->setParamByName("u_texture", texture_t6, false);
 				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
@@ -1417,7 +1417,7 @@ namespace engine {
 				(*node)->setRenderObject(grassMesh2);
 				});
 
-			assm->loadAsset<Mesh*>(mesh_params_forestTree, [texture_forest_tree1, texture_forest_tree2, forestRenderer, this](Mesh* asset, const AssetLoadingResult result) {
+			assm.loadAsset<Mesh*>(mesh_params_forestTree, [texture_forest_tree1, texture_forest_tree2, forestRenderer, this](Mesh* asset, const AssetLoadingResult result) {
 				asset->setProgram(program_mesh_instance);
 				asset->setParamByName("u_texture", texture_forest_tree2, false);
 				asset->getRenderDataAt(1)->setParamByName("u_texture", texture_forest_tree1, false);
@@ -1450,7 +1450,7 @@ namespace engine {
 			text_params_logo.flags->async = 1;
 			text_params_logo.flags->use_cache = 1;
 			text_params_logo.cacheName = "vulkan_logo";
-			texturePtr_logo = assm->loadAsset<TexturePtr>(text_params_logo);
+			texturePtr_logo = assm.loadAsset<TexturePtr>(text_params_logo);
 			
 
 			planeTest = new NodeRenderer<Plane>();
@@ -1507,8 +1507,8 @@ namespace engine {
 			tex_params_floorArray.flags->use_cache = 1;
             tex_params_floorArray.cacheName = "floorTextures";
 			//tex_params_floorArray.formatType = engine::TextureFormatType::SRGB;
-			texture_array_test = assm->loadAsset<TexturePtr>(tex_params_floorArray, [](TexturePtr const & asset, const AssetLoadingResult result) {
-				auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
+			texture_array_test = assm.loadAsset<TexturePtr>(tex_params_floorArray, [](TexturePtr const & asset, const AssetLoadingResult result) {
+				auto&& renderer = Engine::getInstance().getModule<Graphics>().getRenderer();
 				texture_array_test->get()->setSampler(
 					renderer->getSampler(
 						VK_FILTER_LINEAR,
@@ -1523,7 +1523,7 @@ namespace engine {
 
 			/////// freeType test
 			FontLoadingParams font_loading_params("resources/assets/fonts/Roboto/Roboto-Regular.ttf");
-			Font* f = assm->loadAsset<Font*>(font_loading_params);
+			Font* f = assm.loadAsset<Font*>(font_loading_params);
 
 			//FontRenderer fr(256, 256, 100);
 			//fr.render(f, 18, "abcdefghijklmnopqrstuv", 1, 0, 0xffffffff, 2, 0);
@@ -1699,15 +1699,15 @@ namespace engine {
 				return true;
 			});
 
-			bus->addSubscriber<TestBusEvent>(subscriber);
+			bus.addSubscriber<TestBusEvent>(subscriber);
 
-			auto&& subscriber2 = bus->addSubscriber<TestBusEvent>([](const auto& evt)->bool {
+			auto&& subscriber2 = bus.addSubscriber<TestBusEvent>([](const auto& evt)->bool {
 				const float x = evt.x;
 				const float y = evt.y;
 				return true;
 			});
 
-			bus->sendEvent<TestBusEvent>({ 1.0f, 2.0f });
+			bus.sendEvent<TestBusEvent>({ 1.0f, 2.0f });
 
 			/*
             auto&& animationManager = Engine::getInstance().getModule<Graphics>()->getAnimationManager();
@@ -1762,7 +1762,7 @@ namespace engine {
             }
 
             // check update for animation needed (object visible etc...)
-            Engine::getInstance().getModule<Graphics>()->getAnimationManager()->update<MeshAnimationTree, ActionAnimation>(dt);
+            Engine::getInstance().getModule<Graphics>().getAnimationManager()->update<MeshAnimationTree, ActionAnimation>(dt);
 //            Engine::getInstance().getModule<Graphics>()->getAnimationManager()->update(dt);
 
 //            if (animTree) {
@@ -1810,7 +1810,7 @@ namespace engine {
 		}
 
 		void render(const float delta) {
-			auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
+			auto&& renderer = Engine::getInstance().getModule<Graphics>().getRenderer();
 			const uint32_t currentFrame = renderer->getCurrentFrame();
 
 			const float moveCameraSpeed = 170.0f * delta;
@@ -1836,7 +1836,7 @@ namespace engine {
 				if (auto&& nm3 = mesh3->getNode()) {
 					static uint32_t mesh3RemoveTest = 0;
 					if (++mesh3RemoveTest == 5000) {
-                        Engine::getInstance().getModule<Graphics>()->getAnimationManager()->removeTarget(animTree2, mesh3->graphics()->getSkeleton().get());
+                        Engine::getInstance().getModule<Graphics>().getAnimationManager()->removeTarget(animTree2, mesh3->graphics()->getSkeleton().get());
 					}
 
                     if (mesh3RemoveTest == 10000) {
@@ -1845,7 +1845,7 @@ namespace engine {
 						shadowCastNodes.erase(std::remove(shadowCastNodes.begin(), shadowCastNodes.end(), node), shadowCastNodes.end());
 						rootNode->removeChild(node);
 						mesh3 = nullptr;
-                        Engine::getInstance().getModule<Graphics>()->getAnimationManager()->unregisterAnimation(animTree2);
+                        Engine::getInstance().getModule<Graphics>().getAnimationManager()->unregisterAnimation(animTree2);
                         delete animTree2;
                         animTree2 = nullptr;
                     }
@@ -1981,7 +1981,7 @@ namespace engine {
 			}
 
 			{
-				auto&& renderHelper = Engine::getInstance().getModule<Graphics>()->getRenderHelper();
+				auto&& renderHelper = Engine::getInstance().getModule<Graphics>().getRenderHelper();
 				auto&& autoBatcher = renderHelper->getAutoBatchRenderer();
 
 				const uint32_t idxs[6] = {
@@ -2022,8 +2022,8 @@ namespace engine {
 				//commandBuffer.cmdSetDepthBias(0.0f, 0.0f, 0.0f);
 
 				//// statl label
-				auto statistic = Engine::getInstance().getModule<Statistic>();
-				const bool vsync = Engine::getInstance().getModule<Graphics>()->config().v_sync;
+				auto && statistic = Engine::getInstance().getModule<Statistic>();
+				const bool vsync = Engine::getInstance().getModule<Graphics>().config().v_sync;
 				const char* gpuType = "";
 
 				switch (renderer->getDevice()->gpuProperties.deviceType) {
@@ -2058,7 +2058,7 @@ namespace engine {
 				std::shared_ptr<TextureFrame> frame = bitmapFont->createFrame(
 					fmt_string(
 						"system time: {:%H:%M:%S}\nbuild type: {}\ngpu: {}({})\nresolution: {}x{}\nv_sync: {}\ndraw calls: {}\nfps: {}\ncpu frame time: {:.3}\nspeed mult: {:.3}\n\nWASD + mouse(camera control)",
-						time, buildType, renderer->getDevice()->gpuProperties.deviceName, gpuType, width, height, vsync ? "on" : "off", statistic->drawCalls(), statistic->renderFps(), statistic->cpuFrameTime(), Engine::getInstance().getTimeMultiply()
+						time, buildType, renderer->getDevice()->gpuProperties.deviceName, gpuType, width, height, vsync ? "on" : "off", statistic.drawCalls(), statistic.renderFps(), statistic.cpuFrameTime(), Engine::getInstance().getTimeMultiply()
 					)
 				);
 				TextureFrameBounds frameBounds(frame.get());
@@ -2095,9 +2095,9 @@ namespace engine {
 
 			////////////////////
 			if constexpr (1) { // test
-				auto&& renderHelper = Engine::getInstance().getModule<Graphics>()->getRenderHelper();
+				auto&& renderHelper = Engine::getInstance().getModule<Graphics>().getRenderHelper();
 				auto&& autoBatcher = renderHelper->getAutoBatchRenderer();
-				auto&& gpuProgramManager = Engine::getInstance().getModule<Graphics>()->getGpuProgramsManager();
+				auto&& gpuProgramManager = Engine::getInstance().getModule<Graphics>().getGpuProgramsManager();
 
 				std::vector<engine::ProgramStageInfo> psiCTextured;
 				psiCTextured.emplace_back(ProgramStage::VERTEX, "resources/shaders/texture.vsh.spv");
@@ -2159,9 +2159,9 @@ namespace engine {
 			////////////////////
 
 			if constexpr (0) { // test sprite on full screen
-				auto&& renderHelper = Engine::getInstance().getModule<Graphics>()->getRenderHelper();
+				auto&& renderHelper = Engine::getInstance().getModule<Graphics>().getRenderHelper();
 				auto&& autoBatcher = renderHelper->getAutoBatchRenderer();
-				auto&& gpuProgramManager = Engine::getInstance().getModule<Graphics>()->getGpuProgramsManager();
+				auto&& gpuProgramManager = Engine::getInstance().getModule<Graphics>().getGpuProgramsManager();
 
 				std::vector<engine::ProgramStageInfo> psiCTextured;
 				psiCTextured.emplace_back(ProgramStage::VERTEX, "resources/shaders/texture.vsh.spv");
@@ -2234,7 +2234,7 @@ namespace engine {
 
 				///////////
 
-				auto&& renderHelper = Engine::getInstance().getModule<Graphics>()->getRenderHelper();
+				auto&& renderHelper = Engine::getInstance().getModule<Graphics>().getRenderHelper();
 				auto&& autoBatcher = renderHelper->getAutoBatchRenderer();
 
 				static auto&& pipeline = renderHelper->getPipeline(CommonPipelines::COMMON_PIPELINE_TEXTURED);
@@ -2429,7 +2429,7 @@ namespace engine {
 
     void Application::requestFeatures() {
 //        Engine::getInstance().getModule<Graphics>()->features().request<CascadeShadowMap>(ShadowMapTechnique::SMT_AUTO);
-        Engine::getInstance().getModule<Graphics>()->features().request<CascadeShadowMap>(ShadowMapTechnique::SMT_DEFAULT);
+        Engine::getInstance().getModule<Graphics>().features().request<CascadeShadowMap>(ShadowMapTechnique::SMT_DEFAULT);
     }
 
 	void Application::freeCustomData() {
@@ -2442,8 +2442,8 @@ namespace engine {
 
     void Application::onEngineInitComplete() {
         _customData->onEngineInitComplete();
-        auto * timerManager = engine::Engine::getInstance().getModule<engine::TimerManager>();
-        timerManager->registerTimer({}, []()->TimerState {
+        auto && timerManager = engine::Engine::getInstance().getModule<engine::TimerManager>();
+        timerManager.registerTimer({}, []()->TimerState {
             static uint8_t i = 0u;
             engine::log("timerEvent, %d", ++i);
             return i == 10u ? TimerState::Finish : TimerState::Continue;
@@ -2456,7 +2456,7 @@ namespace engine {
 
 	void Application::update(const float delta) {
 		_customData->update(delta);
-        engine::Engine::getInstance().getModule<engine::TimerManager>()->update({});
+        engine::Engine::getInstance().getModule<engine::TimerManager>().update({});
 	}
 
 	void Application::resize(const uint16_t w, const uint16_t h) {

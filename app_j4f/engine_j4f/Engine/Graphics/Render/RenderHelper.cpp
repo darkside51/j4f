@@ -15,7 +15,7 @@ namespace engine {
 		constexpr size_t minBufferSize = 1024 * 100; // 100kb
 		size = std::max(sz, minBufferSize);
 
-		auto&& renderer = Engine::getInstance().getModule<Graphics>()->getRenderer();
+		auto&& renderer = Engine::getInstance().getModule<Graphics>().getRenderer();
 		renderer->getDevice()->createBuffer(
 			VK_SHARING_MODE_EXCLUSIVE,
 			usageFlags,
