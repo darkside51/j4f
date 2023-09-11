@@ -61,6 +61,8 @@
 #include <Engine/Graphics/Texture/TextureHandler.h>
 #include <Engine/Time/TimerManager.h>
 
+#include <Engine/Core/Containers.h>
+
 namespace engine {
 	vulkan::VulkanGpuProgram* grass_default = nullptr;
 

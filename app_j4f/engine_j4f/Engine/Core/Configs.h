@@ -7,18 +7,18 @@
 namespace engine {
 
     enum class GpuType : uint8_t {
-        OTHER = 0,
-        INTEGRATED = 1,
-        DISCRETE = 2,
-        VIRTUAL = 3,
-        CPU = 4
+        OTHER = 0u,
+        INTEGRATED = 1u,
+        DISCRETE = 2u,
+        VIRTUAL = 3u,
+        CPU = 4u
     };
 
     struct GraphicConfig {
         GpuType gpu_type = GpuType::OTHER;
         bool v_sync = true;
         bool can_continue_main_render_pass = false;
-        Version render_api_version = Version(1, 0, 0);
+        Version render_api_version = Version(1u, 0u, 0u);
 
         struct GPUFeatures {
             uint32_t robustBufferAccess = 0;
@@ -82,9 +82,9 @@ namespace engine {
     };
 
     enum class FpsLimitType : uint8_t {
-        F_DONT_CARE = 0,
-        F_STRICT = 1,
-        F_CPU_SLEEP = 2
+        F_DONT_CARE = 0u,
+        F_STRICT = 1u,
+        F_CPU_SLEEP = 2u
     };
 
     struct FpsLimit {

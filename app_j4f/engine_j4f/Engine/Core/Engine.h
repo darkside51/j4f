@@ -2,6 +2,7 @@
 
 #include "Common.h"
 #include "Configs.h"
+#include "Ref_ptr.h"
 #include "Version.h"
 
 #include "Threads/Task2.h"
@@ -101,8 +102,8 @@ namespace engine {
 
 		std::vector<std::unique_ptr<IEngineModule>> _modules;
 
-		Statistic* _statistic = nullptr;
-		Graphics* _graphics = nullptr;
+        ref_ptr<Statistic> _statistic = nullptr;
+		ref_ptr<Graphics> _graphics = nullptr;
 		std::unique_ptr<Application> _application;
 		std::unique_ptr<WorkerThread> _renderThread;
 		std::unique_ptr<WorkerThread> _updateThread;

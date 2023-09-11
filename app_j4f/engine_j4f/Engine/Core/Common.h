@@ -25,6 +25,9 @@ namespace engine {
 	template <typename T>
 	class linked_ext_ptr;
 
+    template <typename T>
+    class ref_ptr;
+
     template <typename T, typename U = T>
 	inline std::decay_t<T> alignValue(const T value, const U align) noexcept {
 		return (value + align - 1) & ~(align - 1);
@@ -65,6 +68,9 @@ namespace engine {
 
 	template <typename T>
 	struct is_smart_pointer<linked_ext_ptr<T>> { enum : bool { value = true }; };
+
+    template <typename T>
+    struct is_smart_pointer<ref_ptr<T>> { enum : bool { value = true }; };
 
 	template<typename T>
 	inline constexpr bool is_smart_pointer_v = engine::is_smart_pointer<T>::value;
