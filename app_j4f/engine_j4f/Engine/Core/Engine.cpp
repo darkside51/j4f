@@ -124,14 +124,14 @@ namespace engine {
                     _application->resize(w, h);
                 }
 
-				if (w > 0 && h > 0) {
+				if (w > 0u && h > 0u) {
 					_renderThread->resume();
 					getModule<ThreadPool2>().resume();
 				} else {
 					getModule<ThreadPool2>().pause();
 				}
 			} else {
-				if (w > 0 && h > 0) {
+				if (w > 0u && h > 0u) {
 					_graphics->resize(w, h);
 
                     if (_application) {
@@ -151,7 +151,7 @@ namespace engine {
                 _application->resize(w, h);
             }
 
-			if (w > 0 && h > 0) {
+			if (w > 0u && h > 0u) {
 				getModule<ThreadPool2>().resume();
 			} else {
 				getModule<ThreadPool2>().pause();
@@ -195,9 +195,11 @@ namespace engine {
 
         executeTaskCollection(std::move(tasks));
 
+#ifdef ENABLE_STATISTIC
         if (_statistic) {
             _statistic->update(delta);
         }
+#endif
 	}
 
 	void Engine::render(const float delta,
@@ -211,17 +213,19 @@ namespace engine {
 
         executeTaskCollection(std::move(tasks));
 
+#ifdef ENABLE_STATISTIC
 		if (_statistic) {
             _statistic->render(delta);
 			_statistic->frame(delta);
 			_statistic->addFramePrepareTime((std::chrono::duration<float>(std::chrono::steady_clock::now() - currentTime)).count());
 		}
+#endif
 
 		_graphics->endFrame();
 	}
 
     Version Engine::applicationVersion() const noexcept {
-        if (!_application) return {0, 0, 0};
+        if (!_application) return {0u, 0u, 0u};
         return _application->version();
     }
 }

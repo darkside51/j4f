@@ -79,7 +79,7 @@ namespace engine {
 		inline void setTimeMultiply(const float m) noexcept { _timeMultiply = m; }
 		[[nodiscard]] inline float getTimeMultiply() const noexcept { return _timeMultiply; }
 
-        [[nodiscard]] inline static Version version() noexcept { return {0, 0, 1}; }
+        [[nodiscard]] inline static Version version() noexcept { return {0u, 0u, 1u}; }
         [[nodiscard]] Version applicationVersion() const noexcept;
 
         [[nodiscard]] uint8_t getThreadCommutationId(const Workers w) const noexcept {
