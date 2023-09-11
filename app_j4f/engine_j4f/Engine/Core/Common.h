@@ -7,6 +7,7 @@
 #include <atomic>
 #include <cstdint>
 #include <memory>
+#include <utility>
 
 #ifdef min
 #undef min
@@ -67,6 +68,15 @@ namespace engine {
 
 	template<typename T>
 	inline constexpr bool is_smart_pointer_v = engine::is_smart_pointer<T>::value;
+
+    // steal data from container T, this data must be freed with delete[]
+    template <typename T>
+    inline std::pair<typename T::value_type*, size_t> steal_data(T& data) {
+        const size_t size = data.size();
+        auto *buffer = new T::value_type[size];
+        std::move(data.begin(), data.end(), buffer);
+        return  { buffer, size };
+    };
 
 	namespace static_inheritance {
 		// класс для проверки возможности конвертирования T в U
