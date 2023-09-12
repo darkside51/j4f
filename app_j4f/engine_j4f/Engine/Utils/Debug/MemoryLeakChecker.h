@@ -33,8 +33,12 @@ namespace engine {
 extern thread_local const char* __file__;
 extern thread_local uint32_t __line__;
 extern thread_local bool __skip_check_memory__;
-#define debug_new (__file__=__FILE__, __line__=__LINE__) && 0 ? NULL : new
+
+#ifndef debug_new
+//#define debug_new (__file__=__FILE__, __line__=__LINE__) && 0 ? NULL : new
+#define debug_new (__file__=__FILE__) && (__line__=__LINE__) && 0 ? nullptr : new
 //#define new debug_new // - can use this on target cpp file
+#endif
 
 #define SKIP_DEBUG_MEMORY_LEAKS(x) __skip_check_memory__ = x;
 

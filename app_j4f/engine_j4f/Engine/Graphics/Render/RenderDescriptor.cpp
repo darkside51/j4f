@@ -5,7 +5,7 @@
 
 namespace engine {
 
-	void RenderDescriptor::render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const ViewParams& viewParams) {
+	void RenderDescriptor::render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const ViewParams& viewParams, const uint16_t drawCount) {
 		GPU_DEBUG_MARKER_INSERT(commandBuffer.m_commandBuffer, " j4f renderDescriptor render", 0.5f, 0.5f, 0.5f, 1.0f);
 
 		auto&& renderHelper = Engine::getInstance().getModule<Graphics>().getRenderHelper();
@@ -28,8 +28,17 @@ namespace engine {
 					++p;
 				}
 
+                const auto instanceCount = r_data->instanceCount;
+                if (drawCount != 1u) {
+                    r_data->instanceCount *= drawCount;
+                }
+
 				r_data->prepareRender(/*commandBuffer*/);
 				r_data->render(commandBuffer, currentFrame);
+
+                if (drawCount != 1u) {
+                    r_data->instanceCount = instanceCount;
+                }
 			}
 		}
 		break;
@@ -47,6 +56,7 @@ namespace engine {
 					++p;
 				}
 
+                // no support drawCount in autoBatcher
 				autoBatcher->addToDraw(
 					r_data->pipeline,
 					r_data->vertexSize,
@@ -65,7 +75,7 @@ namespace engine {
 		{
 			if (customRenderer) {
 				autoBatcher->draw(commandBuffer, currentFrame);
-				customRenderer->render(commandBuffer, currentFrame, viewParams);
+				customRenderer->render(commandBuffer, currentFrame, viewParams, drawCount);
 			}
 		}
 		break;

@@ -26,7 +26,7 @@ namespace engine {
         inline void updateModelMatrixChanged(const bool /*worldMatrixChanged*/) noexcept { }
 
         void update(const float delta);
-        void render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const ViewParams& viewParams) override;
+        void render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const ViewParams& viewParams, const uint16_t drawCount = 1u) override;
 
         bool onInputPointerEvent(const PointerEvent& event);
         bool onInputWheelEvent(const float dx, const float dy);

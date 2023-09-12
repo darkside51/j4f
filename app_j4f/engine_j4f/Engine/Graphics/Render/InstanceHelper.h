@@ -88,9 +88,7 @@ namespace engine {
 			if (_graphics) {
 				auto&& rdescriptor = _graphics->getRenderDescriptor();
 				for (size_t i = 0; i < rdescriptor.renderDataCount; ++i) {
-					for (size_t j = 0; j < rdescriptor.renderData[i]->renderPartsCount; ++j) {
-						rdescriptor.renderData[i]->renderParts[j].instanceCount = _instanceCount;
-					}
+                    rdescriptor.renderData[i]->instanceCount = _instanceCount;
 				}
 			}
 		}

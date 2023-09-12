@@ -126,8 +126,8 @@ namespace engine {
 			setPipeline(Engine::getInstance().getModule<Graphics>().getRenderer()->getGraphicsPipeline(_renderState, _renderDescriptor.renderData[0]->pipeline->program));
 		}
 
-		inline void render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const ViewParams& viewParams) {
-			_renderDescriptor.render(commandBuffer, currentFrame, viewParams);
+		inline void render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const ViewParams& viewParams, const uint16_t drawCount) {
+			_renderDescriptor.render(commandBuffer, currentFrame, viewParams, drawCount);
 		}
 
 	protected:

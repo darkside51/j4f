@@ -1,5 +1,7 @@
 #version 450
 
+#extension GL_ARB_shader_viewport_layer_array : enable
+
 #define SHADOW_MAP_CASCADE_COUNT 3
 
 layout (location = 0) in vec3 a_position;
@@ -48,7 +50,9 @@ void main() {
 			  	+ u_ubo.skin_matrixes[joints.z] * a_weights.z
 			  	+ u_ubo.skin_matrixes[joints.w] * a_weights.w;
 
-	gl_Position = u_push_const.camera_matrix * u_push_const.model_matrix * skin * vec4(a_position, 1.0);
+	//gl_Position = u_push_const.camera_matrix * u_push_const.model_matrix * skin * vec4(a_position, 1.0);
+	gl_Position = u_shadow.cascade_matrix[gl_InstanceIndex] * u_push_const.model_matrix * skin * vec4(a_position, 1.0);
+    gl_Layer = gl_InstanceIndex;
 	//for geometry shader if use it
 	//gl_Position = u_push_const.model_matrix * skin * vec4(a_position, 1.0);
 }

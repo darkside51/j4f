@@ -86,10 +86,8 @@ namespace engine {
 		vulkan::RenderData::RenderPart renderPart{
 													static_cast<uint32_t>(iOffset / sizeof(uint32_t)),	// firstIndex
 													static_cast<uint32_t>(idx_count),					// indexCount
-													0,													// vertexCount (parameter no used with indexed render)
-													0,													// firstVertex
-													1,													// instanceCount (can change later)
-													0,													// firstInstance (can change later)
+													0,												// vertexCount (parameter no used with indexed render)
+													0,												// firstVertex
 													vOffset,											// vbOffset
 													0													// ibOffset
 		};

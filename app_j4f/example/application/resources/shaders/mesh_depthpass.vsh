@@ -1,5 +1,7 @@
 #version 450
 
+#extension GL_ARB_shader_viewport_layer_array : enable
+
 #define SHADOW_MAP_CASCADE_COUNT 3
 
 layout (constant_id = 0) const int cascade_count = 1;
@@ -42,7 +44,9 @@ layout (location = 0) out vec2 out_uv;
 void main() {
 	out_uv = a_uv;
 
-	gl_Position = u_push_const.camera_matrix * u_push_const.model_matrix * vec4(a_position, 1.0);
+// 	gl_Position = u_push_const.camera_matrix * u_push_const.model_matrix * vec4(a_position, 1.0);
+    gl_Position = u_shadow.cascade_matrix[gl_InstanceIndex] * u_push_const.model_matrix * vec4(a_position, 1.0);
+    gl_Layer = gl_InstanceIndex;
 	//for geometry shader if use it
 	//gl_Position = u_push_const.model_matrix * vec4(a_position, 1.0);
 }

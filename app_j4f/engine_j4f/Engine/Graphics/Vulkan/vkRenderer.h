@@ -358,10 +358,10 @@ namespace vulkan {
         void calculateId() noexcept {
             id = 0u;
             for (auto && attribute : attributes) {
-                auto const l = static_cast<uint8_t>(attribute.location);
-                auto const b = static_cast<uint8_t>(attribute.binding);
-                auto const o = static_cast<uint16_t>(attribute.offset);
-                auto const f = static_cast<uint32_t>(attribute.format);
+                auto const l = static_cast<uint64_t>(attribute.location);
+                auto const b = static_cast<uint64_t>(attribute.binding);
+                auto const o = static_cast<uint64_t>(attribute.offset);
+                auto const f = static_cast<uint64_t>(attribute.format);
                 const uint64_t k = (f << 0u | o << 32u | b << 48u | l << 56u);
                 id |= k;
             }

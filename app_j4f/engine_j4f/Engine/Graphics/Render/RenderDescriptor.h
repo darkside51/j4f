@@ -45,7 +45,7 @@ namespace engine {
     class IRenderDescriptorCustomRenderer {
     public:
         virtual ~IRenderDescriptorCustomRenderer() = default;
-		virtual void render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const ViewParams& viewParams) = 0;
+		virtual void render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const ViewParams& viewParams, const uint16_t drawCount = 1u) = 0;
     };
 
 	struct RenderDescriptor {
@@ -92,7 +92,7 @@ namespace engine {
 		}
 
 		template <typename T>
-		inline void setParamByName(const std::string& name, T* value, bool copyData, const uint32_t count = 1) {
+		inline void setParamByName(const std::string& name, T* value, bool copyData, const uint32_t count = 1u) {
 			for (uint32_t i = 0; i < renderDataCount; ++i) {
 				vulkan::RenderData* r_data = renderData[i];
 				if (r_data == nullptr || r_data->pipeline == nullptr) continue;
@@ -101,6 +101,6 @@ namespace engine {
 			}
 		}
 
-		void render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const ViewParams& viewParams);
+		void render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const ViewParams& viewParams, const uint16_t drawCount);
 	};
 }

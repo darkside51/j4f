@@ -33,25 +33,25 @@ namespace engine {
 
     template<typename VP>
     inline void renderList(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, VP&& viewParams,
-                std::vector<std::vector<RenderDescriptor*>>& descriptors) {
+                std::vector<std::vector<RenderDescriptor*>>& descriptors, const uint16_t drawCount) {
         auto&& renderHelper = Engine::getInstance().getModule<Graphics>().getRenderHelper();
         auto&& autoBatcher = renderHelper->getAutoBatchRenderer();
 
         for (auto&& vec : descriptors) { // get layers and draw it
             for (auto&& descriptor : vec) {
                 if (descriptor->visible) {
-                    descriptor->render(commandBuffer, currentFrame, viewParams);
+                    descriptor->render(commandBuffer, currentFrame, viewParams, drawCount);
                 }
             }
             autoBatcher->draw(commandBuffer, currentFrame);
         }
     }
 
-	void RenderList::render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const ViewParams& viewParams) {
-        renderList(commandBuffer, currentFrame, viewParams, _descriptors);
+	void RenderList::render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const ViewParams& viewParams, const uint16_t drawCount) {
+        renderList(commandBuffer, currentFrame, viewParams, _descriptors, drawCount);
 	}
 
-	void RenderList::render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, ViewParams&& viewParams) {
-        renderList(commandBuffer, currentFrame, std::move(viewParams), _descriptors);
+	void RenderList::render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, ViewParams&& viewParams, const uint16_t drawCount) {
+        renderList(commandBuffer, currentFrame, std::move(viewParams), _descriptors, drawCount);
 	}
 }

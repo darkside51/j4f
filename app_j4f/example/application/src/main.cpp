@@ -171,8 +171,6 @@ namespace engine {
 														36,	// indexCount
 														0,	// vertexCount (parameter no used with indexed render)
 														0,	// firstVertex
-														1,	// instanceCount (can change later)
-														0,	// firstInstance (can change later)
 														0,	// vbOffset
 														0	// ibOffset
 					};
@@ -458,9 +456,7 @@ namespace engine {
 
 			auto&& rdescriptor = _mesh->getRenderDescriptor();
 			for (size_t i = 0; i < rdescriptor.renderDataCount; ++i) {
-				for (size_t j = 0; j < rdescriptor.renderData[i]->renderPartsCount; ++j) {
-					rdescriptor.renderData[i]->renderParts[j].instanceCount = _instanceCount;
-				}
+                rdescriptor.renderData[i]->instanceCount = _instanceCount;
 			}
 		}
 
@@ -2431,7 +2427,7 @@ namespace engine {
 
     void Application::requestFeatures() {
 //        Engine::getInstance().getModule<Graphics>()->features().request<CascadeShadowMap>(ShadowMapTechnique::SMT_AUTO);
-        Engine::getInstance().getModule<Graphics>().features().request<CascadeShadowMap>(ShadowMapTechnique::SMT_DEFAULT);
+        Engine::getInstance().getModule<Graphics>().features().request<CascadeShadowMap>(ShadowMapTechnique::SMT_INSTANCE_DRAW);
     }
 
 	void Application::freeCustomData() {

@@ -316,8 +316,6 @@ namespace engine {
 													layout.indexCount,	// indexCount
 													0,					// vertexCount (parameter no used with indexed render)
 													0,					// firstVertex
-													1,					// instanceCount (can change later)
-													0,					// firstInstance (can change later)
 													layout.vbOffset,	// vbOffset
 													layout.ibOffset		// ibOffset
 				};

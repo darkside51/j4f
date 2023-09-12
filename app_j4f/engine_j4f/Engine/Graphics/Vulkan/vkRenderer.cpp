@@ -9,6 +9,7 @@
 #include "../../Engine/Core/Configs.h"
 #include "../../Engine/Log/Log.h"
 #include "../../Engine/Utils/Debug/Assert.h"
+#include "../../Engine/Utils/Debug/MemoryLeakChecker.h"
 
 #include <unordered_map>
 #include <unordered_set>
@@ -128,6 +129,12 @@ namespace vulkan {
 		if (vkEnumeratePhysicalDevices(_instance, &vk_physicalDevicesCount, &vk_physicalDevices[0]) != VkResult::VK_SUCCESS) { return false; }
 
 		if (vk_physicalDevices.empty()) { return false; }
+
+        {
+            // to allow use gl_Layer in vertex shader need VK_EXT_shader_viewport_index_layer extension
+            // that provides support for the GL_ARB_shader_viewport_layer_array GLSL extension
+            extensions.push_back(VK_EXT_SHADER_VIEWPORT_INDEX_LAYER_EXTENSION_NAME);
+        }
 
 //		extensions.push_back(VK_KHR_MAINTENANCE1_EXTENSION_NAME); // for negative viewPort height
 

@@ -6,6 +6,7 @@
 #include "../../Vulkan/vkFrameBuffer.h"
 #include "../../Vulkan/vkDebugMarker.h"
 #include "../../Camera.h"
+
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <unordered_map>
@@ -30,6 +31,7 @@ namespace engine {
 	enum class ShadowMapTechnique : uint8_t {
 		SMT_DEFAULT = 0u,
 		SMT_GEOMETRY_SH = 1u,
+        SMT_INSTANCE_DRAW = 2u,
         SMT_AUTO
 	};
 

@@ -20,8 +20,8 @@ namespace engine {
 
 		void sort();
 
-		void render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const ViewParams& viewParams);
-		void render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, ViewParams&& viewParams);
+		void render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const ViewParams& viewParams, const uint16_t drawCount = 1u);
+		void render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, ViewParams&& viewParams, const uint16_t drawCount = 1u);
 	private:
 		std::vector<std::vector<RenderDescriptor*>> _descriptors;
 	};

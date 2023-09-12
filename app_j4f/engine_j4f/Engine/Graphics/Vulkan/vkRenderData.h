@@ -40,11 +40,12 @@ namespace vulkan {
 			uint32_t indexCount = 0u;				// количество индексов
 			uint32_t vertexCount = 0u;				// количество вершин
 			uint32_t firstVertex = 0u;				// номер первой вершины
-			uint32_t instanceCount = 1u;				// количество инстансов
-			uint32_t firstInstance = 0u;				// номер первого инстанса
 			VkDeviceSize vbOffset = 0;				// оффсет в вершинном буфере
 			VkDeviceSize ibOffset = 0;				// оффсет в индексном буфере
 		};
+
+        uint32_t instanceCount = 1u;				// количество инстансов
+        uint32_t firstInstance = 0u;				// номер первого инстанса
 
 		std::vector<std::pair<GPUParamLayoutInfo*, uint32_t>> layouts;
 		std::vector<uint32_t> dynamicOffsets;
@@ -362,7 +363,7 @@ namespace vulkan {
 						pipeline, frame, constants.data(),
 						0, dynamicOffsets.size(), dynamicOffsets.data(),
 						externalDescriptorsSets.size(), externalDescriptorsSets.data(),
-						*vertexes, *indexes, part.firstIndex, part.indexCount, part.firstVertex, part.instanceCount, part.firstInstance, part.vbOffset, part.ibOffset, indexType
+						*vertexes, *indexes, part.firstIndex, part.indexCount, part.firstVertex, instanceCount, firstInstance, part.vbOffset, part.ibOffset, indexType
 					);
 				}
 			} else {
@@ -372,7 +373,7 @@ namespace vulkan {
 						pipeline, frame, constants.data(),
 						0, dynamicOffsets.size(), dynamicOffsets.data(),
 						externalDescriptorsSets.size(), externalDescriptorsSets.data(),
-						*vertexes, part.firstVertex, part.vertexCount, part.instanceCount, part.firstInstance
+						*vertexes, part.firstVertex, part.vertexCount, instanceCount, firstInstance
 					);
 				}
 			}

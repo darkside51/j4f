@@ -121,14 +121,31 @@ namespace engine {
 		_cascadeViewProjects(count),
 		_cascadeFrustums(count)
 	{
-		if ((preferredTechnique == ShadowMapTechnique::SMT_AUTO || preferredTechnique == ShadowMapTechnique::SMT_GEOMETRY_SH) &&
-            Engine::getInstance().getModule<Graphics>().getRenderer()->getDevice()->enabledFeatures.geometryShader) {
-			_technique = ShadowMapTechnique::SMT_GEOMETRY_SH;
-			_cascades.resize(1u);
-		} else {
-			_technique = ShadowMapTechnique::SMT_DEFAULT;
-			_cascades.resize(count);
-		}
+
+        switch (preferredTechnique) {
+            case ShadowMapTechnique::SMT_GEOMETRY_SH:
+                if (Engine::getInstance().getModule<Graphics>().getRenderer()->getDevice()->enabledFeatures.geometryShader) {
+                    _technique = ShadowMapTechnique::SMT_GEOMETRY_SH;
+                    _cascades.resize(1u);
+                } else {
+                    _technique = ShadowMapTechnique::SMT_DEFAULT;
+                    _cascades.resize(count);
+                }
+                break;
+            case ShadowMapTechnique::SMT_INSTANCE_DRAW:
+                // check device extension
+                _technique = ShadowMapTechnique::SMT_INSTANCE_DRAW;
+                _cascades.resize(1u);
+                break;
+            case ShadowMapTechnique::SMT_AUTO:
+                // todo!
+                break;
+            default:
+                _technique = ShadowMapTechnique::SMT_DEFAULT;
+                _cascades.resize(count);
+                break;
+        }
+
 
 		initVariables();
 		initCascadeSplits(nearFar, minZ, maxZ);
@@ -220,8 +237,8 @@ namespace engine {
 		);
 
 		////// depthImageDescriptorSet
-		uint32_t binding = 0;
-		VkDescriptorSetLayoutBinding bindingLayout = { binding, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr };
+		const uint32_t binding = 0u;
+		VkDescriptorSetLayoutBinding bindingLayout = { binding, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1u, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr };
 		VkDescriptorSetLayout descriptorSetLayout = renderer->getDevice()->createDescriptorSetLayout({ bindingLayout }, nullptr);
 		const auto depthImageDescriptorSet = renderer->allocateSingleDescriptorSetFromGlobalPool(descriptorSetLayout);
 		renderer->bindImageToSingleDescriptorSet(depthImageDescriptorSet.first, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, depthSampler, depthImage->view, VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, binding);
@@ -232,6 +249,7 @@ namespace engine {
 
 		switch (_technique) {
 			case ShadowMapTechnique::SMT_GEOMETRY_SH:
+            case ShadowMapTechnique::SMT_INSTANCE_DRAW:
 			{
 				/*VkImageViewCreateInfo imageViewCI = {};
 				imageViewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;

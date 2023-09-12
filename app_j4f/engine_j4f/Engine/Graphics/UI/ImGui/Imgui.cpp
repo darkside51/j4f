@@ -193,7 +193,7 @@ namespace engine {
         ImGui::NewFrame();
     }
 
-    void ImguiGraphics::render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const ViewParams& /*viewParams*/) {
+    void ImguiGraphics::render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const ViewParams& /*viewParams*/, const uint16_t /*drawCount*/) {
 
         if (!_initComplete) {
             ImGui::Render();
@@ -253,8 +253,6 @@ namespace engine {
                         static_cast<uint32_t>(cmd.ElemCount),		// indexCount
                         0,										// vertexCount (parameter no used with indexed render)
                         0,										// firstVertex
-                        1,										// instanceCount (can change later)
-                        0,										// firstInstance (can change later)
                         vOffset,									// vbOffset
                         indexBufferOffset							// ibOffset
                 };
