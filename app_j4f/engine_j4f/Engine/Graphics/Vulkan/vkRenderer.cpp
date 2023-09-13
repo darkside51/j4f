@@ -65,7 +65,7 @@ namespace vulkan {
         constexpr bool validationEnable = false;
 #endif
 
-		auto addInstanceExtension = [&instanceExtensions, &supportedExtensions](const char* extName) -> bool {
+		const auto addInstanceExtension = [&instanceExtensions, &supportedExtensions](const char* extName) -> bool {
 			if (std::find_if(supportedExtensions.begin(), supportedExtensions.end(), [extName](const VkExtensionProperties& ext) { return strcmp(ext.extensionName, extName) == 0; }) != supportedExtensions.end()) {
 				instanceExtensions.push_back(extName);
 				return true;
@@ -73,7 +73,7 @@ namespace vulkan {
 			return false;
 		};
 
-		auto addInstanceLayer = [&instanceLayers, &supportedLayers](const char* layerName) {
+		const auto addInstanceLayer = [&instanceLayers, &supportedLayers](const char* layerName) {
 			if (std::find_if(supportedLayers.begin(), supportedLayers.end(), [layerName](const VkLayerProperties& p) { return strcmp(p.layerName, layerName) == 0; }) != supportedLayers.end()) {
 				instanceLayers.push_back(layerName);
 			}
@@ -130,18 +130,10 @@ namespace vulkan {
 
 		if (vk_physicalDevices.empty()) { return false; }
 
-        {
-            // to allow use gl_Layer in vertex shader need VK_EXT_shader_viewport_index_layer extension
-            // that provides support for the GL_ARB_shader_viewport_layer_array GLSL extension
-            extensions.push_back(VK_EXT_SHADER_VIEWPORT_INDEX_LAYER_EXTENSION_NAME);
-        }
-
-//		extensions.push_back(VK_KHR_MAINTENANCE1_EXTENSION_NAME); // for negative viewPort height
-
-		auto checkGPU = [features, &extensions](vulkan::VulkanDevice* device) -> bool {
+		const auto checkGPU = [features, &extensions](vulkan::VulkanDevice* device) -> bool {
 			// device->gpuFeatures check (some hack :( )	
 			const uint32_t featuresCount = sizeof(VkPhysicalDeviceFeatures) / sizeof(VkBool32);
-			for (uint8_t i = 0; i < featuresCount; ++i) {
+			for (uint8_t i = 0u; i < featuresCount; ++i) {
 				const VkBool32 support_feature = *(reinterpret_cast<const VkBool32*>(&(features)) + i);
 				const VkBool32 device_support_feature = *(reinterpret_cast<const VkBool32*>(&(device->gpuFeatures)) + i);
 				if (device_support_feature < support_feature) {
@@ -151,7 +143,7 @@ namespace vulkan {
 
 			// device->supportedExtensions check
 			for (const char* ext : extensions) {
-				if (std::find(device->supportedExtensions.begin(), device->supportedExtensions.end(), ext) == device->supportedExtensions.end()) {
+				if (!device->extensionSupported(ext)) {
 					return false;
 				}
 			}
@@ -159,11 +151,11 @@ namespace vulkan {
 		};
 
         constexpr static std::array<uint8_t, 5> deviceTypePrioritets = {
-                4, // VK_PHYSICAL_DEVICE_TYPE_OTHER = 0
-                1, // VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU = 1
-                0, // VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU = 2
-                3, // VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU = 3
-                2  // VK_PHYSICAL_DEVICE_TYPE_CPU = 4
+                4u, // VK_PHYSICAL_DEVICE_TYPE_OTHER = 0
+                1u, // VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU = 1
+                0u, // VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU = 2
+                3u, // VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU = 3
+                2u  // VK_PHYSICAL_DEVICE_TYPE_CPU = 4
         };
 
 		if (vk_physicalDevicesCount > 1) {
@@ -207,6 +199,23 @@ namespace vulkan {
 		if (_vulkanDevice == nullptr) { // error no device with supported features + extensions
 			return false;
 		}
+
+        std::vector<const char*> optionalExtensions;
+        {
+            // to allow use gl_Layer in vertex shader need VK_EXT_shader_viewport_index_layer extension
+            // that provides support for the GL_ARB_shader_viewport_layer_array GLSL extension
+            optionalExtensions.push_back(VK_EXT_SHADER_VIEWPORT_INDEX_LAYER_EXTENSION_NAME);
+
+            // for negative viewPort height
+            // optionalExtensions.push_back(VK_KHR_MAINTENANCE1_EXTENSION_NAME);
+        }
+
+        // add optional extensions
+        for (const char* ext : optionalExtensions) {
+            if (_vulkanDevice->extensionSupported(ext)) {
+                extensions.push_back(ext);
+            }
+        }
 
 		GPU_DEBUG_MARKERS_INIT(_vulkanDevice, extensions);
 

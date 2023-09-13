@@ -111,7 +111,7 @@ namespace engine {
 	vulkan::VulkanGpuProgram* program_mesh_instance = nullptr;
 	vulkan::VulkanGpuProgram* program_mesh_instance_shadow = nullptr;
 
-	VkClearValue clearValues[2];
+	VkClearValue clearValues[2u];
 
 	RenderList sceneRenderList;
 	RenderList shadowRenderList;
@@ -121,9 +121,9 @@ namespace engine {
 
 	///////////////////////////
 	/// cascade shadow map
-	constexpr uint8_t SHADOW_MAP_CASCADE_COUNT = 3;
-	constexpr uint16_t SHADOWMAP_DIM = 1536; // VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
-	//constexpr uint16_t SHADOWMAP_DIM = 1024; // VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU
+	constexpr uint8_t kShadowMapCascadeCount = 3u;
+	constexpr uint16_t kShadowMapDim = 2048u; // VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
+	//constexpr uint16_t kShadowMapDim = 1024u; // VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU
 	vec3f lightPos = vec3f(-460.0f, -600.0f, 1000.0f) * 2.0f;
 	//// cascade shadow map
 
@@ -734,7 +734,7 @@ namespace engine {
 
 			//////////////////////////////////
 			const vec2f nearFar(1.0f, 5500.0f);
-			shadowMap = new CascadeShadowMap(SHADOWMAP_DIM, 32u, SHADOW_MAP_CASCADE_COUNT, nearFar, 250.0f, 2500.0f);
+			shadowMap = new CascadeShadowMap(kShadowMapDim, 32u, kShadowMapCascadeCount, nearFar, 250.0f, 2500.0f);
 			shadowMap->setLamdas(1.0f, 1.0f, 1.0f);
 			shadowMap->setLightPosition(lightPos);
 		}

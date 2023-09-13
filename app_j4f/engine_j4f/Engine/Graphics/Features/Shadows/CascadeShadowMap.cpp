@@ -121,7 +121,7 @@ namespace engine {
 		_cascadeViewProjects(count),
 		_cascadeFrustums(count)
 	{
-
+        // get technique
         switch (preferredTechnique) {
             case ShadowMapTechnique::SMT_GEOMETRY_SH:
                 if (Engine::getInstance().getModule<Graphics>().getRenderer()->getDevice()->enabledFeatures.geometryShader) {
@@ -132,13 +132,29 @@ namespace engine {
                     _cascades.resize(count);
                 }
                 break;
-            case ShadowMapTechnique::SMT_INSTANCE_DRAW:
-                // check device extension
-                _technique = ShadowMapTechnique::SMT_INSTANCE_DRAW;
-                _cascades.resize(1u);
+            case ShadowMapTechnique::SMT_INSTANCE_DRAW: {
+                if (Engine::getInstance().getModule<Graphics>().getRenderer()->getDevice()->extensionSupported(
+                        VK_EXT_SHADER_VIEWPORT_INDEX_LAYER_EXTENSION_NAME)) {
+                    _technique = ShadowMapTechnique::SMT_INSTANCE_DRAW;
+                    _cascades.resize(1u);
+                } else {
+                    _technique = ShadowMapTechnique::SMT_DEFAULT;
+                    _cascades.resize(count);
+                }
+            }
                 break;
             case ShadowMapTechnique::SMT_AUTO:
-                // todo!
+                if (Engine::getInstance().getModule<Graphics>().getRenderer()->getDevice()->extensionSupported(
+                        VK_EXT_SHADER_VIEWPORT_INDEX_LAYER_EXTENSION_NAME)) {
+                    _technique = ShadowMapTechnique::SMT_INSTANCE_DRAW;
+                    _cascades.resize(1u);
+                } else if (Engine::getInstance().getModule<Graphics>().getRenderer()->getDevice()->enabledFeatures.geometryShader) {
+                    _technique = ShadowMapTechnique::SMT_GEOMETRY_SH;
+                    _cascades.resize(1u);
+                } else {
+                    _technique = ShadowMapTechnique::SMT_DEFAULT;
+                    _cascades.resize(count);
+                }
                 break;
             default:
                 _technique = ShadowMapTechnique::SMT_DEFAULT;
@@ -146,15 +162,14 @@ namespace engine {
                 break;
         }
 
-
 		initVariables();
 		initCascadeSplits(nearFar, minZ, maxZ);
 
-		_specialisationEntry[0].constantID = 0;
-		_specialisationEntry[0].offset = 0;
-		_specialisationEntry[0].size = sizeof(uint32_t);
+		_specialisationEntry[0u].constantID = 0u;
+		_specialisationEntry[0u].offset = 0u;
+		_specialisationEntry[0u].size = sizeof(uint32_t);
 
-		_specialisationInfo.mapEntryCount = 1;
+		_specialisationInfo.mapEntryCount = 1u;
 		_specialisationInfo.dataSize = sizeof(uint32_t);
 		_specialisationInfo.pData = &_cascadesCount;
 		_specialisationInfo.pMapEntries = _specialisationEntry.data();
