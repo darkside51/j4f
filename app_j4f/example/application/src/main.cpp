@@ -1520,7 +1520,8 @@ namespace engine {
 				});
 
 			/////// freeType test
-			FontLoadingParams font_loading_params("resources/assets/fonts/Roboto/Roboto-Regular.ttf");
+//			FontLoadingParams font_loading_params("resources/assets/fonts/Roboto/Roboto-Regular.ttf");
+            FontLoadingParams font_loading_params("resources/assets/fonts/OpenSans/OpenSans-Regular.ttf");
 			Font* f = assm.loadAsset<Font*>(font_loading_params);
 
 			//FontRenderer fr(256, 256, 100);
@@ -1533,7 +1534,7 @@ namespace engine {
 			//texture_text = fr.createFontTexture();
 			//texture_text->createSingleDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0);
 
-			bitmapFont = new BitmapFont(f, 384, 256, {BitmapFontType::SDF, 14, 4, -11, 5}, 0);
+			bitmapFont = new BitmapFont(f, 512u, 256u, {BitmapFontType::SDF, 20u, 4, -11, 5u}, 0u);
             bitmapFont->addSymbols("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+*/=&%#@!?<>,.()[];:@$^~_");
 //            bitmapFont = new BitmapFont(f, 256, 256, {BitmapFontType::Usual, 16, 2, 2, 5}, 0);
 //			bitmapFont->addSymbols("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+*/=&%#@!?<>,.()[];:@$^~_", 2, 0, 0xccccccaa, 0x000000aa, 2.0f, 2, 2);

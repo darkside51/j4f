@@ -44,7 +44,7 @@ namespace engine {
 					float(w + x) / _fontRenderer->imgWidth, float(y) / _fontRenderer->imgHeight 
 				},
 				{
-					0, 1, 2, 2, 1, 3
+					0u, 1u, 2u, 2u, 1u, 3u
 				}
 			));
 			
@@ -55,16 +55,16 @@ namespace engine {
 	std::shared_ptr<TextureFrame> BitmapFont::createFrame(const char* text) {
 		std::shared_ptr<TextureFrame> result(new TextureFrame());
 		const uint16_t len = strlen(text);
-		result->_vtx.resize(8 * len);
-		result->_uv.resize(8 * len);
-		result->_idx.resize(6 * len);
+		result->_vtx.resize(8u * len);
+		result->_uv.resize(8u * len);
+		result->_idx.resize(6u * len);
 
-		uint16_t x = 0;
-		uint16_t y = 0;
-		for (uint16_t i = 0; i < len; ++i) {
+		uint16_t x = 0u;
+		uint16_t y = 0u;
+		for (uint16_t i = 0u; i < len; ++i) {
 			if (text[i] == '\n') {
-				x = 0;
-				y += _params.fontSize + _params.space_y;
+				x = 0u;
+				y += _params.fontSize + _params.offset_y;
 				continue;
 			}
 
@@ -72,17 +72,17 @@ namespace engine {
 
 			if (it != _glyphs.end()) {
 				const std::shared_ptr<TextureFrame>& f = it->second;
-				for (uint8_t j = 0; j < 8; ++j) {
-					result->_vtx[i * 8 + j] = f->_vtx[j] + (x * (1 - (j & 1))) - (y * (j & 1)); // (x * (1 - j & 1)) - offset by ox only, (y * (j & 1)) - offset by oy only;
-					result->_uv[i * 8 + j] = f->_uv[j];
-					if (j < 6) {
-						result->_idx[i * 6 + j] = i * 4 + f->_idx[j];
+				for (uint8_t j = 0u; j < 8u; ++j) {
+					result->_vtx[i * 8u + j] = f->_vtx[j] + (x * (1 - (j & 1))) - (y * (j & 1)); // (x * (1 - j & 1)) - offset by ox only, (y * (j & 1)) - offset by oy only;
+					result->_uv[i * 8u + j] = f->_uv[j];
+					if (j < 6u) {
+						result->_idx[i * 6u + j] = i * 4u + f->_idx[j];
 					}
 				}
-				const float wf = f->_vtx[2] - f->_vtx[0] + _params.space_x;
+				const float wf = f->_vtx[2u] - f->_vtx[0u] + _params.offset_x;
 				x += wf;
 			} else { // if no has symbol: " " for example
-                x += _params.empty_width;
+                x += _params.space_width;
 			}
 		}
 

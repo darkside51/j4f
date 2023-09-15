@@ -25,16 +25,16 @@ namespace engine {
 
     struct BitmapFontParams {
         BitmapFontType type;
-        uint8_t fontSize = 0;
-        int8_t space_y = 0;
-        int8_t space_x = 0;
-        uint8_t empty_width = 0;
+        uint8_t fontSize = 0u;
+        int8_t offset_y = 0;
+        int8_t offset_x = 0;
+        uint8_t space_width = 0u;
     };
 
 	class BitmapFont {
 	public:
-		BitmapFont(Font* font, const uint16_t w, const uint16_t h, BitmapFontParams&& params, const uint8_t fillValue = 0);
-        BitmapFont(Font* font, const uint16_t w, const uint16_t h, const BitmapFontParams& params, const uint8_t fillValue = 0);
+		BitmapFont(Font* font, const uint16_t w, const uint16_t h, BitmapFontParams&& params, const uint8_t fillValue = 0u);
+        BitmapFont(Font* font, const uint16_t w, const uint16_t h, const BitmapFontParams& params, const uint8_t fillValue = 0u);
 
 		~BitmapFont() {
 			_font = nullptr;
@@ -48,11 +48,11 @@ namespace engine {
 			const char* text,
             const int16_t x = 0,
             const int16_t y = 0,
-			const uint32_t color = 0xffffffff,
-			const uint32_t outlineColor = 0x00000000,
+			const uint32_t color = 0xffffffffu,
+			const uint32_t outlineColor = 0x00000000u,
 			const float outlineSize = 0.0f,
-			const uint8_t sx_offset = 0,
-			const uint8_t sy_offset = 0
+			const uint8_t sx_offset = 0u,
+			const uint8_t sy_offset = 0u
 		);
 
 		void complete();
