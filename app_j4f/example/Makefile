@@ -49,5 +49,15 @@ linux_release:
 
 
 clean:
+ifneq (,$(wildcard ./build))
 	rm -r build
+endif
+ifneq (,$(wildcard ./.idea))
 	rm -r .idea
+endif
+ifneq (,$(wildcard ./.kdev4))
+	rm -r .kdev4
+endif
+ifneq (,$(wildcard ./*.kdev4))
+	rm -r *.kdev4
+endif

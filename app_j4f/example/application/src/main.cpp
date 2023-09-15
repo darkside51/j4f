@@ -2516,7 +2516,7 @@ struct RetType<int> {
 };
 
 template <typename T>
-using return_type = RetType<T>::type;
+using return_type = typename RetType<T>::type;
 
 template<typename T>
 auto test_func(const T& t) -> return_type<T> {

@@ -84,12 +84,12 @@ namespace engine {
         [[nodiscard]] Version applicationVersion() const noexcept;
 
         [[nodiscard]] uint8_t getThreadCommutationId(const Workers w) const noexcept {
-            if (w == Workers::MAX_VALUE) { return 0xffffu; }
+            if (w == Workers::MAX_VALUE) { return 0xffu; }
             return _workerIds[static_cast<uint8_t>(w)];
         }
 
         [[nodiscard]] uint8_t getThreadCommutationId(const uint8_t id) const noexcept {
-            if (id >= static_cast<uint8_t>(Workers::MAX_VALUE)) { return 0xffffu; }
+            if (id >= static_cast<uint8_t>(Workers::MAX_VALUE)) { return 0xffu; }
             return _workerIds[id];
         }
 
