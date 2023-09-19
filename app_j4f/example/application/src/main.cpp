@@ -1888,7 +1888,19 @@ namespace engine {
 			auto&& pr5 = mesh6->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
 			auto&& pr6 = mesh7->setProgram(program_mesh_shadow, shadowMap->getRenderPass());
 			auto&& pr7 = forest->setProgram(program_mesh_instance_shadow, shadowMap->getRenderPass());
-		
+
+            // to change renderState
+            if (auto && graphics = mesh6->graphics()) {
+                graphics->changeRenderState([](vulkan::VulkanRenderState &renderState) noexcept {
+                    renderState.rasterizationState.cullMode = vulkan::CullMode::CULL_MODE_FRONT;
+                }, shadowMap->getRenderPass());
+            }
+            if (auto && graphics = mesh7->graphics()) {
+                graphics->changeRenderState([](vulkan::VulkanRenderState &renderState) noexcept {
+                    renderState.rasterizationState.cullMode = vulkan::CullMode::CULL_MODE_FRONT;
+                }, shadowMap->getRenderPass());
+            }
+
 			for (auto&& m : testMehsesVec) {
 				m->setProgram(program_mesh_skin_shadow, shadowMap->getRenderPass());
 			}
@@ -1911,6 +1923,19 @@ namespace engine {
 			mesh5->setProgram(pr4);
 			mesh6->setProgram(pr5);
 			mesh7->setProgram(pr6);
+
+            // to change renderState
+            if (auto && graphics = mesh6->graphics()) {
+                graphics->changeRenderState([](vulkan::VulkanRenderState &renderState) noexcept {
+                    renderState.rasterizationState.cullMode = vulkan::CullMode::CULL_MODE_NONE;
+                }, nullptr);
+            }
+            if (auto && graphics = mesh7->graphics()) {
+                graphics->changeRenderState([](vulkan::VulkanRenderState &renderState) noexcept {
+                    renderState.rasterizationState.cullMode = vulkan::CullMode::CULL_MODE_BACK;
+                }, nullptr);
+            }
+
 			forest->setProgram(pr7);
 			grassMesh2->setProgram(grass_default);
 
@@ -2652,7 +2677,7 @@ int main() {
 
     half half_float_value = 0.5f;
 
-	engine::Color color(engine::vec4f(1.0f, 0.0f, 1.0f, 1.0f));
+	const engine::Color color(engine::vec4f(1.0f, 0.0f, 1.0f, 1.0f));
 	auto const vColor = color.vec4();
 
 	//////////////////////////////////

@@ -63,14 +63,14 @@ namespace engine {
 		inline vulkan::VulkanRenderState& renderState() { return _renderState; }
 		inline const vulkan::VulkanRenderState& renderState() const { return _renderState; }
 
-		inline void changeRenderState(const std::function<void(vulkan::VulkanRenderState&)>& changer) {
+		inline void changeRenderState(const std::function<void(vulkan::VulkanRenderState&)>& changer, VkRenderPass renderPass = nullptr) {
 			changer(_renderState);
-			pipelineAttributesChanged();
+			pipelineAttributesChanged(renderPass);
 		}
 
-        inline void changeRenderState(std::function<void(vulkan::VulkanRenderState&)>&& changer) {
+        inline void changeRenderState(std::function<void(vulkan::VulkanRenderState&)>&& changer, VkRenderPass renderPass = nullptr) {
             changer(_renderState);
-            pipelineAttributesChanged();
+            pipelineAttributesChanged(renderPass);
         }
 
 		inline const RenderDescriptor& getRenderDescriptor() const { return _renderDescriptor; }
@@ -122,8 +122,11 @@ namespace engine {
 			return const_cast<vulkan::VulkanGpuProgram*>(currentProgram);
 		}
 
-		inline void pipelineAttributesChanged() {
-			setPipeline(Engine::getInstance().getModule<Graphics>().getRenderer()->getGraphicsPipeline(_renderState, _renderDescriptor.renderData[0]->pipeline->program));
+		inline void pipelineAttributesChanged(VkRenderPass renderPass = nullptr) {
+			setPipeline(
+                    Engine::getInstance().getModule<Graphics>().getRenderer()->getGraphicsPipeline(
+                            _renderState, _renderDescriptor.renderData[0]->pipeline->program, renderPass)
+                            );
 		}
 
 		inline void render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const ViewParams& viewParams, const uint16_t drawCount) {

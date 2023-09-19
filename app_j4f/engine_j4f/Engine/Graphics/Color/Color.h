@@ -2,12 +2,14 @@
 
 #include "../../Core/Math/mathematic.h"
 #include <cstdint>
+#include <type_traits>
 
 namespace engine {
 
 	template <typename T>
-	inline T step(T&& edge, T&& x) noexcept {
-		return (x < edge) ? T(0) : T(1);
+	inline std::decay_t<T> step(T&& edge, T&& x) noexcept {
+//		return (x < edge) ? T(0) : T(1);
+        return std::decay_t<T>(x >= edge);
 	}
 
 	inline vec3f rgb2hsv(const vec3f& c) noexcept {
@@ -15,7 +17,7 @@ namespace engine {
 		const vec4f p = glm::mix(vec4f(c.b, c.g, k.w, k.z), vec4f(c.g, c.b, k.x, k.y), step(c.b, c.g));
 		const vec4f q = glm::mix(vec4f(p.x, p.y, p.w, c.r), vec4f(c.r, p.y, p.z, p.x), step(p.x, c.r));
 		const float d = q.x - std::min(q.w, q.y);
-		constexpr float e = 1.0e-10;
+		constexpr float e = 1.0e-10f;
 		return vec3f(std::abs(q.z + (q.w - q.y) / (6.0f * d + e)), d / (q.x + e), q.x);
 	}
 
@@ -35,7 +37,7 @@ namespace engine {
 			result.r = result.g = 0.0f;
 		} else {
 			const float d = max - min;
-			result.g = (result.b > 0.5) ? d / (2.0f - max - min) : d / (max + min);
+			result.g = (result.b > 0.5f) ? d / (2.0f - max - min) : d / (max + min);
 
 			if (max == c.r) {
 				result.r = (c.g - c.b) / d + (c.g < c.b ? 6.0f : 0.0f);
@@ -80,7 +82,7 @@ namespace engine {
 		if (hsl.y == 0.0f) {
 			result.r = result.g = result.b = hsl.z;
 		} else {
-			const float q = hsl.z < 0.5f ? hsl.z * (1.0 + hsl.y) : hsl.z + hsl.y - hsl.z * hsl.y;
+			const float q = hsl.z < 0.5f ? hsl.z * (1.0f + hsl.y) : hsl.z + hsl.y - hsl.z * hsl.y;
 			const float p = 2.0f * hsl.z - q;
 			result.r = hue2rgb(p, q, hsl.x + 1.0f / 3.0f) * 255.0f;
 			result.g = hue2rgb(p, q, hsl.x) * 255.0f;
@@ -93,35 +95,35 @@ namespace engine {
 	class Color {
 	public:
 		explicit Color(const vec4f rgba) noexcept {
-			_rgba = static_cast<uint8_t>(rgba.r * 255.0f) << 24 |
-					static_cast<uint8_t>(rgba.g * 255.0f) << 16 |
-					static_cast<uint8_t>(rgba.b * 255.0f) << 8 |
-					static_cast<uint8_t>(rgba.a * 255.0f) << 0;
+			_rgba = static_cast<uint8_t>(rgba.r * 255.0f) << 24u |
+					static_cast<uint8_t>(rgba.g * 255.0f) << 16u |
+					static_cast<uint8_t>(rgba.b * 255.0f) << 8u |
+					static_cast<uint8_t>(rgba.a * 255.0f) << 0u;
 		}
 
 		explicit Color(const uint32_t rgba) noexcept : _rgba(rgba) {}
 
 		inline vec4f vec4() const noexcept {
 			return {
-					static_cast<float>((_rgba >> 24) & 0xff) / 255.0f,
-					static_cast<float>((_rgba >> 16) & 0xff) / 255.0f,
-					static_cast<float>((_rgba >> 8) & 0xff)	/ 255.0f,
-					static_cast<float>((_rgba >> 0) & 0xff)	/ 255.0f
+					static_cast<float>((_rgba >> 24u) & 0xffu) / 255.0f,
+					static_cast<float>((_rgba >> 16u) & 0xffu) / 255.0f,
+					static_cast<float>((_rgba >> 8u) & 0xffu)	/ 255.0f,
+					static_cast<float>((_rgba >> 0u) & 0xffu)	/ 255.0f
 			};
 		}
 
         [[maybe_unused]] inline uint32_t rgba() const noexcept { return _rgba; }
         [[maybe_unused]] inline uint32_t abgr() const noexcept {
-            return ((_rgba & 0xFF000000) >> 24) |
-                   ((_rgba & 0x00FF0000) >> 8) |
-                   ((_rgba & 0x0000FF00) << 8) |
-                   ((_rgba & 0x000000FF) << 24);
+            return ((_rgba & 0xff000000u) >> 24u) |
+                   ((_rgba & 0x00ff0000u) >> 8u) |
+                   ((_rgba & 0x0000ff00u) << 8u) |
+                   ((_rgba & 0x000000ffu) << 24u);
         }
 
-		inline uint8_t r() const noexcept { return (_rgba >> 24) & 0xff; }
-		inline uint8_t g() const noexcept { return (_rgba >> 16) & 0xff; }
-		inline uint8_t b() const noexcept { return (_rgba >> 8) & 0xff; }
-		inline uint8_t a() const noexcept { return (_rgba >> 0) & 0xff; }
+		inline uint8_t r() const noexcept { return (_rgba >> 24u) & 0xffu; }
+		inline uint8_t g() const noexcept { return (_rgba >> 16u) & 0xffu; }
+		inline uint8_t b() const noexcept { return (_rgba >> 8u) & 0xffu; }
+		inline uint8_t a() const noexcept { return (_rgba >> 0u) & 0xffu; }
 
 	private:
 		uint32_t _rgba;
