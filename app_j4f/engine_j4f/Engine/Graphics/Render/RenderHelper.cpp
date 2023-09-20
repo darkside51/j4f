@@ -220,7 +220,7 @@ namespace engine {
 
 	void RenderHelper::drawSphere(const vec3f& c, const float r, const mat4f& cameraMatrix, const mat4f& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const bool batch) {
 		constexpr uint8_t segments = 64;
-		constexpr float a = math_constants::pi2 / segments;
+		constexpr float a = math_constants::f32::pi2 / segments;
 		
 		ColoredVertex vtx[3 * segments];
 		uint32_t idxs[3 * segments * 2];

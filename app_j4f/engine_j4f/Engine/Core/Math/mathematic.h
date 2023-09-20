@@ -24,29 +24,79 @@
 namespace engine {
 
     namespace math_constants {
-        inline constexpr float pi       = 3.14159265359f;
-        inline constexpr float pi2      = pi * 2.0f;
-        inline constexpr float pi_half  = pi / 2.0f;
-        inline constexpr float e        = 2.71828182846f;
-        inline constexpr float radInDeg = pi / 180.0f;
-        inline constexpr float degInRad = 180.0f / pi;
-    }
-    
-    using vec2f = glm::vec2;
-    using vec3f = glm::vec3;
-    using vec4f = glm::vec4;
-    using mat2f = glm::mat2;
-    using mat3f = glm::mat3;
-    using mat4f = glm::mat4;
-    using quatf = glm::quat;
+        template<typename T>
+        inline constexpr T pi = T(3.14159265359);
 
-    using vec2d = glm::dvec2;
-    using vec3d = glm::dvec3;
-    using vec4d = glm::dvec4;
-    using mat2d = glm::dmat2;
-    using mat3d = glm::dmat3;
-    using mat4d = glm::dmat4;
-    using quatd = glm::dquat;
+        template<typename T>
+        inline constexpr T pi2 = pi<T> * T(2.0);
+
+        template<typename T>
+        inline constexpr T pi_2 = pi<T> / T(2.0);
+
+        template<typename T>
+        inline constexpr T e = T(2.71828182846);
+
+        template<typename T>
+        inline constexpr T radInDeg = pi<T> / T(180.0);
+
+        template<typename T>
+        inline constexpr T degInRad = T(180.0) / pi<T>;
+
+        namespace f32 {
+            inline constexpr float pi       = math_constants::pi<float>;
+            inline constexpr float pi2      = math_constants::pi2<float>;
+            inline constexpr float pi_2     = math_constants::pi_2<float>;
+            inline constexpr float e        = math_constants::e<float>;
+            inline constexpr float radInDeg = math_constants::radInDeg<float>;
+            inline constexpr float degInRad = math_constants::degInRad<float>;
+        }
+
+        namespace d64 {
+            inline constexpr double pi       = math_constants::pi<double>;
+            inline constexpr double pi2      = math_constants::pi2<double>;
+            inline constexpr double pi_2     = math_constants::pi_2<double>;
+            inline constexpr double e        = math_constants::e<double>;
+            inline constexpr double radInDeg = math_constants::radInDeg<double>;
+            inline constexpr double degInRad = math_constants::degInRad<double>;
+        }
+    }
+
+    template <typename T>
+    using vec2 = glm::vec<2, T, glm::defaultp>;
+
+    template <typename T>
+    using vec3 = glm::vec<3, T, glm::defaultp>;
+
+    template <typename T>
+    using vec4 = glm::vec<4, T, glm::defaultp>;
+
+    template <typename T>
+    using mat2 = glm::mat<2, 2, T, glm::defaultp>;
+
+    template <typename T>
+    using mat3 = glm::mat<3, 3, T, glm::defaultp>;
+
+    template <typename T>
+    using mat4 = glm::mat<4, 4, T, glm::defaultp>;
+
+    template <typename T>
+    using quat = glm::qua<T, glm::defaultp>;
+
+    using vec2f = vec2<float>;
+    using vec3f = vec3<float>;
+    using vec4f = vec4<float>;
+    using mat2f = mat2<float>;
+    using mat3f = mat3<float>;
+    using mat4f = mat4<float>;
+    using quatf = quat<float>;
+
+    using vec2d = vec2<double>;
+    using vec3d = vec3<double>;
+    using vec4d = vec4<double>;
+    using mat2d = mat2<double>;
+    using mat3d = mat3<double>;
+    using mat4d = mat4<double>;
+    using quatd = quat<double>;
 
     inline static const mat4f emptyMatrix   = mat4f(1.0f);
     inline static const quatf emptyQuat     = quatf(0.0f, 0.0f, 0.0f, 0.0f);
@@ -66,7 +116,7 @@ namespace engine {
         return u.x * (1.5f - xhalf * u.x * u.x);
     }
 
-    inline bool is_pow2(uint32_t n) noexcept {
+    inline bool is_pow2(const uint32_t n) noexcept {
         return (n > 0) && (!(n & (n - 1)));
     }
 
@@ -326,7 +376,7 @@ namespace engine {
         mat4f matrix = inverseViewMatrix;
         // matrix[3].x = 0.0f; matrix[3].y = 0.0f; matrix[3].z = 0.0f;
         // matrix[3].w = matrix[3].w; // не меняем значение
-        memset(&matrix[3], 0, sizeof(float) * 3);
+        memset(&matrix[3u], 0, sizeof(float) * 3u);
         return matrix;
     }
 }

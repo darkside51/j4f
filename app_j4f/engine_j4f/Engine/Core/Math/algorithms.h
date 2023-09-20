@@ -11,7 +11,7 @@ namespace engine {
     public:
         inline static float execute(const std::vector<vec3f>& vertexes, const size_t n, const vec3f& finishV) {
             const vec3f sub = vertexes[n] - finishV;
-            return vec_length(sub); // вычисение квадратного корня через алгоритм Ньютона("квадратный корень Кармака")
+            return vec_length(sub); // вычисение квадратного корня через "квадратный корень Кармака"
         }
     };
 

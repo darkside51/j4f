@@ -76,13 +76,13 @@ namespace engine::easing {
         return easeInQuint(2.0f * t - 1.0f) / 2.0f + 0.5f;
     }
     inline float easeInSine(const float t) noexcept {
-        return (t == 1.0f) ? 1.0f : -cosf(t * math_constants::pi_half) + 1.0f;
+        return (t == 1.0f) ? 1.0f : -cosf(t * math_constants::f32::pi_2) + 1.0f;
     }
     inline float easeOutSine(const float t) noexcept {
-        return sinf(t * math_constants::pi_half);
+        return sinf(t * math_constants::f32::pi_2);
     }
     inline float easeInOutSine(const float t) noexcept {
-        return -0.5f * (cosf(t * math_constants::pi) - 1.0f);
+        return -0.5f * (cosf(t * math_constants::f32::pi) - 1.0f);
     }
     inline float easeOutInSine(const float t) noexcept {
         if (t < 0.5f) return easeOutSine (2.0f * t) / 2.0f;
@@ -126,16 +126,16 @@ namespace engine::easing {
         return easeInCirc(2.0f * t - 1.0f) / 2.0f + 0.5f;
     }
     inline float easeInElastic(const float t) noexcept {
-        return sinf(13.0f * math_constants::pi_half * t) * powf(2.0f, 10.0f * (t - 1.0f));
+        return sinf(13.0f * math_constants::f32::pi_2 * t) * powf(2.0f, 10.0f * (t - 1.0f));
     }
     inline float easeOutElastic(const float t) noexcept {
-        return sinf(-13.0f * math_constants::pi_half * (t + 1.0f)) * powf(2.0f, -10.0f * t) + 1.0f;
+        return sinf(-13.0f * math_constants::f32::pi_2 * (t + 1.0f)) * powf(2.0f, -10.0f * t) + 1.0f;
     }
     inline float easeInOutElastic(const float t) noexcept {
         if (t < 0.5f) {
-            return (0.5f * sinf(13.0f * math_constants::pi_half * (2.0f * t)) * powf(2.0f, 10.0f * ((2.0f * t) - 1.0f)));
+            return (0.5f * sinf(13.0f * math_constants::f32::pi_2 * (2.0f * t)) * powf(2.0f, 10.0f * ((2.0f * t) - 1.0f)));
         } else {
-            return (0.5f * (sinf(-13.0f * math_constants::pi_half * ((2.0f * t - 1.0f) + 1.0f)) * pow(2.0f, -10.0f * (2.0f * t - 1.0f)) + 2.0f));
+            return (0.5f * (sinf(-13.0f * math_constants::f32::pi_2 * ((2.0f * t - 1.0f) + 1.0f)) * pow(2.0f, -10.0f * (2.0f * t - 1.0f)) + 2.0f));
         }
     }
     inline float easeOutInElastic(const float t) noexcept {
@@ -143,19 +143,19 @@ namespace engine::easing {
         return easeInElastic(2.0f * t - 1.0f) / 2.0f + 0.5f;
     }
     inline float easeInBack(const float t) noexcept {
-        return t * t * t - t * sinf(t * math_constants::pi);
+        return t * t * t - t * sinf(t * math_constants::f32::pi);
     }
     inline float easeOutBack(const float t) noexcept {
         float f = (1.0f - t);
-        return 1.0f - (f * f * f - f * sinf(f * math_constants::pi));
+        return 1.0f - (f * f * f - f * sinf(f * math_constants::f32::pi));
     }
     inline float easeInOutBack(const float t) noexcept {
         if (t < 0.5f) {
             float f = 2.0f * t;
-            return 0.5f * (f * f * f - f * sinf(f * math_constants::pi));
+            return 0.5f * (f * f * f - f * sinf(f * math_constants::f32::pi));
         } else {
             float f = (1.0f - (2.0f * t - 1.0f));
-            return 0.5f * (1.0f - (f * f * f - f * sinf(f * math_constants::pi))) + 0.5f;
+            return 0.5f * (1.0f - (f * f * f - f * sinf(f * math_constants::f32::pi))) + 0.5f;
         }
     }
     inline float easeOutInBack(const float t) noexcept {

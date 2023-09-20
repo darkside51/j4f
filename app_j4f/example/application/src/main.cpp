@@ -713,12 +713,12 @@ namespace engine {
 			const uint32_t width = static_cast<uint32_t>(wh >> 0);
 			const uint32_t height = static_cast<uint32_t>(wh >> 32);
 
-			targetCameraRotation = vec3f(-engine::math_constants::pi / 3.0f, 0.0f, 0.0f);
+			targetCameraRotation = vec3f(-engine::math_constants::f32::pi / 3.0f, 0.0f, 0.0f);
 
 			camera = new Camera(width, height);
 			camera->enableFrustum();
 
-			camera->makeProjection(engine::math_constants::pi / 4.0f, static_cast<float>(width) / static_cast<float>(height), 1.0f, 5000.0f);
+			camera->makeProjection(engine::math_constants::f32::pi / 4.0f, static_cast<float>(width) / static_cast<float>(height), 1.0f, 5000.0f);
 			//camera->makeOrtho(-float(width) * 0.5f, float(width) * 0.5f, -float(height) * 0.5f, float(height) * 0.5f, 1.0f, 1000.0f);
 			camera->setRotation(targetCameraRotation);
 			camera->setPosition(vec3f(0.0f, -500.0f, 300.0f));
@@ -1798,8 +1798,8 @@ namespace engine {
                 static float t = 0.0f;
                 t += 2.0f * dt;
 
-                if (t > math_constants::pi2) {
-                    t -= math_constants::pi2;
+                if (t > math_constants::f32::pi2) {
+                    t -= math_constants::f32::pi2;
                 }
 
                 grassNode->getRenderObject()->getRenderDescriptor()->setParamByName("u_time", &t, false);
