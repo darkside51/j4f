@@ -1203,7 +1203,7 @@ namespace vulkan {
 		// vertex input binding
 		const size_t vertexBindingsSize = vertexDescription.bindings_strides.size();
 		std::vector<VkVertexInputBindingDescription> vertexInputBindings(vertexBindingsSize);
-		for (size_t i = 0; i < vertexBindingsSize; ++i) {
+		for (size_t i = 0u; i < vertexBindingsSize; ++i) {
 			vertexInputBindings[i].binding = vertexDescription.bindings_strides[i].first;
 			vertexInputBindings[i].stride = vertexDescription.bindings_strides[i].second;
 			vertexInputBindings[i].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
@@ -1279,7 +1279,7 @@ namespace vulkan {
 		auto* newDynamicBuffer = new VulkanDynamicBuffer(size, _swapchainImagesCount, maxCount);
 
 		const auto bufferSize = static_cast<uint32_t>(maxCount * size);
-		for (size_t i = 0; i < _swapchainImagesCount; ++i) {
+		for (size_t i = 0u; i < _swapchainImagesCount; ++i) {
 			_vulkanDevice->createBuffer(
 				VK_SHARING_MODE_EXCLUSIVE,
 				usageFlags,

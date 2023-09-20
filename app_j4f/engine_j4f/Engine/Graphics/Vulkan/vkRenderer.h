@@ -34,57 +34,57 @@ namespace engine {
 namespace vulkan {
 
 	enum class PrimitiveTopology : uint8_t {
-		POINT_LIST = 0,
-		LINE_LIST = 1,
-		LINE_STRIP = 2,
-		TRIANGLE_LIST = 3,
-		TRIANGLE_STRIP = 4,
-		TRIANGLE_FAN = 5,
-		LINE_LIST_WITH_ADJACENCY = 6,
-		LINE_STRIP_WITH_ADJACENCY = 7,
-		TRIANGLE_LIST_WITH_ADJACENCY = 8,
-		TRIANGLE_STRIP_WITH_ADJACENCY = 9,
-		PATCH_LIST = 10
+		POINT_LIST = 0u,
+		LINE_LIST = 1u,
+		LINE_STRIP = 2u,
+		TRIANGLE_LIST = 3u,
+		TRIANGLE_STRIP = 4u,
+		TRIANGLE_FAN = 5u,
+		LINE_LIST_WITH_ADJACENCY = 6u,
+		LINE_STRIP_WITH_ADJACENCY = 7u,
+		TRIANGLE_LIST_WITH_ADJACENCY = 8u,
+		TRIANGLE_STRIP_WITH_ADJACENCY = 9u,
+		PATCH_LIST = 10u
 	};
 
 	enum class PoligonMode : uint8_t {
-		POLYGON_MODE_FILL = 0,
-		POLYGON_MODE_LINE = 1,
-		POLYGON_MODE_POINT = 2
+		POLYGON_MODE_FILL = 0u,
+		POLYGON_MODE_LINE = 1u,
+		POLYGON_MODE_POINT = 2u
 	};
 
 	enum class CullMode : uint8_t {
-		CULL_MODE_NONE = 0,
-		CULL_MODE_FRONT = 1,
-		CULL_MODE_BACK = 2,
-		CULL_MODE_FRONT_AND_BACK = 3
+		CULL_MODE_NONE = 0u,
+		CULL_MODE_FRONT = 1u,
+		CULL_MODE_BACK = 2u,
+		CULL_MODE_FRONT_AND_BACK = 3u
 	};
 
 	enum class FaceOrientation : uint8_t {
-		FACE_COUNTER_CLOCKWISE = 0,
-		FACE_CLOCKWISE = 1
+		FACE_COUNTER_CLOCKWISE = 0u,
+		FACE_CLOCKWISE = 1u
 	};
 
 	enum class BlendFactor : uint8_t {
-		BLEND_FACTOR_ZERO = 0,
-		BLEND_FACTOR_ONE = 1,
-		BLEND_FACTOR_SRC_COLOR = 2,
-		BLEND_FACTOR_ONE_MINUS_SRC_COLOR = 3,
-		BLEND_FACTOR_SRC_ALPHA = 4,
-		BLEND_FACTOR_ONE_MINUS_SRC_ALPHA = 5,
-		BLEND_FACTOR_DST_ALPHA = 6,
-		BLEND_FACTOR_ONE_MINUS_DST_ALPHA = 7,
-		BLEND_FACTOR_DST_COLOR = 8,
-		BLEND_FACTOR_ONE_MINUS_DST_COLOR = 9,
-		BLEND_FACTOR_SRC_ALPHA_SATURATE = 10
+		BLEND_FACTOR_ZERO = 0u,
+		BLEND_FACTOR_ONE = 1u,
+		BLEND_FACTOR_SRC_COLOR = 2u,
+		BLEND_FACTOR_ONE_MINUS_SRC_COLOR = 3u,
+		BLEND_FACTOR_SRC_ALPHA = 4u,
+		BLEND_FACTOR_ONE_MINUS_SRC_ALPHA = 5u,
+		BLEND_FACTOR_DST_ALPHA = 6u,
+		BLEND_FACTOR_ONE_MINUS_DST_ALPHA = 7u,
+		BLEND_FACTOR_DST_COLOR = 8u,
+		BLEND_FACTOR_ONE_MINUS_DST_COLOR = 9u,
+		BLEND_FACTOR_SRC_ALPHA_SATURATE = 10u
 	};
 
 	enum class BlendFunction : uint8_t {
-		BLEND_FUNC_ADD = 0,
-		BLEND_FUNC_MIN = 1,
-		BLEND_FUNC_MAX = 2,
-		BLEND_FUNC_SUBTRACT = 3,
-		BLEND_FUNC_REVERSE_SUBTRACT = 4
+		BLEND_FUNC_ADD = 0u,
+		BLEND_FUNC_MIN = 1u,
+		BLEND_FUNC_MAX = 2u,
+		BLEND_FUNC_SUBTRACT = 3u,
+		BLEND_FUNC_REVERSE_SUBTRACT = 4u
 	};
 
 	struct VulkanPrimitiveTopology {
@@ -153,7 +153,7 @@ namespace vulkan {
 
         constexpr BlendParameters(const BlendFactor srcColor, const BlendFactor dstColor,
                         const BlendFactor srcAlpha, const BlendFactor dstAlpha) :
-			useBlending(1),
+			useBlending(1u),
 			blendFunctionRGB(static_cast<uint8_t>(BlendFunction::BLEND_FUNC_ADD)),
 			blendFunctionAlpha(static_cast<uint8_t>(BlendFunction::BLEND_FUNC_ADD)),
 			srcBlendFactor(static_cast<uint8_t>(srcColor)),
@@ -162,7 +162,7 @@ namespace vulkan {
 			dstAlphaBlendFactor(static_cast<uint8_t>(dstAlpha)) {}
 
         constexpr BlendParameters(const BlendFactor src, const BlendFactor dst) :
-			useBlending(1),
+			useBlending(1u),
 			blendFunctionRGB(static_cast<uint8_t>(BlendFunction::BLEND_FUNC_ADD)),
 			blendFunctionAlpha(static_cast<uint8_t>(BlendFunction::BLEND_FUNC_ADD)),
 			srcBlendFactor(static_cast<uint8_t>(src)),
@@ -278,7 +278,7 @@ namespace vulkan {
 	};
 
 	struct VulkanStencilState {
-		bool enabled : 1;
+		bool enabled;
 		VkStencilOp failOp;
 		VkStencilOp passOp;
 		VkStencilOp depthFailOp;
@@ -294,9 +294,9 @@ namespace vulkan {
 			const VkStencilOp pass = VK_STENCIL_OP_KEEP,
 			const VkStencilOp depthFail = VK_STENCIL_OP_KEEP,
 			const VkCompareOp cmpOp = VK_COMPARE_OP_ALWAYS,
-			const uint8_t cmpMask = 0xff,
-			const uint8_t wrtMask = 0xff,
-			const uint8_t ref = 1
+			const uint8_t cmpMask = 0xffu,
+			const uint8_t wrtMask = 0xffu,
+			const uint8_t ref = 1u
 		) :
 			enabled(on),
 			failOp(fail),
