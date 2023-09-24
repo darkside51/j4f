@@ -5,6 +5,8 @@
 
 #include <array>
 #include <cstdint>
+#include <memory>
+#include <vector>
 
 namespace engine {
 
@@ -49,8 +51,7 @@ namespace engine {
     };
 
 	struct RenderDescriptor {
-		uint32_t renderDataCount = 0;
-		vulkan::RenderData** renderData = nullptr;
+        std::vector<std::unique_ptr<vulkan::RenderData>> renderData;
 		RenderDescritorMode mode = RenderDescritorMode::SINGLE_DRAW;
 		int16_t order = 0;
 		bool visible = true;
@@ -62,20 +63,14 @@ namespace engine {
 		inline void setViewParamLayout(const vulkan::GPUParamLayoutInfo* layout, const ViewParams::Ids idx) { viewParamsLayouts[static_cast<uint8_t>(idx)] = layout; }
 
 		void destroy() {
-			if (renderDataCount) {
-				for (uint32_t i = 0; i < renderDataCount; ++i) {
-					delete renderData[i];
-				}
-
-				delete[] renderData;
-				renderDataCount = 0;
-			}
+			renderData.clear();
 		}
 
 		inline void setRawDataForLayout(const vulkan::GPUParamLayoutInfo* info, void* value, const bool copyData, const size_t valueSize) const {
-			for (uint32_t i = 0; i < renderDataCount; ++i) {
-				vulkan::RenderData* r_data = renderData[i];
-				if (r_data == nullptr || r_data->pipeline == nullptr) continue;
+			for (auto&& r_data : renderData) {
+				if (r_data == nullptr || r_data->pipeline == nullptr) {
+                    continue;
+                }
 
 				r_data->setRawDataForLayout(info, value, copyData, valueSize);
 			}
@@ -83,9 +78,10 @@ namespace engine {
 
 		template <typename T>
 		inline void setParamForLayout(const vulkan::GPUParamLayoutInfo* info, T* value, const bool copyData, const uint32_t count = 1) {
-			for (uint32_t i = 0; i < renderDataCount; ++i) {
-				vulkan::RenderData* r_data = renderData[i];
-				if (r_data == nullptr || r_data->pipeline == nullptr) continue;
+            for (auto&& r_data : renderData) {
+				if (r_data == nullptr || r_data->pipeline == nullptr) {
+                    continue;
+                }
 
 				r_data->setParamForLayout(info, value, copyData, count);
 			}
@@ -93,9 +89,10 @@ namespace engine {
 
 		template <typename T>
 		inline void setParamByName(const std::string& name, T* value, bool copyData, const uint32_t count = 1u) {
-			for (uint32_t i = 0; i < renderDataCount; ++i) {
-				vulkan::RenderData* r_data = renderData[i];
-				if (r_data == nullptr || r_data->pipeline == nullptr) continue;
+            for (auto&& r_data : renderData) {
+				if (r_data == nullptr || r_data->pipeline == nullptr) {
+                    continue;
+                }
 
 				r_data->setParamByName(name, value, copyData, count);
 			}

@@ -11,8 +11,8 @@ namespace engine {
 	
 	class Plane : public RenderedEntity {
 	public:
-		Plane(const vec2f& sz, const vulkan::RenderDataGpuParamsType& params = nullptr);
-		Plane(const std::shared_ptr<TextureFrame>& f, const vulkan::RenderDataGpuParamsType& params = nullptr);
+		Plane(const vec2f& sz, const engine::GpuParamsType& params = nullptr);
+		Plane(const std::shared_ptr<TextureFrame>& f, const engine::GpuParamsType& params = nullptr);
 
 		void updateRenderData(const mat4f& worldMatrix, const bool worldMatrixChanged);
 		inline void updateModelMatrixChanged(const bool worldMatrixChanged) noexcept { _modelMatrixChanged |= worldMatrixChanged; }
@@ -20,7 +20,7 @@ namespace engine {
 		void setFrame(const std::shared_ptr<TextureFrame>& f);
 
 	private:
-		void createRenderData(const vulkan::RenderDataGpuParamsType& params);
+		void createRenderData(const engine::GpuParamsType& params);
 
 		vec2f _aabb[2];
 		std::vector<TexturedVertex> _vtx;

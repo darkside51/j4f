@@ -1,16 +1,12 @@
 #pragma once
 
 #include "../Vulkan/vkRenderData.h"
-//#include "../../Core/Handler.h"
 
 #include <vector>
 #include <unordered_map>
 #include <cstdint>
 
 namespace engine {
-
-	using GpuParamsType = std::shared_ptr<GpuProgramParams>;
-	//using GpuParamsType = handler_ptr<GpuProgramParams>;
 
 	class AutoBatchRenderer {
 	public:

@@ -296,22 +296,23 @@ namespace engine {
 	void Mesh::createRenderData() {
 		const size_t renderDataCount = _meshData->renderData.size();
 
-		_renderDescriptor.renderData = new vulkan::RenderData*[renderDataCount];
-		uint8_t primitiveMode = 0xff;
+        uint8_t primitiveMode = 0xffu;
+		_renderDescriptor.renderData.reserve(renderDataCount);
 
 		for (size_t i = 0; i < renderDataCount; ++i) {
-			const size_t partsCount = _meshData->renderData[i].layouts.size();
-			_renderDescriptor.renderData[i] = new vulkan::RenderData();
-			_renderDescriptor.renderData[i]->createRenderParts(partsCount);
+            auto & r_data = _renderDescriptor.renderData.emplace_back(std::make_unique<vulkan::RenderData>());
+            const size_t partsCount = _meshData->renderData[i].layouts.size();
+            r_data->createRenderParts(partsCount);
+
 			for (size_t j = 0; j < partsCount; ++j) {
 				auto&& layout = _meshData->renderData[i].layouts[j];
-				if (primitiveMode == 0xff) {
+				if (primitiveMode == 0xffu) {
 					primitiveMode = layout.primitiveMode;
 				}
 
 				ENGINE_BREAK_CONDITION(primitiveMode == layout.primitiveMode)
 
-				_renderDescriptor.renderData[i]->renderParts[j] = vulkan::RenderData::RenderPart{
+                r_data->renderParts[j] = vulkan::RenderData::RenderPart{
 													layout.firstIndex,	// firstIndex
 													layout.indexCount,	// indexCount
 													0,					// vertexCount (parameter no used with indexed render)
@@ -348,12 +349,10 @@ namespace engine {
 				_maxCorner.z = std::max(std::max(_maxCorner.z, corner1.z), corner2.z);
 			}
 
-			_renderDescriptor.renderData[i]->indexes = _meshData->indicesBuffer;
-			_renderDescriptor.renderData[i]->vertexes = _meshData->verticesBuffer;
+            r_data->indexes = _meshData->indicesBuffer;
+            r_data->vertexes = _meshData->verticesBuffer;
 		}
 
-		_renderDescriptor.renderDataCount = renderDataCount;
-		
 		vulkan::PrimitiveTopology topology = vulkan::PrimitiveTopology::TRIANGLE_LIST;
 		bool enableRestartTopology = false;
 		switch (_meshData->renderData[0].layouts[0].primitiveMode) {
@@ -450,8 +449,8 @@ namespace engine {
         //new vision
         const uint8_t renderFrameNum = _skeleton->getUpdatedFrameNum();
 
-		for (uint32_t i = 0; i < _renderDescriptor.renderDataCount; ++i) {
-			vulkan::RenderData* r_data = _renderDescriptor.renderData[i];
+		for (uint32_t i = 0, sz = _renderDescriptor.renderData.size(); i < sz; ++i) {
+			auto & r_data = _renderDescriptor.renderData[i];
 			if (r_data == nullptr || r_data->pipeline == nullptr) continue;
 
 			const Mesh_Node& node = _skeleton->_nodes[renderFrameNum][_meshData->meshes[i].nodeIndex]->value();
@@ -487,8 +486,8 @@ namespace engine {
         // new vision
         const uint8_t renderFrameNum = _skeleton->getUpdatedFrameNum();
 
-		for (uint32_t i = 0; i < _renderDescriptor.renderDataCount; ++i) {
-			vulkan::RenderData* r_data = _renderDescriptor.renderData[i];
+        for (uint32_t i = 0, sz = _renderDescriptor.renderData.size(); i < sz; ++i) {
+            auto & r_data = _renderDescriptor.renderData[i];
 			if (r_data == nullptr || r_data->pipeline == nullptr) continue;
 
 			const Mesh_Node& node = _skeleton->_nodes[renderFrameNum][_meshData->meshes[i].nodeIndex]->value();

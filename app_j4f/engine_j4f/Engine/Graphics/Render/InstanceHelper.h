@@ -87,8 +87,8 @@ namespace engine {
 		inline void updateGraphicsInstanceCount() {
 			if (_graphics) {
 				auto&& rdescriptor = _graphics->getRenderDescriptor();
-				for (size_t i = 0; i < rdescriptor.renderDataCount; ++i) {
-                    rdescriptor.renderData[i]->instanceCount = _instanceCount;
+				for (auto && r_data : rdescriptor.renderData) {
+                    r_data->instanceCount = _instanceCount;
 				}
 			}
 		}

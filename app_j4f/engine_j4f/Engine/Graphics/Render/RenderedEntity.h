@@ -25,29 +25,29 @@ namespace engine {
 
 		template <typename T>
 		inline void setParamByName(std::string_view name, T&& value, bool copyData, const uint32_t count = 1u) {
-			for (uint32_t i = 0; i < _renderDescriptor.renderDataCount; ++i) {
-				_renderDescriptor.renderData[i]->setParamByName(name, std::forward<T>(value), copyData, count);
+			for (auto && r_data : _renderDescriptor.renderData) {
+                r_data->setParamByName(name, std::forward<T>(value), copyData, count);
 			}
 		}
 
 		template <typename T>
 		inline void setParamForLayout(const vulkan::GPUParamLayoutInfo* info, T&& value, const bool copyData, const uint32_t count = 1u) {
-			for (uint32_t i = 0; i < _renderDescriptor.renderDataCount; ++i) {
-				_renderDescriptor.renderData[i]->setParamForLayout(info, std::forward<T>(value), copyData, count);
+            for (auto && r_data : _renderDescriptor.renderData) {
+				r_data->setParamForLayout(info, std::forward<T>(value), copyData, count);
 			}
 		}
 
 		template <typename T>
 		inline void setParamByName(const size_t offset, std::string_view name, T&& value, const uint32_t count = 1u) {
-			for (uint32_t i = 0; i < _renderDescriptor.renderDataCount; ++i) {
-				_renderDescriptor.renderData[i]->setParamByName(offset, name, std::forward<T>(value), count);
+            for (auto && r_data : _renderDescriptor.renderData) {
+                r_data->setParamByName(offset, name, std::forward<T>(value), count);
 			}
 		}
 
 		template <typename T>
 		inline void setParamForLayout(const size_t offset, const vulkan::GPUParamLayoutInfo* info, T&& value, const uint32_t count = 1u) {
-			for (uint32_t i = 0; i < _renderDescriptor.renderDataCount; ++i) {
-				_renderDescriptor.renderData[i]->setParamForLayout(offset, info, std::forward<T>(value), count);
+            for (auto && r_data : _renderDescriptor.renderData) {
+                r_data->setParamForLayout(offset, info, std::forward<T>(value), count);
 			}
 		}
 
@@ -55,9 +55,14 @@ namespace engine {
 			return _renderDescriptor.renderData[0]->getLayout(name);
 		}
 
-		inline vulkan::RenderData* getRenderDataAt(const uint16_t n) const {
-			if (_renderDescriptor.renderDataCount <= n) return nullptr;
-			return _renderDescriptor.renderData[n];
+        inline vulkan::RenderData* getRenderDataAt(const uint16_t n) {
+            if (_renderDescriptor.renderData.size() <= n) return nullptr;
+            return _renderDescriptor.renderData[n].get();
+        }
+
+		inline const vulkan::RenderData* getRenderDataAt(const uint16_t n) const {
+			if (_renderDescriptor.renderData.size() <= n) return nullptr;
+			return _renderDescriptor.renderData[n].get();
 		}
 
 		inline vulkan::VulkanRenderState& renderState() { return _renderState; }
@@ -101,13 +106,13 @@ namespace engine {
 				}
             }
 
-			for (uint32_t i = 0; i < _renderDescriptor.renderDataCount; ++i) {
-				_renderDescriptor.renderData[i]->setPipeline(p);
+            for (auto && r_data : _renderDescriptor.renderData) {
+                r_data->setPipeline(p);
 			}
 		}
 
 		inline vulkan::VulkanGpuProgram* setProgram(vulkan::VulkanGpuProgram* program, VkRenderPass renderPass = nullptr) {
-			if (_renderDescriptor.renderDataCount == 0) return nullptr;
+			if (_renderDescriptor.renderData.empty()) return nullptr;
 			if (_renderState.vertexDescription.attributes.empty()) return nullptr;
 
 			auto&& renderer = Engine::getInstance().getModule<Graphics>().getRenderer();
@@ -123,10 +128,12 @@ namespace engine {
 		}
 
 		inline void pipelineAttributesChanged(VkRenderPass renderPass = nullptr) {
-			setPipeline(
-                    Engine::getInstance().getModule<Graphics>().getRenderer()->getGraphicsPipeline(
-                            _renderState, _renderDescriptor.renderData[0]->pipeline->program, renderPass)
-                            );
+            if (!_renderDescriptor.renderData.empty()) {
+                setPipeline(
+                        Engine::getInstance().getModule<Graphics>().getRenderer()->getGraphicsPipeline(
+                                _renderState, _renderDescriptor.renderData[0]->pipeline->program, renderPass)
+                );
+            }
 		}
 
 		inline void render(vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const ViewParams& viewParams, const uint16_t drawCount) {

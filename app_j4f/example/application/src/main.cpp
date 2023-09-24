@@ -159,28 +159,18 @@ namespace engine {
 
 			const size_t renderDataCount = 1;
 
-			_renderDescriptor.renderData = new vulkan::RenderData * [renderDataCount];
-
-			for (size_t i = 0; i < renderDataCount; ++i) {
-				const size_t partsCount = 1;
-				_renderDescriptor.renderData[i] = new vulkan::RenderData();
-				_renderDescriptor.renderData[i]->createRenderParts(partsCount);
-				for (size_t j = 0; j < partsCount; ++j) {
-					_renderDescriptor.renderData[i]->renderParts[j] = vulkan::RenderData::RenderPart{
-														0,	// firstIndex
-														36,	// indexCount
-														0,	// vertexCount (parameter no used with indexed render)
-														0,	// firstVertex
-														0,	// vbOffset
-														0	// ibOffset
-					};
-				}
-
-				_renderDescriptor.renderData[i]->indexes = _indicesBuffer;
-				_renderDescriptor.renderData[i]->vertexes = _verticesBuffer;
-			}
-
-			_renderDescriptor.renderDataCount = renderDataCount;
+            auto & r_data = _renderDescriptor.renderData.emplace_back(std::make_unique<vulkan::RenderData>());
+            r_data->createRenderParts(1u);
+            r_data->renderParts[0] = vulkan::RenderData::RenderPart{
+                    0,	// firstIndex
+                    36,	// indexCount
+                    0,	// vertexCount (parameter no used with indexed render)
+                    0,	// firstVertex
+                    0,	// vbOffset
+                    0	// ibOffset
+            };
+            r_data->indexes = _indicesBuffer;
+            r_data->vertexes = _verticesBuffer;
 
 			_renderState.vertexDescription.bindings_strides.push_back(std::make_pair(0, sizeof(SkyBoxVertex)));
 			_renderState.topology = { vulkan::PrimitiveTopology::TRIANGLE_LIST, false };
@@ -455,8 +445,8 @@ namespace engine {
 			_mesh = asset;
 
 			auto&& rdescriptor = _mesh->getRenderDescriptor();
-			for (size_t i = 0; i < rdescriptor.renderDataCount; ++i) {
-                rdescriptor.renderData[i]->instanceCount = _instanceCount;
+			for (auto && r_data : rdescriptor.renderData) {
+                r_data->instanceCount = _instanceCount;
 			}
 		}
 
@@ -474,6 +464,9 @@ namespace engine {
 
 		inline const RenderDescriptor& getRenderDescriptor() const { return _mesh->getRenderDescriptor(); }
 		inline RenderDescriptor& getRenderDescriptor() { return _mesh->getRenderDescriptor(); }
+
+        inline const RenderedEntity& getRenderedEntity() const { return *_mesh; }
+        inline RenderedEntity& getRenderedEntity() { return *_mesh; }
 
 	private:
 		uint32_t _instanceCount;

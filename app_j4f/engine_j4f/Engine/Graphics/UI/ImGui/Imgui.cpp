@@ -108,9 +108,7 @@ namespace engine {
 
         _renderState.vertexDescription.attributes = VulkanAttributesProvider::convert(attributes);
 
-        _renderDescriptor.renderDataCount = 1;
-        _renderDescriptor.renderData = new vulkan::RenderData *[1];
-        _renderDescriptor.renderData[0] = new vulkan::RenderData();
+        _renderDescriptor.renderData.push_back(std::make_unique<vulkan::RenderData>());
         _renderDescriptor.renderData[0]->indexType = VK_INDEX_TYPE_UINT16;
 
         auto&& graphics = Engine::getInstance().getModule<Graphics>();

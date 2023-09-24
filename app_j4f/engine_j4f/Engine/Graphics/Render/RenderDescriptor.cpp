@@ -16,8 +16,7 @@ namespace engine {
 		{
 			autoBatcher->draw(commandBuffer, currentFrame);
 
-			for (uint32_t i = 0; i < renderDataCount; ++i) {
-				vulkan::RenderData* r_data = renderData[i];
+            for (auto && r_data : renderData) {
 				if (r_data == nullptr || r_data->pipeline == nullptr || !r_data->visible) continue;
 
 				const auto* p = viewParams.data();
@@ -44,8 +43,7 @@ namespace engine {
 		break;
 		case RenderDescritorMode::AUTO_BATCHING:
 		{
-			for (uint32_t i = 0; i < renderDataCount; ++i) {
-				vulkan::RenderData* r_data = renderData[i];
+            for (auto && r_data : renderData) {
 				if (r_data == nullptr || r_data->pipeline == nullptr || !r_data->visible) continue;
 
 				const auto* p = viewParams.data();

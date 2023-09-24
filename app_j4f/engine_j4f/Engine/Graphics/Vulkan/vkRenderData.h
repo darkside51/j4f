@@ -10,7 +10,6 @@
 #include "../Render/GpuProgramParam.h"
 
 #include "../../Core/Engine.h"
-#include "../../Core/Handler.h"
 #include "../Graphics.h"
 
 #include <algorithm>
@@ -22,14 +21,9 @@
 
 namespace vulkan {
 
-	using RenderDataGpuParamsType = std::shared_ptr<engine::GpuProgramParams>;
-	//using RenderDataGpuParamsType = engine::handler_ptr<engine::GpuProgramParams>;
-	//using RenderDataGpuParamsType = engine::GpuProgramParams;
-	//using RenderDataGpuParamsType = engine::GpuProgramParams*;
-
     struct BatchingParams {
-        uint32_t vtxDataSize = 0;
-        uint32_t idxDataSize = 0;
+        uint32_t vtxDataSize = 0u;
+        uint32_t idxDataSize = 0u;
         const void* rawVertexes = nullptr; // raw data for autobatching mechanism
         const void* rawIndexes = nullptr;
     };
@@ -50,7 +44,7 @@ namespace vulkan {
 		std::vector<std::pair<GPUParamLayoutInfo*, uint32_t>> layouts;
 		std::vector<uint32_t> dynamicOffsets;
 		std::vector<vulkan::VulkanPushConstant> constants;
-		RenderDataGpuParamsType params;
+		engine::GpuParamsType params;
 
 		vulkan::VulkanPipeline* pipeline;
 
@@ -67,20 +61,20 @@ namespace vulkan {
 		uint8_t renderPartsCount = 0u;
 		bool visible = true;
 
-		RenderData() : pipeline(nullptr), renderParts(nullptr), params(std::make_shared<engine::GpuProgramParams>()) { }
+		RenderData() : pipeline(nullptr), renderParts(nullptr), params(engine::make_linked<engine::GpuProgramParams>()) { }
 
-		explicit RenderData(VulkanPipeline* p) : pipeline(p), renderParts(nullptr), params(std::make_shared<engine::GpuProgramParams>()) {
+		explicit RenderData(VulkanPipeline* p) : pipeline(p), renderParts(nullptr), params(engine::make_linked<engine::GpuProgramParams>()) {
 			prepareLayouts();
 		}
 
-        explicit RenderData(const RenderDataGpuParamsType& gpu_params) : pipeline(nullptr), renderParts(nullptr), params(gpu_params) { }
-        explicit RenderData(RenderDataGpuParamsType&& gpu_params) : pipeline(nullptr), renderParts(nullptr), params(std::move(gpu_params)) { }
+        explicit RenderData(const engine::GpuParamsType& gpu_params) : pipeline(nullptr), renderParts(nullptr), params(gpu_params) { }
+        explicit RenderData(engine::GpuParamsType&& gpu_params) : pipeline(nullptr), renderParts(nullptr), params(std::move(gpu_params)) { }
 
-		RenderData(VulkanPipeline* p, const RenderDataGpuParamsType& gpu_params) : pipeline(p), renderParts(nullptr), params(gpu_params) {
+		RenderData(VulkanPipeline* p, const engine::GpuParamsType& gpu_params) : pipeline(p), renderParts(nullptr), params(gpu_params) {
 			prepareLayouts();
 		}
 
-        RenderData(VulkanPipeline* p, RenderDataGpuParamsType&& gpu_params) : pipeline(p), renderParts(nullptr), params(std::move(gpu_params)) {
+        RenderData(VulkanPipeline* p, engine::GpuParamsType&& gpu_params) : pipeline(p), renderParts(nullptr), params(std::move(gpu_params)) {
             prepareLayouts();
         }
 
@@ -114,7 +108,7 @@ namespace vulkan {
 			constants.clear();
 		}
 
-		inline void replaceParams(const RenderDataGpuParamsType& p) { params = p; }
+		inline void replaceParams(const engine::GpuParamsType& p) { params = p; }
 
 		inline void createRenderParts(const uint8_t size) {
 			renderPartsCount = size;
@@ -206,13 +200,13 @@ namespace vulkan {
 
 			layouts.reserve(paramsCount);
 
-			uint16_t dynamicOffsetsCount = 0;
-			uint16_t constantsCount = 0;
-			uint16_t externalDescriptorsSetsCount = 0;
+			uint16_t dynamicOffsetsCount = 0u;
+			uint16_t constantsCount = 0u;
+			uint16_t externalDescriptorsSetsCount = 0u;
 
 			for (GPUParamLayoutInfo* l : programParamLayouts) {
-				//auto& pair = layouts.emplace_back(l, 0);
-                layouts.emplace_back(l, 0);
+				//auto& pair = layouts.emplace_back(l, 0u);
+                layouts.emplace_back(l, 0u);
 				switch (l->type) {
                     case GPUParamLayoutType::UNIFORM_BUFFER_DYNAMIC: // full buffer
 					case GPUParamLayoutType::STORAGE_BUFFER_DYNAMIC: // full buffer
@@ -252,9 +246,9 @@ namespace vulkan {
 			using namespace vulkan;
 
 			auto* program = const_cast<VulkanGpuProgram*>(pipeline->program);
-			uint32_t increasedBuffers = 0;
-			uint8_t externalSetNum = 0;
-			uint32_t result = 0;
+			uint32_t increasedBuffers = 0u;
+			uint8_t externalSetNum = 0u;
+			uint32_t result = 0u;
 
 			for (auto&& p : layouts) {
 				const GPUParamLayoutInfo* l = p.first;
@@ -357,21 +351,21 @@ namespace vulkan {
 
 		inline void render(VulkanCommandBuffer& commandBuffer, const uint32_t frame) const {
 			if (indexes) {
-				for (uint8_t i = 0; i < renderPartsCount; ++i) {
+				for (uint8_t i = 0u; i < renderPartsCount; ++i) {
 					const RenderPart& part = renderParts[i];
 					commandBuffer.renderIndexed(
 						pipeline, frame, constants.data(),
-						0, dynamicOffsets.size(), dynamicOffsets.data(),
+						0u, dynamicOffsets.size(), dynamicOffsets.data(),
 						externalDescriptorsSets.size(), externalDescriptorsSets.data(),
 						*vertexes, *indexes, part.firstIndex, part.indexCount, part.firstVertex, instanceCount, firstInstance, part.vbOffset, part.ibOffset, indexType
 					);
 				}
 			} else {
-				for (uint8_t i = 0; i < renderPartsCount; ++i) {
+				for (uint8_t i = 0u; i < renderPartsCount; ++i) {
 					const RenderPart& part = renderParts[i];
 					commandBuffer.render(
 						pipeline, frame, constants.data(),
-						0, dynamicOffsets.size(), dynamicOffsets.data(),
+						0u, dynamicOffsets.size(), dynamicOffsets.data(),
 						externalDescriptorsSets.size(), externalDescriptorsSets.data(),
 						*vertexes, part.firstVertex, part.vertexCount, instanceCount, firstInstance
 					);

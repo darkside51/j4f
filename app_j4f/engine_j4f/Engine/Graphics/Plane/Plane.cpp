@@ -4,7 +4,7 @@
 
 namespace engine {
 
-	Plane::Plane(const vec2f& sz, const vulkan::RenderDataGpuParamsType& params) {
+	Plane::Plane(const vec2f& sz, const engine::GpuParamsType& params) {
         createRenderData(params);
 		_aabb[0] = vec2f(0.0f);
 		_aabb[1] = vec2f(sz);
@@ -26,7 +26,7 @@ namespace engine {
         _renderDescriptor.renderData[0]->batchingParams->rawIndexes = _idx.data();
 	}
 
-	Plane::Plane(const std::shared_ptr<TextureFrame>& f, const vulkan::RenderDataGpuParamsType& params) : _frame(f) {
+	Plane::Plane(const std::shared_ptr<TextureFrame>& f, const engine::GpuParamsType& params) : _frame(f) {
         createRenderData(params);
 
 		_vtx.resize(_frame->_vtx.size() / 2);
@@ -71,17 +71,15 @@ namespace engine {
 
 	}
 
-	void Plane::createRenderData(const vulkan::RenderDataGpuParamsType& params) {
+	void Plane::createRenderData(const engine::GpuParamsType& params) {
 		auto&& renderHelper = Engine::getInstance().getModule<Graphics>().getRenderHelper();
 		auto&& pipeline = renderHelper->getPipeline(CommonPipelines::COMMON_PIPELINE_TEXTURED);
 
-		const vulkan::RenderDataGpuParamsType gpu_params = params ? params : std::make_shared<engine::GpuProgramParams>();
+		const engine::GpuParamsType gpu_params = params ? params : engine::make_linked<engine::GpuProgramParams>();
 
 		_renderDescriptor.mode = RenderDescritorMode::AUTO_BATCHING;
 
-        _renderDescriptor.renderDataCount = 1;
-		_renderDescriptor.renderData = new vulkan::RenderData *[1];
-		_renderDescriptor.renderData[0] = new vulkan::RenderData(gpu_params);
+		_renderDescriptor.renderData.push_back(std::make_unique<vulkan::RenderData>(gpu_params));
 
 		_renderState.vertexDescription.bindings_strides.push_back(std::make_pair(0, sizeof(TexturedVertex)));
 		_renderState.topology = { vulkan::PrimitiveTopology::TRIANGLE_LIST, false };

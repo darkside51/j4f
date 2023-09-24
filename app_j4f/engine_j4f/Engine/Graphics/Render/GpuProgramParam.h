@@ -1,8 +1,11 @@
 #pragma once
 
+#include "../../Core/Linked_ptr.h"
+
 #include <algorithm>
 #include <cstdint>
 #include <cstdlib>
+#include <memory>
 #include <vector>
 
 namespace engine {
@@ -112,5 +115,12 @@ namespace engine {
 		inline const void* getValue() const noexcept { return value; }
 	};
 
-	using GpuProgramParams = std::vector<engine::GpuProgramParam>;
+//    using GpuProgramParams = std::vector<GpuProgramParam>;
+//    using GpuParamsType = std::shared_ptr<GpuProgramParams>;
+
+    template <typename T>
+    class link_vector : public std::vector<T>, public atomic_control_block<link_vector<T>> {};
+
+    using GpuProgramParams = link_vector<GpuProgramParam>;
+    using GpuParamsType = engine::linked_ptr<GpuProgramParams>;
 }
