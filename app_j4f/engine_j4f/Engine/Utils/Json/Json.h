@@ -19,6 +19,7 @@ namespace engine {
 	public:
 		using asset_type = Json;
 		static void loadAsset(Json& v, const JsonLoadingParams& params, const JsonLoadingCallback& callback);
+        static void cleanUp() noexcept {}
 	private:
 	};
 

@@ -8,7 +8,8 @@
 namespace engine {
 	
 	void RenderList::addDescriptor(RenderDescriptor* d, const uint16_t layer) {
-		if (layer >= _descriptors.size()) _descriptors.resize(layer + 1);
+        if (d == nullptr) return;
+		if (layer >= _descriptors.size()) _descriptors.resize(layer + 1u);
 		_descriptors[layer].push_back(d);
 	}
 

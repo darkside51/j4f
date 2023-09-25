@@ -74,7 +74,7 @@ namespace engine {
 	public:
 		using asset_type = Mesh*;
 		static void loadAsset(Mesh*& v, const MeshLoadingParams& params, const MeshLoadingCallback& callback);
-
+        static void cleanUp() noexcept;
 	private:
 		struct DataLoadingCallback {
 			Mesh* mesh;
@@ -88,6 +88,9 @@ namespace engine {
 			~DataLoadingCallback() = default;
 		};
 
+        static Mesh* createMesh();
+        static void removeMesh(Mesh* m);
+
 		static void addCallback(Mesh_Data*, Mesh* mesh, const MeshLoadingCallback&, uint16_t mask, uint8_t l, uint8_t thread);
 		static void executeCallbacks(Mesh_Data*, const AssetLoadingResult);
 
@@ -96,5 +99,8 @@ namespace engine {
 		inline static std::atomic_bool _graphicsBuffersOffsetsLock;
 		inline static std::atomic_bool _callbacksLock;
 		inline static std::unordered_map<Mesh_Data*, std::vector<DataLoadingCallback>> _callbacks;
+
+        inline static std::atomic_bool _rawDataLock;
+        inline static std::vector<Mesh*> _rawData;
 	};
 }

@@ -55,6 +55,7 @@ namespace engine {
                                       [callback = std::move(c.callback), v = c.mesh](const CancellationToken &){
                 if (callback) {
                     callback(v, AssetLoadingResult::LOADING_SUCCESS);
+                    removeMesh(v);
                 }
             });
 		}
@@ -108,7 +109,7 @@ namespace engine {
 
 	void MeshLoader::loadAsset(Mesh*& v, const MeshLoadingParams& params, const MeshLoadingCallback& callback) {
 	
-		v = new Mesh();
+		v = createMesh();
 		
 		auto&& engine = Engine::getInstance();
 		auto&& meshDataCache = engine.getModule<CacheManager>().getCache<std::string, Mesh_Data*>();
@@ -116,7 +117,10 @@ namespace engine {
 		if (Mesh_Data* mData = meshDataCache->getValue(params.file)) {			
 			if (mData->indicesBuffer && mData->verticesBuffer) {
 				v->createWithData(mData, params.semanticMask, params.latency);
-				if (callback) { callback(v, AssetLoadingResult::LOADING_SUCCESS); }
+				if (callback) {
+                    callback(v, AssetLoadingResult::LOADING_SUCCESS);
+                    removeMesh(v);
+                }
 			} else {
 				addCallback(mData, v, callback, params.semanticMask, params.latency, params.callbackThreadId);
 			}
@@ -141,4 +145,25 @@ namespace engine {
 		}, v, params, callback);
 	}
 
+    Mesh* MeshLoader::createMesh() {
+        Mesh* result = nullptr;
+        {
+            AtomicLock lock(_rawDataLock);
+            result = _rawData.emplace_back(new Mesh());
+        }
+        return result;
+    }
+
+    void MeshLoader::removeMesh(Mesh* m) {
+        AtomicLock lock(_rawDataLock);
+        _rawData.erase(std::remove(_rawData.begin(), _rawData.end(), m), _rawData.end());
+    }
+
+    void MeshLoader::cleanUp() noexcept {
+        AtomicLock lock(_rawDataLock);
+        for (auto && m : _rawData) {
+            delete m;
+        }
+        _rawData.clear();
+    }
 }

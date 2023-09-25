@@ -54,6 +54,7 @@ namespace engine {
 	public:
 		using asset_type = vulkan::VulkanTexture*;
 		static void loadAsset(vulkan::VulkanTexture*& v, const TextureLoadingParams& params, const TextureLoadingCallback& callback);
+        static void cleanUp() noexcept {}
 	private:
 		static void addCallback(vulkan::VulkanTexture*, const TextureLoadingCallback&);
 		static void executeCallbacks(vulkan::VulkanTexture*, const AssetLoadingResult);

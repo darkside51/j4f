@@ -192,4 +192,9 @@ namespace engine {
             v = createTexture(params, callback);
         }
     }
+
+    void TexturePtrLoader::cleanUp() noexcept {
+        AtomicLock lock(_callbacksLock);
+        _callbacks.clear();
+    }
 }

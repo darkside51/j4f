@@ -77,6 +77,10 @@ namespace engine {
 	template <typename Loader>
 	class AssetLoaderT : public IAssetLoader {
 	public:
+        ~AssetLoaderT() override {
+            Loader::cleanUp();
+        }
+
 		void loadAsset(const AssetLoadingFlags& p, void* data, const void* loadingCallback) const override {
 			// some magic ;)
 			using type = typename Loader::asset_type;
@@ -187,6 +191,7 @@ struct TypeLoader {
 		}
 		...
 	}
+    static void cleanUp() noexcept {}
 };
 
 // example:
@@ -195,6 +200,7 @@ struct IntLoader {
 	static void loadAsset(int& v, const AssetLoadingParams<int>& params, const AssetLoadingCallback<int>& callback) {
 		v = 22;
 	}
+    static void cleanUp() noexcept {}
 };
 
 struct IntPtrLoader {
@@ -205,6 +211,7 @@ struct IntPtrLoader {
 			callback(v, AssetLoadingResult::LOADING_SUCCESS);
 		}
 	}
+    static void cleanUp() noexcept {}
 };
 
 struct IntSharedPtrLoader {

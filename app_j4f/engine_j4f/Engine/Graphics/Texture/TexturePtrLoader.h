@@ -54,6 +54,7 @@ namespace engine {
     public:
         using asset_type = TexturePtr;
         static void loadAsset(asset_type& v, const TexturePtrLoadingParams& params, const TexturePtrLoadingCallback& callback);
+        static void cleanUp() noexcept;
     private:
         static void addCallback(asset_type, const TexturePtrLoadingCallback&);
         static void executeCallbacks(asset_type, const AssetLoadingResult);

@@ -1116,6 +1116,12 @@ namespace engine {
 				});
 
 			for (auto&& meshObj : testMehsesVec) {
+
+                H_Node* node = new H_Node();
+                rootNode->addChild(node);
+                (*node)->setRenderObject(meshObj);
+                shadowCastNodes.push_back(node);
+
 				assm.loadAsset<Mesh*>(mesh_params, [meshObj, texture_zombi](Mesh* asset, const AssetLoadingResult result) {
 					asset->setProgram(program_mesh_skin);
 					asset->setParamByName("u_texture", texture_zombi, false);
@@ -1135,15 +1141,10 @@ namespace engine {
 					rotateMatrix_xyz(wtr, vec3f(1.57f, engine::random(-3.1415f, 3.1415f), 0.0f));
 					translateMatrixTo(wtr, vec3f(engine::random(-1024.0f, 1024.0f), engine::random(-1024.0f, 1024.0f), 0.0f));
 
-					H_Node* node = new H_Node();
-					node->value().setLocalMatrix(wtr);
-					node->value().setBoundingVolume(BoundingVolume::make<SphereVolume>(vec3f(0.0f, 1.45f, 0.0f), 1.8f));
-					rootNode->addChild(node);
-
-					meshObj->setGraphics(asset);
-					(*node)->setRenderObject(meshObj);
-
-					shadowCastNodes.push_back(node);
+                    meshObj->setGraphics(asset);
+					auto && node = meshObj->getNode();
+					node->setLocalMatrix(wtr);
+					node->setBoundingVolume(BoundingVolume::make<SphereVolume>(vec3f(0.0f, 1.45f, 0.0f), 1.8f));
 					});
 			}
 

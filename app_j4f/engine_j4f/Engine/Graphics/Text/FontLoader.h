@@ -20,6 +20,7 @@ namespace engine {
 	public:
 		using asset_type = Font*;
 		static void loadAsset(Font*& v, const FontLoadingParams& params, const FontLoadingCallback& callback);
+        static void cleanUp() noexcept {}
 	private:
 		static void addCallback(Font*, const FontLoadingCallback&);
 		static void executeCallbacks(Font*, const AssetLoadingResult);
