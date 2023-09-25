@@ -12,7 +12,7 @@ namespace engine {
 		auto&& autoBatcher = renderHelper->getAutoBatchRenderer();
 
 		switch (mode) {
-		case RenderDescritorMode::SINGLE_DRAW:
+		case RenderDescriptorMode::SINGLE_DRAW:
 		{
 			autoBatcher->draw(commandBuffer, currentFrame);
 
@@ -41,7 +41,7 @@ namespace engine {
 			}
 		}
 		break;
-		case RenderDescritorMode::AUTO_BATCHING:
+		case RenderDescriptorMode::AUTO_BATCHING:
 		{
             for (auto && r_data : renderData) {
 				if (r_data == nullptr || r_data->pipeline == nullptr || !r_data->visible) continue;
@@ -69,7 +69,7 @@ namespace engine {
 			}
 		}
 		break;
-		case RenderDescritorMode::CUSTOM_DRAW:
+		case RenderDescriptorMode::CUSTOM_DRAW:
 		{
 			if (customRenderer) {
 				autoBatcher->draw(commandBuffer, currentFrame);

@@ -10,7 +10,7 @@
 
 namespace engine {
 
-	enum class RenderDescritorMode : uint8_t {
+	enum class RenderDescriptorMode : uint8_t {
 		SINGLE_DRAW = 0u,
 		AUTO_BATCHING = 1u,
         CUSTOM_DRAW = 2u
@@ -52,7 +52,7 @@ namespace engine {
 
 	struct RenderDescriptor {
         std::vector<std::unique_ptr<vulkan::RenderData>> renderData;
-		RenderDescritorMode mode = RenderDescritorMode::SINGLE_DRAW;
+		RenderDescriptorMode mode = RenderDescriptorMode::SINGLE_DRAW;
 		int16_t order = 0;
 		bool visible = true;
         IRenderDescriptorCustomRenderer* customRenderer = nullptr;

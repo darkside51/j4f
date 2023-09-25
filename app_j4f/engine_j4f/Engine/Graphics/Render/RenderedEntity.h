@@ -98,7 +98,7 @@ namespace engine {
 				}				
 			}
 
-            if (_renderDescriptor.mode != RenderDescritorMode::CUSTOM_DRAW) {
+            if (_renderDescriptor.mode != RenderDescriptorMode::CUSTOM_DRAW) {
 				for (auto&& l : _fixedGpuLayouts) {
 					if (l.second.viewParamIdx != ViewParams::Ids::UNKNOWN) {
 						_renderDescriptor.setViewParamLayout(l.first, l.second.viewParamIdx);

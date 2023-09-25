@@ -77,7 +77,7 @@ namespace engine {
 
 		const engine::GpuParamsType gpu_params = params ? params : engine::make_linked<engine::GpuProgramParams>();
 
-		_renderDescriptor.mode = RenderDescritorMode::AUTO_BATCHING;
+		_renderDescriptor.mode = RenderDescriptorMode::AUTO_BATCHING;
 
 		_renderDescriptor.renderData.push_back(std::make_unique<vulkan::RenderData>(gpu_params));
 

@@ -75,7 +75,7 @@ namespace engine {
         io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
         io.IniFilename = nullptr; // disable creation "imgui.ini"
 
-        _renderDescriptor.mode = RenderDescritorMode::CUSTOM_DRAW;
+        _renderDescriptor.mode = RenderDescriptorMode::CUSTOM_DRAW;
         _renderDescriptor.customRenderer = this;
     }
 
@@ -91,7 +91,7 @@ namespace engine {
     }
 
     void ImguiGraphics::createRenderData() {
-        _renderDescriptor.mode = RenderDescritorMode::CUSTOM_DRAW;
+        _renderDescriptor.mode = RenderDescriptorMode::CUSTOM_DRAW;
         _renderDescriptor.customRenderer = this;
 
         _renderState.vertexDescription.bindings_strides.emplace_back(0, sizeof(ImDrawVert));

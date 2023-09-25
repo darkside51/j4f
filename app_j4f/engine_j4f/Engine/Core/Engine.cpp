@@ -39,7 +39,7 @@ namespace engine {
 		setModule<LogManager>();
 
 #ifdef ENABLE_STATISTIC
-		setModule<Statistic>();
+		setModule<Statistic>(1.0f);
 #endif
 
 		//setModule<ThreadPool>(std::max(std::thread::hardware_concurrency(), 1u));
@@ -67,11 +67,11 @@ namespace engine {
 
         // workers
         _renderThread = std::make_unique<WorkerThread>(&Engine::render, this);
-        _renderThread->setTargetFrameTime(1.0f / config.fpsLimitDraw.fpsMax);
+        _renderThread->setTargetFrameTime(1.0f / static_cast<float>(config.fpsLimitDraw.fpsMax));
         _renderThread->setFpsLimitType(config.fpsLimitDraw.limitType);
 
         _updateThread = std::make_unique<WorkerThread>(&Engine::update, this);
-        _updateThread->setTargetFrameTime(1.0f / config.fpsLimitUpdate.fpsMax);
+        _updateThread->setTargetFrameTime(1.0f / static_cast<float>(config.fpsLimitUpdate.fpsMax));
         _updateThread->setFpsLimitType(config.fpsLimitUpdate.limitType);
 
         auto & workersCommutator = getModule<WorkerThreadsCommutator>();
