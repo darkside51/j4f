@@ -21,7 +21,7 @@ namespace vulkan {
 		VulkanBuffer* staging = generateWithData(&data, 1, format, bpp, createMipMaps, forceType);
 
 		if (deffered) {
-			_renderer->addDefferedGenerateTexture(this, staging, 0, 1);
+			_renderer->addDeferredGenerateTexture(this, staging, 0, 1);
 		} else {
 			auto&& cmdBuffer = _renderer->getSupportCommandBuffer();
 			fillGpuData(staging, cmdBuffer, 0, 1);
@@ -34,7 +34,7 @@ namespace vulkan {
 		VulkanBuffer* staging = generateWithData(data, layerCount, format, bpp, createMipMaps, forceType);
 
 		if (deffered) {
-			_renderer->addDefferedGenerateTexture(this, staging, 0, layerCount);
+			_renderer->addDeferredGenerateTexture(this, staging, 0, layerCount);
 		} else {
 			auto&& cmdBuffer = _renderer->getSupportCommandBuffer();
 			fillGpuData(staging, cmdBuffer, 0, layerCount);

@@ -219,7 +219,7 @@ namespace vulkan {
 
 		GPU_DEBUG_MARKERS_INIT(_vulkanDevice, extensions);
 
-		const VkResult res = _vulkanDevice->createDevice(features, extensions, _deviceCreatepNextChain);
+		const VkResult res = _vulkanDevice->createDevice(features, extensions, _deviceCreateNextChain);
 
 		GPU_DEBUG_MARKERS_SETUP(_vulkanDevice);
 
@@ -233,7 +233,7 @@ namespace vulkan {
 	}
 
 	void VulkanRenderer::init(const engine::GraphicConfig& cfg) {
-		_swapchainImagesCount = _swapChain.imageCount;
+		_swapChainImagesCount = _swapChain.imageCount;
 
 		// get a graphics & present queue from the device (its eaqual i think)
 		_mainQueue = _vulkanDevice->getQueue(vulkan::GPUQueueFamily::F_GRAPHICS, 0);
@@ -245,16 +245,16 @@ namespace vulkan {
 		// createCommandBuffers
 		_mainRenderCommandBuffers = VulkanCommandBuffersArray(_vulkanDevice->device, _commandPool,
                                                               VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                                                              _swapchainImagesCount);
+                                                              _swapChainImagesCount);
 		_mainSupportCommandBuffers = VulkanCommandBuffersArray(_vulkanDevice->device, _commandPool,
                                                                VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                                                               _swapchainImagesCount);
+                                                               _swapChainImagesCount);
 
 		// create synchronization objects
 		// create a semaphore used to synchronize image presentation
 		// ensures that the image is displayed before we start submitting new commands to the queue
-		_presentCompleteSemaphores.reserve(_swapchainImagesCount);
-		for (size_t i = 0; i < _swapchainImagesCount; ++i) {
+		_presentCompleteSemaphores.reserve(_swapChainImagesCount);
+		for (size_t i = 0; i < _swapChainImagesCount; ++i) {
 			_presentCompleteSemaphores.emplace_back(_vulkanDevice->device);
 			_mainSupportCommandBuffers.addWaitSemaphore(_presentCompleteSemaphores[i].semaphore, i);
 		}
@@ -262,7 +262,7 @@ namespace vulkan {
 		_mainRenderCommandBuffers.depend(_mainSupportCommandBuffers);
 
 		// wait fences to sync command buffer access
-		for (uint32_t i = 0; i < _swapchainImagesCount; ++i) {
+		for (uint32_t i = 0; i < _swapChainImagesCount; ++i) {
 			_waitFences.emplace_back(_vulkanDevice->device, VK_FENCE_CREATE_SIGNALED_BIT);
 		}
 
@@ -287,8 +287,8 @@ namespace vulkan {
 		std::vector<VkImageView> attachments(2);
 		attachments[1] = _depthStencil.view; // depth/stencil attachment is the same for all frame buffers
 
-		_frameBuffers.reserve(_swapchainImagesCount);
-		for (size_t i = 0; i < _swapchainImagesCount; ++i) {
+		_frameBuffers.reserve(_swapChainImagesCount);
+		for (size_t i = 0; i < _swapChainImagesCount; ++i) {
 			attachments[0] = _swapChain.images[i].view; // color attachment is the view of the swapchain image
 			_frameBuffers.emplace_back(_vulkanDevice, _width, _height, 1, _mainRenderPass, attachments.data(), attachments.size());
 		}
@@ -304,9 +304,9 @@ namespace vulkan {
 		buildDefaultMainRenderCommandBuffer();
 		//////////////////////////////////
 
-        _buffersToDelete.resize(_swapchainImagesCount);
-        _texturesToDelete.resize(_swapchainImagesCount);
-        _texturesToFree.resize(_swapchainImagesCount);
+        _buffersToDelete.resize(_swapChainImagesCount);
+        _texturesToDelete.resize(_swapChainImagesCount);
+        _texturesToFree.resize(_swapChainImagesCount);
 
 		createEmptyTexture();
 	}
@@ -431,7 +431,7 @@ namespace vulkan {
 	}
 
 	void VulkanRenderer::buildDefaultMainRenderCommandBuffer() {
-		for (uint32_t i = 0; i < _swapchainImagesCount; ++i) {
+		for (uint32_t i = 0; i < _swapChainImagesCount; ++i) {
 			VulkanCommandBuffer& commandBuffer = _mainRenderCommandBuffers[i];
 
 			commandBuffer.begin();
@@ -720,7 +720,7 @@ namespace vulkan {
 			case VK_ERROR_OUT_OF_POOL_MEMORY:
 			{
 				bool allocateFromExistingPool = false;
-				for (uint32_t i = 0, sz = _globalDescriptorPools.size(); i < sz; ++i) {
+				for (uint32_t i = 0u, sz = _globalDescriptorPools.size(); i < sz; ++i) {
 					if (i == _currentDescriptorPool) { continue; }
 
 					allocInfo.descriptorPool = _globalDescriptorPools[i];
@@ -752,7 +752,7 @@ namespace vulkan {
 	}
 
 	VulkanDescriptorSet* VulkanRenderer::allocateDescriptorSetFromGlobalPool(const VkDescriptorSetLayout descriptorSetLayout, const uint32_t count) {
-		const uint32_t setsCount = count == 0 ? _swapchainImagesCount : count;
+		const uint32_t setsCount = count == 0 ? _swapChainImagesCount : count;
 	
 		auto* descriptorSet = new VulkanDescriptorSet(setsCount);
 		std::vector<VkDescriptorSetLayout> layouts(setsCount, descriptorSetLayout);
@@ -903,8 +903,8 @@ namespace vulkan {
 
 			_swapChain.resize(_width, _height, _vSync);
 
-			if (_swapchainImagesCount != _swapChain.imageCount) {
-				_swapchainImagesCount = _swapChain.imageCount;
+			if (_swapChainImagesCount != _swapChain.imageCount) {
+                _swapChainImagesCount = _swapChain.imageCount;
 			}
 
 			// recreate resources
@@ -916,7 +916,7 @@ namespace vulkan {
 			std::vector<VkImageView> attachments(2);
 			attachments[1] = _depthStencil.view;
 
-			for (size_t i = 0; i < _swapchainImagesCount; ++i) {
+			for (size_t i = 0; i < _swapChainImagesCount; ++i) {
 				attachments[0] = _swapChain.images[i].view; // color attachment is the view of the swapchain image
                 VkResult result;
 				_frameBuffers.emplace_back(_vulkanDevice, _width, _height, 1,
@@ -932,30 +932,30 @@ namespace vulkan {
 			// createCommandBuffers
 			_mainRenderCommandBuffers = VulkanCommandBuffersArray(_vulkanDevice->device, _commandPool,
                                                                   VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                                                                  _swapchainImagesCount);
+                                                                  _swapChainImagesCount);
 			_mainSupportCommandBuffers = VulkanCommandBuffersArray(_vulkanDevice->device, _commandPool,
                                                                    VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                                                                   _swapchainImagesCount);
+                                                                   _swapChainImagesCount);
 
-			_presentCompleteSemaphores.reserve(_swapchainImagesCount);
-			for (size_t i = 0; i < _swapchainImagesCount; ++i) {
+			_presentCompleteSemaphores.reserve(_swapChainImagesCount);
+			for (size_t i = 0; i < _swapChainImagesCount; ++i) {
 				auto&& semaphore = _presentCompleteSemaphores.emplace_back(_vulkanDevice->device);
 				_mainSupportCommandBuffers.addWaitSemaphore(semaphore.semaphore, i);
 			}
 
 			_mainRenderCommandBuffers.depend(_mainSupportCommandBuffers);
 
-			_waitFences.reserve(_swapchainImagesCount);
+			_waitFences.reserve(_swapChainImagesCount);
 			// wait fences to sync command buffer access
-			for (uint32_t i = 0u; i < _swapchainImagesCount; ++i) {
+			for (uint32_t i = 0u; i < _swapChainImagesCount; ++i) {
 				_waitFences.emplace_back(_vulkanDevice->device, VK_FENCE_CREATE_SIGNALED_BIT);
 			}
 
 			buildDefaultMainRenderCommandBuffer();
 
-            _buffersToDelete.resize(_swapchainImagesCount);
-            _texturesToDelete.resize(_swapchainImagesCount);
-            _texturesToFree.resize(_swapchainImagesCount);
+            _buffersToDelete.resize(_swapChainImagesCount);
+            _texturesToDelete.resize(_swapChainImagesCount);
+            _texturesToFree.resize(_swapChainImagesCount);
 
 			_currentFrame = 0u;
 		}
@@ -969,7 +969,7 @@ namespace vulkan {
         }
 
 		if (_mainSupportCommandBuffers[_currentFrame].begin() == VK_SUCCESS) {
-            for (auto&& [size, buffer] : _dinamicGPUBuffers) {
+            for (auto&& [size, buffer] : _dynamicGPUBuffers) {
                 buffer->resetOffset();
                 buffer->unmap();
             }
@@ -978,17 +978,17 @@ namespace vulkan {
 			if (!_buffersToDelete.empty() || !_texturesToDelete.empty() || !_texturesToFree.empty()) {
 				std::vector<VulkanBuffer*> buffersToDelete;
                 std::vector<VulkanTexture*> texturesToDelete;
-				std::vector<std::tuple<VulkanTexture*, VulkanBuffer*, uint32_t, uint32_t>> defferedTextureToGenerate;
+				std::vector<std::tuple<VulkanTexture*, VulkanBuffer*, uint32_t, uint32_t>> deferredTexturesToGenerate;
 
 				{
 					engine::AtomicLock lock(_lockTmpData);
                     buffersToDelete = std::move(_buffersToDelete[_currentFrame]);
                     texturesToDelete = std::move(_texturesToDelete[_currentFrame]);
-					defferedTextureToGenerate = std::move(_defferedTextureToGenerate);
+					deferredTexturesToGenerate = std::move(_deferredTexturesToGenerate);
                     _buffersToDelete[_currentFrame].clear();
                     _texturesToDelete[_currentFrame].clear();
                     _texturesToFree[_currentFrame].clear();
-					_defferedTextureToGenerate.clear();
+                    _deferredTexturesToGenerate.clear();
 				}
 
 				for (auto* buffer : buffersToDelete) {
@@ -999,7 +999,7 @@ namespace vulkan {
                     delete texture;
                 }
 
-				for (auto&& [texture, buffer, baseLayer, layersCount] : defferedTextureToGenerate) {
+				for (auto&& [texture, buffer, baseLayer, layersCount] : deferredTexturesToGenerate) {
                     texture->fillGpuData(buffer, _mainSupportCommandBuffers[_currentFrame], baseLayer, layersCount);
 					markToDelete(buffer);
 				}
@@ -1010,7 +1010,7 @@ namespace vulkan {
 	void VulkanRenderer::endFrame() {
 		_mainSupportCommandBuffers[_currentFrame].end();
 
-        for (auto&& [size, buffer] : _dinamicGPUBuffers) {
+        for (auto&& [size, buffer] : _dynamicGPUBuffers) {
             buffer->unmap(_currentFrame);
         }
 
@@ -1022,7 +1022,7 @@ namespace vulkan {
 				_waitFences[_currentFrame].destroy();
 				_waitFences[_currentFrame] = vulkan::VulkanFence(_vulkanDevice->device, VK_FENCE_CREATE_SIGNALED_BIT);
 			}
-			_currentFrame = (_currentFrame + 1u) % _swapchainImagesCount;
+			_currentFrame = (_currentFrame + 1u) % _swapChainImagesCount;
             LOG_TAG_LEVEL(engine::LogLevel::L_ERROR, GRAPHICS, "VulkanRenderer: swapChain acquireNextImage result = %s", string_VkResult(result));
 			return;
 		}
@@ -1054,7 +1054,7 @@ namespace vulkan {
                 break;
         }
 
-		_currentFrame = (_currentFrame + 1u) % _swapchainImagesCount;
+		_currentFrame = (_currentFrame + 1u) % _swapChainImagesCount;
 	}
 
 	VulkanPipeline* VulkanRenderer::getGraphicsPipeline(
@@ -1271,15 +1271,15 @@ namespace vulkan {
 		// todo: need synchronisation
 		if (size == 0u) return nullptr;
 
-		auto it = _dinamicGPUBuffers.find(size);
-		if (it != _dinamicGPUBuffers.end()) {
+		auto it = _dynamicGPUBuffers.find(size);
+		if (it != _dynamicGPUBuffers.end()) {
 			return it->second;
 		}
 
-		auto* newDynamicBuffer = new VulkanDynamicBuffer(size, _swapchainImagesCount, maxCount);
+		auto* newDynamicBuffer = new VulkanDynamicBuffer(size, _swapChainImagesCount, maxCount);
 
 		const auto bufferSize = static_cast<uint32_t>(maxCount * size);
-		for (size_t i = 0u; i < _swapchainImagesCount; ++i) {
+		for (size_t i = 0u; i < _swapChainImagesCount; ++i) {
 			_vulkanDevice->createBuffer(
 				VK_SHARING_MODE_EXCLUSIVE,
 				usageFlags,
@@ -1291,7 +1291,7 @@ namespace vulkan {
 
 		//newDynamicBuffer->map();
 
-		_dinamicGPUBuffers.emplace(size, newDynamicBuffer);
+        _dynamicGPUBuffers.emplace(size, newDynamicBuffer);
 		return newDynamicBuffer;
 	}
 
@@ -1351,26 +1351,26 @@ namespace vulkan {
 				delete _emptyTexture;
 				delete _emptyTextureArray;
 
-                for (auto&& [size, buffer] : _dinamicGPUBuffers) {
+                for (auto&& [size, buffer] : _dynamicGPUBuffers) {
                     buffer->unmap();
                     delete buffer;
                 }
-				_dinamicGPUBuffers.clear();
+                _dynamicGPUBuffers.clear();
 
                 {
                     // clear tmp frame data
                     std::vector<std::vector<VulkanBuffer *>> buffersToDelete;
                     std::vector<std::vector<VulkanTexture *>> texturesToDelete;
-                    std::vector<std::tuple<VulkanTexture *, VulkanBuffer *, uint32_t, uint32_t>> defferedTextureToGenerate;
+                    std::vector<std::tuple<VulkanTexture *, VulkanBuffer *, uint32_t, uint32_t>> deferredTexturesToGenerate;
                     {
                         engine::AtomicLock lock(_lockTmpData);
                         buffersToDelete = std::move(_buffersToDelete);
                         texturesToDelete = std::move(_texturesToDelete);
-                        defferedTextureToGenerate = std::move(_defferedTextureToGenerate);
+                        deferredTexturesToGenerate = std::move(_deferredTexturesToGenerate);
                         _buffersToDelete.clear();
                         _texturesToDelete.clear();
                         _texturesToFree.clear();
-                        _defferedTextureToGenerate.clear();
+                        _deferredTexturesToGenerate.clear();
                     }
 
                     for (auto &&buffers: buffersToDelete) {
@@ -1385,13 +1385,13 @@ namespace vulkan {
                         }
                     }
 
-                    for (auto &&p: defferedTextureToGenerate) {
+                    for (auto &&p: deferredTexturesToGenerate) {
                         delete std::get<VulkanBuffer *>(p);
                     }
 
                     buffersToDelete.clear();
                     texturesToDelete.clear();
-                    defferedTextureToGenerate.clear();
+                    deferredTexturesToGenerate.clear();
                     // clear tmp frame data
                 }
 

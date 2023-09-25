@@ -196,18 +196,26 @@ namespace vulkan {
 		inline constexpr uint32_t operator()() const noexcept { return _blendMode; }
 
 		[[nodiscard]] inline std::vector<VkPipelineColorBlendAttachmentState> blendState() const {
-			std::vector<VkPipelineColorBlendAttachmentState> blendAttachmentState(1);
+            // todo: for multi renderTargets can set self blend state to some targets?
+			std::vector<VkPipelineColorBlendAttachmentState> blendAttachmentState(1u);
+            for (auto & state : blendAttachmentState) {
+                state.colorWriteMask = 0xf;
+                state.blendEnable = _parameters.useBlending ? VK_TRUE : VK_FALSE;
 
-			blendAttachmentState[0].colorWriteMask = 0xf;
-			blendAttachmentState[0].blendEnable = _parameters.useBlending ? VK_TRUE : VK_FALSE;
+                state.srcColorBlendFactor = convertBlendFactor(
+                        static_cast<BlendFactor>(_parameters.srcBlendFactor));
+                state.dstColorBlendFactor = convertBlendFactor(
+                        static_cast<BlendFactor>(_parameters.dstBlendFactor));
+                state.srcAlphaBlendFactor = convertBlendFactor(
+                        static_cast<BlendFactor>(_parameters.srcAlphaBlendFactor));
+                state.dstAlphaBlendFactor = convertBlendFactor(
+                        static_cast<BlendFactor>(_parameters.dstAlphaBlendFactor));
 
-			blendAttachmentState[0].srcColorBlendFactor = convertBlendFactor(static_cast<BlendFactor>(_parameters.srcBlendFactor));
-			blendAttachmentState[0].dstColorBlendFactor = convertBlendFactor(static_cast<BlendFactor>(_parameters.dstBlendFactor));
-			blendAttachmentState[0].srcAlphaBlendFactor = convertBlendFactor(static_cast<BlendFactor>(_parameters.srcAlphaBlendFactor));
-			blendAttachmentState[0].dstAlphaBlendFactor = convertBlendFactor(static_cast<BlendFactor>(_parameters.dstAlphaBlendFactor));
-
-			blendAttachmentState[0].colorBlendOp = convertBlendOp(static_cast<BlendFunction>(_parameters.blendFunctionRGB));
-			blendAttachmentState[0].alphaBlendOp = convertBlendOp(static_cast<BlendFunction>(_parameters.blendFunctionAlpha));
+                state.colorBlendOp = convertBlendOp(
+                        static_cast<BlendFunction>(_parameters.blendFunctionRGB));
+                state.alphaBlendOp = convertBlendOp(
+                        static_cast<BlendFunction>(_parameters.blendFunctionAlpha));
+            }
 
 			return blendAttachmentState;
 		}
@@ -269,7 +277,7 @@ namespace vulkan {
         [[maybe_unused]] inline const static VulkanBlendMode blend_alpha	= VulkanBlendMode::makeBlendMode(BlendFactor::BLEND_FACTOR_SRC_ALPHA, BlendFactor::BLEND_FACTOR_ONE_MINUS_SRC_ALPHA);
         [[maybe_unused]] inline const static VulkanBlendMode blend_add		= VulkanBlendMode::makeBlendMode(BlendFactor::BLEND_FACTOR_SRC_ALPHA, BlendFactor::BLEND_FACTOR_ONE);
         [[maybe_unused]] inline const static VulkanBlendMode blend_multiply	= VulkanBlendMode::makeBlendMode(BlendFactor::BLEND_FACTOR_DST_COLOR, BlendFactor::BLEND_FACTOR_ZERO);
-        // premultily alpha modes
+        // premultiply alpha modes
         // https://gamedev.ru/code/articles/PremultipliedAlpha
         // https://habr.com/ru/company/playrix/blog/336304/
         // https://apoorvaj.io/alpha-compositing-opengl-blending-and-premultiplied-alpha/
@@ -438,7 +446,7 @@ namespace vulkan {
 			const VulkanRenderState& renderState,
 			const VulkanGpuProgram* program,
 			const VkRenderPass renderPass = VK_NULL_HANDLE,
-			const uint8_t subpass = 0
+			const uint8_t subpass = 0u
 		);
 
 		VulkanPipeline* getGraphicsPipeline(
@@ -450,7 +458,7 @@ namespace vulkan {
 			const VulkanStencilState& stencilState,
 			const VulkanGpuProgram* program,
 			const VkRenderPass renderPass = VK_NULL_HANDLE,
-			const uint8_t subpass = 0
+			const uint8_t subpass = 0u
 		);
 
 		bool createInstance(
@@ -478,11 +486,11 @@ namespace vulkan {
 		inline VulkanCommandBuffersArrayEx<STATE> createCommandBuffer(
 			VkPipelineStageFlags waitStageMask,
 			uint32_t cmdBuffersCount, 
-			const VkSemaphoreCreateFlags signalSemFlags = 0, 
-			const VkAllocationCallbacks* signalSempAllocator = nullptr, 
+			const VkSemaphoreCreateFlags signalSemaphoreFlags = 0,
+			const VkAllocationCallbacks* signalSemaphoreAllocator = nullptr,
 			const VkCommandBufferLevel level = VK_COMMAND_BUFFER_LEVEL_PRIMARY
 		) const {
-			return VulkanCommandBuffersArrayEx<STATE>(_vulkanDevice->device, _commandPool, waitStageMask, cmdBuffersCount, signalSemFlags, signalSempAllocator, level);
+			return VulkanCommandBuffersArrayEx<STATE>(_vulkanDevice->device, _commandPool, waitStageMask, cmdBuffersCount, signalSemaphoreFlags, signalSemaphoreAllocator, level);
 		}
 
 		inline VulkanCommandBuffer& getRenderCommandBuffer() noexcept { return _mainRenderCommandBuffers[_currentFrame]; }
@@ -497,12 +505,12 @@ namespace vulkan {
 		//VkDescriptorPool getGlobalDescriptorPool() const { return _globalDescriptorPool; }
 
 		// dynamic uniform buffers
-		VulkanDynamicBuffer* getDynamicGPUBufferForSize(const uint32_t size, const VkBufferUsageFlags usageFlags, const uint32_t maxCount = 2048);
-		uint32_t updateDynamicBufferData(VulkanDynamicBuffer* dynamicBuffer, const void* data, const uint32_t offset, const uint32_t size, const bool allBuffers = false, const uint32_t knownOffset = 0xffffffff) const;
+		VulkanDynamicBuffer* getDynamicGPUBufferForSize(const uint32_t size, const VkBufferUsageFlags usageFlags, const uint32_t maxCount = 0xffffu);
+		uint32_t updateDynamicBufferData(VulkanDynamicBuffer* dynamicBuffer, const void* data, const uint32_t offset, const uint32_t size, const bool allBuffers = false, const uint32_t knownOffset = 0xffffffffu) const;
 
-		inline uint32_t updateDynamicBufferData(VulkanDynamicBuffer* dynamicBuffer, const void* data, const bool allBuffers = false, const uint32_t knownOffset = 0xffffffff, const uint32_t knownSize = 0xffffffff) const {
-			if (dynamicBuffer == nullptr) return 0;
-			const uint32_t bufferOffset = updateDynamicBufferData(dynamicBuffer, data, 0, (knownSize == 0xffffffff ? dynamicBuffer->alignedSize : knownSize), allBuffers, knownOffset);
+		inline uint32_t updateDynamicBufferData(VulkanDynamicBuffer* dynamicBuffer, const void* data, const bool allBuffers = false, const uint32_t knownOffset = 0xffffffffu, const uint32_t knownSize = 0xffffffffu) const {
+			if (dynamicBuffer == nullptr) return 0u;
+			const uint32_t bufferOffset = updateDynamicBufferData(dynamicBuffer, data, 0u, (knownSize == 0xffffffffu ? dynamicBuffer->alignedSize : knownSize), allBuffers, knownOffset);
 			return bufferOffset;
 		}
 
@@ -525,15 +533,15 @@ namespace vulkan {
         void markToDelete(VulkanTexture* texture);
         void markToDelete(VulkanTexture&& texture);
 
-		void addDefferedGenerateTexture(VulkanTexture* t, VulkanBuffer* b, const uint32_t baseLayer, const uint32_t layerCount) {
+		void addDeferredGenerateTexture(VulkanTexture* t, VulkanBuffer* b, const uint32_t baseLayer, const uint32_t layerCount) {
 			engine::AtomicLock lock(_lockTmpData);
-			_defferedTextureToGenerate.emplace_back(t, b, baseLayer, layerCount);
+			_deferredTexturesToGenerate.emplace_back(t, b, baseLayer, layerCount);
 		}
 
 		inline uint32_t getWidth() const noexcept { return _width; }
 		inline uint32_t getHeight() const noexcept { return _height; }
 		inline uint64_t getWH() const noexcept {
-			const uint64_t wh = static_cast<uint64_t>(_width) << 0 | static_cast<uint64_t>(_height) << 32;
+			const uint64_t wh = static_cast<uint64_t>(_width) << 0u | static_cast<uint64_t>(_height) << 32u;
 			return wh;
 		}
 
@@ -544,7 +552,7 @@ namespace vulkan {
 		inline const VulkanTexture* getEmptyTexture() const noexcept { return _emptyTexture; }
 		inline const VulkanTexture* getEmptyTextureArray() const noexcept { return _emptyTextureArray; }
 
-        constexpr inline const char* getName() const noexcept { return "vulkan"; }
+        constexpr inline const char* name() const noexcept { return "vulkan"; }
 
 	private:
 		VkResult allocateDescriptorSetsFromGlobalPool(VkDescriptorSetAllocateInfo& allocInfo, VkDescriptorSet* set);
@@ -560,13 +568,13 @@ namespace vulkan {
 			CachedDescriptorLayouts(std::vector<std::vector<uint32_t>>&& bindings, std::vector<uint64_t>&& constants, PipelineDescriptorLayout&& l, const uint16_t handled) : bindingsCharacterVec(std::move(bindings)), constantsCharacterVec(std::move(constants)), layout(std::move(l)), descriptorSetLayoutsHandled(handled) { }
 		};
 
-		void* _deviceCreatepNextChain = nullptr;
+		void* _deviceCreateNextChain = nullptr;
 
 		bool _vSync = false;
 		uint32_t _width = 0u;
         uint32_t _height = 0u;
 		uint32_t _currentFrame = 0u;
-		uint32_t _swapchainImagesCount = 0u;
+		uint32_t _swapChainImagesCount = 0u;
 		uint8_t _mainDepthFormatBits = 24u;
 
 		VkInstance _instance = VK_NULL_HANDLE;
@@ -591,29 +599,28 @@ namespace vulkan {
 
 		VulkanCommandBuffersArray _mainRenderCommandBuffers;
 		VulkanCommandBuffersArray _mainSupportCommandBuffers;
-		VkSubpassContents _mainSubpassContents = VK_SUBPASS_CONTENTS_INLINE;
+		[[maybe_unused]] VkSubpassContents _mainSubPassContents = VK_SUBPASS_CONTENTS_INLINE;
 
-		VkClearValue _mainClearValues[2];
+		VkClearValue _mainClearValues[2u];
 
 		VulkanImage _depthStencil = {};
 		VkFormat _mainDepthFormat = VK_FORMAT_MAX_ENUM;
 
 		//// caches
 		struct GraphicsPipelineCacheKey {
-			uint64_t composite_key = 0;
-			uint64_t stencil_key = 0;
-			uint32_t blend_key = 0;
-            uint64_t vertex_descriptor_id = 0;
+			uint64_t composite_key = 0u;
+			uint64_t stencil_key = 0u;
+			uint32_t blend_key = 0u;
+            uint64_t vertex_descriptor_id = 0u;
 			VkRenderPass renderPass = VK_NULL_HANDLE;
-			size_t hash_value = 0xffffffff;
+			size_t hash_value = 0xffffffffu;
 
 			GraphicsPipelineCacheKey(const uint64_t cmpst, const uint64_t stncl, const uint32_t blnd, uint64_t vdescr, VkRenderPass rp) :
 				composite_key(cmpst),
 				stencil_key(stncl),
 				blend_key(blnd),
                 vertex_descriptor_id(vdescr),
-				renderPass(rp)
-			{
+				renderPass(rp) {
 				hash_value = engine::hash_combine(composite_key, stencil_key, blend_key, vertex_descriptor_id, renderPass);
 			}
 
@@ -650,7 +657,7 @@ namespace vulkan {
 		//// caches
 
 		// dynamic buffers
-		std::unordered_map<uint32_t, VulkanDynamicBuffer*> _dinamicGPUBuffers;
+		std::unordered_map<uint32_t, VulkanDynamicBuffer*> _dynamicGPUBuffers;
 
 		// samplers
 		/*struct SamplerKey {
@@ -667,7 +674,7 @@ namespace vulkan {
 		// tmp frame data
 		std::atomic_bool _lockTmpData = {};
 		std::vector<std::vector<VulkanBuffer*>> _buffersToDelete;
-		std::vector<std::tuple<VulkanTexture*, VulkanBuffer*, uint32_t, uint32_t>> _defferedTextureToGenerate;
+		std::vector<std::tuple<VulkanTexture*, VulkanBuffer*, uint32_t, uint32_t>> _deferredTexturesToGenerate;
         std::vector<std::vector<VulkanTexture*>> _texturesToDelete;
         std::vector<std::vector<VulkanTexture>> _texturesToFree;
 		// empty data

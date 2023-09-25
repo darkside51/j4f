@@ -58,7 +58,7 @@ namespace engine {
         _versions = fmtString("application version {}\nengine version {}\ngpu api: {}, version {}",
                               applicationVersion.str().c_str(),
                               engineVersion.str().c_str(),
-                              renderer->getName(), apiVersion.str().c_str()
+                              renderer->name(), apiVersion.str().c_str()
                               );
 
         memset(_renderFps_array.data(), 0, sizeof(float) * _renderFps_array.size());

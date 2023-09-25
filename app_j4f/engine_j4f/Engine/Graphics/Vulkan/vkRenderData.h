@@ -262,11 +262,11 @@ namespace vulkan {
 
 						if (value) {
 							p.second = buffer->encrease();
-							increasedBuffers |= (uint64_t(1) << l->dynamicBufferIdx);
+							increasedBuffers |= (uint64_t(1u) << l->dynamicBufferIdx);
 							result = dynamicOffsets[l->dynamicBufferIdx] = program->setValueToLayout(l, value, nullptr, p.second, size);
 						} else {
 							const uint32_t bufferOffset = buffer->getCurrentOffset();
-							result = dynamicOffsets[l->dynamicBufferIdx] = ((bufferOffset == 0) ? 0 : (buffer->alignedSize * (bufferOffset - 1)));
+							result = dynamicOffsets[l->dynamicBufferIdx] = ((bufferOffset == 0u) ? 0u : (buffer->alignedSize * (bufferOffset - 1u)));
 						}
 					}
 						break;
@@ -274,12 +274,12 @@ namespace vulkan {
 					{
 						if (value) {
 							auto* buffer = reinterpret_cast<VulkanDynamicBuffer*>(l->parentLayout->data);
-							if ((increasedBuffers & (uint64_t(1) << l->parentLayout->dynamicBufferIdx)) == 0) {
-								increasedBuffers |= (uint64_t(1) << l->parentLayout->dynamicBufferIdx);
+							if ((increasedBuffers & (uint64_t(1u) << l->parentLayout->dynamicBufferIdx)) == 0u) {
+								increasedBuffers |= (uint64_t(1u) << l->parentLayout->dynamicBufferIdx);
 								p.second = buffer->encrease();
 							} else {
 								const uint32_t bufferOffset = buffer->getCurrentOffset();
-								p.second = bufferOffset == 0 ? 0 : bufferOffset - 1;
+								p.second = bufferOffset == 0u ? 0u : bufferOffset - 1u;
 							}
 
 							result = dynamicOffsets[l->parentLayout->dynamicBufferIdx] = program->setValueToLayout(l, value, nullptr, p.second, size);
@@ -298,14 +298,14 @@ namespace vulkan {
 					case GPUParamLayoutType::PUSH_CONSTANT: // full constant
 					{
 						if (value) {
-							result = program->setValueToLayout(l, value, &constants[l->push_constant_number], 0);
+							result = program->setValueToLayout(l, value, &constants[l->push_constant_number], 0u);
 						}
 					}
 						break;
 					case GPUParamLayoutType::PUSH_CONSTANT_PART: // part of constant
 					{
 						if (value) {
-							result = program->setValueToLayout(l, value, &constants[l->parentLayout->push_constant_number], 0);
+							result = program->setValueToLayout(l, value, &constants[l->parentLayout->push_constant_number], 0u);
 						}
 					}
 						break;
