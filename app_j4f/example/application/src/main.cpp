@@ -1048,72 +1048,82 @@ namespace engine {
 				skyBox->setGraphics(skyboxRenderer);
 				(*node)->setRenderObject(skyBox); // (*node)-> == node->value().
 			}
-			
-			assm.loadAsset<Mesh*>(mesh_params, [texture_zombi, this](Mesh* asset, const AssetLoadingResult result) {
-				asset->setProgram(program_mesh_skin_with_stroke);
-				asset->setParamByName("u_texture", texture_zombi, false);
-				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
-				asset->setParamByName("color", vec4f(1.0f, 0.0f, 0.0f, 1.0f), true);
-				asset->setParamByName("lighting", 0.5f, true);
 
-				animTree = new MeshAnimationTree(0.0f, asset->getNodesCount(), asset->getSkeleton()->getLatency());
-				animTree->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[2], 1.0f, asset->getSkeleton()->getLatency()));
-				animTree->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[1], 0.0f, asset->getSkeleton()->getLatency()));
+            {
+                H_Node* node = new H_Node();
+                rootNode->addChild(node);
+                (*node)->setRenderObject(mesh);
+                shadowCastNodes.push_back(node);
 
-                auto&& animationManager = Engine::getInstance().getModule<Graphics>().getAnimationManager();
-                animationManager->registerAnimation(animTree);
-                animationManager->addTarget(animTree, asset->getSkeleton().get());
+                assm.loadAsset<Mesh *>(mesh_params,
+                                       [texture_zombi, this](Mesh *asset, const AssetLoadingResult result) {
+                                           asset->setProgram(program_mesh_skin_with_stroke);
+                                           asset->setParamByName("u_texture", texture_zombi, false);
+                                           asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
+                                           asset->setParamByName("color", vec4f(1.0f, 0.0f, 0.0f, 1.0f), true);
+                                           asset->setParamByName("lighting", 0.5f, true);
 
-				asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
-					renderState.rasterizationState.cullMode = vulkan::CullMode::CULL_MODE_NONE;
-				});
+                                           animTree = new MeshAnimationTree(0.0f, asset->getNodesCount(),
+                                                                            asset->getSkeleton()->getLatency());
+                                           animTree->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(
+                                                   &asset->getMeshData()->animations[2], 1.0f,
+                                                   asset->getSkeleton()->getLatency()));
+                                           animTree->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(
+                                                   &asset->getMeshData()->animations[1], 0.0f,
+                                                   asset->getSkeleton()->getLatency()));
 
-				//////////////////////
-				mat4f wtr(1.0f);
-				scaleMatrix(wtr, vec3f(25.0f));
-				rotateMatrix_xyz(wtr, vec3f(1.57f, 0.45f, 0.0f));
-				translateMatrixTo(wtr, vec3f(-100.0f, -0.0f, 0.0f));
+                                           auto &&animationManager = Engine::getInstance().getModule<Graphics>().getAnimationManager();
+                                           animationManager->registerAnimation(animTree);
+                                           animationManager->addTarget(animTree, asset->getSkeleton().get());
 
-				H_Node* node = new H_Node();
-				node->value().setLocalMatrix(wtr);
-				node->value().setBoundingVolume(BoundingVolume::make<SphereVolume>(vec3f(0.0f, 1.45f, 0.0f), 1.8f));
-				rootNode->addChild(node);
+                                           asset->changeRenderState([](vulkan::VulkanRenderState &renderState) {
+                                               renderState.rasterizationState.cullMode = vulkan::CullMode::CULL_MODE_NONE;
+                                           });
 
-				mesh->setGraphics(asset);
-				(*node)->setRenderObject(mesh);
+                                           //////////////////////
+                                           mat4f wtr(1.0f);
+                                           scaleMatrix(wtr, vec3f(25.0f));
+                                           rotateMatrix_xyz(wtr, vec3f(1.57f, 0.45f, 0.0f));
+                                           translateMatrixTo(wtr, vec3f(-100.0f, -0.0f, 0.0f));
 
-				shadowCastNodes.push_back(node);
-				});
+                                           mesh->setGraphics(asset);
+                                           auto && node = mesh->getNode();
+                                           node->setLocalMatrix(wtr);
+                                           node->setBoundingVolume(BoundingVolume::make<SphereVolume>(vec3f(0.0f, 1.45f, 0.0f), 1.8f));
+                                       });
+            }
 
-			assm.loadAsset<Mesh*>(mesh_params, [texture_zombi](Mesh* asset, const AssetLoadingResult result) {
-				asset->setProgram(program_mesh_skin);
-				asset->setParamByName("u_texture", texture_zombi, false);
-				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
-				asset->setParamByName("color", vec4f(1.0f, 1.0f, 1.0f, 1.0f), true);
-				asset->setParamByName("lighting", 0.5f, true);
+            {
+                H_Node* node = new H_Node();
+                rootNode->addChild(node);
+                (*node)->setRenderObject(mesh2);
+                shadowCastNodes.push_back(node);
 
-				asset->setSkeleton(mesh->graphics()->getSkeleton());
+                assm.loadAsset<Mesh *>(mesh_params, [texture_zombi](Mesh *asset, const AssetLoadingResult result) {
+                    asset->setProgram(program_mesh_skin);
+                    asset->setParamByName("u_texture", texture_zombi, false);
+                    asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
+                    asset->setParamByName("color", vec4f(1.0f, 1.0f, 1.0f, 1.0f), true);
+                    asset->setParamByName("lighting", 0.5f, true);
 
-				asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
-					renderState.rasterizationState.cullMode = vulkan::CullMode::CULL_MODE_NONE;
-				});
+                    asset->setSkeleton(mesh->graphics()->getSkeleton());
 
-				////////////////////
-				mat4f wtr(1.0f);
-				scaleMatrix(wtr, vec3f(20.0f));
-				rotateMatrix_xyz(wtr, vec3f(1.57f, -0.45f, 0.0f));
-				translateMatrixTo(wtr, vec3f(100.0f, 190.0f, 0.0f));
+                    asset->changeRenderState([](vulkan::VulkanRenderState &renderState) {
+                        renderState.rasterizationState.cullMode = vulkan::CullMode::CULL_MODE_NONE;
+                    });
 
-				H_Node* node = new H_Node();
-				node->value().setLocalMatrix(wtr);
-				node->value().setBoundingVolume(BoundingVolume::make<SphereVolume>(vec3f(0.0f, 1.45f, 0.0f), 1.8f));
-				rootNode->addChild(node);
+                    ////////////////////
+                    mat4f wtr(1.0f);
+                    scaleMatrix(wtr, vec3f(20.0f));
+                    rotateMatrix_xyz(wtr, vec3f(1.57f, -0.45f, 0.0f));
+                    translateMatrixTo(wtr, vec3f(100.0f, 190.0f, 0.0f));
 
-				mesh2->setGraphics(asset);
-				(*node)->setRenderObject(mesh2);
-
-				shadowCastNodes.push_back(node);
-				});
+                    mesh2->setGraphics(asset);
+                    auto && node = mesh2->getNode();
+                    node->setLocalMatrix(wtr);
+                    node->setBoundingVolume(BoundingVolume::make<SphereVolume>(vec3f(0.0f, 1.45f, 0.0f), 1.8f));
+                });
+            }
 
 			for (auto&& meshObj : testMehsesVec) {
 
@@ -1148,172 +1158,208 @@ namespace engine {
 					});
 			}
 
-			assm.loadAsset<Mesh*>(mesh_params2, [texture_v, texture_v2, texture_v3](Mesh* asset, const AssetLoadingResult result) {
-				asset->setProgram(program_mesh_skin);
-				asset->setParamByName("u_texture", texture_v, false);
-				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
-				asset->setParamByName("color", vec4f(1.0f, 1.0f, 1.0f, 1.0f), true);
-				asset->setParamByName("lighting", 0.5f, true);
+            {
+                H_Node* node = new H_Node();
+                rootNode->addChild(node);
+                (*node)->setRenderObject(mesh3);
+                shadowCastNodes.push_back(node);
 
-				asset->getRenderDataAt(3)->setParamByName("u_texture", texture_v3, false);
-				asset->getRenderDataAt(7)->setParamByName("u_texture", texture_v2, false); // eye
-				asset->getRenderDataAt(8)->setParamByName("u_texture", texture_v2, false); // head
-				asset->getRenderDataAt(9)->setParamByName("u_texture", texture_v3, false); // helm
-				asset->getRenderDataAt(11)->setParamByName("u_texture", texture_v3, false);
-				asset->getRenderDataAt(13)->setParamByName("u_texture", texture_v3, false);
+                assm.loadAsset<Mesh *>(mesh_params2, [texture_v, texture_v2, texture_v3](Mesh *asset,
+                                                                                         const AssetLoadingResult result) {
+                    asset->setProgram(program_mesh_skin);
+                    asset->setParamByName("u_texture", texture_v, false);
+                    asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
+                    asset->setParamByName("color", vec4f(1.0f, 1.0f, 1.0f, 1.0f), true);
+                    asset->setParamByName("lighting", 0.5f, true);
 
-				//asset->changeRenderState([](vulkan::VulkanRenderState& renderState) { // for stroke
-				//	renderState.rasterizationState.cullMode = vulkan::CULL_MODE_NONE;
-				//});
+                    asset->getRenderDataAt(3)->setParamByName("u_texture", texture_v3, false);
+                    asset->getRenderDataAt(7)->setParamByName("u_texture", texture_v2, false); // eye
+                    asset->getRenderDataAt(8)->setParamByName("u_texture", texture_v2, false); // head
+                    asset->getRenderDataAt(9)->setParamByName("u_texture", texture_v3, false); // helm
+                    asset->getRenderDataAt(11)->setParamByName("u_texture", texture_v3, false);
+                    asset->getRenderDataAt(13)->setParamByName("u_texture", texture_v3, false);
 
-				animTree2 = new MeshAnimationTree(0.0f, asset->getNodesCount(), asset->getSkeleton()->getLatency());
+                    //asset->changeRenderState([](vulkan::VulkanRenderState& renderState) { // for stroke
+                    //	renderState.rasterizationState.cullMode = vulkan::CULL_MODE_NONE;
+                    //});
 
-				animTree2->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[1], 1.0f, asset->getSkeleton()->getLatency(), 1.0f));
-				animTree2->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[2], 0.0f, asset->getSkeleton()->getLatency(), 1.0f));
-				animTree2->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[11], 0.0f, asset->getSkeleton()->getLatency(), 1.25f));
-				animTree2->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[10], 0.0f, asset->getSkeleton()->getLatency(), 1.0f));
-				animTree2->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[0], 0.0f, asset->getSkeleton()->getLatency(), 1.4f));
+                    animTree2 = new MeshAnimationTree(0.0f, asset->getNodesCount(), asset->getSkeleton()->getLatency());
 
-                auto&& animationManager = Engine::getInstance().getModule<Graphics>().getAnimationManager();
-                animationManager->registerAnimation(animTree2);
-                animationManager->addTarget(animTree2, asset->getSkeleton().get());
+                    animTree2->getAnimator()->addChild(
+                            new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[1], 1.0f,
+                                                                asset->getSkeleton()->getLatency(), 1.0f));
+                    animTree2->getAnimator()->addChild(
+                            new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[2], 0.0f,
+                                                                asset->getSkeleton()->getLatency(), 1.0f));
+                    animTree2->getAnimator()->addChild(
+                            new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[11], 0.0f,
+                                                                asset->getSkeleton()->getLatency(), 1.25f));
+                    animTree2->getAnimator()->addChild(
+                            new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[10], 0.0f,
+                                                                asset->getSkeleton()->getLatency(), 1.0f));
+                    animTree2->getAnimator()->addChild(
+                            new MeshAnimationTree::AnimatorType(&asset->getMeshData()->animations[0], 0.0f,
+                                                                asset->getSkeleton()->getLatency(), 1.4f));
 
-				////////////////////
-				mat4f wtr(1.0f);
-				scaleMatrix(wtr, vec3f(30.0f));
-				directMatrix_yz(wtr, 0.0f, 1.0f);
-				translateMatrixTo(wtr, vec3f(-100.0f, 210.0f, 0.0f));
+                    auto &&animationManager = Engine::getInstance().getModule<Graphics>().getAnimationManager();
+                    animationManager->registerAnimation(animTree2);
+                    animationManager->addTarget(animTree2, asset->getSkeleton().get());
 
-				H_Node* node = new H_Node();
-				(*node)->setLocalMatrix(wtr);
-				(*node)->setBoundingVolume(BoundingVolume::make<SphereVolume>((asset->getMinCorner() + asset->getMaxCorner()) * 0.5f, 1.0f));
-				//(*node)->setBoundingVolume(BoundingVolume::make<CubeVolume>(asset->getMinCorner(), asset->getMaxCorner()));
-				(*node)->setRenderObject(mesh3);
-				rootNode->addChild(node);
+                    ////////////////////
+                    mat4f wtr(1.0f);
+                    scaleMatrix(wtr, vec3f(30.0f));
+                    directMatrix_yz(wtr, 0.0f, 1.0f);
+                    translateMatrixTo(wtr, vec3f(-100.0f, 210.0f, 0.0f));
 
-				mesh3->setGraphics(asset);
-				
-				shadowCastNodes.push_back(node);
-				});
+                    mesh3->setGraphics(asset);
+                    auto && node = mesh3->getNode();
+                    node->setLocalMatrix(wtr);
+                    node->setBoundingVolume(
+                            BoundingVolume::make<SphereVolume>((asset->getMinCorner() + asset->getMaxCorner()) * 0.5f,
+                                                               1.0f));
+                });
+            }
 
-			assm.loadAsset<Mesh*>(mesh_params3, [texture_t, texture_t2, this](Mesh* asset, const AssetLoadingResult result) {
-				asset->setProgram(program_mesh);
-				asset->setParamByName("u_texture", texture_t, false);
-				asset->getRenderDataAt(1)->setParamByName("u_texture", texture_t2, false);
-				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
-				asset->setParamByName("color", vec4f(1.0f, 1.0f, 1.0f, 1.0f), true);
-				asset->setParamByName("lighting", 0.0f, true);
+            {
+                H_Node* node = new H_Node();
+                rootNode->addChild(node);
+                (*node)->setRenderObject(mesh4);
+                shadowCastNodes.push_back(node);
 
-				asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
-					renderState.rasterizationState.cullMode = vulkan::CullMode::CULL_MODE_NONE;
-				});
+                assm.loadAsset<Mesh *>(mesh_params3,
+                                       [texture_t, texture_t2, this](Mesh *asset, const AssetLoadingResult result) {
+                                           asset->setProgram(program_mesh);
+                                           asset->setParamByName("u_texture", texture_t, false);
+                                           asset->getRenderDataAt(1)->setParamByName("u_texture", texture_t2, false);
+                                           asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
+                                           asset->setParamByName("color", vec4f(1.0f, 1.0f, 1.0f, 1.0f), true);
+                                           asset->setParamByName("lighting", 0.0f, true);
 
-				////////////////////
-				mat4f wtr(1.0f);
-				scaleMatrix(wtr, vec3f(0.65f));
-				rotateMatrix_xyz(wtr, vec3f(1.57f, 0.0f, 0.0f));
-				translateMatrixTo(wtr, vec3f(-150.0f, -170.0f, 0.0f));
+                                           asset->changeRenderState([](vulkan::VulkanRenderState &renderState) {
+                                               renderState.rasterizationState.cullMode = vulkan::CullMode::CULL_MODE_NONE;
+                                           });
 
-				H_Node* node = new H_Node();
-				node->value().setLocalMatrix(wtr);
-				node->value().setBoundingVolume(BoundingVolume::make<CubeVolume>(asset->getMinCorner(), asset->getMaxCorner()));
-				rootNode->addChild(node);
+                                           ////////////////////
+                                           mat4f wtr(1.0f);
+                                           scaleMatrix(wtr, vec3f(0.65f));
+                                           rotateMatrix_xyz(wtr, vec3f(1.57f, 0.0f, 0.0f));
+                                           translateMatrixTo(wtr, vec3f(-150.0f, -170.0f, 0.0f));
 
-				mesh4->setGraphics(asset);
-				(*node)->setRenderObject(mesh4);
+                                           mesh4->setGraphics(asset);
+                                           auto && node = mesh4->getNode();
+                                           node->setLocalMatrix(wtr);
+                                           node->setBoundingVolume(
+                                                   BoundingVolume::make<CubeVolume>(asset->getMinCorner(),
+                                                                                    asset->getMaxCorner()));
+                                       });
+            }
 
-				shadowCastNodes.push_back(node);
-				});
+            {
+                H_Node* node = new H_Node();
+                rootNode->addChild(node);
+                (*node)->setRenderObject(mesh5);
+                shadowCastNodes.push_back(node);
 
-			assm.loadAsset<Mesh*>(mesh_params4, [texture_t3, this](Mesh* asset, const AssetLoadingResult result) {
-				asset->setProgram(program_mesh);
-				asset->setParamByName("u_texture", texture_t3, false);
-				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
-				asset->setParamByName("color", vec4f(1.0f, 1.0f, 1.0f, 1.0f), true);
-				asset->setParamByName("lighting", 0.0f, true);
+                assm.loadAsset<Mesh *>(mesh_params4, [texture_t3, this](Mesh *asset, const AssetLoadingResult result) {
+                    asset->setProgram(program_mesh);
+                    asset->setParamByName("u_texture", texture_t3, false);
+                    asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
+                    asset->setParamByName("color", vec4f(1.0f, 1.0f, 1.0f, 1.0f), true);
+                    asset->setParamByName("lighting", 0.0f, true);
 
-				asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
-					renderState.rasterizationState.cullMode = vulkan::CullMode::CULL_MODE_NONE;
-				});
+                    asset->changeRenderState([](vulkan::VulkanRenderState &renderState) {
+                        renderState.rasterizationState.cullMode = vulkan::CullMode::CULL_MODE_NONE;
+                    });
 
-				////////////////////
-				mat4f wtr(1.0f);
-				scaleMatrix(wtr, vec3f(0.125f));
-				rotateMatrix_xyz(wtr, vec3f(1.57f, 0.0f, 0.0f));
-				translateMatrixTo(wtr, vec3f(570.0f, -250.0f, 10.0f));
+                    ////////////////////
+                    mat4f wtr(1.0f);
+                    scaleMatrix(wtr, vec3f(0.125f));
+                    rotateMatrix_xyz(wtr, vec3f(1.57f, 0.0f, 0.0f));
+                    translateMatrixTo(wtr, vec3f(570.0f, -250.0f, 10.0f));
 
-				H_Node* node = new H_Node();
-				node->value().setLocalMatrix(wtr);
-				node->value().setBoundingVolume(BoundingVolume::make<CubeVolume>(asset->getMinCorner(), asset->getMaxCorner()));
-				rootNode->addChild(node);
+                    mesh5->setGraphics(asset);
+                    auto && node = mesh5->getNode();
+                    node->setLocalMatrix(wtr);
+                    node->setBoundingVolume(
+                            BoundingVolume::make<CubeVolume>(asset->getMinCorner(),
+                                                             asset->getMaxCorner()));
+                });
+            }
 
-				mesh5->setGraphics(asset);
-				(*node)->setRenderObject(mesh5);
+            {
+                H_Node* node = new H_Node();
+                rootNode->addChild(node);
+                (*node)->setRenderObject(mesh6);
+                shadowCastNodes.push_back(node);
 
-				shadowCastNodes.push_back(node);
-				});
+                assm.loadAsset<Mesh *>(mesh_params5,
+                                       [texture_t5, texture_t6, this](Mesh *asset, const AssetLoadingResult result) {
+                                           asset->setProgram(program_mesh);
+                                           asset->setParamByName("u_texture", texture_t5, false);
+                                           asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
+                                           asset->setParamByName("color", vec4f(1.0f, 1.0f, 1.0f, 1.0f), true);
+                                           asset->setParamByName("lighting", 0.0f, true);
 
-			assm.loadAsset<Mesh*>(mesh_params5, [texture_t5, texture_t6, this](Mesh* asset, const AssetLoadingResult result) {
-				asset->setProgram(program_mesh);
-				asset->setParamByName("u_texture", texture_t5, false);
-				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
-				asset->setParamByName("color", vec4f(1.0f, 1.0f, 1.0f, 1.0f), true);
-				asset->setParamByName("lighting", 0.0f, true);
+                                           asset->changeRenderState([](vulkan::VulkanRenderState &renderState) {
+                                               renderState.rasterizationState.cullMode = vulkan::CullMode::CULL_MODE_NONE;
+                                           });
 
-				asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
-					renderState.rasterizationState.cullMode = vulkan::CullMode::CULL_MODE_NONE;
-				});
+                                           ////////////////////
+                                           mat4f wtr(1.0f);
+                                           scaleMatrix(wtr, vec3f(35.0f));
+                                           rotateMatrix_xyz(wtr, vec3f(1.57f, 1.1f, 0.0f));
+                                           translateMatrixTo(wtr, vec3f(225.0f, 285.0f, 0.0f));
 
-				////////////////////
-				mat4f wtr(1.0f);
-				scaleMatrix(wtr, vec3f(35.0f));
-				rotateMatrix_xyz(wtr, vec3f(1.57f, 1.1f, 0.0f));
-				translateMatrixTo(wtr, vec3f(225.0f, 285.0f, 0.0f));
+                                           mesh6->setGraphics(asset);
+                                           auto && node = mesh6->getNode();
+                                           node->setLocalMatrix(wtr);
+                                           node->setBoundingVolume(
+                                                   BoundingVolume::make<CubeVolume>(asset->getMinCorner(),
+                                                                                    asset->getMaxCorner()));
+                                       });
+            }
 
-				H_Node* node = new H_Node();
-				node->value().setLocalMatrix(wtr);
-				node->value().setBoundingVolume(BoundingVolume::make<CubeVolume>(asset->getMinCorner(), asset->getMaxCorner()));
-				rootNode->addChild(node);
+            {
+                H_Node *node = new H_Node();
+                rootNode->addChild(node);
+                (*node)->setRenderObject(mesh7);
+                shadowCastNodes.push_back(node);
 
-				mesh6->setGraphics(asset);
-				(*node)->setRenderObject(mesh6);
+                assm.loadAsset<Mesh *>(mesh_params6,
+                                       [texture_t7, texture_t6, this](Mesh *asset, const AssetLoadingResult result) {
+                                           asset->setProgram(program_mesh);
+                                           asset->setParamByName("u_texture", texture_t7, false);
+                                           asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
+                                           asset->setParamByName("color", vec4f(1.0f, 1.0f, 1.0f, 1.0f), true);
+                                           asset->setParamByName("lighting", 0.0f, true);
 
-				shadowCastNodes.push_back(node);
-				});
+                                           asset->changeRenderState([](vulkan::VulkanRenderState &renderState) {
+                                               renderState.rasterizationState.cullMode = vulkan::CullMode::CULL_MODE_NONE;
+                                           });
 
-			assm.loadAsset<Mesh*>(mesh_params6, [texture_t7, texture_t6, this](Mesh* asset, const AssetLoadingResult result) {
-				asset->setProgram(program_mesh);
-				asset->setParamByName("u_texture", texture_t7, false);
-				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
-				asset->setParamByName("color", vec4f(1.0f, 1.0f, 1.0f, 1.0f), true);
-				asset->setParamByName("lighting", 0.0f, true);
+                                           animTreeWindMill = new MeshAnimationTree(
+                                                   &asset->getMeshData()->animations[0], 1.0f,
+                                                   asset->getSkeleton()->getLatency());
 
-				asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
-					renderState.rasterizationState.cullMode = vulkan::CullMode::CULL_MODE_NONE;
-				});
+                                           auto &&animationManager = Engine::getInstance().getModule<Graphics>().getAnimationManager();
+                                           animationManager->registerAnimation(animTreeWindMill);
+                                           animationManager->addTarget(animTreeWindMill, asset->getSkeleton().get());
 
-				animTreeWindMill = new MeshAnimationTree(&asset->getMeshData()->animations[0],1.0f, asset->getSkeleton()->getLatency());
+                                           ////////////////////
+                                           mat4f wtr(1.0f);
+                                           scaleMatrix(wtr, vec3f(8000.0f));
+                                           rotateMatrix_xyz(wtr, vec3f(1.57f, -1.15f, 0.0f));
+                                           translateMatrixTo(wtr, vec3f(-150.0f, 375.0f, -10.0f));
 
-                auto&& animationManager = Engine::getInstance().getModule<Graphics>().getAnimationManager();
-                animationManager->registerAnimation(animTreeWindMill);
-                animationManager->addTarget(animTreeWindMill, asset->getSkeleton().get());
-
-				////////////////////
-				mat4f wtr(1.0f);
-				scaleMatrix(wtr, vec3f(8000.0f));
-				rotateMatrix_xyz(wtr, vec3f(1.57f, -1.15f, 0.0f));
-				translateMatrixTo(wtr, vec3f(-150.0f, 375.0f, -10.0f));
-
-				H_Node* node = new H_Node();
-				node->value().setLocalMatrix(wtr);
-				node->value().setBoundingVolume(BoundingVolume::make<CubeVolume>(asset->getMinCorner(), asset->getMaxCorner() + vec3f(0.0f, 0.01f, 0.0f)));
-				rootNode->addChild(node);
-
-				mesh7->setGraphics(asset);
-				(*node)->setRenderObject(mesh7);
-
-				shadowCastNodes.push_back(node);
-				});
+                                           mesh7->setGraphics(asset);
+                                           auto && node = mesh7->getNode();
+                                           node->setLocalMatrix(wtr);
+                                           node->setBoundingVolume(
+                                                   BoundingVolume::make<CubeVolume>(asset->getMinCorner(),
+                                                                                    asset->getMaxCorner() +
+                                                                                    vec3f(0.0f, 0.01f, 0.0f)));
+                                       });
+            }
 
 			TextureData img("resources/assets/textures/t3.jpg");
 			GrassRenderer* grenderer = new GrassRenderer(img);
@@ -1383,58 +1429,74 @@ namespace engine {
 
 			texture_floor_normal = assm.loadAsset<vulkan::VulkanTexture*>(tex_params_floor_normal);
 
-			assm.loadAsset<Mesh*>(mesh_params_grass, [texture_t6, grenderer, this](Mesh* asset, const AssetLoadingResult result) {
-				asset->setProgram(grass_default);
-				asset->setParamByName("u_texture", texture_t6, false);
-				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
+            {
+                H_Node *node = new H_Node();
+                rootNode->addChild(node);
+                (*node)->setRenderObject(grassMesh2);
 
-				asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
-					renderState.rasterizationState.cullMode = vulkan::CullMode::CULL_MODE_NONE;
-				});
+                assm.loadAsset<Mesh *>(mesh_params_grass,
+                                       [texture_t6, grenderer, this](Mesh *asset, const AssetLoadingResult result) {
+                                           asset->setProgram(grass_default);
+                                           asset->setParamByName("u_texture", texture_t6, false);
+                                           asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
 
-				/////////////////////
-				//grassMesh->setGraphics(asset);
-				mat4f wtr(1.0f);
-				//scaleMatrix(wtr, vec3f(10000.0f));
-				//rotateMatrix_xyz(wtr, vec3f(1.57f, 0.0f, 0.0f));
-				//translateMatrixTo(wtr, vec3f(200.0f, -100.0f, 0.0f));
+                                           asset->changeRenderState([](vulkan::VulkanRenderState &renderState) {
+                                               renderState.rasterizationState.cullMode = vulkan::CullMode::CULL_MODE_NONE;
+                                           });
 
-				H_Node* node = new H_Node();
-				node->value().setLocalMatrix(wtr);
-				node->value().setBoundingVolume(BoundingVolume::make<CubeVolume>(vec3f(-1024.0f, -1024.0f, 0.0f), vec3f(1024.0f, 1024.0f, 40.0f)));
-				rootNode->addChild(node);
+                                           /////////////////////
+                                           //grassMesh->setGraphics(asset);
+                                           mat4f wtr(1.0f);
+                                           //scaleMatrix(wtr, vec3f(10000.0f));
+                                           //rotateMatrix_xyz(wtr, vec3f(1.57f, 0.0f, 0.0f));
+                                           //translateMatrixTo(wtr, vec3f(200.0f, -100.0f, 0.0f));
 
-				grenderer->setMesh(asset);
-				grassMesh2->setGraphics(grenderer);
-				(*node)->setRenderObject(grassMesh2);
-				});
+                                           grenderer->setMesh(asset);
+                                           grassMesh2->setGraphics(grenderer);
+                                           auto && node = grassMesh2->getNode();
+                                           node->setLocalMatrix(wtr);
+                                           node->setBoundingVolume(
+                                                   BoundingVolume::make<CubeVolume>(vec3f(-1024.0f, -1024.0f, 0.0f),
+                                                                                    vec3f(1024.0f, 1024.0f, 40.0f)));
 
-			assm.loadAsset<Mesh*>(mesh_params_forestTree, [texture_forest_tree1, texture_forest_tree2, forestRenderer, this](Mesh* asset, const AssetLoadingResult result) {
-				asset->setProgram(program_mesh_instance);
-				asset->setParamByName("u_texture", texture_forest_tree2, false);
-				asset->getRenderDataAt(1)->setParamByName("u_texture", texture_forest_tree1, false);
-				asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
-				asset->setParamByName("color", vec4f(1.0f, 1.0f, 1.0f, 1.0f), true);
-				asset->setParamByName("lighting", 0.25f, true);
+                                       });
+            }
 
-				asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
-					renderState.rasterizationState.cullMode = vulkan::CullMode::CULL_MODE_NONE;
-				});
+            {
+                H_Node *node = new H_Node();
+                rootNode->addChild(node);
+                (*node)->setRenderObject(forest);
+                shadowCastNodes.push_back(node);
 
-				////////////////////
-				mat4f wtr(1.0f);
-				rotateMatrix_xyz(wtr, vec3f(1.57f, 0.0f, 0.0f));
-				H_Node* node = new H_Node();
-				node->value().setLocalMatrix(wtr);
-				node->value().setBoundingVolume(BoundingVolume::make<CubeVolume>(vec3f(-1024.0f, 0.0f, -1024.0f), vec3f(1024.0f, 200.0f, 1024.0f)));
-				rootNode->addChild(node);
+                assm.loadAsset<Mesh *>(mesh_params_forestTree,
+                                       [texture_forest_tree1, texture_forest_tree2, forestRenderer, this](Mesh *asset,
+                                                                                                          const AssetLoadingResult result) {
+                                           asset->setProgram(program_mesh_instance);
+                                           asset->setParamByName("u_texture", texture_forest_tree2, false);
+                                           asset->getRenderDataAt(1)->setParamByName("u_texture", texture_forest_tree1,
+                                                                                     false);
+                                           asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
+                                           asset->setParamByName("color", vec4f(1.0f, 1.0f, 1.0f, 1.0f), true);
+                                           asset->setParamByName("lighting", 0.25f, true);
 
-				forestRenderer->setGraphics(asset);
-				forest->setGraphics(forestRenderer);
-				(*node)->setRenderObject(forest);
+                                           asset->changeRenderState([](vulkan::VulkanRenderState &renderState) {
+                                               renderState.rasterizationState.cullMode = vulkan::CullMode::CULL_MODE_NONE;
+                                           });
 
-				shadowCastNodes.push_back(node);
-			});
+                                           ////////////////////
+                                           mat4f wtr(1.0f);
+                                           rotateMatrix_xyz(wtr, vec3f(1.57f, 0.0f, 0.0f));
+
+                                           forestRenderer->setGraphics(asset);
+                                           forest->setGraphics(forestRenderer);
+                                           auto && node = forest->getNode();
+                                           node->setLocalMatrix(wtr);
+                                           node->setBoundingVolume(
+                                                   BoundingVolume::make<CubeVolume>(vec3f(-1024.0f, 0.0f, -1024.0f),
+                                                                                    vec3f(1024.0f, 200.0f, 1024.0f)));
+
+                                       });
+            }
 
 			
 			TexturePtrLoadingParams text_params_logo;
@@ -1788,7 +1850,7 @@ namespace engine {
 //                mesh7->graphics()->getSkeleton()->applyFrame(animTreeWindMill);
 //            }
 
-            if (auto&& grassNode = grassMesh2->getNode()) {
+            if (auto&& grassNode = grassMesh2->getNode(); (grassNode && grassNode->getRenderObject()->getRenderDescriptor())) {
                 static float t = 0.0f;
                 t += 2.0f * dt;
 
