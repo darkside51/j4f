@@ -46,45 +46,53 @@ namespace engine {
 	};
 
 	template<typename T>
-	concept IsGraphicsType = requires(T v) {
-		v.getRenderDescriptor();
-		v.updateRenderData(mat4f(), bool());
-		v.updateModelMatrixChanged(bool());
-		v.setProgram([]()->vulkan::VulkanGpuProgram* { return nullptr; }(), VkRenderPass()); // wow!, it work :)
+	concept IsRenderAvailableType = requires(T v) {
+        [](T v) {
+            if constexpr (is_pointer_v<T> || is_smart_pointer_v<T>) {
+                v->getRenderDescriptor();
+                v->updateRenderData(mat4f(), bool());
+                v->updateModelMatrixChanged(bool());
+                v->setProgram([]() -> vulkan::VulkanGpuProgram * { return nullptr; }(),
+                              VkRenderPass()); // wow!, it work :)
+            } else {
+                v.getRenderDescriptor();
+                v.updateRenderData(mat4f(), bool());
+                v.updateModelMatrixChanged(bool());
+                v.setProgram([]() -> vulkan::VulkanGpuProgram * { return nullptr; }(),
+                              VkRenderPass());
+            }
+        }(v); // wow!, it work too :)
 	};
 
-	template <typename T> requires IsGraphicsType<T>
+	template <typename T> requires IsRenderAvailableType<T>
 	class NodeRenderer : public NodeRenderObject {
 	public:
-		using type = T*;
+		using type = T;
 
 		~NodeRenderer() override {
-			if (_graphics && _isGraphicsOwner) {
-				delete _graphics;
-			}
+            if constexpr (std::is_pointer_v<type>) {
+                if (_graphics && _isGraphicsOwner) {
+                    delete _graphics;
+                }
+            }
 
 			_graphics = nullptr;
 		}
 
 		NodeRenderer() = default;
-		explicit NodeRenderer(type g) : RenderObject(&g->getRenderDescriptor()), _graphics(g) {}
+		explicit NodeRenderer(type&& g) : RenderObject(&g->getRenderDescriptor()), _graphics(g) {}
 
-		inline type replaceGraphics(type g, const bool own = true) {
-			type oldGraphics = _graphics;
-			_isGraphicsOwner = own;
-			_descriptor = &g->getRenderDescriptor();
-			_graphics = g;
-			return oldGraphics;
-		}
-
-		inline void setGraphics(type g, const bool own = true) {
-			if (_graphics && _isGraphicsOwner) {
-				delete _graphics;
-			}
+        template <typename Type = type>
+		inline void setGraphics(Type&& g, const bool own = true) {
+            if constexpr (std::is_pointer_v<type>) {
+                if (_graphics && _isGraphicsOwner) {
+                    delete _graphics;
+                }
+            }
 
 			_isGraphicsOwner = own;
 			_descriptor = &g->getRenderDescriptor();
-			_graphics = g;
+			_graphics = std::forward<Type>(g);
 		}
 
 		inline void resetGraphics() { _graphics = nullptr; _isGraphicsOwner = false; }
@@ -109,11 +117,11 @@ namespace engine {
 			return nullptr;
 		}
 
-		inline type operator->() { return _graphics; }
-		inline const type operator->() const { return _graphics; }
+		inline type& operator->() { return _graphics; }
+		inline const type& operator->() const { return _graphics; }
 
-		inline type graphics() { return _graphics; }
-		inline const type graphics() const { return _graphics; }
+		inline type& graphics() { return _graphics; }
+		inline const type& graphics() const { return _graphics; }
 
 	private:
 		bool _isGraphicsOwner = true;

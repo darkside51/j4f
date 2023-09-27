@@ -74,20 +74,20 @@ namespace engine {
 	CascadeShadowMap* shadowMap = nullptr;
 	BitmapFont *bitmapFont = nullptr;
 
-	NodeRenderer<Mesh>* mesh = nullptr;
-	NodeRenderer<Mesh>* mesh2 = nullptr;
-	NodeRenderer<Mesh>* mesh3 = nullptr;
-	NodeRenderer<Mesh>* mesh4 = nullptr;
-	NodeRenderer<Mesh>* mesh5 = nullptr;
-	NodeRenderer<Mesh>* mesh6 = nullptr;
-	NodeRenderer<Mesh>* mesh7 = nullptr;
+	NodeRenderer<Mesh*>* mesh = nullptr;
+	NodeRenderer<Mesh*>* mesh2 = nullptr;
+	NodeRenderer<Mesh*>* mesh3 = nullptr;
+	NodeRenderer<Mesh*>* mesh4 = nullptr;
+	NodeRenderer<Mesh*>* mesh5 = nullptr;
+	NodeRenderer<Mesh*>* mesh6 = nullptr;
+	NodeRenderer<Mesh*>* mesh7 = nullptr;
 
-	std::vector<NodeRenderer<Mesh>*> testMehsesVec;
+	std::vector<NodeRenderer<Mesh*>*> testMehsesVec;
 
-	NodeRenderer<Mesh>* grassMesh = nullptr;
-	NodeRenderer<Plane>* planeTest = nullptr;
+	NodeRenderer<Mesh*>* grassMesh = nullptr;
+	NodeRenderer<Plane*>* planeTest = nullptr;
 
-    NodeRenderer<ImguiGraphics> *imgui = nullptr;
+    NodeRenderer<ImguiGraphics*> *imgui = nullptr;
 
 	MeshAnimationTree* animTree = nullptr;
 	MeshAnimationTree* animTree2 = nullptr;
@@ -475,16 +475,17 @@ namespace engine {
 
 	using InstanceMeshRenderer = engine::InstanceRenderer<Mesh, engine::SimpleInstanceStrategy>;
 
-	NodeRenderer<GrassRenderer>* grassMesh2 = nullptr;
-	NodeRenderer<SkyBoxRenderer>* skyBox = nullptr;
-	NodeRenderer<InstanceMeshRenderer>* forest = nullptr;
+	NodeRenderer<GrassRenderer*>* grassMesh2 = nullptr;
+	NodeRenderer<SkyBoxRenderer*>* skyBox = nullptr;
+	NodeRenderer<InstanceMeshRenderer*>* forest = nullptr;
+    InstanceMeshRenderer* forestRenderer = nullptr;
 
     GraphicsDataUpdater graphicsDataUpdater;
-    GraphicsDataUpdateSystem<Mesh> meshUpdateSystem;
-    GraphicsDataUpdateSystem<GrassRenderer> grassUpdateSystem;
-    GraphicsDataUpdateSystem<SkyBoxRenderer> skyBoxUpdateSystem;
-    GraphicsDataUpdateSystem<InstanceMeshRenderer> instanceMeshUpdateSystem;
-    GraphicsDataUpdateSystem<Plane> planeUpdateSystem;
+    GraphicsDataUpdateSystem<Mesh*> meshUpdateSystem;
+    GraphicsDataUpdateSystem<GrassRenderer*> grassUpdateSystem;
+    GraphicsDataUpdateSystem<SkyBoxRenderer*> skyBoxUpdateSystem;
+    GraphicsDataUpdateSystem<InstanceMeshRenderer*> instanceMeshUpdateSystem;
+    GraphicsDataUpdateSystem<Plane*> planeUpdateSystem;
 	
 	class ApplicationCustomData : public InputObserver, public ICameraTransformChangeObserver {
 	public:
@@ -561,6 +562,11 @@ namespace engine {
 
 			delete rootNode;
 			delete uiNode;
+
+            if (forestRenderer) {
+                delete forestRenderer;
+            }
+
 		}
 
 		bool onInputPointerEvent(const PointerEvent& event) override {
@@ -739,7 +745,7 @@ namespace engine {
 			rootNode = new H_Node();
 			uiNode = new H_Node();
 
-			imgui = new NodeRenderer<ImguiGraphics>();
+			imgui = new NodeRenderer<ImguiGraphics*>();
 			{
 				H_Node* node = new H_Node();
 				uiNode->addChild(node);
@@ -1001,21 +1007,21 @@ namespace engine {
 			mesh_params_forestTree.graphicsBuffer = meshesGraphicsBuffer;
 			////////
 
-			mesh = new NodeRenderer<Mesh>();
-			mesh2 = new NodeRenderer<Mesh>();
-			mesh3 = new NodeRenderer<Mesh>();
-			mesh4 = new NodeRenderer<Mesh>();
-			mesh5 = new NodeRenderer<Mesh>();
-			mesh6 = new NodeRenderer<Mesh>();
-			mesh7 = new NodeRenderer<Mesh>();
+			mesh = new NodeRenderer<Mesh*>();
+			mesh2 = new NodeRenderer<Mesh*>();
+			mesh3 = new NodeRenderer<Mesh*>();
+			mesh4 = new NodeRenderer<Mesh*>();
+			mesh5 = new NodeRenderer<Mesh*>();
+			mesh6 = new NodeRenderer<Mesh*>();
+			mesh7 = new NodeRenderer<Mesh*>();
 			//grassMesh = new NodeRenderer<Mesh>();
-			grassMesh2 = new NodeRenderer<GrassRenderer>();
-			forest = new NodeRenderer<InstanceMeshRenderer>();
+			grassMesh2 = new NodeRenderer<GrassRenderer*>();
+			forest = new NodeRenderer<InstanceMeshRenderer*>();
 			
 			constexpr uint16_t unitsCount = 100;
 			testMehsesVec.reserve(unitsCount);
 			for (size_t i = 0; i < unitsCount; ++i) {
-				meshUpdateSystem.registerObject(testMehsesVec.emplace_back(new NodeRenderer<Mesh>()));
+				meshUpdateSystem.registerObject(testMehsesVec.emplace_back(new NodeRenderer<Mesh*>()));
 			}
 
 			meshUpdateSystem.registerObject(mesh);
@@ -1031,7 +1037,7 @@ namespace engine {
 
 			///////////
 			{
-				skyBox = new NodeRenderer<SkyBoxRenderer>();
+				skyBox = new NodeRenderer<SkyBoxRenderer*>();
 				skyBoxUpdateSystem.registerObject(skyBox);
 
 				SkyBoxRenderer* skyboxRenderer = new SkyBoxRenderer();
@@ -1410,7 +1416,9 @@ namespace engine {
 				}
 			}
 
-			InstanceMeshRenderer* forestRenderer = new InstanceMeshRenderer(std::move(instanceTransforms), nullptr, std::vector<vulkan::VulkanGpuProgram*>{ program_mesh_instance, program_mesh_instance_shadow });
+            // check leaks this:
+//			InstanceMeshRenderer* forestRenderer = new InstanceMeshRenderer(std::move(instanceTransforms), nullptr, std::vector<vulkan::VulkanGpuProgram*>{ program_mesh_instance, program_mesh_instance_shadow });
+            forestRenderer = new InstanceMeshRenderer(std::move(instanceTransforms), nullptr, std::vector<vulkan::VulkanGpuProgram*>{ program_mesh_instance, program_mesh_instance_shadow });
 			///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 			TextureLoadingParams tex_params_floor_mask;
@@ -1435,7 +1443,7 @@ namespace engine {
                 (*node)->setRenderObject(grassMesh2);
 
                 assm.loadAsset<Mesh *>(mesh_params_grass,
-                                       [texture_t6, grenderer, this](Mesh *asset, const AssetLoadingResult result) {
+                                       [texture_t6, grenderer, this](Mesh *asset, const AssetLoadingResult result) mutable {
                                            asset->setProgram(grass_default);
                                            asset->setParamByName("u_texture", texture_t6, false);
                                            asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
@@ -1469,7 +1477,7 @@ namespace engine {
                 shadowCastNodes.push_back(node);
 
                 assm.loadAsset<Mesh *>(mesh_params_forestTree,
-                                       [texture_forest_tree1, texture_forest_tree2, forestRenderer, this](Mesh *asset,
+                                       [texture_forest_tree1, texture_forest_tree2, /*forestRenderer,*/ this](Mesh *asset,
                                                                                                           const AssetLoadingResult result) {
                                            asset->setProgram(program_mesh_instance);
                                            asset->setParamByName("u_texture", texture_forest_tree2, false);
@@ -1489,6 +1497,7 @@ namespace engine {
 
                                            forestRenderer->setGraphics(asset);
                                            forest->setGraphics(forestRenderer);
+                                           forestRenderer = nullptr;
                                            auto && node = forest->getNode();
                                            node->setLocalMatrix(wtr);
                                            node->setBoundingVolume(
@@ -1507,7 +1516,7 @@ namespace engine {
 			texturePtr_logo = assm.loadAsset<TexturePtr>(text_params_logo);
 			
 
-			planeTest = new NodeRenderer<Plane>();
+			planeTest = new NodeRenderer<Plane*>();
 			planeUpdateSystem.registerObject(planeTest);
 
 			{
@@ -1920,11 +1929,11 @@ namespace engine {
 //			instanceMeshUpdateSystem.updateRenderData();
 
             graphicsDataUpdater.updateData<
-                    GraphicsDataUpdateSystem<Mesh>,
-                    GraphicsDataUpdateSystem<GrassRenderer>,
-                    GraphicsDataUpdateSystem<SkyBoxRenderer>,
-                    GraphicsDataUpdateSystem<InstanceMeshRenderer>,
-                    GraphicsDataUpdateSystem<Plane>
+                    GraphicsDataUpdateSystem<Mesh*>,
+                    GraphicsDataUpdateSystem<GrassRenderer*>,
+                    GraphicsDataUpdateSystem<SkyBoxRenderer*>,
+                    GraphicsDataUpdateSystem<InstanceMeshRenderer*>,
+                    GraphicsDataUpdateSystem<Plane*>
                             >();
             // or graphicsDataUpdater.updateData() for call all registered updaters
 
@@ -1988,7 +1997,7 @@ namespace engine {
             }
             if (auto && graphics = mesh7->graphics()) {
                 graphics->changeRenderState([](vulkan::VulkanRenderState &renderState) noexcept {
-                    renderState.rasterizationState.cullMode = vulkan::CullMode::CULL_MODE_BACK;
+                    renderState.rasterizationState.cullMode = vulkan::CullMode::CULL_MODE_NONE;
                 }, nullptr);
             }
 

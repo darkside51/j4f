@@ -24,7 +24,7 @@ namespace engine {
 		}
 	};
 
-	template <typename T> requires IsGraphicsType<T>
+	template <typename T> requires IsRenderAvailableType<T>
 	class LevelOfDetail {
 	public:
 		using type = std::unique_ptr<T>;

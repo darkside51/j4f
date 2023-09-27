@@ -75,6 +75,9 @@ namespace engine {
 	template<typename T>
 	inline constexpr bool is_smart_pointer_v = engine::is_smart_pointer<T>::value;
 
+    template<typename T>
+    inline constexpr bool is_pointer_v = std::is_pointer_v<T>;
+
     // steal data from container T, this data must be freed with delete[]
     template <typename T>
     inline std::pair<typename T::value_type*, size_t> steal_data(T& data) {
