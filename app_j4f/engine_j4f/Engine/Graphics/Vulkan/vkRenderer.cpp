@@ -1210,12 +1210,13 @@ namespace vulkan {
 		}
 
 		// vertex input state used for pipeline creation
+        const auto & attributes = vertexDescription.getAttributes();
 		VkPipelineVertexInputStateCreateInfo vertexInputState = {};
 		vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 		vertexInputState.vertexBindingDescriptionCount = vertexBindingsSize;
 		vertexInputState.pVertexBindingDescriptions = vertexInputBindings.data();
-		vertexInputState.vertexAttributeDescriptionCount = vertexDescription.attributes.size();
-		vertexInputState.pVertexAttributeDescriptions = vertexDescription.attributes.data();
+		vertexInputState.vertexAttributeDescriptionCount = attributes.size();
+		vertexInputState.pVertexAttributeDescriptions = attributes.data();
 
 		///////////////// setup pipeline
         const auto & [iterator, success] = _graphicsPipelinesCache.emplace(cacheKey, std::make_unique<VulkanPipeline>());

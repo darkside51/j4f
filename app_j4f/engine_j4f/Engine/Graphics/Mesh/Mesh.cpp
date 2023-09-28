@@ -396,7 +396,8 @@ namespace engine {
 		_fixedGpuLayouts[3].second = { "skin_matrixes_count" };
 	}
 
-	std::vector<VkVertexInputAttributeDescription> Mesh::getVertexInputAttributes() const {
+//	std::vector<VkVertexInputAttributeDescription> Mesh::getVertexInputAttributes() const {
+    VertexAttributes Mesh::getVertexInputAttributes() const {
         VertexAttributes attributes;
 		for (uint8_t i = 0u; i < std::min(static_cast<uint8_t>(16u), static_cast<uint8_t>(gltf::AttributesSemantic::SEMANTICS_COUNT)); ++i) {
 			if (_semanticMask & (1u << i)) {
@@ -434,7 +435,8 @@ namespace engine {
 			}
 		}
 
-        return VulkanAttributesProvider::convert(attributes);
+//        return VulkanAttributesProvider::convert(attributes);
+        return attributes;
 	}
 
 	uint32_t Mesh::sizeOfVertex() const { return _meshData ? (sizeof(float) * _meshData->vertexSize) : 0u; }

@@ -15,6 +15,7 @@
 #include "../../Core/Threads/Synchronisations.h"
 #include "../../Engine/Core/Hash.h"
 #include "../../Engine/Core/Version.h"
+#include "../VertexAttributes.h"
 
 #include <cstdint>
 #include <vector>
@@ -25,6 +26,7 @@
 #include <utility>
 #include <tuple>
 #include <limits>
+#include <variant>
 
 namespace engine {
 	class IRenderSurfaceInitialiser;
@@ -354,18 +356,32 @@ namespace vulkan {
         inline static constexpr uint64_t kUndefined = std::numeric_limits<uint64_t>::max();
         uint64_t id = kUndefined;
 		std::vector<std::pair<uint32_t, uint32_t>> bindings_strides{}; // pair of binding, stride
-        std::vector<VkVertexInputAttributeDescription> attributes{};
+        std::variant<std::monostate, std::vector<VkVertexInputAttributeDescription>, engine::VertexAttributes> attributes;
+//        std::vector<VkVertexInputAttributeDescription> attributes{};
 
         inline uint32_t getId() noexcept {
             if (id == kUndefined) {
+                transformAttributes();
                 calculateId();
             }
             return id;
         }
 
+        inline void transformAttributes() {
+            if (std::holds_alternative<engine::VertexAttributes>(attributes)) {
+                attributes = engine::VulkanAttributesProvider::convert(std::get<engine::VertexAttributes>(attributes));
+            }
+        }
+
+        const std::vector<VkVertexInputAttributeDescription> & getAttributes() const noexcept {
+            return std::get<std::vector<VkVertexInputAttributeDescription>>(attributes);
+        }
+
         void calculateId() noexcept {
             id = 0u;
-            for (auto && attribute : attributes) {
+
+            const auto & attrs = getAttributes();
+            for (auto && attribute : attrs) {
                 auto const l = static_cast<uint64_t>(attribute.location);
                 auto const b = static_cast<uint64_t>(attribute.binding);
                 auto const o = static_cast<uint64_t>(attribute.offset);

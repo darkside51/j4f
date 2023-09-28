@@ -240,7 +240,8 @@ namespace engine {
 		}
 
 	private:
-		std::vector<VkVertexInputAttributeDescription> getVertexInputAttributes() const;
+//		std::vector<VkVertexInputAttributeDescription> getVertexInputAttributes() const;
+        VertexAttributes getVertexInputAttributes() const;
 		uint32_t sizeOfVertex() const;
 
 		Mesh_Data* _meshData = nullptr;
