@@ -2,6 +2,7 @@
 
 #include "../../Core/Common.h"
 #include "../../Core/Math/mathematic.h"
+#include "../../Core/Ref_ptr.h"
 #include "../../Utils/Debug/Assert.h"
 #include "Node.h"
 
@@ -176,20 +177,24 @@ namespace engine {
     class GraphicsDataUpdater final {
     public:
         template <typename T>
-        inline void registerSystem(T* s) {
-            static const auto id = UniqueTypeId<IGraphicsDataUpdateSystem>::getUniqueId<T>();
-            if (_systems.size() <= id) {
-                _systems.resize(id + 1u);
-            } else if (_systems[id] != nullptr) {
-                ENGINE_BREAK_CONDITION(false);
-                return;
-            }
+        inline void registerSystem(T&& s) {
+			static const auto id = UniqueTypeId<IGraphicsDataUpdateSystem>::getUniqueId<std::decay_t<T>>();
+			if (_systems.size() <= id) {
+				_systems.resize(id + 1u);
+			} else if (_systems[id] != nullptr) {
+				ENGINE_BREAK_CONDITION(false);
+				return;
+			}
 
-            _systems[id] = s;
+			if constexpr (std::is_pointer_v<T>) {
+				_systems[id] = s;
+			} else {
+				_systems[id] = &s;
+			}
         }
 
         template <typename T>
-        inline void unregisterSystem(T* s) noexcept {
+        inline void unregisterSystem(T&& s) noexcept {
             static const auto id = UniqueTypeId<IGraphicsDataUpdateSystem>::getUniqueId<T>();
             if (_systems.size() > id) {
                 _systems[id] = nullptr;
@@ -218,10 +223,10 @@ namespace engine {
         inline void update_data_strict() {
             static const auto id = UniqueTypeId<IGraphicsDataUpdateSystem>::getUniqueId<T>();
             if (_systems.size() > id) {
-                static_cast<T*>(_systems[id])->updateRenderData();
+                static_cast<T*>(_systems[id].get())->updateRenderData();
             }
         }
 
-        std::vector<IGraphicsDataUpdateSystem*> _systems;
+        std::vector<ref_ptr<IGraphicsDataUpdateSystem>> _systems;
     };
 }

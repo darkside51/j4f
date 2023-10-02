@@ -521,11 +521,11 @@ namespace engine {
 			auto&& fs = fm.getFileSystem<DefaultFileSystem>();
 			fm.mapFileSystem(fs);
 
-            graphicsDataUpdater.registerSystem(&meshUpdateSystem);
-            graphicsDataUpdater.registerSystem(&grassUpdateSystem);
-            graphicsDataUpdater.registerSystem(&skyBoxUpdateSystem);
-            graphicsDataUpdater.registerSystem(&instanceMeshUpdateSystem);
-            graphicsDataUpdater.registerSystem(&planeUpdateSystem);
+            graphicsDataUpdater.registerSystem(meshUpdateSystem);
+            graphicsDataUpdater.registerSystem(grassUpdateSystem);
+            graphicsDataUpdater.registerSystem(skyBoxUpdateSystem);
+            graphicsDataUpdater.registerSystem(instanceMeshUpdateSystem);
+            graphicsDataUpdater.registerSystem(planeUpdateSystem);
 		}
 
 		~ApplicationCustomData() {

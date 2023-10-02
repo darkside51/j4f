@@ -40,7 +40,9 @@ namespace engine {
             return *this;
         }
 
-        inline operator bool() const noexcept { return _ptr != nullptr; }
+        explicit inline operator bool() const noexcept { return _ptr != nullptr; }
+
+        inline bool operator == (nullptr_t) noexcept { return _ptr == nullptr; }
 
         element_type& operator* () {
             if (_ptr) {
