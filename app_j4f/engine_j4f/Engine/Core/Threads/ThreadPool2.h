@@ -15,7 +15,12 @@ namespace engine {
             STOP = 2
         };
     public:
-        explicit ThreadPool2(const size_t threads_count) : _state(TPoolState::RUN), _threads_count(threads_count), _queues(threads_count), _currentTasks(threads_count) {
+        explicit ThreadPool2(const char* name, const size_t threads_count) :
+        _state(TPoolState::RUN),
+        _threads_count(threads_count),
+        _queues(threads_count),
+        _currentTasks(threads_count),
+        _name(name) {
             _workers.reserve(_threads_count);
             for (size_t i = 0; i < _threads_count; ++i) {
                 _workers.emplace_back(&ThreadPool2::threadFunction, this, i);
@@ -44,7 +49,7 @@ namespace engine {
                 }
                 _workers.clear();
 
-                LOG_TAG_LEVEL(engine::LogLevel::L_CUSTOM, THREADPOOL2, "ThreadPool stopped");
+                LOG_TAG_LEVEL(engine::LogLevel::L_CUSTOM, THREADPOOL2, "ThreadPool \"%s\" stopped", _name);
             }
         }
 
@@ -61,7 +66,7 @@ namespace engine {
                     q.notify();
                 }
 
-                LOG_TAG_LEVEL(engine::LogLevel::L_CUSTOM, THREADPOOL2, "ThreadPool paused");
+                LOG_TAG_LEVEL(engine::LogLevel::L_CUSTOM, THREADPOOL2, "ThreadPool \"%s\" paused", _name);
             }
         }
 
@@ -73,7 +78,7 @@ namespace engine {
                     q.notify();
                 }
 
-                LOG_TAG_LEVEL(engine::LogLevel::L_CUSTOM, THREADPOOL2, "ThreadPool resumed");
+                LOG_TAG_LEVEL(engine::LogLevel::L_CUSTOM, THREADPOOL2, "ThreadPool \"%s\" resumed", _name);
             }
         }
 
@@ -168,5 +173,6 @@ namespace engine {
         std::vector<std::thread> _workers;
         std::vector<Task2Queue<Locker, std::condition_variable_any>> _queues;
         std::vector<linked_ptr<TaskBase>> _currentTasks;
+        const char* _name = nullptr;
     };
 }

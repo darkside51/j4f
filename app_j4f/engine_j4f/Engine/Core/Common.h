@@ -28,6 +28,16 @@ namespace engine {
     template <typename T>
     class ref_ptr;
 
+    // variant using
+    template<typename... Args>
+    struct Overload : Args... {
+        using Args::operator()...;
+    };
+
+    template<typename... Args>
+    Overload(Args&&...) -> Overload<Args...>;  // line not needed in C++20...
+    // variant using
+
     template <typename T, typename U = T>
 	inline std::decay_t<T> alignValue(const T value, const U align) noexcept {
 		return (value + align - 1) & ~(align - 1);

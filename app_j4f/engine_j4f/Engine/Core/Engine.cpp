@@ -43,7 +43,7 @@ namespace engine {
 #endif
 
 		//setModule<ThreadPool>(std::max(std::thread::hardware_concurrency(), 1u));
-		setModule<ThreadPool2>(std::max(std::thread::hardware_concurrency(), 1u));
+		setModule<ThreadPool2>("main_pool", std::max(std::thread::hardware_concurrency(), 1u));
         setModule<WorkerThreadsCommutator>();
 		setModule<MemoryManager>();
 		setModule<CacheManager>();

@@ -105,7 +105,7 @@ namespace engine {
 
 	public:
 		explicit AssetManager(const uint8_t loaderThreadsCount) noexcept :
-        _loaderPool(std::make_unique<ThreadPoolClass>(loaderThreadsCount)) {
+        _loaderPool(std::make_unique<ThreadPoolClass>("loader_pool", loaderThreadsCount)) {
 		}
 
 		~AssetManager() override {
@@ -144,7 +144,7 @@ namespace engine {
 		}
 
 		template<typename Loader>
-		inline const IAssetLoader* replaceLoader() { // return old loader if it exist
+		inline const IAssetLoader* replaceLoader() { // return old loader if it exists
 			const IAssetLoader* loader = getLoader<typename Loader::asset_type>();
 			const uint16_t loaderId = UniqueTypeId<IAssetLoader>::getUniqueId<typename Loader::asset_type>();
 			_loaders[loaderId] = new AssetLoaderT<Loader>();

@@ -83,8 +83,12 @@ namespace engine {
 //		Engine::getInstance().getModule<GLFWDevice>()->setSize(uw, uh);
 //	}
 
-	void glfwOnWindowIconify(GLFWwindow*, int /*iconified*/) {
-		//iconified ? printf("iconify window\n") : printf("restore window\n");
+	void glfwOnWindowIconify(GLFWwindow* window, int iconified) {
+        int w, h;
+        glfwGetWindowSize(window, &w, &h);
+
+        Engine::getInstance().getModule<GLFWDevice>().setSize(iconified ? 0u : static_cast<uint16_t>(w),
+                                                              iconified ? 0u : static_cast<uint16_t>(h));
 	}
 
 	void glfwOnMouseMove(GLFWwindow* window, double x, double y) {
