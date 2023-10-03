@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <memory>
 #include <utility>
+#include <variant>
 
 #ifdef min
 #undef min
@@ -36,6 +37,11 @@ namespace engine {
 
     template<typename... Args>
     Overload(Args&&...) -> Overload<Args...>;  // line not needed in C++20...
+
+    template<typename T, typename... Args>
+    auto visit_variant(T&& v, Args&&...args) {
+        return std::visit(Overload<Args...>{std::forward<Args>(args)...}, std::forward<T>(v));
+    }
     // variant using
 
     template <typename T, typename U = T>
