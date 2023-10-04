@@ -430,8 +430,8 @@ namespace engine {
 
 			_instanceCount = grassTransforms.size();
 
-			auto lssbo = grass_default->getGPUParamLayoutByName("models");
-			grass_default->setValueToLayout(lssbo, grassTransforms.data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, sizeof(mat4f) * _instanceCount, true);
+			auto && ssbo = grass_default->getGPUParamLayoutByName("models");
+			grass_default->setValueToLayout(ssbo, grassTransforms.data(), nullptr, vulkan::VulkanGpuProgram::UNDEFINED, sizeof(mat4f) * _instanceCount, true);
 		}
 
 		~GrassRenderer() {

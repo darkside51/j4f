@@ -40,7 +40,7 @@ namespace engine {
 			[](const std::vector<ProgramStageInfo>& stages) {
 				const size_t sz = stages.size();
 				std::vector<vulkan::ShaderStageInfo> shaderStagesInfo(sz);
-				for (size_t i = 0; i < sz; ++i) {
+				for (size_t i = 0u; i < sz; ++i) {
 					shaderStagesInfo[i].modulePass = stages[i].pass.c_str();
 					shaderStagesInfo[i].pipelineStage = static_cast<VkShaderStageFlagBits>(stages[i].stage);
 					shaderStagesInfo[i].specializationInfo = static_cast<VkSpecializationInfo*>(stages[i].specialization);

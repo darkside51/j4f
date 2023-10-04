@@ -368,7 +368,9 @@ namespace vulkan {
 		spvReflectDestroyShaderModule(&reflectedModule);
 	}
 
-	VulkanGpuProgram::VulkanGpuProgram(VulkanRenderer* renderer, std::vector<ShaderStageInfo>& stages) : m_id(engine::getUniqueId<VulkanGpuProgram>()), m_renderer(renderer) {
+	VulkanGpuProgram::VulkanGpuProgram(VulkanRenderer* renderer,
+                                       std::vector<ShaderStageInfo>& stages, bool isParamsOwner) :
+    m_id(engine::getUniqueId<VulkanGpuProgram>()), m_renderer(renderer) {
 		using namespace engine;
 
 		const size_t stagesSize = stages.size();
@@ -377,7 +379,7 @@ namespace vulkan {
 		std::vector<VulkanShaderModule*> modules;
 		modules.resize(stagesSize);
 
-		size_t i = 0;
+		size_t i = 0u;
 		for (const ShaderStageInfo& stageInfo : stages) {
 			auto&& module = Engine::getInstance().getModule<CacheManager>().load<VulkanShaderModule*>(
 					std::string(stageInfo.modulePass),
@@ -409,7 +411,9 @@ namespace vulkan {
 		}
 
 		parseModules(modules);
-		assignParams();
+        if (isParamsOwner) {
+            assignParams();
+        }
 	}
 
 	VulkanGpuProgram::~VulkanGpuProgram() {
@@ -419,9 +423,9 @@ namespace vulkan {
 		m_paramLayouts.clear();
 		m_paramLayoutsVec.clear();
 
-		uint8_t i = 0;
+		uint8_t i = 0u;
 		for (VulkanDescriptorSet* descriptorSet : m_descriptorSets) {
-			if ((m_externalDescriptors & (1 << i++)) == 0) {
+			if ((m_externalDescriptors & (1u << i++)) == 0u) {
 				m_renderer->freeDescriptorSets(descriptorSet);
 				delete descriptorSet;
 			}
@@ -449,8 +453,8 @@ namespace vulkan {
 		};
 
 		std::array<VulkanDescriptorSetLayoutBindingDescription*, 8> found_sets{}; // расчитываем на 8 sets max
-		uint8_t sets_map = 0;
-		uint8_t paramId = 0;
+		uint8_t sets_map = 0u;
+		uint8_t paramId = 0u;
 		for (VulkanShaderModule* module : modules) {
 			for (auto&& descriptionVec : module->m_descriptorSetLayoutBindings) {
 				for (VulkanDescriptorSetLayoutBindingDescription* layoutDescription : descriptionVec) {
@@ -584,8 +588,8 @@ namespace vulkan {
 				}
 			}
 
-			for (uint8_t i = 0; i < descriptorsCount; ++i) {
-				if (m_externalDescriptors & (1 << i)) {
+			for (uint8_t i = 0u; i < descriptorsCount; ++i) {
+				if (m_externalDescriptors & (1u << i)) {
 					m_descriptorSets.push_back(nullptr);
 				} else {
 					VulkanDescriptorSet* newDescriptorSet = m_renderer->allocateDescriptorSetFromGlobalPool(m_pipelineDescriptorLayout->descriptorSetLayouts[i], (m_gpuBuffersSetsTypes & (1 << i)) ? 0 : 1);
@@ -598,11 +602,11 @@ namespace vulkan {
 	}
 
 	void VulkanGpuProgram::assignParams() {
-		uint32_t pushConstantNum = 0;
-		uint32_t staticUBONum = 0;
+		uint32_t pushConstantNum = 0u;
+		uint32_t staticUBONum = 0u;
 		for (auto&& it = m_paramLayouts.begin(); it != m_paramLayouts.end(); ++it) {
 			GPUParamLayoutInfo* layout = it->second;
-			if (layout->sizeInBytes == 0) continue;
+			if (layout->sizeInBytes == 0u) continue;
 
 			switch (layout->type) {
 				case GPUParamLayoutType::UNIFORM_BUFFER:
@@ -622,7 +626,7 @@ namespace vulkan {
 						&m_staticGPUBuffers[staticUBONum],
 						layout->descriptorSetLayoutBinding->binding,
 						layout->sizeInBytes,
-						0
+						0u
 					);
 
 					layout->data = &m_staticGPUBuffers[staticUBONum];
@@ -647,7 +651,7 @@ namespace vulkan {
 						&m_staticGPUBuffers[staticUBONum],
 						layout->descriptorSetLayoutBinding->binding,
 						layout->sizeInBytes,
-						0
+						0u
 					);
 
 					layout->data = &m_staticGPUBuffers[staticUBONum];

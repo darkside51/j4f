@@ -77,7 +77,7 @@ namespace engine {
 		{
 			std::vector<ProgramStageInfo> infos;
 			infos.emplace_back(ProgramStage::VERTEX, "resources/shaders/mesh_skin_depthpass.vsh.spv");
-			infos.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/mesh_depthpass.psh.spv");
+			//infos.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/mesh_depthpass.psh.spv");
 			if (useGeometryShader) {
 				infos.emplace_back(ProgramStage::GEOMETRY, "resources/shaders/mesh_depthpass.gsh.spv");
 			}

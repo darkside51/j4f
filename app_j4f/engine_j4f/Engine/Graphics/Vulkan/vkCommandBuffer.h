@@ -446,7 +446,7 @@ namespace vulkan {
 			allocateInfo.pNext = nullptr;
 			allocateInfo.commandPool = pool;
 			allocateInfo.level = level;
-			allocateInfo.commandBufferCount = 1;
+			allocateInfo.commandBufferCount = 1u;
 
 			engine::AtomicLock lock(_lockAllocation);
 			vkAllocateCommandBuffers(m_device, &allocateInfo, &m_commandBuffer);
@@ -484,7 +484,7 @@ namespace vulkan {
 		~VulkanCommandBufferEx() {
 			if (m_commandBuffer) {
 				engine::AtomicLock lock(_lockAllocation);
-				vkFreeCommandBuffers(m_device, m_pool, 1, &m_commandBuffer);
+				vkFreeCommandBuffers(m_device, m_pool, 1u, &m_commandBuffer);
 			}
 		}
 
@@ -989,7 +989,7 @@ namespace vulkan {
 			const uint8_t dynamicOffsetsCount,					// количество оффсетов для динамических буфферов
 			const uint32_t* dynamicOffsets,						// оффсеты для динамических буфферов
 			const uint8_t externalSetsCount,					// количество дополнительных сетов, которые хочется привязать
-			const VkDescriptorSet* externalSets				// дополнительные сеты, которые хочется привязать
+			const VkDescriptorSet* externalSets				    // дополнительные сеты, которые хочется привязать
 		) {
 			if constexpr (stated) { // use this?
 				const std::array<typename state_type::NeedBindDescriptors, 8> needBind = state.bindDescriptorSets(
@@ -1003,7 +1003,7 @@ namespace vulkan {
 					externalSets
 				);
 
-				uint8_t i = 0;
+				uint8_t i = 0u;
 				while (needBind[i].setsCount) {
 					vkCmdBindDescriptorSets(
 						m_commandBuffer,
@@ -1021,12 +1021,12 @@ namespace vulkan {
 				uint8_t allProgramSetsCount;
 				const uint8_t gpuSetsCount = pipeline->program->getGPUSetsCount(&allProgramSetsCount);
 				const uint8_t setsCount = std::min(static_cast<uint8_t>(gpuSetsCount + externalSetsCount), allProgramSetsCount) - firstSet;
-				VkDescriptorSet* sets = setsCount > 0 ? static_cast<VkDescriptorSet*>(alloca(sizeof(VkDescriptorSet) * setsCount)) : nullptr;
+				VkDescriptorSet* sets = setsCount > 0u ? static_cast<VkDescriptorSet*>(alloca(sizeof(VkDescriptorSet) * setsCount)) : nullptr;
 
 				if (sets) {
 					pipeline->fillDescriptorSets(frame, sets, externalSets, setsCount);
 					cmdBindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->program->getPipeLineLayout(), firstSet, setsCount, sets, dynamicOffsetsCount, dynamicOffsets);
-				} else if (setsCount > 0) {
+				} else if (setsCount > 0u) {
 					assert(false);
 					return;
 				}
@@ -1034,17 +1034,16 @@ namespace vulkan {
 
 			const uint16_t pushConstantsCount = pipeline->program->getPushConstantsCount();
 			switch (pushConstantsCount) {
-				case 0: {
-				}
+				case 0u: // do nothing
 					break;
-				case 1: {
+				case 1u: {
 					if (pushConstants->range) {
 						cmdPushConstants(pipeline->program->getPipeLineLayout(), pushConstants->range->stageFlags, pushConstants->range->offset, pushConstants->range->size, pushConstants->values);
 					}
 				}
 					break;
 				default: {
-					for (uint8_t i = 0; i < pushConstantsCount; ++i) { // set push constants
+					for (uint8_t i = 0u; i < pushConstantsCount; ++i) { // set push constants
 						const VulkanPushConstant& pk = pushConstants[i];
 						cmdPushConstants(pipeline->program->getPipeLineLayout(), pk.range->stageFlags, pk.range->offset, pk.range->size, pk.values);
 					}
@@ -1066,9 +1065,9 @@ namespace vulkan {
 			const VulkanBuffer& vertexes,						// вершины
 			const uint32_t firstVertex,							// номер первой вершины
 			const uint32_t vertexCount,							// количество вершин
-			const uint32_t instanceCount = 1,					// количество инстансов
-			const uint32_t firstInstance = 0,					// номер первого инстанса
-			const VkDeviceSize vbOffset = 0						// оффсет в вершинном буфере
+			const uint32_t instanceCount = 1u,					// количество инстансов
+			const uint32_t firstInstance = 0u,					// номер первого инстанса
+			const VkDeviceSize vbOffset = 0u					// оффсет в вершинном буфере
 		) {
 			prepareRender(pipeline, frame, pushConstants, firstSet, dynamicOffsetsCount, dynamicOffsets, externalSetsCount, externalSets);
 
@@ -1092,11 +1091,11 @@ namespace vulkan {
 			const VulkanBuffer& indexes,						// индексы
 			const uint32_t firstIndex,							// номер первого индекса
 			const uint32_t indexCount,							// количество индексов
-			const uint32_t firstVertex = 0,						// номер первой вершины
-			const uint32_t instanceCount = 1,					// количество инстансов
-			const uint32_t firstInstance = 0,					// номер первого инстанса
-			const VkDeviceSize vbOffset = 0,					// оффсет в вершинном буфере
-			const VkDeviceSize ibOffset = 0,					// оффсет в индексном буффере
+			const uint32_t firstVertex = 0u,					// номер первой вершины
+			const uint32_t instanceCount = 1u,					// количество инстансов
+			const uint32_t firstInstance = 0u,					// номер первого инстанса
+			const VkDeviceSize vbOffset = 0u,					// оффсет в вершинном буфере
+			const VkDeviceSize ibOffset = 0u,					// оффсет в индексном буффере
 			const VkIndexType indexType = VK_INDEX_TYPE_UINT32	// тип индексов
 			) {
 				prepareRender(pipeline, frame, pushConstants, firstSet, dynamicOffsetsCount, dynamicOffsets, externalSetsCount, externalSets);
@@ -1110,7 +1109,7 @@ namespace vulkan {
 		};
 
         // getters
-        std::optional<VkRect2D> getCurrentScissor() const {
+        std::optional<VkRect2D> getCurrentScissor() const noexcept {
             if constexpr (stated) {
                 return state.getCurrentScissor();
             } else {

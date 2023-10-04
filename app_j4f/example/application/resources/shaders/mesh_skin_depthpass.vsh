@@ -18,14 +18,16 @@ layout (set = 0, binding = 0) uniform static_lightUBO {
 	float saturation;
 } u_constants;
 
-layout (set = 2, binding = 0) uniform shadowUBO {
+// layout (set = 2, binding = 0) uniform shadowUBO {
+layout (set = 1, binding = 0) uniform shadowUBO {
 	vec4 cascade_splits;
 	mat4 cascade_matrix[SHADOW_MAP_CASCADE_COUNT];
 	mat4 view;
 	vec3 camera_position;
 } u_shadow;
 
-layout (set = 4, binding = 0) uniform UBO {
+//layout (set = 4, binding = 0) uniform UBO {
+layout (set = 2, binding = 0) uniform UBO {
 	float lighting;
 	vec4 color;
 	mat4 skin_matrixes[192];

@@ -37,15 +37,15 @@ namespace vulkan {
 	};
 
 	enum class GPUParamLayoutType : uint8_t { // порядок важен, будет для сортировки потом
-		PUSH_CONSTANT			= 0,
-		COMBINED_IMAGE_SAMPLER	= 1,
-		UNIFORM_BUFFER			= 2,
-		STORAGE_BUFFER			= 3,
-		UNIFORM_BUFFER_DYNAMIC	= 4,
-		STORAGE_BUFFER_DYNAMIC	= 5,
-		BUFFER_PART				= 6,
-		BUFFER_DYNAMIC_PART		= 7,
-		PUSH_CONSTANT_PART		= 8
+		PUSH_CONSTANT			= 0u,
+		COMBINED_IMAGE_SAMPLER	= 1u,
+		UNIFORM_BUFFER			= 2u,
+		STORAGE_BUFFER			= 3u,
+		UNIFORM_BUFFER_DYNAMIC	= 4u,
+		STORAGE_BUFFER_DYNAMIC	= 5u,
+		BUFFER_PART				= 6u,
+		BUFFER_DYNAMIC_PART		= 7u,
+		PUSH_CONSTANT_PART		= 8u
 	};
 
 	class VulkanRenderer;
@@ -53,26 +53,26 @@ namespace vulkan {
 	//////////////////////
 	struct VulkanUniformInfo {
 		std::string name;
-		uint32_t offset = 0;
-		uint32_t sizeInBytes = 0;
+		uint32_t offset = 0u;
+		uint32_t sizeInBytes = 0u;
 	};
 
 	enum class ImageType : uint8_t {
-		sampler1D = 0,
-		sampler1D_ARRAY = 1,
-		sampler2D = 2,
-		sampler2D_ARRAY = 3,
-		sampler3D = 4,
-		samplerCube = 5,
-		samplerCube_ARRAY = 6,
-		undefined = 0xff
+		sampler1D = 0u,
+		sampler1D_ARRAY = 1u,
+		sampler2D = 2u,
+		sampler2D_ARRAY = 3u,
+		sampler3D = 4u,
+		samplerCube = 5u,
+		samplerCube_ARRAY = 6u,
+		undefined = 0xffu
 	};
 
 	struct VulkanDescriptorSetLayoutBindingDescription {
 		std::string name;
-		uint8_t set = 0;
+		uint8_t set = 0u;
 		VkDescriptorSetLayoutBinding binding;
-		uint32_t sizeInBytes = 0;
+		uint32_t sizeInBytes = 0u;
 		ImageType imageType = ImageType::undefined;
 		std::vector<VulkanUniformInfo> childInfos;
 	};
@@ -84,15 +84,15 @@ namespace vulkan {
 	};
 
 	struct GPUParamLayoutInfo {
-		uint8_t id = 0;
-		uint32_t set = 0;
-		uint32_t offset = 0;
-		uint32_t sizeInBytes = 0;
+		uint8_t id = 0u;
+		uint32_t set = 0u;
+		uint32_t offset = 0u;
+		uint32_t sizeInBytes = 0u;
 		VkDescriptorSetLayoutBinding* descriptorSetLayoutBinding = nullptr;
 		VkPushConstantRange* pcRange = nullptr;
 		GPUParamLayoutType type = GPUParamLayoutType::PUSH_CONSTANT;
-		uint32_t push_constant_number = 0;
-		uint32_t dynamicBufferIdx = 0; // для смещения в нужном dynamic буффере при установке значения
+		uint32_t push_constant_number = 0u;
+		uint32_t dynamicBufferIdx = 0u; // для смещения в нужном dynamic буффере при установке значения
 		ImageType imageType = ImageType::undefined;
 		void* data = nullptr;
 		const GPUParamLayoutInfo* parentLayout = nullptr;
@@ -134,7 +134,7 @@ namespace vulkan {
 	public:
 		inline static constexpr uint32_t UNDEFINED = 0xffffffff;
 
-		VulkanGpuProgram(VulkanRenderer* renderer, std::vector<ShaderStageInfo>& stages);
+		VulkanGpuProgram(VulkanRenderer* renderer, std::vector<ShaderStageInfo>& stages, bool isParamsOwner = true);
 		~VulkanGpuProgram();
 
 		inline uint16_t getId() const noexcept { return m_id; }
@@ -142,14 +142,14 @@ namespace vulkan {
 //		VulkanDescriptorSet* allocateDescriptorSet(const bool add);
 //		VulkanPushConstant* allocatePushConstants(const bool add);
 		
-		inline const VulkanDescriptorSet* getDescriptorSet(const uint32_t i) const {
+		inline const VulkanDescriptorSet* getDescriptorSet(const uint32_t i) const noexcept {
 			if (m_descriptorSets.empty()) return nullptr;
 			return m_descriptorSets[i % m_descriptorSets.size()];
 		}
 
 		inline VkPipelineLayout getPipeLineLayout() const { return m_pipelineDescriptorLayout->pipelineLayout; }
 
-		const GPUParamLayoutInfo* getGPUParamLayoutByName(std::string_view name) const {
+		const GPUParamLayoutInfo* getGPUParamLayoutByName(std::string_view name) const noexcept {
 			auto&& it = m_paramLayouts.find(name);
 			if (it != m_paramLayouts.end()) { return it->second; }
 			return nullptr;
@@ -164,11 +164,11 @@ namespace vulkan {
 		}
 		void finishUpdateParams();
 
-		inline VulkanDynamicBuffer* getDinamicGPUBuffer(const size_t i) { return m_dynamicGPUBuffers[i]; }
-		inline const VulkanDynamicBuffer* getDinamicGPUBuffer(const size_t i) const { return m_dynamicGPUBuffers[i]; }
+		inline VulkanDynamicBuffer* getDynamicGPUBuffer(const size_t i) { return m_dynamicGPUBuffers[i]; }
+		inline const VulkanDynamicBuffer* getDynamicGPUBuffer(const size_t i) const { return m_dynamicGPUBuffers[i]; }
 
-		inline uint8_t getGPUSetsNumbers() const { return m_gpuBuffersSets; }
-		inline uint8_t getGPUSetsCount(uint8_t* setsCount = nullptr) const { 
+		inline uint8_t getGPUSetsNumbers() const noexcept { return m_gpuBuffersSets; }
+		inline uint8_t getGPUSetsCount(uint8_t* setsCount = nullptr) const noexcept {
 			if (setsCount) {
 				*setsCount = m_maxSetNum + 1;
 			}
@@ -188,12 +188,12 @@ namespace vulkan {
 
 		uint16_t m_id;
 		int16_t m_maxSetNum = -1;
-		uint16_t m_dynamicBuffersCount = 0;
-		uint16_t m_pushConstantsCount = 0;
-		uint8_t m_gpuBuffersSets = 0;
-		uint8_t m_gpuBuffersSetsCount = 0;
-		uint8_t m_gpuBuffersSetsTypes = 0;
-		uint8_t m_externalDescriptors = 0;
+		uint16_t m_dynamicBuffersCount = 0u;
+		uint16_t m_pushConstantsCount = 0u;
+		uint8_t m_gpuBuffersSets = 0u;
+		uint8_t m_gpuBuffersSetsCount = 0u;
+		uint8_t m_gpuBuffersSetsTypes = 0u;
+		uint8_t m_externalDescriptors = 0u;
 		VulkanRenderer* m_renderer;
 		std::vector<VkPipelineShaderStageCreateInfo> m_shaderStages;
 		PipelineDescriptorLayout* m_pipelineDescriptorLayout = nullptr;
