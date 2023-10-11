@@ -9,6 +9,8 @@
 #include <freetype/ftimage.h>
 #include <freetype/ftstroke.h>
 
+#include <string_view>
+
 namespace engine {
 
     FontData::FontData(char* data, const size_t size) : fdata(data), fileSize(size) { }
@@ -78,8 +80,8 @@ namespace engine {
     }
 
     FontRenderer::FontRenderer(const uint16_t w, const uint16_t h, const uint8_t defaultFillValue) {
-        image = new unsigned char[w * h * 4];
-        memset(image, defaultFillValue, sizeof(unsigned char) * w * h * 4);
+        image = new unsigned char[w * h * 4u];
+        memset(image, defaultFillValue, sizeof(unsigned char) * w * h * 4u);
         imgWidth = w;
         imgHeight = h;
     }
@@ -98,14 +100,14 @@ namespace engine {
             VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK
         ));
 
-        texture->create(image, VK_FORMAT_R8G8B8A8_UNORM, 32, false, false);
+        texture->create(image, VK_FORMAT_R8G8B8A8_UNORM, 32u, false, false);
         return texture;
     }
 
 	void FontRenderer::render(
 		const Font* font,
 		const uint8_t fontSize,
-		const char* text,
+        std::wstring_view text,
 		unsigned char* img,
         const uint16_t imgW,
         const uint16_t imgH,
@@ -121,12 +123,8 @@ namespace engine {
         ftcImageType.height = fontSize;
         ftcImageType.flags = FT_LOAD_DEFAULT | FT_LOAD_RENDER;
 
-        for (size_t i = 0, sz = strlen(text); i < sz; ++i) {
+        for (size_t i = 0, sz = text.length(); i < sz; ++i) {
             const auto glyphIndex = FTC_CMapCache_Lookup(font->ftcCMapCache, 0, 0, text[i]);
-
-            //FTC_Node ftcNode;
-            //FTC_SBitCache_Lookup(ftcSBitCache, &ftcImageType, glyphIndex, &ftcSBit, &ftcNode);
-            //FTC_Node_Unref(ftcNode, ftcManager);
 
             FTC_SBit ftcSBit;
             FTC_SBitCache_Lookup(font->ftcSBitCache, &ftcImageType, glyphIndex, &ftcSBit, nullptr);
@@ -152,7 +150,7 @@ namespace engine {
         const FT_Render_Mode_ renderMode,
         const Font* font,
         const uint8_t fontSize,
-        const char* text,
+        std::wstring_view text,
         int16_t x,
         int16_t y,
         const uint32_t color,
@@ -160,7 +158,7 @@ namespace engine {
         const float outlineSize,
         const uint8_t sx_offset,
         const uint8_t sy_offset,
-        std::function<void(const char s, const uint16_t x, const uint16_t y, const uint16_t w, const uint16_t h, const int8_t dy)> addGlyphCallback
+        std::function<void(const wchar_t s, const uint16_t x, const uint16_t y, const uint16_t w, const uint16_t h, const int8_t dy)> addGlyphCallback
     ) {
         FTC_ImageTypeRec_ ftcImageType;
         ftcImageType.face_id = 0;
@@ -182,8 +180,10 @@ namespace engine {
 
         FT_Pos maxRowHeight = 0;
 
-        for (size_t i = 0, sz = strlen(text); i < sz; ++i) {
-            const auto glyphIndex = FTC_CMapCache_Lookup(font->ftcCMapCache, 0, 0, text[i]);
+        for (size_t i = 0u, len = text.length(); i < len; ++i) {
+            const wchar_t wc = text[i];
+            const FT_UInt32 charCode = wc;
+            const auto glyphIndex = FTC_CMapCache_Lookup(font->ftcCMapCache, 0, 0, charCode);
  
             FT_Glyph glyph;
             FT_BitmapGlyph bitmapGlyph;
@@ -218,7 +218,7 @@ namespace engine {
                         outlineColor);
 
                 if (addGlyphCallback) {
-                    addGlyphCallback(text[i], x, y + bitmapGlyph->top - acbox.yMax, g_width, g_height, acbox.yMax - bitmapGlyph->bitmap.rows + static_cast<int8_t>(outlineSize));
+                    addGlyphCallback(wc, x, y + bitmapGlyph->top - acbox.yMax, g_width, g_height, acbox.yMax - bitmapGlyph->bitmap.rows + static_cast<int8_t>(outlineSize));
                 }
             }
 
@@ -249,7 +249,7 @@ namespace engine {
 
                 if (outlineSize == 0.0f) {
                     if (addGlyphCallback) {
-                        addGlyphCallback(text[i], x + outlineSize, y + bitmapGlyph->top - acbox.yMax + outlineSize, g_width, g_height, acbox.yMax - bitmapGlyph->bitmap.rows);
+                        addGlyphCallback(wc, x + outlineSize, y + bitmapGlyph->top - acbox.yMax + outlineSize, g_width, g_height, acbox.yMax - bitmapGlyph->bitmap.rows);
                     }
                 }
             }

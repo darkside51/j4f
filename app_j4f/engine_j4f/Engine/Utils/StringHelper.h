@@ -2,6 +2,7 @@
 
 #include <fmt/format.h>
 #include <fmt/chrono.h>
+#include <fmt/xchar.h>
 
 #include <string>
 #include <cstdint>
@@ -11,7 +12,7 @@ namespace engine {
 
 	template <typename...Args>
 	inline const char* fmt_string(const fmt::format_string<Args...> format, Args&&...args) {
-		constexpr uint16_t max_buffer_size = 1024;
+		constexpr uint16_t max_buffer_size = 1024u;
 		static thread_local char buffer[max_buffer_size]; // max_buffer_size bytes memory for every thread, with static allocation
 		//snprintf(buffer, max_buffer_size, fmt, std::forward<Args>(args)...);
 		//memset(&buffer[0], 0, max_buffer_size * sizeof(char));
@@ -25,6 +26,28 @@ namespace engine {
 		//return std::string(fmt_string(fmt, std::forward<Args>(args)...));
 		return fmt::format(std::move(format), std::forward<Args>(args)...);
 	}
+
+//    template <typename S, typename...Args>
+//    inline const wchar_t* fmt_wstring(const S& format, Args&&...args) {
+//        static thread_local std::wstring buffer;
+//        buffer.clear();
+//        fmt::format_to(std::back_inserter(buffer), format, std::forward<Args>(args)...);
+//        return buffer.data();
+//    }
+
+    template <typename S, typename...Args>
+    inline const wchar_t* fmt_wstring(S&& format , Args&&...args) {
+        constexpr uint16_t max_buffer_size = 1024u;
+        static thread_local wchar_t buffer[max_buffer_size]; // max_buffer_size bytes memory for every thread, with static allocation
+        auto result = fmt::format_to_n(buffer, max_buffer_size, std::forward<S>(format), std::forward<Args>(args)...);
+        *result.out = '\0';
+        return buffer;
+    }
+
+    template <typename S, typename...Args>
+    inline std::wstring fmtWString(S&& format, Args&&...args) {
+        return fmt::format(std::forward<S>(format), std::forward<Args>(args)...);
+    }
 
 	inline uint16_t stringReplace(std::string& source, const std::string& find, const std::string& replace) {
 		if (find.empty()) { return 0; }

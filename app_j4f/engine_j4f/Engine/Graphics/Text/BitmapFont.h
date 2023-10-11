@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <cstdint>
 #include <memory>
+#include <string_view>
 
 namespace vulkan {
 	class VulkanTexture;
@@ -45,7 +46,7 @@ namespace engine {
 		}
 
 		void addSymbols(
-			const char* text,
+            std::wstring_view text,
             const int16_t x = 0,
             const int16_t y = 0,
 			const uint32_t color = 0xffffffffu,
@@ -73,14 +74,14 @@ namespace engine {
 			return nullptr;
 		}
 
-		std::shared_ptr<TextureFrame> createFrame(const char* text);
+		std::shared_ptr<TextureFrame> createFrame(std::wstring_view text);
 
 	private:
 		Font* _font;
         BitmapFontParams _params;
 		FontRenderer* _fontRenderer;
 		vulkan::VulkanTexture* _texture = nullptr;
-		std::unordered_map<char, std::shared_ptr<TextureFrame>> _glyphs;
+		std::unordered_map<wchar_t, std::shared_ptr<TextureFrame>> _glyphs;
 	};
 
 }

@@ -509,7 +509,7 @@ namespace engine {
             camera->addObserver(this);
             Engine::getInstance().getModule<Input>().addObserver(this);
 
-            statObserver = new ImguiStatObserver(ImguiStatObserver::Location::top_right);
+            statObserver = new ImguiStatObserver(ImguiStatObserver::Location::top_left);
             cameraInfo = new ImGuiCameraInfo();
         }
 
@@ -1599,8 +1599,13 @@ namespace engine {
 			//texture_text = fr.createFontTexture();
 			//texture_text->createSingleDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0);
 
-			bitmapFont = new BitmapFont(f, 512u, 256u, {BitmapFontType::SDF, 20u, 4, -11, 5u}, 0u);
-            bitmapFont->addSymbols("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+*/=&%#@!?<>,.()[];:@$^~_");
+			bitmapFont = new BitmapFont(f, 512u, 512u, {BitmapFontType::SDF, 20u, 4, -11, 5u}, 0u);
+            bitmapFont->addSymbols(L"abcdefghijklmnopqrstuvwxyz"
+                                   "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                                   "0123456789-+*/=&%#@!?<>,.()[];:@$^~_"
+                                   "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"
+                                   "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
+                                   );
 //            bitmapFont = new BitmapFont(f, 256, 256, {BitmapFontType::Usual, 16, 2, 2, 5}, 0);
 //			bitmapFont->addSymbols("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-+*/=&%#@!?<>,.()[];:@$^~_", 2, 0, 0xccccccaa, 0x000000aa, 2.0f, 2, 2);
 
@@ -1653,6 +1658,10 @@ namespace engine {
                 psi.emplace_back(ProgramStage::FRAGMENT, "resources/shaders/textureSDF.psh.spv");
                 vulkan::VulkanGpuProgram *program = gpuProgramManager->getProgram(psi);
 				planeTest->setProgram(program);
+
+                planeTest->graphics()->setParamByName("u_texture", texture_text, false);
+                planeTest->graphics()->setParamByName("color", engine::vec3f(1.0,0.0,0.0), true);
+                planeTest->graphics()->setParamByName("outline", engine::vec3f(1.0,1.0,1.0), true);
             }
 
 			//planeTest->graphics()->setFrame(bitmapFont->createFrame("hello world!"));
@@ -2144,20 +2153,27 @@ namespace engine {
 				const auto time = fmt::localtime(now);
 
 				//std::shared_ptr<TextureFrame> frame = bitmapFont->createFrame(fmt_string("resolution: %dx%d\nv_sync: %s\ndraw calls: %d\nfps: %d\ncpu frame time: %f", width, height, vsync ? "on" : "off", statistic->drawCalls(), statistic->fps(), statistic->cpuFrameTime()));
-				std::shared_ptr<TextureFrame> frame = bitmapFont->createFrame(
-					fmt_string(
-						"system time: {:%H:%M:%S}\nbuild type: {}\ngpu: {}({})\nresolution: {}x{}\nv_sync: {}\ndraw calls: {}\nfps: {}\ncpu frame time: {:.3}\nspeed mult: {:.3}\n\nWASD + mouse(camera control)",
-						time, buildType, renderer->getDevice()->gpuProperties.deviceName, gpuType, width, height, vsync ? "on" : "off", statistic.drawCalls(), statistic.renderFps(), statistic.cpuFrameTime(), Engine::getInstance().getTimeMultiply()
-					)
-				);
+
+//                std::shared_ptr<TextureFrame> frame = bitmapFont->createFrame(
+//					fmt_string(
+//						"system time: {:%H:%M:%S}\nbuild type: {}\ngpu: {}({})\nresolution: {}x{}\nv_sync: {}\ndraw calls: {}\nfps: {}\ncpu frame time: {:.3}\nspeed mult: {:.3}\n\nWASD + mouse(camera control)",
+//						time, buildType, renderer->getDevice()->gpuProperties.deviceName, gpuType, width, height, vsync ? "on" : "off", statistic.drawCalls(), statistic.renderFps(), statistic.cpuFrameTime(), Engine::getInstance().getTimeMultiply()
+//					)
+//				);
+
+
+                std::shared_ptr<TextureFrame> frame = bitmapFont->createFrame(
+                        fmt_wstring(L"utf8! {} system time: {:%H:%M:%S}", L"(english/русский)", time)
+                );
+
 				TextureFrameBounds frameBounds(frame.get());
 
 				planeTest->graphics()->setFrame(frame);
 				planeTest->getNode()->setBoundingVolume(BoundingVolume::make<CubeVolume>(vec3f(frameBounds.minx, frameBounds.miny, -0.1f), vec3f(frameBounds.maxx, frameBounds.maxy, 0.1f)));
 
 				mat4f wtr(1.0f);
-                //scaleMatrix(wtr, vec3f(1.25f));
-				translateMatrixTo(wtr, vec3f(-(width * 0.5f) + 16.0f, height * 0.5f - 30.0f, -1.0f));
+                scaleMatrix(wtr, vec3f(0.85f));
+				translateMatrixTo(wtr, vec3f(-(width * 0.5f) + 16.0f, -(height * 0.5f) + 30.0f, -1.0f));
 				planeTest->getNode()->setLocalMatrix(wtr);
 
 				const mat4f& camera2Matrix = camera2->getTransform();

@@ -6,6 +6,7 @@
 
 #include <cstdint>
 #include <string>
+#include <string_view>
 #include <functional>
 
 namespace vulkan {
@@ -61,7 +62,7 @@ namespace engine {
 		void render(
 			const Font* font,
 			const uint8_t fontSize,
-			const char* text,
+            std::wstring_view text,
 			unsigned char* img,
 			const uint16_t imgW,
 			const uint16_t imgH,
@@ -76,7 +77,7 @@ namespace engine {
             const FT_Render_Mode_ renderMode,
 			const Font* font,
 			const uint8_t fontSize,
-			const char* text,
+            std::wstring_view text,
 			int16_t x,
 			int16_t y,
 			const uint32_t color = 0xffffffff,
@@ -84,7 +85,7 @@ namespace engine {
 			const float outlineSize = 0.0f,
 			const uint8_t sx_offset = 0,
 			const uint8_t sy_offset = 0,
-			std::function<void(const char s, const uint16_t x, const uint16_t y, const uint16_t w, const uint16_t h, const int8_t dy)> addGlyphCallback = nullptr
+			std::function<void(const wchar_t s, const uint16_t x, const uint16_t y, const uint16_t w, const uint16_t h, const int8_t dy)> addGlyphCallback = nullptr
 		);
 	};
 

@@ -17,7 +17,7 @@ namespace engine {
 	}
 
 	void BitmapFont::addSymbols(
-		const char* text,
+        std::wstring_view text,
         const int16_t x,
         const int16_t y,
 		const uint32_t color,
@@ -29,7 +29,7 @@ namespace engine {
 		_fontRenderer->render( (_params.type == BitmapFontType::Usual ? FT_RENDER_MODE_NORMAL : FT_RENDER_MODE_SDF),
                                _font, _params.fontSize, text, x, y, color, outlineColor, outlineSize,
                               sx_offset + outlineSize, sy_offset + outlineSize,
-                              [this](const char s, const uint16_t x, const uint16_t y, const uint16_t w, const uint16_t h, const int8_t dy) {
+                              [this](const wchar_t s, const uint16_t x, const uint16_t y, const uint16_t w, const uint16_t h, const int8_t dy) {
 			std::shared_ptr<TextureFrame> f(new TextureFrame(
 				{
 					0.0f, float(dy),
@@ -52,15 +52,16 @@ namespace engine {
 		});
 	}
 
-	std::shared_ptr<TextureFrame> BitmapFont::createFrame(const char* text) {
+	std::shared_ptr<TextureFrame> BitmapFont::createFrame(std::wstring_view text) {
 		std::shared_ptr<TextureFrame> result(new TextureFrame());
-		const uint16_t len = strlen(text);
+		const uint16_t len = text.length();
 		result->_vtx.resize(8u * len);
 		result->_uv.resize(8u * len);
 		result->_idx.resize(6u * len);
 
 		uint16_t x = 0u;
 		uint16_t y = 0u;
+
 		for (uint16_t i = 0u; i < len; ++i) {
 			if (text[i] == '\n') {
 				x = 0u;
