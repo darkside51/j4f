@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdexcept>
+#include <memory>
 
 namespace engine {
 
@@ -12,6 +13,8 @@ namespace engine {
         ref_ptr() = default;
         explicit ref_ptr(T* ptr) : _ptr(ptr) {}
         ref_ptr(nullptr_t) : _ptr(nullptr) {}
+        ref_ptr(std::unique_ptr<T> & ptr) : _ptr(*ptr) {}
+
         ~ref_ptr() { _ptr = nullptr; }
 
         ref_ptr(const ref_ptr & other) : _ptr(other._ptr) {}
@@ -40,6 +43,11 @@ namespace engine {
             return *this;
         }
 
+        ref_ptr& operator= (std::unique_ptr<element_type> & ptr) noexcept {
+            _ptr = *ptr;
+            return *this;
+        }
+
         explicit inline operator bool() const noexcept { return _ptr != nullptr; }
 
         inline bool operator == (nullptr_t) noexcept { return _ptr == nullptr; }
@@ -55,7 +63,7 @@ namespace engine {
             if (_ptr) {
                 return *_ptr;
             }
-            throw std::runtime_error("incorrect operator*()");
+            throw std::runtime_error("incorrect operator*() const");
         }
 
         inline element_type* operator->() noexcept { return _ptr; }

@@ -16,7 +16,7 @@ namespace engine {
 			{ {_aabb[1].x, _aabb[1].y, 0.0f}, {1.0f, 0.0f} }
 		};
 
-		_idx = { 0, 1, 2, 2, 1, 3 };
+		_idx = { 0u, 1u, 2u, 2u, 1u, 3u };
 
         _renderDescriptor.renderData[0]->batchingParams = new vulkan::BatchingParams();
         _renderDescriptor.renderData[0]->vertexSize = sizeof(TexturedVertex);
@@ -32,10 +32,10 @@ namespace engine {
 		_vtx.resize(_frame->_vtx.size() / 2);
 		_idx = _frame->_idx;
 
-		size_t j = 0;
-		for (size_t i = 0, sz = _frame->_vtx.size(); i < sz; i += 2) {
-			_vtx[j].uv[0] = _frame->_uv[i]; 
-			_vtx[j].uv[1] = _frame->_uv[i + 1];
+		size_t j = 0u;
+		for (size_t i = 0u, sz = _frame->_vtx.size(); i < sz; i += 2u) {
+			_vtx[j].uv[0u] = _frame->_uv[i];
+			_vtx[j].uv[1u] = _frame->_uv[i + 1u];
 			++j;
 		}
 		_frameChanged = true;
@@ -68,7 +68,6 @@ namespace engine {
         _renderDescriptor.renderData[0]->batchingParams->idxDataSize = _idx.size() * sizeof(uint32_t);
         _renderDescriptor.renderData[0]->batchingParams->rawVertexes = _vtx.data();
         _renderDescriptor.renderData[0]->batchingParams->rawIndexes = _idx.data();
-
 	}
 
 	void Plane::createRenderData(const engine::GpuParamsType& params) {

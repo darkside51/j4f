@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 #include <atomic>
+#include <memory>
 
 namespace engine {
 
@@ -69,6 +70,7 @@ namespace engine {
 
 	using MeshLoadingParams = AssetLoadingParams<Mesh>;
 	using MeshLoadingCallback = AssetLoadingCallback<Mesh*>;
+    using MeshPtrLoadingCallback = AssetLoadingCallback<std::unique_ptr<Mesh>>;
 
 	class MeshLoader {
 	public:

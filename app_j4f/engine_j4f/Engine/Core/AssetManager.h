@@ -6,6 +6,7 @@
 #include "Threads/ThreadPool.h"
 #include "Threads/ThreadPool2.h"
 
+#include <cassert>
 #include <type_traits>
 #include <functional>
 #include <memory>
@@ -16,32 +17,40 @@ namespace engine {
 
 	namespace {
 		template <typename T>
-		struct remove_shared_pointer {
+		struct remove_m_pointer {
 			using type = T;
 		};
 
 		template<typename T>
-		struct remove_shared_pointer<std::shared_ptr<T>> {
+		struct remove_m_pointer<std::shared_ptr<T>> {
 			using type = T;
 		};
 
         template<typename T>
-        struct remove_shared_pointer<linked_ptr<T>> {
+        struct remove_m_pointer<linked_ptr<T>> {
+            using type = T;
+        };
+
+        template<typename T>
+        struct remove_m_pointer<std::unique_ptr<T>> {
             using type = T;
         };
 
 		template <typename T>
-		using raw_type_name = typename std::remove_pointer<typename remove_shared_pointer<typename std::remove_reference<typename std::remove_const<T>::type>::type>::type>::type;
+		using raw_type_name = typename std::remove_pointer<typename remove_m_pointer<typename std::remove_reference<typename std::remove_const<T>::type>::type>::type>::type;
 	}
 
 	enum class AssetLoadingResult : uint8_t {
-		LOADING_SUCCESS = 0,
-		LOADING_ERROR = 1,
-		LOADER_NO_EXIST = 2
+		LOADING_SUCCESS = 0u,
+		LOADING_ERROR = 1u,
+		LOADER_NO_EXIST = 2u
 	};
 
 	template <typename T>
 	using AssetLoadingCallback = std::function<void(const T& asset, const AssetLoadingResult result)>;
+
+    template <typename T>
+    using AssetLoadingCallback2 = std::function<void(std::decay_t<T>&& asset, const AssetLoadingResult result)>;
 
 	struct AssetLoadingFlags {
 		struct Flags {
@@ -72,10 +81,31 @@ namespace engine {
 	public:
 		virtual ~IAssetLoader() = default;
 		virtual void loadAsset(const AssetLoadingFlags& p, void* data, const void* loadingCallback) const = 0;
-	};
+        virtual void loadAsset(const AssetLoadingFlags& p, const void* loadingCallback) const = 0;
+    };
 
-	template <typename Loader>
-	class AssetLoaderT : public IAssetLoader {
+    template<typename Loader>
+    concept IsLoaderType1 = requires(Loader) {
+        !std::is_same_v<void, typename Loader::asset_type>;
+    };
+
+    template<typename Loader>
+    concept IsLoaderType2 = requires(Loader) {
+        !std::is_same_v<void, typename Loader::asset_type2>;
+    };
+
+    template <typename Loader> requires IsLoaderType1<Loader> || IsLoaderType2<Loader>
+    class AssetLoaderT : public IAssetLoader {
+        void loadAsset(const AssetLoadingFlags& p, void* data, const void* loadingCallback) const override {
+            assert(false);
+        }
+        void loadAsset(const AssetLoadingFlags& p, const void* loadingCallback) const override {
+            assert(false);
+        }
+    };
+
+	template <IsLoaderType1 Loader>
+	class AssetLoaderT<Loader> : public IAssetLoader {
 	public:
         ~AssetLoaderT() override {
             Loader::cleanUp();
@@ -90,7 +120,31 @@ namespace engine {
 			const AssetLoadingCallback<type>& callback = *(static_cast<const AssetLoadingCallback<type>*>(loadingCallback));
 			Loader::loadAsset(value, params, callback);
 		}
+
+        void loadAsset(const AssetLoadingFlags& p, const void* loadingCallback) const override {
+            assert(false);
+        }
 	};
+
+    template <IsLoaderType2 Loader>
+    class AssetLoaderT<Loader> : public IAssetLoader {
+    public:
+        ~AssetLoaderT() override {
+            Loader::cleanUp();
+        }
+
+        void loadAsset(const AssetLoadingFlags& p, void* data, const void* loadingCallback) const override {
+            assert(false);
+        }
+
+        void loadAsset(const AssetLoadingFlags& p, const void* loadingCallback) const override {
+            using type = typename Loader::asset_type2;
+            using params_type = AssetLoadingParams<raw_type_name<type>>;
+            const auto& params = static_cast<const params_type&>(p);
+            const AssetLoadingCallback2<type>& callback = *(static_cast<const AssetLoadingCallback2<type>*>(loadingCallback));
+            Loader::loadAsset(params, callback);
+        }
+    };
 
 	class AssetManager final : public IEngineModule {
 		using ThreadPoolClass = ThreadPool2;

@@ -8,7 +8,7 @@ namespace engine {
 
 	template<>
 	struct AssetLoadingParams<Json> : public AssetLoadingFlags {
-		std::string file;
+		std::string file = "";
 		AssetLoadingParams(const std::string& f) : file(f) {}
 	};
 
