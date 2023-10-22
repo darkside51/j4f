@@ -86,6 +86,12 @@ namespace engine {
         inline void operator()() const noexcept { _function(); }
 
         inline TaskType type() const noexcept { return _type; }
+
+//        TaskBase(TaskBase&& t) noexcept :
+//        _type(t.type()),
+//        _state(t._state.load(std::memory_order_relaxed)),
+//        _function(std::move(t._function)) {}
+
     private:
         TaskType _type = TaskType::COMMON;
         Locker _locker;
@@ -103,6 +109,7 @@ namespace engine {
     public:
         template<class F, typename... Args>
         explicit Task2(F&& f, Args&&...args) : TaskBase(std::forward<F>(f), std::forward<Args>(args)...) { }
+//        Task2(Task2&& t) noexcept : TaskBase(std::move(t)) {}
     private:
         std::optional<T> _result;
     };
@@ -112,5 +119,7 @@ namespace engine {
     public:
         template<class F, typename... Args>
         explicit Task2(F&& f, Args&&...args) : TaskBase(std::forward<F>(f), std::forward<Args>(args)...) { }
+
+//        Task2(Task2&& t) noexcept : TaskBase(std::move(t)) {}
     };
 }

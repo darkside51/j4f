@@ -2,6 +2,7 @@
 
 #include "../../Core/AssetManager.h"
 #include "../../Core/Threads/ThreadPool.h"
+#include "../../Core/Owned_ptr.h"
 
 #include "../Vulkan/vkBuffer.h"
 
@@ -74,26 +75,34 @@ namespace engine {
 
 	class MeshLoader {
 	public:
+        using asset_loader_type = MeshLoader;
 		using asset_type = Mesh*;
 		static void loadAsset(Mesh*& v, const MeshLoadingParams& params, const MeshLoadingCallback& callback);
         static void cleanUp() noexcept;
 	private:
 		struct DataLoadingCallback {
-			Mesh* mesh;
+            owned_ptr<Mesh> mesh;
 			uint16_t semanticMask;
 			uint8_t latency;
 			uint8_t targetThreadId = 0u;
 			MeshLoadingCallback callback;
 
-			DataLoadingCallback(Mesh* m, const MeshLoadingCallback& c, uint16_t msk, uint8_t l, uint8_t t) :
-				mesh(m), callback(c), semanticMask(msk), latency(l), targetThreadId(t) { }
+            DataLoadingCallback(owned_ptr<Mesh>&& m, const MeshLoadingCallback& c, uint16_t msk, uint8_t l, uint8_t t) :
+                    mesh(std::move(m)), callback(c), semanticMask(msk), latency(l), targetThreadId(t) { }
+
 			~DataLoadingCallback() = default;
+
+            DataLoadingCallback(DataLoadingCallback&& other) noexcept :
+            mesh(std::move(other.mesh)),
+            semanticMask(other.semanticMask),
+            latency(other.latency),
+            targetThreadId(other.targetThreadId),
+            callback(std::move(other.callback)) {
+
+            }
 		};
 
-        static Mesh* createMesh();
-        static void removeMesh(Mesh* m);
-
-		static void addCallback(Mesh_Data*, Mesh* mesh, const MeshLoadingCallback&, uint16_t mask, uint8_t l, uint8_t thread);
+        static void addCallback(Mesh_Data*, owned_ptr<Mesh>&& mesh, const MeshLoadingCallback&, uint16_t mask, uint8_t l, uint8_t thread);
 		static void executeCallbacks(Mesh_Data*, const AssetLoadingResult);
 
 		static void fillMeshData(Mesh_Data*, const MeshLoadingParams&);
@@ -101,8 +110,5 @@ namespace engine {
 		inline static std::atomic_bool _graphicsBuffersOffsetsLock;
 		inline static std::atomic_bool _callbacksLock;
 		inline static std::unordered_map<Mesh_Data*, std::vector<DataLoadingCallback>> _callbacks;
-
-        inline static std::atomic_bool _rawDataLock;
-        inline static std::vector<Mesh*> _rawData;
 	};
 }

@@ -77,5 +77,4 @@ namespace engine {
     private:
         T* _ptr = nullptr;
     };
-
 }

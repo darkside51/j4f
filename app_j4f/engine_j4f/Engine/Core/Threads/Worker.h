@@ -177,6 +177,11 @@ namespace engine {
             _linkedTasks.enqueue(task);
         }
 
+        template <typename T>
+        void linkTask(linked_ptr<T>&& task) noexcept {
+            _linkedTasks.enqueue(std::move(task));
+        }
+
 		[[nodiscard]] inline uint16_t frameId() const noexcept { return _frameId.load(std::memory_order_relaxed); }
         [[nodiscard]] inline std::optional<std::thread::id> threadId() const noexcept { return _threadId; }
 

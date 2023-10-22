@@ -2,6 +2,7 @@
 #include "../../Core/Engine.h"
 #include "../../Core/Cache.h"
 #include "../../Core/Threads/WorkersCommutator.h"
+#include "../../Core/FakeCopyable.h"
 #include "../Graphics.h"
 #include "MeshData.h"
 #include "Mesh.h"
@@ -29,10 +30,11 @@ namespace engine {
 		);
 	}
 
-	void MeshLoader::addCallback(Mesh_Data* md, Mesh* mesh, const MeshLoadingCallback& c, uint16_t mask, uint8_t l, uint8_t thread) {
-		AtomicLock lock(_callbacksLock);
-		_callbacks[md].emplace_back(mesh, c, mask, l, thread);
-	}
+    void MeshLoader::addCallback(Mesh_Data* md, owned_ptr<Mesh>&& mesh, const MeshLoadingCallback& c, uint16_t mask, uint8_t l, uint8_t thread) {
+        AtomicLock lock(_callbacksLock);
+        _callbacks[md].emplace_back(std::move(mesh), c, mask, l, thread);
+    }
+
 
 	void MeshLoader::executeCallbacks(Mesh_Data* m, const AssetLoadingResult result) {
 		std::vector<DataLoadingCallback> callbacks;
@@ -51,13 +53,18 @@ namespace engine {
 		for (auto&& c : callbacks) {
 			c.mesh->createWithData(m, c.semanticMask, c.latency);
 
-            threadCommutator.enqueue(c.targetThreadId,
-                                      [callback = std::move(c.callback), v = c.mesh](const CancellationToken &){
+            CopyWrapper execute([callback = std::move(c.callback), mesh = std::move(c.mesh)]() mutable {
                 if (callback) {
-                    callback(v, AssetLoadingResult::LOADING_SUCCESS);
-                    removeMesh(v);
+                    callback(mesh.detach(), AssetLoadingResult::LOADING_SUCCESS);
                 }
             });
+
+            threadCommutator.enqueue(c.targetThreadId,
+                                     [execute = std::move(execute)](const CancellationToken &) mutable {
+                                         execute();
+                                     });
+
+
 		}
 	}
 
@@ -72,14 +79,14 @@ namespace engine {
 
 		std::vector<AttributesSemantic> allowedAttributes;
 
-		for (uint8_t i = 0; i < 16; ++i) {
-			if (params.semanticMask & (1 << i)) {
+		for (uint8_t i = 0u; i < 16u; ++i) {
+			if (params.semanticMask & (1u << i)) {
 				allowedAttributes.emplace_back(static_cast<AttributesSemantic>(i));
 			}
 		}
 
-		VkDeviceSize vbOffset = 0;
-		VkDeviceSize ibOffset = 0;
+		VkDeviceSize vbOffset;
+		VkDeviceSize ibOffset;
 
 		{
 			AtomicLock lock(_graphicsBuffersOffsetsLock);
@@ -111,8 +118,9 @@ namespace engine {
 	}
 
 	void MeshLoader::loadAsset(Mesh*& v, const MeshLoadingParams& params, const MeshLoadingCallback& callback) {
-	
-		v = createMesh();
+
+        auto mv = make_owned<Mesh>();
+        v = mv.get();
 		
 		auto&& engine = Engine::getInstance();
 		auto&& meshDataCache = engine.getModule<CacheManager>().getCache<std::string, Mesh_Data*>();
@@ -121,23 +129,27 @@ namespace engine {
 			if (mData->indicesBuffer && mData->verticesBuffer) {
 				v->createWithData(mData, params.semanticMask, params.latency);
 				if (callback) {
-                    callback(v, AssetLoadingResult::LOADING_SUCCESS);
-                    removeMesh(v);
+                    callback(mv.detach(), AssetLoadingResult::LOADING_SUCCESS);
                 }
 			} else {
-				addCallback(mData, v, callback, params.semanticMask, params.latency, params.callbackThreadId);
+				addCallback(mData, std::move(mv), callback, params.semanticMask, params.latency, params.callbackThreadId);
 			}
 			return;
 		}
 
-		Mesh_Data* mData = meshDataCache->getOrSetValue(params.file, [](Mesh* v, const MeshLoadingParams& params, const MeshLoadingCallback callback) {
-			auto&& engine = Engine::getInstance();
-			Mesh_Data* mData = new Mesh_Data();
-
-			addCallback(mData, v, callback, params.semanticMask, params.latency, params.callbackThreadId);
+		meshDataCache->getOrSetValue(params.file, [](
+                owned_ptr<Mesh>&& v,
+                const MeshLoadingParams& params,
+                const MeshLoadingCallback& callback
+                ) {
+			auto* mData = new Mesh_Data();
+			addCallback(mData, std::move(v), callback, params.semanticMask, params.latency, params.callbackThreadId);
 
 			if (params.flags->async) {
-				engine.getModule<AssetManager>().getThreadPool()->enqueue(TaskType::COMMON, [](const CancellationToken& token, const MeshLoadingParams params, Mesh_Data* mData) {
+                Engine::getInstance().getModule<AssetManager>().getThreadPool()->enqueue(
+                        TaskType::COMMON,
+                         [](const CancellationToken& token,
+                               const MeshLoadingParams params, Mesh_Data* mData) {
 					fillMeshData(mData, params);
 				}, params, mData);
 			} else {
@@ -145,28 +157,11 @@ namespace engine {
 			}
 
 			return mData;
-		}, v, params, callback);
+		}, std::move(mv), params, callback);
 	}
 
-    Mesh* MeshLoader::createMesh() {
-        Mesh* result = nullptr;
-        {
-            AtomicLock lock(_rawDataLock);
-            result = _rawData.emplace_back(new Mesh());
-        }
-        return result;
-    }
-
-    void MeshLoader::removeMesh(Mesh* m) {
-        AtomicLock lock(_rawDataLock);
-        _rawData.erase(std::remove(_rawData.begin(), _rawData.end(), m), _rawData.end());
-    }
-
     void MeshLoader::cleanUp() noexcept {
-        AtomicLock lock(_rawDataLock);
-        for (auto && m : _rawData) {
-            delete m;
-        }
-        _rawData.clear();
+        AtomicLock lock(_callbacksLock);
+        _callbacks.clear();
     }
 }

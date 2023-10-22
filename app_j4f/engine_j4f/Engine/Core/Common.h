@@ -29,6 +29,9 @@ namespace engine {
     template <typename T>
     class ref_ptr;
 
+    template <typename T>
+    class owned_ptr;
+
     // variant using
     template<typename... Args>
     struct Overload : Args... {
@@ -87,6 +90,9 @@ namespace engine {
 
     template <typename T>
     struct is_smart_pointer<ref_ptr<T>> { enum : bool { value = true }; };
+
+    template <typename T>
+    struct is_smart_pointer<owned_ptr<T>> { enum : bool { value = true }; };
 
 	template<typename T>
 	inline constexpr bool is_smart_pointer_v = engine::is_smart_pointer<T>::value;
