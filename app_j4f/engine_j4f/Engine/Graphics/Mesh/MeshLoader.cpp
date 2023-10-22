@@ -104,6 +104,9 @@ namespace engine {
         threadCommutator.enqueue(engine.getThreadCommutationId(Engine::Workers::RENDER_THREAD),
                                   [mData](const CancellationToken &){ mData->fillGpuData(); });
 
+//        threadCommutator.enqueue(engine.getThreadCommutationId(Engine::Workers::UPDATE_THREAD),
+//                                 [mData](const CancellationToken &){ mData->fillGpuData(); });
+
 		executeCallbacks(mData, AssetLoadingResult::LOADING_SUCCESS);
 	}
 

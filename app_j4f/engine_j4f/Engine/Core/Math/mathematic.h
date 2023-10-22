@@ -117,7 +117,19 @@ namespace engine {
     }
 
     inline bool is_pow2(const uint32_t n) noexcept {
-        return (n > 0) && (!(n & (n - 1)));
+        return (n > 0u) && (!(n & (n - 1u)));
+    }
+
+    inline uint32_t next_pow2(uint32_t v) noexcept {
+        if (v == 0u) return 1u;
+        --v;
+        v |= v >> 1u;
+        v |= v >> 2u;
+        v |= v >> 4u;
+        v |= v >> 8u;
+        v |= v >> 16u;
+        ++v;
+        return v;
     }
 
     template<typename T>
