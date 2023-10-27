@@ -2,7 +2,6 @@
 
 #include "../../Core/AssetManager.h"
 #include "../../Core/Threads/ThreadPool.h"
-#include "../../Core/Owned_ptr.h"
 
 #include "../Vulkan/vkBuffer.h"
 
@@ -81,28 +80,19 @@ namespace engine {
         static void cleanUp() noexcept;
 	private:
 		struct DataLoadingCallback {
-            owned_ptr<Mesh> mesh;
+            std::unique_ptr<Mesh> mesh;
 			uint16_t semanticMask;
 			uint8_t latency;
 			uint8_t targetThreadId = 0u;
 			MeshLoadingCallback callback;
 
-            DataLoadingCallback(owned_ptr<Mesh>&& m, const MeshLoadingCallback& c, uint16_t msk, uint8_t l, uint8_t t) :
-                    mesh(std::move(m)), callback(c), semanticMask(msk), latency(l), targetThreadId(t) { }
+            ~DataLoadingCallback();
 
-			~DataLoadingCallback() = default;
-
-            DataLoadingCallback(DataLoadingCallback&& other) noexcept :
-            mesh(std::move(other.mesh)),
-            semanticMask(other.semanticMask),
-            latency(other.latency),
-            targetThreadId(other.targetThreadId),
-            callback(std::move(other.callback)) {
-
-            }
+            DataLoadingCallback(std::unique_ptr<Mesh>&& m, const MeshLoadingCallback& c, uint16_t msk, uint8_t l, uint8_t t);
+            DataLoadingCallback(DataLoadingCallback&& other) noexcept;
 		};
 
-        static void addCallback(Mesh_Data*, owned_ptr<Mesh>&& mesh, const MeshLoadingCallback&, uint16_t mask, uint8_t l, uint8_t thread);
+        static void addCallback(Mesh_Data*, std::unique_ptr<Mesh>&& mesh, const MeshLoadingCallback&, uint16_t mask, uint8_t l, uint8_t thread);
 		static void executeCallbacks(Mesh_Data*, const AssetLoadingResult);
 
 		static void fillMeshData(Mesh_Data*, const MeshLoadingParams&);

@@ -30,11 +30,22 @@ namespace engine {
 		);
 	}
 
-    void MeshLoader::addCallback(Mesh_Data* md, owned_ptr<Mesh>&& mesh, const MeshLoadingCallback& c, uint16_t mask, uint8_t l, uint8_t thread) {
+    MeshLoader::DataLoadingCallback::DataLoadingCallback(std::unique_ptr<Mesh>&& m, const MeshLoadingCallback& c, uint16_t msk, uint8_t l, uint8_t t) :
+    mesh(std::move(m)), callback(c), semanticMask(msk), latency(l), targetThreadId(t) { }
+
+    MeshLoader::DataLoadingCallback::DataLoadingCallback(DataLoadingCallback&& other) noexcept :
+    mesh(std::move(other.mesh)),
+    semanticMask(other.semanticMask),
+    latency(other.latency),
+    targetThreadId(other.targetThreadId),
+    callback(std::move(other.callback)) { }
+
+    MeshLoader::DataLoadingCallback::~DataLoadingCallback() = default;
+
+    void MeshLoader::addCallback(Mesh_Data* md, std::unique_ptr<Mesh>&& mesh, const MeshLoadingCallback& c, uint16_t mask, uint8_t l, uint8_t thread) {
         AtomicLock lock(_callbacksLock);
         _callbacks[md].emplace_back(std::move(mesh), c, mask, l, thread);
     }
-
 
 	void MeshLoader::executeCallbacks(Mesh_Data* m, const AssetLoadingResult result) {
 		std::vector<DataLoadingCallback> callbacks;
@@ -55,7 +66,7 @@ namespace engine {
 
             CopyWrapper execute([callback = std::move(c.callback), mesh = std::move(c.mesh)]() mutable {
                 if (callback) {
-                    callback(mesh.detach(), AssetLoadingResult::LOADING_SUCCESS);
+                    callback(mesh.release(), AssetLoadingResult::LOADING_SUCCESS);
                 }
             });
 
@@ -118,9 +129,8 @@ namespace engine {
 	}
 
 	void MeshLoader::loadAsset(Mesh*& v, const MeshLoadingParams& params, const MeshLoadingCallback& callback) {
-
-        auto mv = make_owned<Mesh>();
-        v = mv.get();
+        auto mesh = std::make_unique<Mesh>();
+        v = mesh.get();
 		
 		auto&& engine = Engine::getInstance();
 		auto&& meshDataCache = engine.getModule<CacheManager>().getCache<std::string, Mesh_Data*>();
@@ -129,16 +139,16 @@ namespace engine {
 			if (mData->indicesBuffer && mData->verticesBuffer) {
 				v->createWithData(mData, params.semanticMask, params.latency);
 				if (callback) {
-                    callback(mv.detach(), AssetLoadingResult::LOADING_SUCCESS);
+                    callback(mesh.release(), AssetLoadingResult::LOADING_SUCCESS);
                 }
 			} else {
-				addCallback(mData, std::move(mv), callback, params.semanticMask, params.latency, params.callbackThreadId);
+				addCallback(mData, std::move(mesh), callback, params.semanticMask, params.latency, params.callbackThreadId);
 			}
 			return;
 		}
 
 		meshDataCache->getOrSetValue(params.file, [](
-                owned_ptr<Mesh>&& v,
+                std::unique_ptr<Mesh>&& v,
                 const MeshLoadingParams& params,
                 const MeshLoadingCallback& callback
                 ) {
@@ -157,7 +167,7 @@ namespace engine {
 			}
 
 			return mData;
-		}, std::move(mv), params, callback);
+		}, std::move(mesh), params, callback);
 	}
 
     void MeshLoader::cleanUp() noexcept {
