@@ -74,7 +74,6 @@ namespace engine {
 
 	class MeshLoader {
 	public:
-        using asset_loader_type = MeshLoader;
 		using asset_type = Mesh*;
 		static void loadAsset(Mesh*& v, const MeshLoadingParams& params, const MeshLoadingCallback& callback);
         static void cleanUp() noexcept;

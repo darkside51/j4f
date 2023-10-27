@@ -52,7 +52,6 @@ namespace engine {
 
     class TexturePtrLoader {
     public:
-        using asset_loader_type = TexturePtrLoader;
         using asset_type = TexturePtr;
         static void loadAsset(asset_type& v, const TexturePtrLoadingParams& params, const TexturePtrLoadingCallback& callback);
         static void cleanUp() noexcept;

@@ -52,7 +52,6 @@ namespace engine {
 
 	class TextureLoader {
 	public:
-        using asset_loader_type = TextureLoader;
 		using asset_type = vulkan::VulkanTexture*;
 		static void loadAsset(vulkan::VulkanTexture*& v, const TextureLoadingParams& params, const TextureLoadingCallback& callback);
         static void cleanUp() noexcept {}

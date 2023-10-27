@@ -81,31 +81,10 @@ namespace engine {
 	public:
 		virtual ~IAssetLoader() = default;
 		virtual void loadAsset(const AssetLoadingFlags& p, void* data, const void* loadingCallback) const = 0;
-        virtual void loadAsset(const AssetLoadingFlags& p, const void* loadingCallback) const = 0;
     };
 
-    template<typename Loader>
-    concept IsLoaderType1 = requires(Loader) {
-        !std::is_same_v<void, typename Loader::asset_loader_type>;
-    };
-
-    template<typename Loader>
-    concept IsLoaderType2 = requires(Loader) {
-        !std::is_same_v<void, typename Loader::asset_loader_type2>;
-    };
-
-    template <typename Loader> requires IsLoaderType1<Loader> || IsLoaderType2<Loader>
-    class AssetLoaderT : public IAssetLoader {
-        void loadAsset(const AssetLoadingFlags& p, void* data, const void* loadingCallback) const override {
-            assert(false);
-        }
-        void loadAsset(const AssetLoadingFlags& p, const void* loadingCallback) const override {
-            assert(false);
-        }
-    };
-
-	template <IsLoaderType1 Loader>
-	class AssetLoaderT<Loader> : public IAssetLoader {
+	template <typename Loader>
+	class AssetLoaderT : public IAssetLoader {
 	public:
         ~AssetLoaderT() override {
             Loader::cleanUp();
@@ -120,31 +99,7 @@ namespace engine {
 			const AssetLoadingCallback<type>& callback = *(static_cast<const AssetLoadingCallback<type>*>(loadingCallback));
 			Loader::loadAsset(value, params, callback);
 		}
-
-        void loadAsset(const AssetLoadingFlags& p, const void* loadingCallback) const override {
-            assert(false);
-        }
 	};
-
-    template <IsLoaderType2 Loader>
-    class AssetLoaderT<Loader> : public IAssetLoader {
-    public:
-        ~AssetLoaderT() override {
-            Loader::cleanUp();
-        }
-
-        void loadAsset(const AssetLoadingFlags& p, void* data, const void* loadingCallback) const override {
-            assert(false);
-        }
-
-        void loadAsset(const AssetLoadingFlags& p, const void* loadingCallback) const override {
-            using type = typename Loader::asset_type;
-            using params_type = AssetLoadingParams<raw_type_name<type>>;
-            const auto& params = static_cast<const params_type&>(p);
-            const AssetLoadingCallback2<type>& callback = *(static_cast<const AssetLoadingCallback2<type>*>(loadingCallback));
-            Loader::loadAsset(params, callback);
-        }
-    };
 
 	class AssetManager final : public IEngineModule {
 		using ThreadPoolClass = ThreadPool2;
@@ -236,7 +191,6 @@ namespace engine {
 /*
 // using:
 struct TypeLoader {
-    using asset_loader_type = TypeLoader;
 	using asset_type = type_you_want_to_load;
 	static void loadAsset(type& v, const AssetLoadingParams<raw_type_name<asset_type>>& params, const AssetLoadingCallback<asset_type>& callback) {
 		...
@@ -251,7 +205,6 @@ struct TypeLoader {
 
 // example:
 struct IntLoader {
-    using asset_loader_type = IntLoader;
 	using asset_type = int;
 	static void loadAsset(int& v, const AssetLoadingParams<int>& params, const AssetLoadingCallback<int>& callback) {
 		v = 22;
@@ -260,7 +213,6 @@ struct IntLoader {
 };
 
 struct IntPtrLoader {
-    using asset_loader_type = IntPtrLoader;
 	using asset_type = int*;
 	static void loadAsset(type& v, const AssetLoadingParams<int>& params, const AssetLoadingCallback<int*>& callback) {
 		v = new int(111);
@@ -272,7 +224,6 @@ struct IntPtrLoader {
 };
 
 struct IntSharedPtrLoader {
-    using asset_loader_type = IntSharedPtrLoader;
 	using asset_type = std::shared_ptr<int>;
 	static void loadAsset(std::shared_ptr<int>& v, const AssetLoadingParams<int>& params, const AssetLoadingCallback<std::shared_ptr<int>>& callback) {
 		v = std::make_shared<int>(222);

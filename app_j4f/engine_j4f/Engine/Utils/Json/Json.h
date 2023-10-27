@@ -17,7 +17,6 @@ namespace engine {
 
 	class JsonLoader {
 	public:
-        using asset_loader_type = JsonLoader;
 		using asset_type = Json;
 		static void loadAsset(Json& v, const JsonLoadingParams& params, const JsonLoadingCallback& callback);
         static void cleanUp() noexcept {}

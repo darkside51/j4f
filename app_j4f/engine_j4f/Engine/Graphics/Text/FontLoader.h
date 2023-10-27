@@ -18,7 +18,6 @@ namespace engine {
 
 	class FontLoader {
 	public:
-        using asset_loader_type = FontLoader;
 		using asset_type = Font*;
 		static void loadAsset(Font*& v, const FontLoadingParams& params, const FontLoadingCallback& callback);
         static void cleanUp() noexcept {}
