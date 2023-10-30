@@ -66,7 +66,7 @@ namespace engine {
 
             CopyWrapper execute([callback = std::move(c.callback), mesh = std::move(c.mesh)]() mutable {
                 if (callback) {
-                    callback(mesh.release(), AssetLoadingResult::LOADING_SUCCESS);
+                    callback(std::move(mesh), AssetLoadingResult::LOADING_SUCCESS);
                 }
             });
 
@@ -139,7 +139,7 @@ namespace engine {
 			if (mData->indicesBuffer && mData->verticesBuffer) {
 				v->createWithData(mData, params.semanticMask, params.latency);
 				if (callback) {
-                    callback(mesh.release(), AssetLoadingResult::LOADING_SUCCESS);
+                    callback(std::move(mesh), AssetLoadingResult::LOADING_SUCCESS);
                 }
 			} else {
 				addCallback(mData, std::move(mesh), callback, params.semanticMask, params.latency, params.callbackThreadId);

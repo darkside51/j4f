@@ -46,11 +46,13 @@ namespace engine {
 		LOADER_NO_EXIST = 2u
 	};
 
-	template <typename T>
-	using AssetLoadingCallback = std::function<void(const T& asset, const AssetLoadingResult result)>;
-
     template <typename T>
-    using AssetLoadingCallback2 = std::function<void(std::decay_t<T>&& asset, const AssetLoadingResult result)>;
+    struct CallbackArgumentType {
+        using Type = const T&;
+    };
+
+	template <typename T, typename Arg = CallbackArgumentType<T>::Type>
+	using AssetLoadingCallback = std::function<void(Arg&& asset, const AssetLoadingResult result)>;
 
 	struct AssetLoadingFlags {
 		struct Flags {
@@ -169,11 +171,12 @@ namespace engine {
 				return value;
 			}
 
-			T value{};
+
 			if (const AssetLoadingCallback<T>& c = callback) {
-				c(value, AssetLoadingResult::LOADER_NO_EXIST);
+                using callback_arg_type = CallbackArgumentType<T>::Type;
+				c(callback_arg_type{}, AssetLoadingResult::LOADER_NO_EXIST);
 			}
-			return value;
+			return T{};
 		}
 
 		ThreadPoolClass* getThreadPool() noexcept { return _loaderPool.get(); }

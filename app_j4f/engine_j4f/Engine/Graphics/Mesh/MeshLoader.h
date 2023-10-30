@@ -68,9 +68,13 @@ namespace engine {
 		bool useOffsetsInRenderData = false; // parameter used with none zero vbOffset or ibOffset for fill correct renderData values
 	};
 
+    template<>
+    struct CallbackArgumentType<Mesh*> {
+        using Type = std::unique_ptr<Mesh>&&;
+    };
+
 	using MeshLoadingParams = AssetLoadingParams<Mesh>;
 	using MeshLoadingCallback = AssetLoadingCallback<Mesh*>;
-    using MeshPtrLoadingCallback = AssetLoadingCallback<std::unique_ptr<Mesh>>;
 
 	class MeshLoader {
 	public:

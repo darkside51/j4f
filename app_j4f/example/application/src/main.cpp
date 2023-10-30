@@ -1062,7 +1062,7 @@ namespace engine {
                 shadowCastNodes.push_back(node);
 
                 assm.loadAsset<Mesh *>(mesh_params,
-                                       [texture_zombi, this](Mesh *asset, const AssetLoadingResult result) {
+                                       [texture_zombi, this](std::unique_ptr<Mesh> && asset, const AssetLoadingResult result) {
                                            asset->setProgram(program_mesh_skin_with_stroke);
                                            asset->setParamByName("u_texture", texture_zombi, false);
                                            asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
@@ -1092,10 +1092,10 @@ namespace engine {
                                            rotateMatrix_xyz(wtr, vec3f(1.57f, 0.45f, 0.0f));
                                            translateMatrixTo(wtr, vec3f(-100.0f, -0.0f, 0.0f));
 
-                                           mesh->setGraphics(asset);
                                            auto && node = mesh->getNode();
                                            node->setLocalMatrix(wtr);
                                            node->setBoundingVolume(BoundingVolume::make<SphereVolume>(vec3f(0.0f, 1.45f, 0.0f), 1.8f));
+                                           mesh->setGraphics(asset.release());
                                        });
             }
 
@@ -1105,7 +1105,7 @@ namespace engine {
                 (*node)->setRenderObject(mesh2);
                 shadowCastNodes.push_back(node);
 
-                assm.loadAsset<Mesh *>(mesh_params, [texture_zombi](Mesh *asset, const AssetLoadingResult result) {
+                assm.loadAsset<Mesh *>(mesh_params, [texture_zombi](std::unique_ptr<Mesh> && asset, const AssetLoadingResult result) {
                     asset->setProgram(program_mesh_skin);
                     asset->setParamByName("u_texture", texture_zombi, false);
                     asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
@@ -1124,10 +1124,10 @@ namespace engine {
                     rotateMatrix_xyz(wtr, vec3f(1.57f, -0.45f, 0.0f));
                     translateMatrixTo(wtr, vec3f(100.0f, 190.0f, 0.0f));
 
-                    mesh2->setGraphics(asset);
                     auto && node = mesh2->getNode();
                     node->setLocalMatrix(wtr);
                     node->setBoundingVolume(BoundingVolume::make<SphereVolume>(vec3f(0.0f, 1.45f, 0.0f), 1.8f));
+                    mesh2->setGraphics(asset.release());
                 });
             }
 
@@ -1138,7 +1138,7 @@ namespace engine {
                 (*node)->setRenderObject(meshObj);
                 shadowCastNodes.push_back(node);
 
-				assm.loadAsset<Mesh*>(mesh_params, [meshObj, texture_zombi](Mesh* asset, const AssetLoadingResult result) {
+				assm.loadAsset<Mesh*>(mesh_params, [meshObj, texture_zombi](std::unique_ptr<Mesh> && asset, const AssetLoadingResult result) {
 					asset->setProgram(program_mesh_skin);
 					asset->setParamByName("u_texture", texture_zombi, false);
 					asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
@@ -1157,10 +1157,10 @@ namespace engine {
 					rotateMatrix_xyz(wtr, vec3f(1.57f, engine::random(-3.1415f, 3.1415f), 0.0f));
 					translateMatrixTo(wtr, vec3f(engine::random(-1024.0f, 1024.0f), engine::random(-1024.0f, 1024.0f), 0.0f));
 
-                    meshObj->setGraphics(asset);
 					auto && node = meshObj->getNode();
 					node->setLocalMatrix(wtr);
 					node->setBoundingVolume(BoundingVolume::make<SphereVolume>(vec3f(0.0f, 1.45f, 0.0f), 1.8f));
+                    meshObj->setGraphics(asset.release());
 					});
 			}
 
@@ -1170,7 +1170,7 @@ namespace engine {
                 (*node)->setRenderObject(mesh3);
                 shadowCastNodes.push_back(node);
 
-                assm.loadAsset<Mesh *>(mesh_params2, [texture_v, texture_v2, texture_v3](Mesh *asset,
+                assm.loadAsset<Mesh *>(mesh_params2, [texture_v, texture_v2, texture_v3](std::unique_ptr<Mesh> && asset,
                                                                                          const AssetLoadingResult result) {
                     asset->setProgram(program_mesh_skin);
                     asset->setParamByName("u_texture", texture_v, false);
@@ -1217,12 +1217,12 @@ namespace engine {
                     directMatrix_yz(wtr, 0.0f, 1.0f);
                     translateMatrixTo(wtr, vec3f(-100.0f, 210.0f, 0.0f));
 
-                    mesh3->setGraphics(asset);
                     auto && node = mesh3->getNode();
                     node->setLocalMatrix(wtr);
                     node->setBoundingVolume(
                             BoundingVolume::make<SphereVolume>((asset->getMinCorner() + asset->getMaxCorner()) * 0.5f,
                                                                1.0f));
+                    mesh3->setGraphics(asset.release());
                 });
             }
 
@@ -1233,7 +1233,7 @@ namespace engine {
                 shadowCastNodes.push_back(node);
 
                 assm.loadAsset<Mesh *>(mesh_params3,
-                                       [texture_t, texture_t2, this](Mesh *asset, const AssetLoadingResult result) {
+                                       [texture_t, texture_t2, this](std::unique_ptr<Mesh> && asset, const AssetLoadingResult result) {
                                            asset->setProgram(program_mesh);
                                            asset->setParamByName("u_texture", texture_t, false);
                                            asset->getRenderDataAt(1)->setParamByName("u_texture", texture_t2, false);
@@ -1251,12 +1251,12 @@ namespace engine {
                                            rotateMatrix_xyz(wtr, vec3f(1.57f, 0.0f, 0.0f));
                                            translateMatrixTo(wtr, vec3f(-150.0f, -170.0f, 0.0f));
 
-                                           mesh4->setGraphics(asset);
                                            auto && node = mesh4->getNode();
                                            node->setLocalMatrix(wtr);
                                            node->setBoundingVolume(
                                                    BoundingVolume::make<CubeVolume>(asset->getMinCorner(),
                                                                                     asset->getMaxCorner()));
+                                           mesh4->setGraphics(asset.release());
                                        });
             }
 
@@ -1266,7 +1266,7 @@ namespace engine {
                 (*node)->setRenderObject(mesh5);
                 shadowCastNodes.push_back(node);
 
-                assm.loadAsset<Mesh *>(mesh_params4, [texture_t3, this](Mesh *asset, const AssetLoadingResult result) {
+                assm.loadAsset<Mesh *>(mesh_params4, [texture_t3, this](std::unique_ptr<Mesh> && asset, const AssetLoadingResult result) {
                     asset->setProgram(program_mesh);
                     asset->setParamByName("u_texture", texture_t3, false);
                     asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
@@ -1283,12 +1283,12 @@ namespace engine {
                     rotateMatrix_xyz(wtr, vec3f(1.57f, 0.0f, 0.0f));
                     translateMatrixTo(wtr, vec3f(570.0f, -250.0f, 10.0f));
 
-                    mesh5->setGraphics(asset);
                     auto && node = mesh5->getNode();
                     node->setLocalMatrix(wtr);
                     node->setBoundingVolume(
                             BoundingVolume::make<CubeVolume>(asset->getMinCorner(),
                                                              asset->getMaxCorner()));
+                    mesh5->setGraphics(asset.release());
                 });
             }
 
@@ -1299,7 +1299,7 @@ namespace engine {
                 shadowCastNodes.push_back(node);
 
                 assm.loadAsset<Mesh *>(mesh_params5,
-                                       [texture_t5, texture_t6, this](Mesh *asset, const AssetLoadingResult result) {
+                                       [texture_t5, texture_t6, this](std::unique_ptr<Mesh> && asset, const AssetLoadingResult result) {
                                            asset->setProgram(program_mesh);
                                            asset->setParamByName("u_texture", texture_t5, false);
                                            asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
@@ -1316,12 +1316,12 @@ namespace engine {
                                            rotateMatrix_xyz(wtr, vec3f(1.57f, 1.1f, 0.0f));
                                            translateMatrixTo(wtr, vec3f(225.0f, 285.0f, 0.0f));
 
-                                           mesh6->setGraphics(asset);
                                            auto && node = mesh6->getNode();
                                            node->setLocalMatrix(wtr);
                                            node->setBoundingVolume(
                                                    BoundingVolume::make<CubeVolume>(asset->getMinCorner(),
                                                                                     asset->getMaxCorner()));
+                                           mesh6->setGraphics(asset.release());
                                        });
             }
 
@@ -1332,7 +1332,7 @@ namespace engine {
                 shadowCastNodes.push_back(node);
 
                 assm.loadAsset<Mesh *>(mesh_params6,
-                                       [texture_t7, texture_t6, this](Mesh *asset, const AssetLoadingResult result) {
+                                       [texture_t7, texture_t6, this](std::unique_ptr<Mesh> && asset, const AssetLoadingResult result) {
                                            asset->setProgram(program_mesh);
                                            asset->setParamByName("u_texture", texture_t7, false);
                                            asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
@@ -1357,13 +1357,13 @@ namespace engine {
                                            rotateMatrix_xyz(wtr, vec3f(1.57f, -1.15f, 0.0f));
                                            translateMatrixTo(wtr, vec3f(-150.0f, 375.0f, -10.0f));
 
-                                           mesh7->setGraphics(asset);
                                            auto && node = mesh7->getNode();
                                            node->setLocalMatrix(wtr);
                                            node->setBoundingVolume(
                                                    BoundingVolume::make<CubeVolume>(asset->getMinCorner(),
                                                                                     asset->getMaxCorner() +
                                                                                     vec3f(0.0f, 0.01f, 0.0f)));
+                                           mesh7->setGraphics(asset.release());
                                        });
             }
 
@@ -1443,7 +1443,7 @@ namespace engine {
                 (*node)->setRenderObject(grassMesh2);
 
                 assm.loadAsset<Mesh *>(mesh_params_grass,
-                                       [texture_t6, grenderer, this](Mesh *asset, const AssetLoadingResult result) mutable {
+                                       [texture_t6, grenderer, this](std::unique_ptr<Mesh> && asset, const AssetLoadingResult result) mutable {
                                            asset->setProgram(grass_default);
                                            asset->setParamByName("u_texture", texture_t6, false);
                                            asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
@@ -1459,14 +1459,14 @@ namespace engine {
                                            //rotateMatrix_xyz(wtr, vec3f(1.57f, 0.0f, 0.0f));
                                            //translateMatrixTo(wtr, vec3f(200.0f, -100.0f, 0.0f));
 
-                                           grenderer->setMesh(asset);
+                                           auto mesh = asset.release();
+                                           grenderer->setMesh(mesh);
                                            grassMesh2->setGraphics(grenderer);
                                            auto && node = grassMesh2->getNode();
                                            node->setLocalMatrix(wtr);
                                            node->setBoundingVolume(
                                                    BoundingVolume::make<CubeVolume>(vec3f(-1024.0f, -1024.0f, 0.0f),
                                                                                     vec3f(1024.0f, 1024.0f, 40.0f)));
-
                                        });
             }
 
@@ -1477,7 +1477,7 @@ namespace engine {
                 shadowCastNodes.push_back(node);
 
                 assm.loadAsset<Mesh *>(mesh_params_forestTree,
-                                       [texture_forest_tree1, texture_forest_tree2, /*forestRenderer,*/ this](Mesh *asset,
+                                       [texture_forest_tree1, texture_forest_tree2, /*forestRenderer,*/ this](std::unique_ptr<Mesh> && asset,
                                                                                                           const AssetLoadingResult result) {
                                            asset->setProgram(program_mesh_instance);
                                            asset->setParamByName("u_texture", texture_forest_tree2, false);
@@ -1495,7 +1495,8 @@ namespace engine {
                                            mat4f wtr(1.0f);
                                            rotateMatrix_xyz(wtr, vec3f(1.57f, 0.0f, 0.0f));
 
-                                           forestRenderer->setGraphics(asset);
+                                           auto mesh = asset.release();
+                                           forestRenderer->setGraphics(mesh);
                                            forest->setGraphics(forestRenderer);
                                            forestRenderer = nullptr;
                                            auto && node = forest->getNode();
@@ -1503,7 +1504,6 @@ namespace engine {
                                            node->setBoundingVolume(
                                                    BoundingVolume::make<CubeVolume>(vec3f(-1024.0f, 0.0f, -1024.0f),
                                                                                     vec3f(1024.0f, 200.0f, 1024.0f)));
-
                                        });
             }
 
