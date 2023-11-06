@@ -32,10 +32,10 @@ namespace engine {
 		bool _needUpdateData = false;
 	};
 
-	class NodeRenderObject : public RenderObject {
+	class NodeRenderer : public RenderObject {
 		friend class Node;
 	public:
-        ~NodeRenderObject() override {
+        ~NodeRenderer() override {
 			_node = nullptr;
 		}
 
@@ -66,11 +66,11 @@ namespace engine {
 	};
 
 	template <typename T> requires IsRenderAvailableType<T>
-	class NodeRenderer : public NodeRenderObject {
+	class NodeRendererImpl : public NodeRenderer {
 	public:
 		using type = T;
 
-		~NodeRenderer() override {
+		~NodeRendererImpl() override {
             if constexpr (std::is_pointer_v<type>) {
                 if (_graphics && _isGraphicsOwner) {
                     delete _graphics;
@@ -80,8 +80,8 @@ namespace engine {
 			_graphics = nullptr;
 		}
 
-		NodeRenderer() = default;
-		explicit NodeRenderer(type&& g) : RenderObject(&g->getRenderDescriptor()), _graphics(g) {}
+		NodeRendererImpl() = default;
+		explicit NodeRendererImpl(type&& g) : RenderObject(&g->getRenderDescriptor()), _graphics(g) {}
 
         template <typename Type = type>
 		inline void setGraphics(Type&& g, const bool own = true) {
@@ -138,7 +138,7 @@ namespace engine {
 	template <typename T>
 	class GraphicsDataUpdateSystem final : public IGraphicsDataUpdateSystem {
 	public:
-		using type = NodeRenderer<T>*;
+		using type = NodeRendererImpl<T>*;
 
         GraphicsDataUpdateSystem() = default;
 

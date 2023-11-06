@@ -74,20 +74,20 @@ namespace engine {
 	CascadeShadowMap* shadowMap = nullptr;
 	BitmapFont *bitmapFont = nullptr;
 
-	NodeRenderer<Mesh*>* mesh = nullptr;
-	NodeRenderer<Mesh*>* mesh2 = nullptr;
-	NodeRenderer<Mesh*>* mesh3 = nullptr;
-	NodeRenderer<Mesh*>* mesh4 = nullptr;
-	NodeRenderer<Mesh*>* mesh5 = nullptr;
-	NodeRenderer<Mesh*>* mesh6 = nullptr;
-	NodeRenderer<Mesh*>* mesh7 = nullptr;
+	NodeRendererImpl<Mesh*>* mesh = nullptr;
+	NodeRendererImpl<Mesh*>* mesh2 = nullptr;
+	NodeRendererImpl<Mesh*>* mesh3 = nullptr;
+	NodeRendererImpl<Mesh*>* mesh4 = nullptr;
+	NodeRendererImpl<Mesh*>* mesh5 = nullptr;
+	NodeRendererImpl<Mesh*>* mesh6 = nullptr;
+	NodeRendererImpl<Mesh*>* mesh7 = nullptr;
 
-	std::vector<NodeRenderer<Mesh*>*> testMehsesVec;
+	std::vector<NodeRendererImpl<Mesh*>*> testMehsesVec;
 
-	NodeRenderer<Mesh*>* grassMesh = nullptr;
-	NodeRenderer<Plane*>* planeTest = nullptr;
+	NodeRendererImpl<Mesh*>* grassMesh = nullptr;
+	NodeRendererImpl<Plane*>* planeTest = nullptr;
 
-    NodeRenderer<ImguiGraphics*> *imgui = nullptr;
+    NodeRendererImpl<ImguiGraphics*> *imgui = nullptr;
 
 	MeshAnimationTree* animTree = nullptr;
 	MeshAnimationTree* animTree2 = nullptr;
@@ -475,9 +475,9 @@ namespace engine {
 
 	using InstanceMeshRenderer = engine::InstanceRenderer<Mesh, engine::SimpleInstanceStrategy>;
 
-	NodeRenderer<GrassRenderer*>* grassMesh2 = nullptr;
-	NodeRenderer<SkyBoxRenderer*>* skyBox = nullptr;
-	NodeRenderer<InstanceMeshRenderer*>* forest = nullptr;
+	NodeRendererImpl<GrassRenderer*>* grassMesh2 = nullptr;
+	NodeRendererImpl<SkyBoxRenderer*>* skyBox = nullptr;
+	NodeRendererImpl<InstanceMeshRenderer*>* forest = nullptr;
     InstanceMeshRenderer* forestRenderer = nullptr;
 
     GraphicsDataUpdater graphicsDataUpdater;
@@ -745,13 +745,13 @@ namespace engine {
 			rootNode = new H_Node();
 			uiNode = new H_Node();
 
-			imgui = new NodeRenderer<ImguiGraphics*>();
+			imgui = new NodeRendererImpl<ImguiGraphics*>();
 			{
 				H_Node* node = new H_Node();
 				uiNode->addChild(node);
 
 				imgui->setGraphics(ImguiGraphics::getInstance());
-				(*node)->setRenderObject(imgui);
+				(*node)->setRenderer(imgui);
 
 				imgui->getRenderDescriptor()->order = 100;
 			}
@@ -1007,21 +1007,21 @@ namespace engine {
 			mesh_params_forestTree.graphicsBuffer = meshesGraphicsBuffer;
 			////////
 
-			mesh = new NodeRenderer<Mesh*>();
-			mesh2 = new NodeRenderer<Mesh*>();
-			mesh3 = new NodeRenderer<Mesh*>();
-			mesh4 = new NodeRenderer<Mesh*>();
-			mesh5 = new NodeRenderer<Mesh*>();
-			mesh6 = new NodeRenderer<Mesh*>();
-			mesh7 = new NodeRenderer<Mesh*>();
-			//grassMesh = new NodeRenderer<Mesh>();
-			grassMesh2 = new NodeRenderer<GrassRenderer*>();
-			forest = new NodeRenderer<InstanceMeshRenderer*>();
+			mesh = new NodeRendererImpl<Mesh*>();
+			mesh2 = new NodeRendererImpl<Mesh*>();
+			mesh3 = new NodeRendererImpl<Mesh*>();
+			mesh4 = new NodeRendererImpl<Mesh*>();
+			mesh5 = new NodeRendererImpl<Mesh*>();
+			mesh6 = new NodeRendererImpl<Mesh*>();
+			mesh7 = new NodeRendererImpl<Mesh*>();
+			//grassMesh = new NodeRendererImpl<Mesh>();
+			grassMesh2 = new NodeRendererImpl<GrassRenderer*>();
+			forest = new NodeRendererImpl<InstanceMeshRenderer*>();
 			
 			constexpr uint16_t unitsCount = 100;
 			testMehsesVec.reserve(unitsCount);
 			for (size_t i = 0; i < unitsCount; ++i) {
-				meshUpdateSystem.registerObject(testMehsesVec.emplace_back(new NodeRenderer<Mesh*>()));
+				meshUpdateSystem.registerObject(testMehsesVec.emplace_back(new NodeRendererImpl<Mesh*>()));
 			}
 
 			meshUpdateSystem.registerObject(mesh);
@@ -1037,7 +1037,7 @@ namespace engine {
 
 			///////////
 			{
-				skyBox = new NodeRenderer<SkyBoxRenderer*>();
+				skyBox = new NodeRendererImpl<SkyBoxRenderer*>();
 				skyBoxUpdateSystem.registerObject(skyBox);
 
 				SkyBoxRenderer* skyboxRenderer = new SkyBoxRenderer();
@@ -1052,13 +1052,13 @@ namespace engine {
 				rootNode->addChild(node);
 
 				skyBox->setGraphics(skyboxRenderer);
-				(*node)->setRenderObject(skyBox); // (*node)-> == node->value().
+				(*node)->setRenderer(skyBox); // (*node)-> == node->value().
 			}
 
             {
                 H_Node* node = new H_Node();
                 rootNode->addChild(node);
-                (*node)->setRenderObject(mesh);
+                (*node)->setRenderer(mesh);
                 shadowCastNodes.push_back(node);
 
                 assm.loadAsset<Mesh *>(mesh_params,
@@ -1100,9 +1100,8 @@ namespace engine {
             }
 
             {
-                H_Node* node = new H_Node();
+                H_Node* node = new H_Node(mesh2);
                 rootNode->addChild(node);
-                (*node)->setRenderObject(mesh2);
                 shadowCastNodes.push_back(node);
 
                 assm.loadAsset<Mesh *>(mesh_params, [texture_zombi](std::unique_ptr<Mesh> && asset, const AssetLoadingResult result) {
@@ -1133,9 +1132,8 @@ namespace engine {
 
 			for (auto&& meshObj : testMehsesVec) {
 
-                H_Node* node = new H_Node();
+                H_Node* node = new H_Node(meshObj);
                 rootNode->addChild(node);
-                (*node)->setRenderObject(meshObj);
                 shadowCastNodes.push_back(node);
 
 				assm.loadAsset<Mesh*>(mesh_params, [meshObj, texture_zombi](std::unique_ptr<Mesh> && asset, const AssetLoadingResult result) {
@@ -1165,13 +1163,13 @@ namespace engine {
 			}
 
             {
-                H_Node* node = new H_Node();
+                H_Node* node = new H_Node(mesh3);
                 rootNode->addChild(node);
-                (*node)->setRenderObject(mesh3);
+                //(*node)->setRenderer(mesh3);
                 shadowCastNodes.push_back(node);
 
-                assm.loadAsset<Mesh *>(mesh_params2, [texture_v, texture_v2, texture_v3](std::unique_ptr<Mesh> && asset,
-                                                                                         const AssetLoadingResult result) {
+                assm.loadAsset<Mesh *>(mesh_params2, [texture_v, texture_v2, texture_v3, node](std::unique_ptr<Mesh> && asset,
+                                                                                         const AssetLoadingResult result) mutable {
                     asset->setProgram(program_mesh_skin);
                     asset->setParamByName("u_texture", texture_v, false);
                     asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
@@ -1217,19 +1215,20 @@ namespace engine {
                     directMatrix_yz(wtr, 0.0f, 1.0f);
                     translateMatrixTo(wtr, vec3f(-100.0f, 210.0f, 0.0f));
 
-                    auto && node = mesh3->getNode();
-                    node->setLocalMatrix(wtr);
-                    node->setBoundingVolume(
+                    //auto && node = mesh3->getNode();
+                    (*node)->setLocalMatrix(wtr);
+                    (*node)->setBoundingVolume(
                             BoundingVolume::make<SphereVolume>((asset->getMinCorner() + asset->getMaxCorner()) * 0.5f,
                                                                1.0f));
-                    mesh3->setGraphics(asset.release());
+					(*node)->getRenderer<NodeRendererImpl<Mesh*>>()->setGraphics(asset.release());
+                    //mesh3->setGraphics(asset.release());
                 });
             }
 
             {
                 H_Node* node = new H_Node();
                 rootNode->addChild(node);
-                (*node)->setRenderObject(mesh4);
+                (*node)->setRenderer(mesh4);
                 shadowCastNodes.push_back(node);
 
                 assm.loadAsset<Mesh *>(mesh_params3,
@@ -1263,7 +1262,7 @@ namespace engine {
             {
                 H_Node* node = new H_Node();
                 rootNode->addChild(node);
-                (*node)->setRenderObject(mesh5);
+                (*node)->setRenderer(mesh5);
                 shadowCastNodes.push_back(node);
 
                 assm.loadAsset<Mesh *>(mesh_params4, [texture_t3, this](std::unique_ptr<Mesh> && asset, const AssetLoadingResult result) {
@@ -1295,7 +1294,7 @@ namespace engine {
             {
                 H_Node* node = new H_Node();
                 rootNode->addChild(node);
-                (*node)->setRenderObject(mesh6);
+                (*node)->setRenderer(mesh6);
                 shadowCastNodes.push_back(node);
 
                 assm.loadAsset<Mesh *>(mesh_params5,
@@ -1328,7 +1327,7 @@ namespace engine {
             {
                 H_Node *node = new H_Node();
                 rootNode->addChild(node);
-                (*node)->setRenderObject(mesh7);
+                (*node)->setRenderer(mesh7);
                 shadowCastNodes.push_back(node);
 
                 assm.loadAsset<Mesh *>(mesh_params6,
@@ -1440,7 +1439,7 @@ namespace engine {
             {
                 H_Node *node = new H_Node();
                 rootNode->addChild(node);
-                (*node)->setRenderObject(grassMesh2);
+                (*node)->setRenderer(grassMesh2);
 
                 assm.loadAsset<Mesh *>(mesh_params_grass,
                                        [texture_t6, grenderer, this](std::unique_ptr<Mesh> && asset, const AssetLoadingResult result) mutable {
@@ -1473,7 +1472,7 @@ namespace engine {
             {
                 H_Node *node = new H_Node();
                 rootNode->addChild(node);
-                (*node)->setRenderObject(forest);
+                (*node)->setRenderer(forest);
                 shadowCastNodes.push_back(node);
 
                 assm.loadAsset<Mesh *>(mesh_params_forestTree,
@@ -1516,7 +1515,7 @@ namespace engine {
 			texturePtr_logo = assm.loadAsset<TexturePtr>(text_params_logo);
 			
 
-			planeTest = new NodeRenderer<Plane*>();
+			planeTest = new NodeRendererImpl<Plane*>();
 			planeUpdateSystem.registerObject(planeTest);
 
 			{
@@ -1551,7 +1550,7 @@ namespace engine {
 					}
 				)), nullptr));
 
-				(*node)->setRenderObject(planeTest);
+				(*node)->setRenderer(planeTest);
 
 				planeTest->graphics()->setParamByName("u_texture", texture_floor_normal, false);
 				planeTest->getRenderDescriptor()->order = 10;
@@ -1868,7 +1867,7 @@ namespace engine {
 //                mesh7->graphics()->getSkeleton()->applyFrame(animTreeWindMill);
 //            }
 
-            if (auto&& grassNode = grassMesh2->getNode(); (grassNode && grassNode->getRenderObject()->getRenderDescriptor())) {
+            if (auto&& grassNode = grassMesh2->getNode(); (grassNode && grassNode->getRenderer()->getRenderDescriptor())) {
                 static float t = 0.0f;
                 t += 2.0f * dt;
 
@@ -1876,7 +1875,7 @@ namespace engine {
                     t -= math_constants::f32::pi2;
                 }
 
-                grassNode->getRenderObject()->getRenderDescriptor()->setParamByName("u_time", &t, false);
+                grassNode->getRenderer()->getRenderDescriptor()->setParamByName("u_time", &t, false);
                 //const_cast<mat4f&>(grassNode->model())[0][0] = t;
                 //grassNode->setLocalMatrix(mat4f(t));
             }

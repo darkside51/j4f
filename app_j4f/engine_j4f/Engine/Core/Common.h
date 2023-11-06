@@ -60,7 +60,7 @@ namespace engine {
 	struct UniqueTypeId {
 		template<typename T>
 		static inline uint16_t getUniqueId() noexcept {
-			static const uint16_t newId = staticId.fetch_add(1, std::memory_order_relaxed);
+			static const uint16_t newId = staticId.fetch_add(1u, std::memory_order_relaxed);
 			return newId;
 		}
 	private:
@@ -130,7 +130,7 @@ namespace engine {
 
 		// проверка наследования типов на этапе компиляции
 		template <typename T, typename U>
-		constexpr bool classInheritClass() {
+		constexpr bool isInherit() noexcept {
 			return (Conversion<const T*, const U*>::exists) && (!Conversion<const U*, const void*>::same_type) && (!Conversion<const T, const U>::same_type);
 		}
 	}

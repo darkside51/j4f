@@ -3,10 +3,14 @@
 
 namespace engine {
 
+	Node::Node(NodeRenderer* graphics) : _renderer(graphics) {
+		_renderer->_node = const_cast<Node*>(this);
+	}
+
 	Node::~Node() {
-		if (_graphics) {
-			delete _graphics;
-			_graphics = nullptr;
+		if (_renderer) {
+			delete _renderer;
+			_renderer = nullptr;
 		}
 
 		if (_boundingVolume) {
@@ -15,12 +19,12 @@ namespace engine {
 		}
 	}
 
-	void Node::setRenderObject(const NodeRenderObject* r) {
-		if (_graphics) {
-			delete _graphics;
+	void Node::setRenderer(const NodeRenderer* r) {
+		if (_renderer) {
+			delete _renderer;
 		}
-		_graphics = const_cast<NodeRenderObject*>(r);
-		_graphics->_node = const_cast<Node*>(this);
+		_renderer = const_cast<NodeRenderer*>(r);
+		_renderer->_node = const_cast<Node*>(this);
 	}
 
 }

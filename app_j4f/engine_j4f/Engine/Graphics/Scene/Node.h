@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../../Core/Common.h"
 #include "../../Core/Hierarchy.h"
 #include "../../Core/Math/mathematic.h"
 #include "../../Core/BitMask.h"
@@ -8,34 +9,47 @@
 
 namespace engine {
 	
-	class NodeRenderObject;
+	class NodeRenderer;
 
 	class Node final {
 		friend struct NodeUpdater;
 	public:
+		explicit Node(NodeRenderer* graphics);
+		Node() = default;
 		~Node();
 
-		inline void calculateModelMatrix(const mat4f& parentModel) {
+		inline void calculateModelMatrix(const mat4f& parentModel) noexcept {
 			_model = parentModel * _local;
 			_dirtyModel = false;
 			_modelChanged = true;
 		}
 
-		inline void setLocalMatrix(const mat4f& m) {
+		inline void setLocalMatrix(const mat4f& m) noexcept {
 			memcpy(&_local, &m, sizeof(mat4f));
 			_dirtyModel = true;
 		}
 
-		inline const mat4f& localMatrix() const { return _local; }
-		inline const mat4f& model() const { return _model; }
-		inline bool modelChanged() const { return _modelChanged; }
+		inline const mat4f& localMatrix() const noexcept { return _local; }
+		inline const mat4f& model() const noexcept { return _model; }
+		inline bool modelChanged() const noexcept { return _modelChanged; }
 
-		inline NodeRenderObject* getRenderObject() { return _graphics; }
-		inline const NodeRenderObject* getRenderObject() const { return _graphics; }
+		inline NodeRenderer* getRenderer() noexcept { return _renderer; }
+		inline const NodeRenderer* getRenderer() const noexcept { return _renderer; }
 
-		void setRenderObject(const NodeRenderObject* r);
+		template <typename T>
+		inline T* getRenderer() noexcept {
+			static_assert(static_inheritance::isInherit<T, NodeRenderer>());
+			return static_cast<T*>(_renderer);
+		}
+		template <typename T>
+		inline const T* getRenderer() const noexcept {
+			static_assert(static_inheritance::isInherit<T, NodeRenderer>());
+			return static_cast<T*>(_renderer);
+		}
 
-		inline const BoundingVolume* getBoundingVolume() const { return _boundingVolume; }
+		void setRenderer(const NodeRenderer* r);
+
+		inline const BoundingVolume* getBoundingVolume() const noexcept { return _boundingVolume; }
 		inline void setBoundingVolume(const BoundingVolume* v) {
 			if (_boundingVolume) {
 				delete _boundingVolume;
@@ -43,14 +57,14 @@ namespace engine {
 			_boundingVolume = v;
 		}
 
-		inline BitMask64& visible() { return _visibleMask; }
-		inline const BitMask64& visible() const { return _visibleMask; }
+		inline BitMask64& visible() noexcept { return _visibleMask; }
+		inline const BitMask64& visible() const noexcept { return _visibleMask; }
 
 		inline void setVisible(const uint8_t visibleId, const bool value) {
 			_visibleMask.setBit(visibleId, value);
 		}
 
-		inline bool isVisible(const uint8_t visibleId) const {
+		inline bool isVisible(const uint8_t visibleId) const noexcept {
 			return _visibleMask.checkBit(visibleId);
 		}
 
@@ -59,7 +73,7 @@ namespace engine {
 		bool _modelChanged = false;
 		mat4f _local = mat4f(1.0f);
 		mat4f _model = mat4f(1.0f);
-		NodeRenderObject* _graphics = nullptr;
+		NodeRenderer* _renderer = nullptr;
 		const BoundingVolume* _boundingVolume = nullptr;
 		BitMask64 _visibleMask; // ����� ��������� (��������������, ��� ������ ����� ���� ������� ��� ��� � ���������� ����������, ��� ���������� ��������� � ������� ����� ������������ BitMask64)
 	};

@@ -26,7 +26,7 @@ namespace engine {
 	struct RenderListEmplacer final {
 		inline static bool _(H_Node* node, RenderList& list, const bool dirtyVisible, const uint8_t visibleId, V&& visibleChecker) {
 			if (NodeUpdater::_<V>(node, dirtyVisible, visibleId, std::forward<V>(visibleChecker))) {
-				if (NodeRenderObject* renderObject = node->value().getRenderObject()) {
+				if (NodeRenderer* renderObject = node->value().getRenderer()) {
 					renderObject->setNeedUpdate(true);
 					list.addDescriptor(renderObject->getRenderDescriptor());
 				}
@@ -42,7 +42,7 @@ namespace engine {
 		inline static bool _(H_Node* node, const bool dirtyVisible, const uint8_t visibleId, V&& visibleChecker) {
 			const bool visible = NodeUpdater::_<V>(node, dirtyVisible, visibleId, std::forward<V>(visibleChecker));
 
-			if (NodeRenderObject* renderObject = node->value().getRenderObject()) {
+			if (NodeRenderer* renderObject = node->value().getRenderer()) {
 				renderObject->setNeedUpdate(visible);
 				renderObject->getRenderDescriptor()->visible = visible;
 			}
@@ -88,13 +88,13 @@ namespace engine {
 	// reload list by some parts of nodes hierarchy
 
 	template<typename V = EmptyVisibleChecker>
-	inline void updateNodeRenderObjects(H_Node* node, const bool dirtyVisible, const uint8_t visibleId, V&& visibleChecker = V()) {
+	inline void updateNodeRenderers(H_Node* node, const bool dirtyVisible, const uint8_t visibleId, V&& visibleChecker = V()) {
 		using objects_updater_type = NodeAndRenderObjectUpdater<V>;
 		node->execute_with<objects_updater_type>(dirtyVisible, visibleId, std::forward<V>(visibleChecker));
 	}
 
 	template<typename V = EmptyVisibleChecker>
-	inline void updateNodeRenderObjects(H_Node** node, size_t count, const bool dirtyVisible, const uint8_t visibleId, V&& visibleChecker = V()) {
+	inline void updateNodeRenderers(H_Node** node, size_t count, const bool dirtyVisible, const uint8_t visibleId, V&& visibleChecker = V()) {
 		using objects_updater_type = NodeAndRenderObjectUpdater<V>;
 		for (size_t i = 0; i < count; ++i) {
 			node[i]->execute_with<objects_updater_type>(dirtyVisible, visibleId, std::forward<V>(visibleChecker));

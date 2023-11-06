@@ -87,6 +87,11 @@ namespace engine {
 			_children.reserve(sz);
 		}
 
+		//template <typename... Args>
+		//children_type& makeChild(Args&&... args) {
+			// todo!
+		//}
+
 		void addChild(children_type c) {
 			if (!_children.empty()) { 
 				if constexpr (std::is_pointer<children_type>()) {

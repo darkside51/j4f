@@ -29,7 +29,7 @@ namespace engine {
 		}
 
 		template <typename INTEGER_TYPE>
-		inline bool checkBit(const INTEGER_TYPE bit) const {
+		inline bool checkBit(const INTEGER_TYPE bit) const noexcept {
 			static_assert(std::is_integral_v<INTEGER_TYPE>, "type not integer");
 
 			const auto innerBit = static_cast<uint32_t>(bit);

@@ -33,7 +33,7 @@ namespace engine {
 			_graphics = nullptr;
 		}
 
-		inline void applyTo(NodeRenderer<T>* nodeRenderer) {}
+		inline void applyTo(NodeRendererImpl<T>* NodeRendererImpl) {}
 
 	private:
 		type _graphics = nullptr;
