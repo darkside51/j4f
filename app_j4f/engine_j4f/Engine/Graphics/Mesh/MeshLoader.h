@@ -29,7 +29,7 @@ namespace engine {
 
 	template <typename... Args>
 	inline uint16_t makeSemanticsMask(Args&&... args) {
-		uint16_t mask = 0;
+		uint16_t mask = 0u;
 		semanticsMask(mask, std::forward<Args>(args)...);
 		return mask;
 	}

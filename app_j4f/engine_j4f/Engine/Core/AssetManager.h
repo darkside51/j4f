@@ -17,27 +17,35 @@ namespace engine {
 
 	namespace {
 		template <typename T>
-		struct remove_m_pointer {
+		struct remove_pointer_type {
 			using type = T;
 		};
 
 		template<typename T>
-		struct remove_m_pointer<std::shared_ptr<T>> {
+		struct remove_pointer_type<std::shared_ptr<T>> {
 			using type = T;
 		};
 
         template<typename T>
-        struct remove_m_pointer<linked_ptr<T>> {
+        struct remove_pointer_type<linked_ptr<T>> {
             using type = T;
         };
 
         template<typename T>
-        struct remove_m_pointer<std::unique_ptr<T>> {
+        struct remove_pointer_type<std::unique_ptr<T>> {
             using type = T;
         };
 
-		template <typename T>
-		using raw_type_name = typename std::remove_pointer<typename remove_m_pointer<typename std::remove_reference<typename std::remove_const<T>::type>::type>::type>::type;
+        template<typename T>
+        struct remove_pointer_type<T*> {
+            using type = T;
+        };
+
+        template<typename T>
+        using remove_pointer_type_t = remove_pointer_type<T>::type;
+
+        template <typename T>
+        using raw_type_name = remove_pointer_type_t<std::decay_t<T>>;
 	}
 
 	enum class AssetLoadingResult : uint8_t {
@@ -61,14 +69,14 @@ namespace engine {
 		};
 
 		union LoadingFlags {
-			uint16_t mask;
+			uint16_t mask = 0u;
 			Flags flags;
 
-			LoadingFlags() : mask(0) {}
+			LoadingFlags() : mask(0u) {}
 			explicit LoadingFlags(const uint16_t f) : mask(f) {}
 
-			Flags* operator->() { return &flags; }
-			const Flags* operator->() const { return &flags; }
+			Flags* operator->() noexcept { return &flags; }
+			const Flags* operator->() const noexcept { return &flags; }
 		};
 
 		virtual ~AssetLoadingFlags() = default;
