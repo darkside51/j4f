@@ -487,7 +487,7 @@ namespace engine {
     GraphicsDataUpdateSystem<InstanceMeshRenderer*> instanceMeshUpdateSystem;
     GraphicsDataUpdateSystem<Plane*> planeUpdateSystem;
 	
-	class ApplicationCustomData : public InputObserver, public ICameraTransformChangeObserver {
+	class Game : public InputObserver, public ICameraTransformChangeObserver {
 	public:
 
 		void onCameraTransformChanged(const Camera* camera) override {
@@ -513,9 +513,9 @@ namespace engine {
             cameraInfo = new ImGuiCameraInfo();
         }
 
-		ApplicationCustomData() {
+        Game() {
 			PROFILE_TIME_SCOPED(ApplicationLoading)
-			log("ApplicationCustomData");
+			log("Game");
 
 			FileManager& fm = Engine::getInstance().getModule<FileManager>();
 			auto&& fs = fm.getFileSystem<DefaultFileSystem>();
@@ -528,8 +528,8 @@ namespace engine {
             graphicsDataUpdater.registerSystem(planeUpdateSystem);
 		}
 
-		~ApplicationCustomData() {
-			log("~ApplicationCustomData");
+		~Game() {
+			log("~Game");
 
             delete statObserver;
             delete cameraInfo;
@@ -1644,7 +1644,7 @@ namespace engine {
 			planeTest->graphics()->pipelineAttributesChanged();
 
 			planeTest->graphics()->changeRenderState([](vulkan::VulkanRenderState& renderState) {
-                renderState.blendMode = vulkan::CommonBlendModes::blend_alpha;
+                renderState.blendMode = vulkan::CommonBlendModes::blend_alpha_pma;
                 renderState.depthState.depthWriteEnabled = false;
                 renderState.depthState.depthTestEnabled = false;
             });
@@ -1659,7 +1659,7 @@ namespace engine {
 				planeTest->setProgram(program);
 
                 planeTest->graphics()->setParamByName("u_texture", texture_text, false);
-                planeTest->graphics()->setParamByName("color", engine::vec3f(1.0,0.0,0.0), true);
+                planeTest->graphics()->setParamByName("color", engine::vec3f(0.2,0.2,0.2), true);
                 planeTest->graphics()->setParamByName("outline", engine::vec3f(1.0,1.0,1.0), true);
             }
 
@@ -2527,25 +2527,19 @@ namespace engine {
 
 	};
 
-	Application::Application() noexcept {
-		_customData = new ApplicationCustomData();
-	}
+	Application::Application() noexcept : _game(std::make_unique<Game>()) {}
+
+    Application::~Application() {
+        LOG_TAG(Application, "finished");
+    }
 
     void Application::requestFeatures() {
 //        Engine::getInstance().getModule<Graphics>()->features().request<CascadeShadowMap>(ShadowMapTechnique::SMT_AUTO);
         Engine::getInstance().getModule<Graphics>().features().request<CascadeShadowMap>(ShadowMapTechnique::SMT_INSTANCE_DRAW);
     }
 
-	void Application::freeCustomData() {
-		if (_customData) {
-			delete _customData;
-			_customData = nullptr;
-			LOG_TAG(Application, "finished");
-		}
-	}
-
     void Application::onEngineInitComplete() {
-        _customData->onEngineInitComplete();
+        _game->onEngineInitComplete();
         auto && timerManager = engine::Engine::getInstance().getModule<engine::TimerManager>();
         timerManager.registerTimer({}, []()->TimerState {
             static uint8_t i = 0u;
@@ -2555,17 +2549,17 @@ namespace engine {
     }
 
 	void Application::render(const float delta) {
-		_customData->render(delta);
+		_game->render(delta);
 	}
 
 	void Application::update(const float delta) {
-		_customData->update(delta);
+        _game->update(delta);
         engine::Engine::getInstance().getModule<engine::TimerManager>().update({});
 	}
 
 	void Application::resize(const uint16_t w, const uint16_t h) {
 		if (w != 0 && h != 0) {
-			_customData->resize(w, h);
+            _game->resize(w, h);
 		}
 	}
 
@@ -2573,7 +2567,7 @@ namespace engine {
         return Version(1, 0, 0);
     }
 
-    const char* Application::getName() const noexcept {
+    const char* Application::name() const noexcept {
         return "example";
     }
 }

@@ -11,22 +11,20 @@ layout (set = 0, binding = 0) uniform UBO {
 layout (set = 1, binding = 0) uniform sampler2D u_texture;
 
 const float width = 0.5;
-const float edge = 0.025;
+const float edge = 0.1;
 
 const float o_width = 0.55;
 const float o_edge = 0.1;
 
 void main() {		
-	vec3 color = u_ubo.color;
-	vec3 o_color = u_ubo.outline;
+	const vec3 color = u_ubo.color;
+	const vec3 o_color = u_ubo.outline;
 
-	float distance = 1.0 - texture(u_texture, inUv, 0.0).a;
+	const float distance = 1.0 - texture(u_texture, inUv).a;
+	const float alpha = 1.0 - smoothstep(width, width + edge, distance);
+	const float o_alpha = 1.0 - smoothstep(o_width, o_width + o_edge, distance);
 
-	float alpha = 1.0 - smoothstep(width, width + edge, distance);
-	float o_alpha = 1.0 - smoothstep(o_width, o_width + o_edge, distance);
-	float completeAlpha = alpha + (1.0 - alpha) * o_alpha;
+	const vec3 completeColor = mix(o_color, color, alpha);
 
-	vec3 completeColor = mix(o_color, color, alpha / completeAlpha);
-
-	outFragColor = vec4(completeColor, completeAlpha);
+	outFragColor = vec4(completeColor * o_alpha, o_alpha);
 }

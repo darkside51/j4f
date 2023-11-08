@@ -83,7 +83,7 @@ namespace engine {
 	}
 
 	void Engine::initComplete() {
-        getModule<Device>().setTittle(_application->getName());
+        getModule<Device>().setTittle(_application->name());
 		_graphics->onEngineInitComplete();
         _application->onEngineInitComplete();
 	}
@@ -173,7 +173,7 @@ namespace engine {
 		_graphics->deviceDestroyed();
 
         if (_application) {
-            _application->deviceDestroyed();
+            _application.reset();
         }
 	}
 
