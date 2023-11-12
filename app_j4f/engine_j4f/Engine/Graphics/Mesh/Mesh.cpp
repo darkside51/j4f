@@ -237,7 +237,7 @@ namespace engine {
 
     void MeshSkeleton::applyFrame(MeshAnimationTree* animTree) {
         const auto frameNum = animTree->frame();
-        if ((_latency > 1 && frameNum != _updateFrameNum) || _latency == 1) {
+        if ((_latency > 1u && frameNum != _updateFrameNum) || _latency == 1u) {
             {
                 // new vision
                 // check the target frame already complete previous work
@@ -259,12 +259,12 @@ namespace engine {
 		for (const Mesh_Skin& s : _skins) {
 			const Mesh_Node& h = _nodes[updateFrame][s.skeletonRoot]->value();
 
-			const bool emptyInverse = !memcmp(&(h.modelMatrix), &emptyMatrix, sizeof(mat4f));
-			const size_t numJoints = static_cast<uint32_t>(s.joints.size());
+			const bool emptyInverse = _useRootTransfrom || !memcmp(&(h.modelMatrix), &emptyMatrix, sizeof(mat4f));
+			const auto numJoints = s.joints.size();
 
 			std::vector<mat4f>& skin_matrices = _skinsMatrices[updateFrame][skinId];
 			if (emptyInverse) {
-				for (size_t i = 0; i < numJoints; ++i) {
+				for (size_t i = 0u; i < numJoints; ++i) {
 					if (auto&& n = _nodes[updateFrame][s.joints[i]]->value(); n.dirtyModelTransform) {
 						skin_matrices[i] = (n.modelMatrix * s.inverseBindMatrices[i]);
 						_dirtySkins = true;
@@ -272,7 +272,7 @@ namespace engine {
 				}
 			} else {
 				const mat4f inverseTransform = glm::inverse(h.modelMatrix);
-				for (size_t i = 0; i < numJoints; ++i) {
+				for (size_t i = 0u; i < numJoints; ++i) {
 					if (auto&& n = _nodes[updateFrame][s.joints[i]]->value(); n.dirtyModelTransform) {
 						skin_matrices[i] = inverseTransform * (n.modelMatrix * s.inverseBindMatrices[i]);
 						_dirtySkins = true;
@@ -349,8 +349,8 @@ namespace engine {
 				_maxCorner.z = std::max(std::max(_maxCorner.z, corner1.z), corner2.z);
 			}
 
-            r_data->indexes = _meshData->indicesBuffer;
-            r_data->vertexes = _meshData->verticesBuffer;
+            r_data->indexes = _meshData->indicesBuffer.get();
+            r_data->vertexes = _meshData->verticesBuffer.get();
 		}
 
 		vulkan::PrimitiveTopology topology = vulkan::PrimitiveTopology::TRIANGLE_LIST;
@@ -532,7 +532,9 @@ namespace engine {
 		}
 
 		// create render data
-		createRenderData();
+		if (_meshData->vertexCount) {
+			createRenderData();
+		}
 	}
 
 	Mesh::~Mesh() {

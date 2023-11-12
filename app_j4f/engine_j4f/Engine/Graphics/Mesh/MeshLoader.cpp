@@ -10,14 +10,14 @@
 
 namespace engine {
 
-	MeshGraphicsDataBuffer::MeshGraphicsDataBuffer(const size_t vbSize, const size_t ibSize) : vb(new vulkan::VulkanBuffer()), ib(new vulkan::VulkanBuffer()), vbOffset(0), ibOffset(0) {
+	MeshGraphicsDataBuffer::MeshGraphicsDataBuffer(const size_t vbSize, const size_t ibSize) : vb(std::make_unique<vulkan::VulkanBuffer>()), ib(std::make_unique<vulkan::VulkanBuffer>()), vbOffset(0), ibOffset(0) {
 		auto&& renderer = Engine::getInstance().getModule<Graphics>().getRenderer();
 
 		renderer->getDevice()->createBuffer(
 			VK_SHARING_MODE_EXCLUSIVE,
 			VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-			vb,
+			vb.get(),
 			vbSize
 		);
 
@@ -25,7 +25,7 @@ namespace engine {
 			VK_SHARING_MODE_EXCLUSIVE,
 			VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-			ib,
+			ib.get(),
 			ibSize
 		);
 	}
@@ -74,8 +74,6 @@ namespace engine {
                                      [execute = std::move(execute)](const CancellationToken &) mutable {
                                          execute();
                                      });
-
-
 		}
 	}
 
@@ -88,8 +86,15 @@ namespace engine {
 		const Layout layout = Parser::loadModel(params.file);
 		PROFILE_TIME_LEAVE_SCOPE(meshDataJsonParsing)
 
+		mData->loadSkins(layout);
+		mData->loadAnimations(layout);
+		
+		if (!params.graphicsBuffer) {
+			executeCallbacks(mData, AssetLoadingResult::LOADING_SUCCESS);
+			return;
+		}
+			
 		std::vector<AttributesSemantic> allowedAttributes;
-
 		for (uint8_t i = 0u; i < 16u; ++i) {
 			if (params.semanticMask & (1u << i)) {
 				allowedAttributes.emplace_back(static_cast<AttributesSemantic>(i));
@@ -98,6 +103,8 @@ namespace engine {
 
 		VkDeviceSize vbOffset;
 		VkDeviceSize ibOffset;
+			
+		auto& graphicsBuffer = const_cast<MeshGraphicsDataBuffer&>(*params.graphicsBuffer);
 
 		{
 			AtomicLock lock(_graphicsBuffersOffsetsLock);
@@ -106,15 +113,13 @@ namespace engine {
 
 			const auto vertex_offset = mData->loadMeshes(layout, allowedAttributes, vbOffset, ibOffset, params.useOffsetsInRenderData);
 
-			params.graphicsBuffer->vbOffset += mData->vertexSize * mData->vertexCount * sizeof(float) + vertex_offset;
-			params.graphicsBuffer->ibOffset += mData->indexCount * sizeof(uint32_t);
+			graphicsBuffer.vbOffset += mData->vertexSize * mData->vertexCount * sizeof(float) + vertex_offset;
+			graphicsBuffer.ibOffset += mData->indexCount * sizeof(uint32_t);
 		}
 
-		mData->loadSkins(layout);
-		mData->loadAnimations(layout);
 		mData->loadNodes(layout);
 
-		mData->uploadGpuData(params.graphicsBuffer->vb, params.graphicsBuffer->ib, vbOffset, ibOffset);
+		mData->uploadGpuData(graphicsBuffer.vb, graphicsBuffer.ib, vbOffset, ibOffset);
 
         auto && engine = Engine::getInstance();
         auto && threadCommutator = engine.getModule<WorkerThreadsCommutator>();

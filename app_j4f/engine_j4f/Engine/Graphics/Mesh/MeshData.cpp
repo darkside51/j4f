@@ -6,18 +6,6 @@
 
 namespace engine {
 
-	Mesh_Data::~Mesh_Data() {
-		if (stage_vertices) {
-			delete stage_vertices;
-			stage_vertices = nullptr;
-		}
-
-		if (stage_indices) {
-			delete stage_indices;
-			stage_indices = nullptr;
-		}
-	}
-
 	size_t Mesh_Data::loadMeshes(const gltf::Layout& layout, const std::vector<gltf::AttributesSemantic>& allowedAttributes,
 		size_t& vbOffset, const size_t ibOffset, const bool useOffsetsInRenderData) {
 
@@ -395,20 +383,20 @@ namespace engine {
 		}
 	}
 
-	void Mesh_Data::uploadGpuData(vulkan::VulkanBuffer*& vertices, vulkan::VulkanBuffer*& indices, const size_t vbOffset, const size_t ibOffset) {
+	void Mesh_Data::uploadGpuData(std::unique_ptr<vulkan::VulkanBuffer>& vertices, std::unique_ptr<vulkan::VulkanBuffer>& indices, const size_t vbOffset, const size_t ibOffset) {
 		const uint32_t vertexBufferSize = static_cast<uint32_t>(vertexBuffer.size()) * sizeof(float);
 		const uint32_t indexBufferSize = static_cast<uint32_t>(indexBuffer.size()) * sizeof(uint32_t);
 
 		auto&& renderer = Engine::getInstance().getModule<Graphics>().getRenderer();
 
-		stage_vertices = new vulkan::VulkanBuffer();
-		stage_indices = new vulkan::VulkanBuffer();
+		stage_vertices = std::make_unique<vulkan::VulkanBuffer>();
+		stage_indices = std::make_unique<vulkan::VulkanBuffer>();
 
 		renderer->getDevice()->createBuffer(
 			VK_SHARING_MODE_EXCLUSIVE,
 			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-			stage_vertices,
+			stage_vertices.get(),
 			vertexBufferSize
 		);
 
@@ -416,29 +404,29 @@ namespace engine {
 			VK_SHARING_MODE_EXCLUSIVE,
 			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-			stage_indices,
+			stage_indices.get(),
 			indexBufferSize
 		);
 
 		//
 		if (vertices == nullptr) {
-			vertices = new vulkan::VulkanBuffer();
+			vertices = std::make_unique<vulkan::VulkanBuffer>();
 			renderer->getDevice()->createBuffer(
 				VK_SHARING_MODE_EXCLUSIVE,
 				VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 				VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-				vertices,
+				vertices.get(),
 				vertexBufferSize
 			);
 		}
 
 		if (indices == nullptr) {
-			indices = new vulkan::VulkanBuffer();
+			indices = std::make_unique<vulkan::VulkanBuffer>();
 			renderer->getDevice()->createBuffer(
 				VK_SHARING_MODE_EXCLUSIVE,
 				VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 				VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-				indices,
+				indices.get(),
 				indexBufferSize
 			);
 		}
@@ -448,8 +436,8 @@ namespace engine {
 
 		destroyBuffers();
 
-		indicesBuffer = indices;
-		verticesBuffer = vertices;
+		indicesBuffer = indices.get();
+		verticesBuffer = vertices.get();
 		gpu_ibOffset = ibOffset;
 		gpu_vbOffset = vbOffset;
 	}
@@ -472,8 +460,6 @@ namespace engine {
 		stage_vertices->destroy();
 		stage_indices->destroy();
 
-		delete stage_vertices;
-		delete stage_indices;
 		stage_vertices = nullptr;
 		stage_indices = nullptr;
 	}

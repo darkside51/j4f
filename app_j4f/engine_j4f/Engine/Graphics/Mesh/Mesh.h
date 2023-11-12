@@ -100,8 +100,6 @@ namespace engine {
 		MeshSkeleton(Mesh_Data* mData, const uint8_t latency);
 		~MeshSkeleton();
 
-		void loadNode(const Mesh_Data* mData, const uint16_t nodeId, HierarchyRaw<Mesh_Node>* parent, const uint8_t h);
-
 		Mesh_Node& getNode(const uint8_t updateFrame, const uint16_t nodeId) { return _nodes[updateFrame][nodeId]->value(); }
 		[[nodiscard]] const Mesh_Node& getNode(const uint8_t updateFrame, const uint16_t nodeId) const { return _nodes[updateFrame][nodeId]->value(); }
 
@@ -135,7 +133,12 @@ namespace engine {
         [[nodiscard]] inline uint8_t getLatency() const noexcept { return _latency; }
         [[nodiscard]] inline bool dirtySkins() const noexcept { return _dirtySkins; }
 
+		inline void setUseRootTransfrom(const bool use) noexcept { _useRootTransfrom = use; }
+		[[nodeiscard]] inline bool getUseRootTransfrom() const noexcept { return _useRootTransfrom; }
+
 	private:
+		void loadNode(const Mesh_Data* mData, const uint16_t nodeId, HierarchyRaw<Mesh_Node>* parent, const uint8_t h);
+
 		void updateSkins(const uint8_t updateFrame);
 		void updateTransforms(const uint8_t updateFrame);
 
@@ -197,10 +200,11 @@ namespace engine {
 		//std::vector<TaskResult<void>> _animCalculationResult;
 		std::vector<linked_ptr<Task2<void>>> _animCalculationResult;
 
-		uint8_t _latency;
+		uint8_t _latency = 1u;
 		uint8_t _updateFrameNum = 0u;
 		bool _dirtySkins = true;
         bool _requestAnimUpdate = false;
+		bool _useRootTransfrom = true;
 
         std::atomic<uint8_t> _updatedFrameNum = {0u};
 	};

@@ -1,10 +1,12 @@
 ﻿#pragma once
 
 #include "../../Core/Math/mathematic.h"
+#include "../../Core/Ref_ptr.h"
 
 #include <string>
 #include <vector>
 #include <cstdint>
+#include <memory>
 
 namespace gltf {
 	struct Layout;
@@ -23,27 +25,27 @@ namespace engine {
 		//
 		//};
 		//std::vector<Primitive> primitives;
-		uint16_t nodeIndex = 0xffff;
+		uint16_t nodeIndex = 0xffffu;
 	};
 
 	struct Mesh_Skin {
-		uint16_t skeletonRoot = 0xffff;
+		uint16_t skeletonRoot = 0xffffu;
 		std::vector<mat4f> inverseBindMatrices;
 		std::vector<uint16_t> joints;
 	};
 
 	struct Mesh_Animation {
 		enum class Interpolation : uint8_t {
-			LINEAR = 0,
-			STEP = 1,
-			CUBICSPLINE = 2
+			LINEAR = 0u,
+			STEP = 1u,
+			CUBICSPLINE = 2u
 		};
 
 		enum class AimationChannelPath : uint8_t {
-			TRANSLATION = 0,
-			ROTATION = 1,
-			SCALE = 2,
-			WEIGHTS = 3
+			TRANSLATION = 0u,
+			ROTATION = 1u,
+			SCALE = 2u,
+			WEIGHTS = 3u
 		};
 
 		struct AnimationSampler {
@@ -64,8 +66,8 @@ namespace engine {
 		float start = std::numeric_limits<float>::max();
 		float end = std::numeric_limits<float>::min();
 		float duration;
-		uint16_t minTargetNodeId = 0xffff;
-		uint16_t maxTargetNodeId = 0;
+		uint16_t minTargetNodeId = 0xffffu;
+		uint16_t maxTargetNodeId = 0u;
 	};
 
 	struct Mesh_Data {
@@ -93,20 +95,21 @@ namespace engine {
 		std::vector<float> vertexBuffer;
 		std::vector<uint32_t> indexBuffer;
 
-		vulkan::VulkanBuffer* verticesBuffer = nullptr;
-		vulkan::VulkanBuffer* indicesBuffer = nullptr;
+		ref_ptr<vulkan::VulkanBuffer> verticesBuffer = nullptr;
+		ref_ptr<vulkan::VulkanBuffer> indicesBuffer = nullptr;
 
-		vulkan::VulkanBuffer* stage_vertices = nullptr;
-		vulkan::VulkanBuffer* stage_indices = nullptr;
-		size_t gpu_vbOffset = 0;
-		size_t gpu_ibOffset = 0;
+		std::unique_ptr<vulkan::VulkanBuffer> stage_vertices = nullptr;
+		std::unique_ptr<vulkan::VulkanBuffer> stage_indices = nullptr;
 
-		uint32_t vertexSize = 0;
-		uint32_t vertexCount = 0;
-		uint32_t indexCount = 0;
+		size_t gpu_vbOffset = 0u;
+		size_t gpu_ibOffset = 0u;
+
+		uint32_t vertexSize = 0u;
+		uint32_t vertexCount = 0u;
+		uint32_t indexCount = 0u;
 
 		// functions
-		~Mesh_Data();
+		~Mesh_Data() = default;
 
 		void loadSkins(const gltf::Layout& layout);
 
@@ -119,7 +122,7 @@ namespace engine {
 
 		void initMeshNodeId(const gltf::Layout& layout, const uint16_t nodeId);
 
-		void uploadGpuData(vulkan::VulkanBuffer*& vertices, vulkan::VulkanBuffer*& indices, const size_t vbOffset, const size_t ibOffset);
+		void uploadGpuData(std::unique_ptr<vulkan::VulkanBuffer>& vertices, std::unique_ptr<vulkan::VulkanBuffer>& indices, const size_t vbOffset, const size_t ibOffset);
 
 		void fillGpuData();
 

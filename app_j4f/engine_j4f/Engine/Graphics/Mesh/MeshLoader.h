@@ -2,6 +2,7 @@
 
 #include "../../Core/AssetManager.h"
 #include "../../Core/Threads/ThreadPool.h"
+#include "../../Core/Ref_ptr.h"
 
 #include "../Vulkan/vkBuffer.h"
 
@@ -18,12 +19,12 @@ namespace engine {
 	struct Mesh_Data;
 
 	inline void semanticsMask(uint16_t& mask, gltf::AttributesSemantic s) {
-		mask |= 1 << static_cast<uint16_t>(s);
+		mask |= 1u << static_cast<uint16_t>(s);
 	}
 
 	template <typename... Args>
 	inline void semanticsMask(uint16_t& mask, gltf::AttributesSemantic s, Args&&... args) {
-		mask |= 1 << static_cast<uint16_t>(s);
+		mask |= 1u << static_cast<uint16_t>(s);
 		semanticsMask(mask, std::forward<Args>(args)...);
 	}
 
@@ -39,20 +40,10 @@ namespace engine {
 		MeshGraphicsDataBuffer() : vb(nullptr), ib(nullptr), vbOffset(0), ibOffset(0) { }
 		MeshGraphicsDataBuffer(const size_t vbSize, const size_t ibSize);
 
-		~MeshGraphicsDataBuffer() {
-			if (vb) {
-				delete vb;
-				vb = nullptr;
-			}
+		~MeshGraphicsDataBuffer() = default;
 
-			if (ib) {
-				delete ib;
-				ib = nullptr;
-			}
-		}
-
-		vulkan::VulkanBuffer* vb;
-		vulkan::VulkanBuffer* ib;
+		std::unique_ptr<vulkan::VulkanBuffer> vb;
+		std::unique_ptr<vulkan::VulkanBuffer> ib;
 		VkDeviceSize vbOffset;
 		VkDeviceSize ibOffset;
 	};
@@ -64,7 +55,7 @@ namespace engine {
 		uint16_t semanticMask = 0u;
 		uint8_t latency = 1u;
 		uint8_t callbackThreadId = 0u;
-		MeshGraphicsDataBuffer* graphicsBuffer = nullptr;
+		ref_ptr<MeshGraphicsDataBuffer> graphicsBuffer = nullptr;
 		bool useOffsetsInRenderData = false; // parameter used with none zero vbOffset or ibOffset for fill correct renderData values
 	};
 
