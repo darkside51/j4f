@@ -14,7 +14,7 @@ namespace engine {
 			float w = 0.0f;
 
 			size_t firstNoneZeroWeightChild = 0;
-			for (size_t n = 0; n < childrenCount; ++n) {
+			for (size_t n = 0u; n < childrenCount; ++n) {
 				const auto& v = children[n]->value();
 				w = v.getWeight();
 				if (w > 0.0f) { // get first none zero weight value
@@ -89,7 +89,7 @@ namespace engine {
 						}
 
 						tr0.mask |= tr1.mask;
-						tr1.mask = 0;
+						tr1.mask = 0u;
 					}
 
 					w += w2;
@@ -112,7 +112,7 @@ namespace engine {
 			float w = 0.0f;
 
 			size_t firstNoneZeroWeightChild = 0;
-			for (size_t n = 0; n < childrenCount; ++n) {
+			for (size_t n = 0u; n < childrenCount; ++n) {
 				const auto& v = children[n]->value();
 				w = v.getWeight();
 				if (w > 0.0f) { // get first none zero weight value
@@ -187,7 +187,7 @@ namespace engine {
 						}
 
 						tr0.mask |= tr1.mask;
-						tr1.mask = 0;
+						tr1.mask = 0u;
 					}
 
 					w += w2;

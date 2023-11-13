@@ -47,7 +47,11 @@ namespace engine {
                     continue;
                 }
 
-                if (anim->needUpdate()) {
+                if (!anim->isUpdateable()) {
+                    continue;
+                }
+
+                if (anim->forceUpdate()) {
                     anim->updateAnimation(delta + accum);
                     accum = 0.0f;
                 } else {
@@ -118,7 +122,7 @@ namespace engine {
         }
 
         inline void update(const float delta) noexcept override {
-            size_t i = 0;
+            size_t i = 0u;
             std::vector<uint32_t> toRemove;
             toRemove.reserve(_animations.size());
             for (auto && [anim, accum]: _animations) {
@@ -128,26 +132,33 @@ namespace engine {
                     continue;
                 }
 
-                bool requestUpdate = anim->needUpdate();
-                if (requestUpdate == false) {
-                    for (auto &&target: _animationsTargets[i]) {
-                        if ((requestUpdate = target->requestAnimUpdate())) {
-                            break;
-                        }
-                    }
+                if (!anim->isUpdateable()) {
+                    continue;
                 }
 
-                if (requestUpdate) {
-                    anim->updateAnimation(delta + accum);
-                    accum = 0.0f;
-                    // update targets
-                    for (auto &&target: _animationsTargets[i]) {
+                bool requestUpdate = false;
+                for (auto&& target : _animationsTargets[i]) {
+                    if (target->requestAnimUpdate()) {
+                        if (!requestUpdate) {
+                            anim->updateAnimation(delta + accum);
+                            accum = 0.0f;
+                            requestUpdate = true;
+                        }
+
                         target->applyFrame(anim);
                         target->completeAnimUpdate();
                     }
-                } else {
-                    accum += delta;
                 }
+
+                if (!requestUpdate) {
+                    if (anim->forceUpdate()) {
+                        anim->updateAnimation(delta + accum);
+                        accum = 0.0f;
+                    } else {
+                        accum += delta;
+                    }
+                }
+
                 ++i;
             }
 

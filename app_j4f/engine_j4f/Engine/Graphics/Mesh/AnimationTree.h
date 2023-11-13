@@ -2,17 +2,35 @@
 
 #include "../../Core/Math/mathematic.h"
 #include "../../Core/Hierarchy.h"
+#include "../../Core/Ref_ptr.h"
 #include "../../Utils/Debug/Assert.h"
 #include "MeshData.h"
 #include "Mesh.h"
 
+#include <cstdint>
+#include <memory>
+
 namespace engine {
+
+	enum class AnimationEvent : uint8_t {
+		Unknown = 0u,
+		NewLoop = 1u,
+		EndLoop = 2u,
+		Process = 3u,
+		Finish = 4u,
+	};
 
 	class MeshAnimator {
 	public:
+		enum class State : uint8_t {
+			Unknown = 0u,
+			Process = 1u,
+			End = 2u,
+		};
+
 		struct Transform {
-			uint8_t mask = 0;
-			uint16_t target_node = 0;
+			uint8_t mask = 0u;
+			uint16_t target_node = 0u;
 			vec3f scale = vec3f(1.0f);
 			quatf rotation = quatf(1.0f, 0.0f, 0.0f, 0.0f);
 			vec3f translation = vec3f(0.0f);
@@ -25,42 +43,59 @@ namespace engine {
 			_frameTimes(latency),
 			_transforms(latency)
 		{
-			for (size_t i = 0; i < latency; ++i) {
+			for (size_t i = 0u; i < latency; ++i) {
 				_transforms[i].resize(transformsCount);
 				_frameTimes[i] = 0.0f;
 			}
 		}
 
-		MeshAnimator(const Mesh_Animation* animation, float weight, const uint8_t latency, float speed = 1.0f) :
+		MeshAnimator(const Mesh_Animation* animation, float weight, const uint8_t latency, float speed = 1.0f, bool infinity = true) :
 			_weight(weight),
 			_time(0.0f),
 			_speed(speed),
 			_animation(animation),
 			_frameTimes(latency),
-			_transforms(latency)
+			_transforms(latency),
+			_infinity(infinity)
 		{
-			for (uint16_t i = 0; i < latency; ++i) {
+			for (uint16_t i = 0u; i < latency; ++i) {
 				_transforms[i].resize(_animation->maxTargetNodeId - _animation->minTargetNodeId + 1);
 				_frameTimes[i] = 0.0f;
 			}
 		}
 
 		inline void update(const float dt, const uint8_t i) {
-			if (_animation == nullptr) return;
+			if (_animation == nullptr || _state == State::End) return;
+
+			auto event = AnimationEvent::Unknown;
+
+			_state = State::Process;
 
 			_time += _speed * dt;
 
-			if (_time > _animation->duration) {
+			if (_time >= _animation->duration) {
 				_time -= _animation->duration;
+				if (!_infinity) {
+					_state = State::End;
+					event = AnimationEvent::Finish;
+				} else {
+					event = AnimationEvent::EndLoop;
+				}
+			} else {
+				event = (event == AnimationEvent::EndLoop) ? AnimationEvent::NewLoop : AnimationEvent::Process;
 			}
 
 			_frameTimes[i] = _animation->start + _time;
+
+			// todo: translate event to observers
+			// observer->onEvent(event);
+			return;
 		}
 
         [[nodiscard]] inline uint8_t getLatency() const { return _frameTimes.size(); }
 
 		[[nodiscard]] inline float getCurrentTime(const uint8_t i) const {
-			if (_animation == nullptr) return 0.0f;
+			if (!_animation) return 0.0f;
 			return _frameTimes[i];
 		}
 
@@ -78,7 +113,7 @@ namespace engine {
 				transform.target_node = channel.target_node;
 				const Mesh_Animation::AnimationSampler& sampler = _animation->samplers[channel.sampler];
 
-				for (size_t i = 0, sz = sampler.inputs.size() - 1; i < sz; ++i) {
+				for (size_t i = 0u, sz = sampler.inputs.size() - 1u; i < sz; ++i) {
 
 					const float t0 = sampler.inputs[i];
 					const float t1 = sampler.inputs[i + 1];
@@ -174,9 +209,10 @@ namespace engine {
         [[nodiscard]] inline float getSpeed() const noexcept { return _speed; }
 		inline void setSpeed(const float s) { _speed = s; }
 
-		inline void resetTime() { _time = 0.0f; }
+		inline void reset() { _time = 0.0f; _state = State::Unknown; }
 
-        [[nodiscard]] inline const Mesh_Animation* getAnimation() const noexcept { return _animation; }
+        [[nodiscard]] inline ref_ptr<const Mesh_Animation> getAnimation() const noexcept { return _animation; }
+		[[nodiscard]] inline State getState() const { return _state; }
 
 		inline void apply(MeshSkeleton* skeleton, const uint8_t updateFrame) {
 			auto& transforms = _transforms[updateFrame];
@@ -229,7 +265,7 @@ namespace engine {
 						break;
 				}
 
-				transform.mask = 0;
+				transform.mask = 0u;
 			}
 		}
 
@@ -237,9 +273,11 @@ namespace engine {
 		float _weight = 0.0f;
 		float _time = 0.0f;
 		float _speed = 1.0f;
-		const Mesh_Animation* _animation = nullptr;
+		ref_ptr<const Mesh_Animation> _animation = nullptr;
 		std::vector<float> _frameTimes;
 		std::vector<std::vector<Transform>> _transforms;
+		bool _infinity = true;
+		State _state = State::Unknown;
 	};
 
 	struct AnimatorUpdater {
@@ -313,8 +351,10 @@ namespace engine {
 			_animator->value().apply(target, updateFrame);
 		}
 
-        inline bool needUpdate() const noexcept { return _needUpdate; }
-        inline void setNeedUpdate(const bool n) noexcept { _needUpdate = n; }
+        inline bool forceUpdate() const noexcept { return false; }
+
+        inline void setUpdateable(const bool n) noexcept { _updateable = n; }
+		inline bool isUpdateable() const noexcept { return _updateable && _speed > 0.0f; }
 
         inline bool finished() const noexcept { return false; }
 
@@ -324,15 +364,13 @@ namespace engine {
             calculate(_updateFrameNum); // расчет scale, rotation, translation для нодов анимации
         }
 
-		MeshAnimationTree(float weight, const size_t transformsCount, const uint8_t latency) : _animator(new AnimatorType(weight, transformsCount, latency)) { }
-		MeshAnimationTree(const Mesh_Animation* animation, float weight, const uint8_t latency) : _animator(new AnimatorType(animation, weight, latency)) { }
+		MeshAnimationTree(float weight, const size_t transformsCount, const uint8_t latency) : _animator(std::make_unique<AnimatorType>(weight, transformsCount, latency)) { }
+		MeshAnimationTree(const Mesh_Animation* animation, float weight, const uint8_t latency) : _animator(std::make_unique<AnimatorType>(animation, weight, latency)) { }
 
-		~MeshAnimationTree() {
-			delete _animator;
-		}
+		~MeshAnimationTree() = default;
 
-		inline AnimatorType* getAnimator() noexcept { return _animator; }
-		[[nodiscard]] inline const AnimatorType* getAnimator() const noexcept { return _animator; }
+		inline ref_ptr<AnimatorType> getAnimator() noexcept { return ref_ptr<AnimatorType>(_animator.get()); }
+		[[nodiscard]] inline const ref_ptr<AnimatorType> getAnimator() const noexcept { return ref_ptr<AnimatorType>(_animator.get()); }
 
         [[nodiscard]] inline uint8_t frame() const noexcept { return _updateFrameNum; }
 
@@ -340,9 +378,9 @@ namespace engine {
         [[nodiscard]] inline float getSpeed() const noexcept { return _speed; }
 
 	private:
-		AnimatorType* _animator;
+		std::unique_ptr<AnimatorType> _animator;
         uint8_t _updateFrameNum = 0;
-        bool _needUpdate = false;
+        bool _updateable = true;
         float _speed = 1.0f;
 	};
 }

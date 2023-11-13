@@ -40,8 +40,9 @@ namespace engine {
             _finished = _executor(dt);
         }
 
-        inline bool needUpdate() const noexcept { return true; }
+        inline bool forceUpdate() const noexcept { return true; }
         inline bool finished() const noexcept { return _finished; }
+        inline bool isUpdateable() const noexcept { return true; }
 
     private:
         ActionExecutor _executor;

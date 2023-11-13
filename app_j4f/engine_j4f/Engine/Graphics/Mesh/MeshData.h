@@ -65,7 +65,7 @@ namespace engine {
 		std::vector<AnimationSampler> samplers;
 		float start = std::numeric_limits<float>::max();
 		float end = std::numeric_limits<float>::min();
-		float duration;
+		float duration = 0.0f;
 		uint16_t minTargetNodeId = 0xffffu;
 		uint16_t maxTargetNodeId = 0u;
 	};

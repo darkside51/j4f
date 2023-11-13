@@ -214,8 +214,7 @@ namespace engine {
 							current = current->_children[0].get();
 						}
 						continue;
-					}
-					else if (current != this) {
+					} else if (current != this) {
 						f(const_cast<Hierarchy*>(current), std::forward<Args>(args)...); // call for childless element
 						if (current->_next) {
 							current = current->_next;
