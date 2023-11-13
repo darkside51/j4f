@@ -132,6 +132,8 @@ namespace engine {
         if (!skeleton->_skins.empty() && !token) {
             skeleton->updateSkins(updateFrame);
         }
+
+		skeleton->setUpdatedFrameNum(updateFrame);
     }
 
 	MeshSkeleton::MeshSkeleton(Mesh_Data* mData, const uint8_t latency) :
@@ -249,7 +251,7 @@ namespace engine {
 
             _updateFrameNum = frameNum;
             _animCalculationResult[_updateFrameNum] = Engine::getInstance().getModule<ThreadPool2>().enqueue(
-                    TaskType::COMMON, updateSkeletonAnimationTree, this, animTree, _updateFrameNum);
+                    TaskType::COMMON, applyAnimationFrameToSkeleton, this, animTree, _updateFrameNum);
         }
     }
 

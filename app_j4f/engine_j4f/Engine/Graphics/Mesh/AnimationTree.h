@@ -41,7 +41,8 @@ namespace engine {
 			_time(0.0f),
 			_animation(nullptr),
 			_frameTimes(latency),
-			_transforms(latency)
+			_transforms(latency),
+			_infinity(true)
 		{
 			for (size_t i = 0u; i < latency; ++i) {
 				_transforms[i].resize(transformsCount);
@@ -64,19 +65,18 @@ namespace engine {
 			}
 		}
 
-		inline void update(const float dt, const uint8_t i) {
-			if (_animation == nullptr || _state == State::End) return;
+		inline State update(const float dt, const uint8_t i) {
+			if (_animation == nullptr) return State::Unknown;
 
 			auto event = AnimationEvent::Unknown;
-
-			_state = State::Process;
+			auto state = State::Process;
 
 			_time += _speed * dt;
 
 			if (_time >= _animation->duration) {
 				_time -= _animation->duration;
 				if (!_infinity) {
-					_state = State::End;
+					state = State::End;
 					event = AnimationEvent::Finish;
 				} else {
 					event = AnimationEvent::EndLoop;
@@ -89,7 +89,7 @@ namespace engine {
 
 			// todo: translate event to observers
 			// observer->onEvent(event);
-			return;
+			return state;
 		}
 
         [[nodiscard]] inline uint8_t getLatency() const { return _frameTimes.size(); }
@@ -209,10 +209,9 @@ namespace engine {
         [[nodiscard]] inline float getSpeed() const noexcept { return _speed; }
 		inline void setSpeed(const float s) { _speed = s; }
 
-		inline void reset() { _time = 0.0f; _state = State::Unknown; }
+		inline void reset() { _time = 0.0f; }
 
         [[nodiscard]] inline ref_ptr<const Mesh_Animation> getAnimation() const noexcept { return _animation; }
-		[[nodiscard]] inline State getState() const { return _state; }
 
 		inline void apply(MeshSkeleton* skeleton, const uint8_t updateFrame) {
 			auto& transforms = _transforms[updateFrame];
@@ -277,16 +276,16 @@ namespace engine {
 		std::vector<float> _frameTimes;
 		std::vector<std::vector<Transform>> _transforms;
 		bool _infinity = true;
-		State _state = State::Unknown;
 	};
 
 	struct AnimatorUpdater {
 		using TreeAnimator = MeshAnimator;
 		using AnimatorType = HierarchyRaw<TreeAnimator>;
 
-		inline static bool _(AnimatorType* animator, const float delta, const uint8_t i) {
+		inline static bool _(AnimatorType* animator, const float delta, const uint8_t i, bool& finished) {
 			if (animator->value().getWeight() > 0.0f) {
-				animator->value().update(delta, i);
+				auto const state = animator->value().update(delta, i);
+				finished |= state == MeshAnimator::State::End;
 			}
 			return true;
 		}
@@ -326,11 +325,17 @@ namespace engine {
 
 	public:
 		inline void update(const float delta, const uint8_t i) noexcept {
+			bool finished = false;
 			if (_animator->value().getWeight() >= 1.0f) {
-				_animator->value().update(delta, i);
+				auto const state = _animator->value().update(delta, i);
+				finished |= state == MeshAnimator::State::End;
 			} else {
 				//_animator->execute(updateAnimators, delta, i);
-				_animator->execute_with<AnimatorUpdater>(delta, i);
+				_animator->execute_with<AnimatorUpdater>(delta, i, finished);
+			}
+
+			if (finished) {
+				setActive(false);
 			}
 		}
 
@@ -353,8 +358,9 @@ namespace engine {
 
         inline bool forceUpdate() const noexcept { return false; }
 
-        inline void setUpdateable(const bool n) noexcept { _updateable = n; }
-		inline bool isUpdateable() const noexcept { return _updateable && _speed > 0.0f; }
+        inline void setActive(const bool n) noexcept { _active = n; }
+		inline bool isActive() const noexcept { return _active && _speed != 0.0f; }
+		inline void activate() noexcept { setActive(true); }
 
         inline bool finished() const noexcept { return false; }
 
@@ -380,7 +386,7 @@ namespace engine {
 	private:
 		std::unique_ptr<AnimatorType> _animator;
         uint8_t _updateFrameNum = 0;
-        bool _updateable = true;
+        bool _active = true;
         float _speed = 1.0f;
 	};
 }

@@ -42,7 +42,7 @@ namespace engine {
 
         inline bool forceUpdate() const noexcept { return true; }
         inline bool finished() const noexcept { return _finished; }
-        inline bool isUpdateable() const noexcept { return true; }
+        inline bool isActive() const noexcept { return true; }
 
     private:
         ActionExecutor _executor;

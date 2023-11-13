@@ -47,7 +47,8 @@ namespace engine {
                     continue;
                 }
 
-                if (!anim->isUpdateable()) {
+                if (!anim->isActive()) {
+                    ++i;
                     continue;
                 }
 
@@ -132,7 +133,8 @@ namespace engine {
                     continue;
                 }
 
-                if (!anim->isUpdateable()) {
+                if (!anim->isActive()) {
+                    ++i;
                     continue;
                 }
 
