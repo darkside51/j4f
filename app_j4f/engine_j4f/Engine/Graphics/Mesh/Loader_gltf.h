@@ -281,19 +281,19 @@ namespace gltf {
 	};
 
 	struct Asset {
-		float version;
+		float version = 0.0f;
 	};
 
 	struct AnimationSampler {
-		uint16_t input;
-		uint16_t output;
+		uint16_t input = 0u;
+		uint16_t output = 0u;
 		Interpolation interpolation = Interpolation::LINEAR;
 	};
 
 	struct AnimationChannel {
-		uint16_t sampler;
-		uint16_t target_node;
-		AimationChannelPath path;
+		uint16_t sampler = 0u;
+		uint16_t target_node = 0u;
+		AimationChannelPath path = AimationChannelPath::TRANSLATION;
 	};
 
 	struct Animation {

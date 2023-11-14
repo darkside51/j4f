@@ -60,7 +60,7 @@ namespace engine {
 			_infinity(infinity)
 		{
 			for (uint16_t i = 0u; i < latency; ++i) {
-				_transforms[i].resize(_animation->maxTargetNodeId - _animation->minTargetNodeId + 1);
+				_transforms[i].resize(_animation->maxTargetNodeId - _animation->minTargetNodeId + 1u);
 				_frameTimes[i] = 0.0f;
 			}
 		}
@@ -130,7 +130,7 @@ namespace engine {
 								switch (channel.path) {
 									case Mesh_Animation::AimationChannelPath::TRANSLATION:
 									{
-										transform.mask |= 0b00000001;
+										transform.mask |= 0b00'00'00'01;
 										if (!compare(v0, v1, epsilon)) {
 											transform.translation = v0;
 										} else {
@@ -140,7 +140,7 @@ namespace engine {
 										break;
 									case Mesh_Animation::AimationChannelPath::ROTATION:
 									{
-										transform.mask |= 0b00000010;
+										transform.mask |= 0b00'00'00'10;
 										if (!compare(v0, v1, epsilon)) {
 											transform.rotation = quatf(v0.w, v0.x, v0.y, v0.z);
 										} else {
@@ -152,7 +152,7 @@ namespace engine {
 										break;
 									case Mesh_Animation::AimationChannelPath::SCALE:
 									{
-										transform.mask |= 0b0000100;
+										transform.mask |= 0b00'00'01'00;
 										if (!compare(v0, v1, epsilon)) {
 											transform.scale = v0;
 										} else {
@@ -169,15 +169,15 @@ namespace engine {
 							{
 								switch (channel.path) {
 									case Mesh_Animation::AimationChannelPath::TRANSLATION:
-										transform.mask |= 0b00000001;
+										transform.mask |= 0b00'00'00'01;
 										transform.translation = v0;
 										break;
 									case Mesh_Animation::AimationChannelPath::ROTATION:
-										transform.mask |= 0b00000010;
+										transform.mask |= 0b00'00'00'10;
 										transform.rotation = quatf(v0.w, v0.x, v0.y, v0.z);
 										break;
 									case Mesh_Animation::AimationChannelPath::SCALE:
-										transform.mask |= 0b00000100;
+										transform.mask |= 0b00'00'01'00;
 										transform.scale = v0;
 										break;
 									default:
@@ -220,40 +220,40 @@ namespace engine {
 				Mesh_Node& target = skeleton->getNode(updateFrame, transform.target_node);
 
 				switch (transform.mask) {
-					case 0b00000001:
+					case 0b00'00'00'01:
 					{
 						target.setTranslation(transform.translation);
 					}
 						break;
-					case 0b00000010:
+					case 0b00'00'00'10:
 					{
 						target.setRotation(transform.rotation);
 					}
 						break;
-					case 0b00000100:
+					case 0b00'00'01'00:
 					{
 						target.setScale(transform.scale);
 					}
 						break;
-					case 0b00000011:
+					case 0b00'00'00'11:
 					{
 						target.setTranslation(transform.translation);
 						target.setRotation(transform.rotation);
 					}
 						break;
-					case 0b00000101:
+					case 0b00'00'01'01:
 					{
 						target.setTranslation(transform.translation);
 						target.setScale(transform.scale);
 					}
 						break;
-					case 0b00000110:
+					case 0b00'00'01'10:
 					{
 						target.setRotation(transform.rotation);
 						target.setScale(transform.scale);
 					}
 						break;
-					case 0b00000111:
+					case 0b00'00'01'11:
 					{
 						target.setTranslation(transform.translation);
 						target.setRotation(transform.rotation);

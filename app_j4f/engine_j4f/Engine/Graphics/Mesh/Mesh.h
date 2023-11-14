@@ -15,15 +15,15 @@ namespace engine {
 
 	struct Mesh_Node {
 		uint16_t skinIndex = 0xffffu;
-		vec3f translation;
-		vec3f scale;
-		quatf rotation;
+		vec3f translation = vec3f(0.0f, 0.0f, 0.0f);
+		vec3f scale = vec3f(1.0f, 1.0f, 1.0f);
+		quatf rotation = quatf(1.0f, 0.0f, 0.0f, 0.0f);
 		
 		bool dirtyLocalTransform = true;
 		bool dirtyModelTransform = true;
 
-		mat4f localMatrix;
-		mat4f modelMatrix;
+		mat4f localMatrix = mat4f(1.0f);
+		mat4f modelMatrix = mat4f(1.0f);
 
 		inline void calculateLocalMatrix() {
 			if (dirtyLocalTransform) {

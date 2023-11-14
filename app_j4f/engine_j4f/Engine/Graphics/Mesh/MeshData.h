@@ -55,9 +55,9 @@ namespace engine {
 		};
 
 		struct AnimationChannel {
-			uint16_t sampler;
-			uint16_t target_node;
-			AimationChannelPath path;
+			uint16_t sampler = 0u;
+			uint16_t target_node = 0u;
+			AimationChannelPath path = AimationChannelPath::TRANSLATION;
 		};
 
 		std::string name;
