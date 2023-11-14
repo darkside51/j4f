@@ -137,7 +137,7 @@ namespace engine {
 		[[nodeiscard]] inline bool getUseRootTransfrom() const noexcept { return _useRootTransfrom; }
 
 	private:
-		void loadNode(const Mesh_Data* mData, const uint16_t nodeId, HierarchyRaw<Mesh_Node>* parent, const uint8_t h);
+		void loadNode(const Mesh_Data* mData, const uint16_t nodeId, HierarchyUnique<Mesh_Node>* parent, const uint8_t h);
 
 		void updateSkins(const uint8_t updateFrame);
 		void updateTransforms(const uint8_t updateFrame);
@@ -150,7 +150,7 @@ namespace engine {
         }
 
 		struct HierarchyMatrixUpdater {
-			inline static bool _(HierarchyRaw<Mesh_Node>* node) {
+			inline static bool _(HierarchyUnique<Mesh_Node>* node) {
 				Mesh_Node& mNode = node->value();
 				mNode.dirtyModelTransform = false;
 				mNode.calculateLocalMatrix();
@@ -172,7 +172,7 @@ namespace engine {
 			}
 		};
 
-		inline static bool updateHierarchyMatrix(HierarchyRaw<Mesh_Node>* node) {
+		inline static bool updateHierarchyMatrix(HierarchyUnique<Mesh_Node>* node) {
 			Mesh_Node& mNode = node->value();
 			mNode.dirtyModelTransform = false;
 			mNode.calculateLocalMatrix();
@@ -194,10 +194,9 @@ namespace engine {
 		}  
 
 		const std::vector<Mesh_Skin>& _skins;
-		std::vector<std::vector<HierarchyRaw<Mesh_Node>*>> _hierarchyes;
-		std::vector<std::vector<HierarchyRaw<Mesh_Node>*>> _nodes;
+		std::vector<std::vector<std::unique_ptr<HierarchyUnique<Mesh_Node>>>> _hierarchyes;
+		std::vector<std::vector<HierarchyUnique<Mesh_Node>*>> _nodes;
 		std::vector<std::vector<std::vector<mat4f>>> _skinsMatrices;
-		//std::vector<TaskResult<void>> _animCalculationResult;
 		std::vector<linked_ptr<Task2<void>>> _animCalculationResult;
 
 		uint8_t _latency = 1u;
@@ -244,7 +243,6 @@ namespace engine {
 		}
 
 	private:
-//		std::vector<VkVertexInputAttributeDescription> getVertexInputAttributes() const;
         VertexAttributes getVertexInputAttributes() const;
 		uint32_t sizeOfVertex() const;
 

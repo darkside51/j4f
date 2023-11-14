@@ -132,9 +132,9 @@ namespace engine {
 	vec2f lightMinMax(0.65f, 1.0f);
 	const float saturation = 1.0f;
 
-	H_Node* rootNode;
-	H_Node* uiNode;
-	std::vector<H_Node*> shadowCastNodes;
+	NodeHR* rootNode;
+	NodeHR* uiNode;
+	std::vector<NodeHR*> shadowCastNodes;
 	bool cameraMatrixChanged = true;
 
     ImguiStatObserver *statObserver = nullptr;
@@ -742,12 +742,12 @@ namespace engine {
 			using namespace vulkan;
 			using namespace gltf;
 
-			rootNode = new H_Node();
-			uiNode = new H_Node();
+			rootNode = new NodeHR();
+			uiNode = new NodeHR();
 
 			imgui = new NodeRendererImpl<ImguiGraphics*>();
 			{
-				H_Node* node = new H_Node();
+				auto* node = new NodeHR();
 				uiNode->addChild(node);
 
 				imgui->setGraphics(ImguiGraphics::getInstance());
@@ -820,11 +820,17 @@ namespace engine {
 			assignGPUParams(program_mesh_instance);
 
 			TextureLoadingParams tex_params;
-			tex_params.files = { 
+			/*tex_params.files = {
 				"resources/assets/models/chaman/textures/Ti-Pche_Mat_baseColor.png",
 				"resources/assets/models/chaman/textures/Ti-Pche_Mat_normal.png",
 				"resources/assets/models/chaman/textures/Ti-Pche_Mat_metallicRoughness.png"
+			};*/
+			tex_params.files = {
+				"resources/assets/models/ready/1_1.png",
+				"resources/assets/models/ready/2_2.png",
+				"resources/assets/models/ready/3_3.png"
 			};
+
 			tex_params.flags->async = 1;
 			tex_params.flags->use_cache = 1;
 			//tex_params.formatType = engine::TextureFormatType::SRGB;
@@ -927,7 +933,8 @@ namespace engine {
 			meshesGraphicsBuffer = new MeshGraphicsDataBuffer(10 * 1024 * 1024, 10 * 1024 * 1024); // or create with default constructor for unique buffer for mesh
 
 			MeshLoadingParams mesh_params;
-			mesh_params.file = "resources/assets/models/chaman/scene.gltf";
+			//mesh_params.file = "resources/assets/models/chaman/scene.gltf";
+			mesh_params.file = "resources/assets/models/ready/model_1.gltf";
 			mesh_params.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL, AttributesSemantic::TANGENT, AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT, AttributesSemantic::TEXCOORD_0);
 			mesh_params.latency = 3;
 			mesh_params.flags->async = 1;
@@ -1046,7 +1053,7 @@ namespace engine {
 				mat4f wtr(1.0f);
 				scaleMatrix(wtr, vec3f(1400.0f));
 
-				H_Node* node = new H_Node();
+				auto* node = new NodeHR();
 				node->value().setLocalMatrix(wtr);
 				//node->value().setBoundingVolume(BoundingVolume::make<SphereVolume>(vec3f(0.0f, 1.45f, 0.0f), 1.8f));
 				rootNode->addChild(node);
@@ -1056,27 +1063,47 @@ namespace engine {
 			}
 
             {
-                H_Node* node = new H_Node();
+				auto* node = new NodeHR();
                 rootNode->addChild(node);
                 (*node)->setRenderer(mesh);
                 shadowCastNodes.push_back(node);
 
                 assm.loadAsset<Mesh *>(mesh_params,
-                                       [texture_zombi, this](std::unique_ptr<Mesh> && asset, const AssetLoadingResult result) {
+                                       [&assm, texture_zombi, this](std::unique_ptr<Mesh> && asset, const AssetLoadingResult result) {
                                            asset->setProgram(program_mesh_skin_with_stroke);
                                            asset->setParamByName("u_texture", texture_zombi, false);
                                            asset->setParamByName("u_shadow_map", shadowMap->getTexture(), false);
                                            asset->setParamByName("color", vec4f(1.0f, 0.0f, 0.0f, 1.0f), true);
                                            asset->setParamByName("lighting", 0.5f, true);
 
-                                           animTree = new MeshAnimationTree(0.0f, asset->getNodesCount(),
-                                                                            asset->getSkeleton()->getLatency());
-                                           animTree->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(
-                                                   &asset->getMeshData()->animations[2], 1.0f,
-                                                   asset->getSkeleton()->getLatency()));
-                                           animTree->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(
-                                                   &asset->getMeshData()->animations[1], 0.0f,
-                                                   asset->getSkeleton()->getLatency()));
+										   animTree = new MeshAnimationTree(0.0f, asset->getNodesCount(),
+											   asset->getSkeleton()->getLatency());
+
+										   MeshLoadingParams anim1;
+										   anim1.file = "resources/assets/models/ready/idle_1.gltf";
+										   anim1.flags->async = 1;
+										   anim1.callbackThreadId = 1;
+
+										   assm.loadAsset<Mesh*>(anim1,
+											   [mainAsset = asset.get()](std::unique_ptr<Mesh>&& asset, const AssetLoadingResult result) {
+												   animTree->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(
+													   &asset->getMeshData()->animations[0], 1.0f,
+													   mainAsset->getSkeleton()->getLatency()));
+											   }
+										   );
+
+										   MeshLoadingParams anim2;
+										   anim2.file = "resources/assets/models/ready/idle_2.gltf";
+										   anim2.flags->async = 1;
+										   anim2.callbackThreadId = 1;
+
+										   assm.loadAsset<Mesh*>(anim2,
+											   [mainAsset = asset.get()](std::unique_ptr<Mesh>&& asset, const AssetLoadingResult result) {
+												   animTree->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(
+													   &asset->getMeshData()->animations[0], 0.0f,
+													   mainAsset->getSkeleton()->getLatency()));
+											   }
+										   );
 
                                            auto &&animationManager = Engine::getInstance().getModule<Graphics>().getAnimationManager();
                                            animationManager->registerAnimation(animTree);
@@ -1088,19 +1115,19 @@ namespace engine {
 
                                            //////////////////////
                                            mat4f wtr(1.0f);
-                                           scaleMatrix(wtr, vec3f(25.0f));
-                                           rotateMatrix_xyz(wtr, vec3f(1.57f, 0.45f, 0.0f));
+                                           scaleMatrix(wtr, vec3f(50.0f));
+                                           rotateMatrix_xyz(wtr, vec3f(0.0, 0.0, 0.45f));
                                            translateMatrixTo(wtr, vec3f(-100.0f, -0.0f, 0.0f));
 
                                            auto && node = mesh->getNode();
                                            node->setLocalMatrix(wtr);
-                                           node->setBoundingVolume(BoundingVolume::make<SphereVolume>(vec3f(0.0f, 1.45f, 0.0f), 1.8f));
+                                           node->setBoundingVolume(BoundingVolume::make<SphereVolume>(vec3f(0.0f, 0.0f, 0.4f), 0.5f));
                                            mesh->setGraphics(asset.release());
                                        });
             }
 
             {
-                H_Node* node = new H_Node(mesh2);
+				auto* node = new NodeHR(mesh2);
                 rootNode->addChild(node);
                 shadowCastNodes.push_back(node);
 
@@ -1119,20 +1146,20 @@ namespace engine {
 
                     ////////////////////
                     mat4f wtr(1.0f);
-                    scaleMatrix(wtr, vec3f(20.0f));
-                    rotateMatrix_xyz(wtr, vec3f(1.57f, -0.45f, 0.0f));
+                    scaleMatrix(wtr, vec3f(45.0f));
+                    rotateMatrix_xyz(wtr, vec3f(0.0f, 0.0, -0.45f));
                     translateMatrixTo(wtr, vec3f(100.0f, 190.0f, 0.0f));
 
                     auto && node = mesh2->getNode();
                     node->setLocalMatrix(wtr);
-                    node->setBoundingVolume(BoundingVolume::make<SphereVolume>(vec3f(0.0f, 1.45f, 0.0f), 1.8f));
+                    node->setBoundingVolume(BoundingVolume::make<SphereVolume>(vec3f(0.0f, 0.0f, 0.4f), 0.5f));
                     mesh2->setGraphics(asset.release());
                 });
             }
 
 			for (auto&& meshObj : testMehsesVec) {
 
-                H_Node* node = new H_Node(meshObj);
+				auto* node = new NodeHR(meshObj);
                 rootNode->addChild(node);
                 shadowCastNodes.push_back(node);
 
@@ -1146,24 +1173,25 @@ namespace engine {
 					asset->setSkeleton(mesh->graphics()->getSkeleton());
 
 					asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
-						renderState.rasterizationState.cullMode = vulkan::CullMode::CULL_MODE_NONE;
+						renderState.rasterizationState.cullMode = vulkan::CullMode::CULL_MODE_BACK;
 					});
 
 					////////////////////
 					mat4f wtr(1.0f);
-					scaleMatrix(wtr, vec3f(engine::random(18.0f, 22.0f)));
-					rotateMatrix_xyz(wtr, vec3f(1.57f, engine::random(-3.1415f, 3.1415f), 0.0f));
+					scaleMatrix(wtr, vec3f(engine::random(48.0f, 62.0f)));
+					//rotateMatrix_xyz(wtr, vec3f(1.57f, engine::random(-3.1415f, 3.1415f), 0.0f));
+					rotateMatrix_xyz(wtr, vec3f(0.0f, 0.0f, engine::random(-3.1415f, 3.1415f)));
 					translateMatrixTo(wtr, vec3f(engine::random(-1024.0f, 1024.0f), engine::random(-1024.0f, 1024.0f), 0.0f));
 
 					auto && node = meshObj->getNode();
 					node->setLocalMatrix(wtr);
-					node->setBoundingVolume(BoundingVolume::make<SphereVolume>(vec3f(0.0f, 1.45f, 0.0f), 1.8f));
+					node->setBoundingVolume(BoundingVolume::make<SphereVolume>(vec3f(0.0f, 0.0f, 0.4f), 0.5f));
                     meshObj->setGraphics(asset.release());
 					});
 			}
 
             {
-                H_Node* node = new H_Node(mesh3);
+				auto* node = new NodeHR(mesh3);
                 rootNode->addChild(node);
                 //(*node)->setRenderer(mesh3);
                 shadowCastNodes.push_back(node);
@@ -1226,7 +1254,7 @@ namespace engine {
             }
 
             {
-                H_Node* node = new H_Node();
+				auto* node = new NodeHR();
                 rootNode->addChild(node);
                 (*node)->setRenderer(mesh4);
                 shadowCastNodes.push_back(node);
@@ -1260,7 +1288,7 @@ namespace engine {
             }
 
             {
-                H_Node* node = new H_Node();
+				auto* node = new NodeHR();
                 rootNode->addChild(node);
                 (*node)->setRenderer(mesh5);
                 shadowCastNodes.push_back(node);
@@ -1292,7 +1320,7 @@ namespace engine {
             }
 
             {
-                H_Node* node = new H_Node();
+				auto* node = new NodeHR();
                 rootNode->addChild(node);
                 (*node)->setRenderer(mesh6);
                 shadowCastNodes.push_back(node);
@@ -1325,7 +1353,7 @@ namespace engine {
             }
 
             {
-                H_Node *node = new H_Node();
+				auto* node = new NodeHR();
                 rootNode->addChild(node);
                 (*node)->setRenderer(mesh7);
                 shadowCastNodes.push_back(node);
@@ -1437,7 +1465,7 @@ namespace engine {
 			texture_floor_normal = assm.loadAsset<vulkan::VulkanTexture*>(tex_params_floor_normal);
 
             {
-                H_Node *node = new H_Node();
+				auto* node = new NodeHR();
                 rootNode->addChild(node);
                 (*node)->setRenderer(grassMesh2);
 
@@ -1470,7 +1498,7 @@ namespace engine {
             }
 
             {
-                H_Node *node = new H_Node();
+				auto* node = new NodeHR();
                 rootNode->addChild(node);
                 (*node)->setRenderer(forest);
                 shadowCastNodes.push_back(node);
@@ -1525,7 +1553,7 @@ namespace engine {
 				//translateMatrixTo(wtr, vec3f(200.0f, -300.0f, 50.0f));
 				translateMatrixTo(wtr, vec3f(0.0f, 0.0f, -1.0f));
 
-				H_Node* node = new H_Node();
+				auto* node = new NodeHR();
 				node->value().setLocalMatrix(wtr);
 				uiNode->addChild(node);
 
@@ -1816,15 +1844,17 @@ namespace engine {
                     animNum = engine::random(1, 4);
 
                     if (animTree2) {
-                        animTree2->getAnimator()->children()[animNum]->value().resetTime();
+                        animTree2->getAnimator()->children()[animNum]->value().reset();
                     }
                 }
             }
 
             if (animTree) {
-                const float mix_val = std::clamp(mix, 0.0f, 1.0f);
-                animTree->getAnimator()->children()[0]->value().setWeight(mix_val);
-                animTree->getAnimator()->children()[1]->value().setWeight(1.0f - mix_val);
+				const float mix_val = std::clamp(mix, 0.0f, 1.0f);
+				if (animTree->getAnimator()->children().size() > 1) {
+					animTree->getAnimator()->children()[0]->value().setWeight(mix_val);
+					animTree->getAnimator()->children()[1]->value().setWeight(1.0f - mix_val);
+				}
             }
 
             if (animTree2) {
@@ -2689,6 +2719,15 @@ int main() {
 		B(int aa) : a(aa) {}
 		int a;
 	};
+
+
+	auto testH = std::make_unique<engine::HierarchyUnique<A>>(10);
+	testH->addChild(std::make_unique<engine::HierarchyUnique<A>>(11));
+	auto testHChild = std::make_unique<engine::HierarchyUnique<A>>(12);
+	testH->addChild(std::move(testHChild));
+
+	auto& childs = testH->children()[0];
+	childs->value();
 
 	engine::ComponentImpl<A> c1;
 	engine::ComponentImpl<B> c2;

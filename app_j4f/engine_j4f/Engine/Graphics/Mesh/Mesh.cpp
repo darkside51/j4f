@@ -144,7 +144,7 @@ namespace engine {
 		_animCalculationResult(latency),
 		_latency(latency)
 	{
-		for (uint8_t i = 0; i < _latency; ++i) {
+		for (uint8_t i = 0u; i < _latency; ++i) {
 			_hierarchyes[i].reserve(mData->sceneNodes.size());
 			_nodes[i].resize(mData->nodes.size());
 
@@ -154,58 +154,53 @@ namespace engine {
 		}
 
 		const size_t skinsSize = mData->skins.size();
-		for (uint8_t i = 0; i < _latency; ++i) {
+		for (uint8_t i = 0u; i < _latency; ++i) {
 			_skinsMatrices[i].resize(skinsSize);
 		}
 
-		for (size_t i = 0; i < skinsSize; ++i) {
+		for (size_t i = 0u; i < skinsSize; ++i) {
 			const size_t matricesCount = mData->skins[i].inverseBindMatrices.size();
-			for (uint8_t ii = 0; ii < latency; ++ii) {
+			for (uint8_t ii = 0u; ii < latency; ++ii) {
 				_skinsMatrices[ii][i].resize(matricesCount);
 				memcpy(&(_skinsMatrices[ii][i][0]), &(mData->skins[i].inverseBindMatrices[0]), matricesCount * sizeof(mat4f));
 			}
 		}
 
 		// setup bind pose
-		for (uint8_t i = 0; i < _latency; ++i) {
+		for (uint8_t i = 0u; i < _latency; ++i) {
 			updateTransforms(i);
 			updateSkins(i);
 		}
 	}
 
 	MeshSkeleton::~MeshSkeleton() {
-		for (size_t i = 0; i < _latency; ++i) {
+		for (size_t i = 0u; i < _latency; ++i) {
 			if (_animCalculationResult[i]) { _animCalculationResult[i]->cancel(); }
-
-			std::vector<HierarchyRaw<Mesh_Node>*>& hi = _hierarchyes[i];
-			for (HierarchyRaw<Mesh_Node>* h : hi) {
-				delete h;
-			}
 		}
 	}
 
-	void MeshSkeleton::loadNode(const Mesh_Data* mData, const uint16_t nodeId, HierarchyRaw<Mesh_Node>* parent, const uint8_t h) {
+	void MeshSkeleton::loadNode(const Mesh_Data* mData, const uint16_t nodeId, HierarchyUnique<Mesh_Node>* parent, const uint8_t h) {
 		const gltf::Node& node = mData->nodes[nodeId];
 
 		// parse node values
-		Mesh_Node mNode;
-		mNode.scale = vec3f(node.scale.x, node.scale.y, node.scale.z);
-		mNode.rotation = quatf(node.rotation.w, node.rotation.x, node.rotation.y, node.rotation.z);
-		mNode.translation = vec3f(node.translation.x, node.translation.y, node.translation.z);
+		Mesh_Node mNode = {
+			node.skin,
+			{ node.translation.x, node.translation.y, node.translation.z },
+			{ node.scale.x, node.scale.y, node.scale.z },
+			{ node.rotation.w, node.rotation.x, node.rotation.y, node.rotation.z }
+		};
 
-		mNode.skinIndex = node.skin;
+		auto nodesHierarchy = std::make_unique<HierarchyUnique<Mesh_Node>>(std::move(mNode));
+		_nodes[h][nodeId] = nodesHierarchy.get();
 
-		auto* nodesHierarchy = new HierarchyRaw<Mesh_Node>(std::move(mNode));
 		if (parent) {
-			parent->addChild(nodesHierarchy);
+			parent->addChild(std::move(nodesHierarchy));
 		} else {
-			_hierarchyes[h].push_back(nodesHierarchy);
+			_hierarchyes[h].push_back(std::move(nodesHierarchy));
 		}
 
-		_nodes[h][nodeId] = nodesHierarchy;
-
 		for (const uint16_t cNodeId : node.children) {
-			loadNode(mData, cNodeId, nodesHierarchy, h);
+			loadNode(mData, cNodeId, _nodes[h][nodeId], h);
 		}
 	}
 
@@ -287,7 +282,7 @@ namespace engine {
 	}
 
 	void MeshSkeleton::updateTransforms(const uint8_t updateFrame) {
-		for (HierarchyRaw<Mesh_Node>* h : _hierarchyes[updateFrame]) {
+		for (auto&& h : _hierarchyes[updateFrame]) {
 			//h->execute(updateHierarchyMatrix);
 			h->execute_with<HierarchyMatrixUpdater>();
 		}

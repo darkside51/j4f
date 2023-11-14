@@ -8,6 +8,12 @@
 
 namespace engine {
 
+	template <typename>
+	struct is_unique_pointer { enum : bool { value = false }; };
+
+	template <typename T>
+	struct is_unique_pointer<std::unique_ptr<T>> { enum : bool { value = true }; };
+
 	template <typename T, int C>
 	class Hierarchy;
 
@@ -19,6 +25,9 @@ namespace engine {
 
 	template <typename T>
 	struct HierarchyChildrenType<T, 1> { using type = std::shared_ptr<Hierarchy<T, 1>>; };
+
+	template <typename T>
+	struct HierarchyChildrenType<T, 2> { using type = std::unique_ptr<Hierarchy<T, 2>>; };
 
 	template <typename T, int C>
 	class Hierarchy {
@@ -103,7 +112,11 @@ namespace engine {
 				}
 			}
 			c->_parent = this;
-			_children.push_back(c);
+			if constexpr (is_unique_pointer<children_type>::value) {
+				_children.push_back(std::move(c));
+			} else {
+				_children.push_back(c);
+			}
 		}
 
 		void removeChild(children_type c) {
@@ -394,4 +407,7 @@ namespace engine {
 
 	template <typename T>
 	using HierarchyShared = Hierarchy<T, 1>;
+
+	template <typename T>
+	using HierarchyUnique = Hierarchy<T, 2>;
 }

@@ -4,6 +4,8 @@
 #include "../Vulkan/vkRenderData.h"
 #include "../Camera.h"
 
+#include <memory>
+
 namespace engine {
 	struct RenderDescriptor;
 	
@@ -87,19 +89,13 @@ namespace engine {
 
 	class BoundingVolume {
 	public:
-		~BoundingVolume() {
-			if (_impl) {
-				delete _impl;
-				_impl = nullptr;
-			}
-		}
-
+		~BoundingVolume() = default;
 		BoundingVolume() = default;
-		BoundingVolume(BVolume* impl) : _impl(impl) {}
+		BoundingVolume(std::unique_ptr<BVolume>&& impl) : _impl(std::move(impl)) {}
 
 		template <typename T, typename... Args>
-		inline static BoundingVolume* make(Args&&... args) {
-			return new BoundingVolume(new T(std::forward<Args>(args)...));;
+		inline static std::unique_ptr<BoundingVolume> make(Args&&... args) {
+			return std::make_unique<BoundingVolume>(std::make_unique<T>(std::forward<Args>(args)...));
 		}
 
 		template <typename T>
@@ -107,10 +103,10 @@ namespace engine {
 			// reserved types use checkVisible call without virtual table
 			switch (_impl->type()) {
 				case BVolumeType::CUBE:
-					return (static_cast<CubeVolume*>(_impl))->checkVisible<T>(visibleChecker, wtr);
+					return (static_cast<CubeVolume*>(_impl.get()))->checkVisible<T>(visibleChecker, wtr);
 					break;
 				case BVolumeType::SPHERE:
-					return (static_cast<SphereVolume*>(_impl))->checkVisible<T>(visibleChecker, wtr);
+					return (static_cast<SphereVolume*>(_impl.get()))->checkVisible<T>(visibleChecker, wtr);
 					break;
 				default:
 					return _impl->checkVisible(visibleChecker, wtr); // virtual call
@@ -126,7 +122,7 @@ namespace engine {
 		}
 
 	private:
-		BVolume* _impl = nullptr;
+		std::unique_ptr<BVolume> _impl = nullptr;
 	};
 
 }

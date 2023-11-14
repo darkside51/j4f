@@ -12,11 +12,6 @@ namespace engine {
 			delete _renderer;
 			_renderer = nullptr;
 		}
-
-		if (_boundingVolume) {
-			delete _boundingVolume;
-			_boundingVolume = nullptr;
-		}
 	}
 
 	void Node::setRenderer(const NodeRenderer* r) {

@@ -7,6 +7,8 @@
 
 #include "BoundingVolume.h"
 
+#include <memory>
+
 namespace engine {
 	
 	class NodeRenderer;
@@ -49,12 +51,9 @@ namespace engine {
 
 		void setRenderer(const NodeRenderer* r);
 
-		inline const BoundingVolume* getBoundingVolume() const noexcept { return _boundingVolume; }
-		inline void setBoundingVolume(const BoundingVolume* v) {
-			if (_boundingVolume) {
-				delete _boundingVolume;
-			}
-			_boundingVolume = v;
+		inline const BoundingVolume* getBoundingVolume() const noexcept { return _boundingVolume.get(); }
+		inline void setBoundingVolume(std::unique_ptr<const BoundingVolume>&& v) {
+			_boundingVolume = std::move(v);
 		}
 
 		inline BitMask64& visible() noexcept { return _visibleMask; }
@@ -74,18 +73,19 @@ namespace engine {
 		mat4f _local = mat4f(1.0f);
 		mat4f _model = mat4f(1.0f);
 		NodeRenderer* _renderer = nullptr;
-		const BoundingVolume* _boundingVolume = nullptr;
+		std::unique_ptr<const BoundingVolume> _boundingVolume = nullptr;
 		BitMask64 _visibleMask; // ����� ��������� (��������������, ��� ������ ����� ���� ������� ��� ��� � ���������� ����������, ��� ���������� ��������� � ������� ����� ������������ BitMask64)
 	};
 
-	using H_Node = HierarchyRaw<Node>;
-	using Hs_Node = HierarchyShared<Node>;
+	using NodeHR = HierarchyRaw<Node>;
+	using NodeHS = HierarchyShared<Node>;
+	using NodeHU = HierarchyUnique<Node>;
 
 	class EmptyVisibleChecker {};
 
 	struct NodeUpdater final {
 		template<typename V>
-		inline static bool _(H_Node* node, const bool dirtyVisible, const uint8_t visibleId, V&& visibleChecker) {
+		inline static bool _(NodeHR* node, const bool dirtyVisible, const uint8_t visibleId, V&& visibleChecker) {
 			Node& mNode = node->value();
 			mNode._modelChanged = false;
 
@@ -108,8 +108,8 @@ namespace engine {
 				return mNode._boundingVolume ? mNode.isVisible(visibleId) : true;
 			} else {
 				if (dirtyVisible || mNode._modelChanged) {
-					if (const BoundingVolume* volume = mNode._boundingVolume) {
-						const bool visible = visibleChecker(volume, mNode._model);
+					if (auto&& volume = mNode._boundingVolume) {
+						const bool visible = visibleChecker(volume.get(), mNode._model);
 						mNode.setVisible(visibleId, visible);
 						return visible;
 					} else {
@@ -124,8 +124,8 @@ namespace engine {
 	};
 
 	// render bounding volumes for hierarchy
-	inline void renderNodesBounds(H_Node* node, const mat4f& cameraMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const uint8_t visibleId = 0) {
-		node->execute([](H_Node* node, const mat4f& cameraMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const uint8_t visibleId) -> bool {
+	inline void renderNodesBounds(NodeHR* node, const mat4f& cameraMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const uint8_t visibleId = 0) {
+		node->execute([](NodeHR* node, const mat4f& cameraMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame, const uint8_t visibleId) -> bool {
 			Node& mNode = node->value();
 			if (auto&& volume = mNode.getBoundingVolume()) {
 				if (mNode.visible().checkBit(visibleId)) {
