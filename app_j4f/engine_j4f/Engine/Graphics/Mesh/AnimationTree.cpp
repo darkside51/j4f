@@ -22,7 +22,9 @@ namespace engine {
 					const std::vector<TreeAnimator::Transform>& ch_transforms = v.getTransforms(i);
 
                     for (auto& ch_transform : ch_transforms) {
-						memcpy(&transforms[ch_transform.target_node], &ch_transform, sizeof(TreeAnimator::Transform));
+						if (ch_transform.target_node != 0xffffu) {
+							memcpy(&transforms[ch_transform.target_node], &ch_transform, sizeof(TreeAnimator::Transform));
+						}
 					}
 
 					break;
@@ -40,6 +42,7 @@ namespace engine {
 					const float mix = w * 1.0f / (w + w2);
 
                     for (auto& ch_transform : ch_transforms) {
+						if (ch_transform.target_node == 0xffffu) continue;
 						TreeAnimator::Transform& tr0 = transforms[ch_transform.target_node];
 						TreeAnimator::Transform& tr1 = ch_transform;
 

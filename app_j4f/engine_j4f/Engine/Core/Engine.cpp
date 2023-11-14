@@ -189,11 +189,11 @@ namespace engine {
 	void Engine::update(const float delta,
                         const std::chrono::steady_clock::time_point& /*currentTime*/,
                         std::deque<linked_ptr<TaskBase>>&& tasks) {
+		executeTaskCollection(std::move(tasks));
+
         if (_application) {
             _application->update(delta);
         }
-
-        executeTaskCollection(std::move(tasks));
 
 #ifdef ENABLE_STATISTIC
         if (_statistic) {
@@ -207,11 +207,11 @@ namespace engine {
                            std::deque<linked_ptr<TaskBase>>&& tasks) {
 		_graphics->beginFrame();
 
+		executeTaskCollection(std::move(tasks));
+
         if (_application) {
             _application->render(delta);
         }
-
-        executeTaskCollection(std::move(tasks));
 
 #ifdef ENABLE_STATISTIC
 		if (_statistic) {

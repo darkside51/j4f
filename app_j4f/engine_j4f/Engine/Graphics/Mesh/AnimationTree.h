@@ -30,7 +30,7 @@ namespace engine {
 
 		struct Transform {
 			uint8_t mask = 0u;
-			uint16_t target_node = 0u;
+			uint16_t target_node = 0xffffu;
 			vec3f scale = vec3f(1.0f);
 			quatf rotation = quatf(1.0f, 0.0f, 0.0f, 0.0f);
 			vec3f translation = vec3f(0.0f);
@@ -105,7 +105,7 @@ namespace engine {
 			constexpr float epsilon = 1e-4f;
 
 			for (const auto& channel : _animation->channels) {
-				if (channel.sampler == 0xffff || channel.target_node == 0xffff) {
+				if (channel.sampler == 0xffffu || channel.target_node == 0xffffu) {
 					continue;
 				}
 
@@ -217,6 +217,8 @@ namespace engine {
 			auto& transforms = _transforms[updateFrame];
 
 			for (auto& transform : transforms) {
+				if (transform.target_node == 0xffffu) continue;
+
 				Mesh_Node& target = skeleton->getNode(updateFrame, transform.target_node);
 
 				switch (transform.mask) {
