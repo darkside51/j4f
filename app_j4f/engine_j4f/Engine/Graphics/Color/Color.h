@@ -2,15 +2,8 @@
 
 #include "../../Core/Math/mathematic.h"
 #include <cstdint>
-#include <type_traits>
 
 namespace engine {
-
-	template <typename T>
-	inline std::decay_t<T> step(T&& edge, T&& x) noexcept {
-//		return (x < edge) ? T(0) : T(1);
-        return std::decay_t<T>(x >= edge);
-	}
 
 	inline vec3f rgb2hsv(const vec3f& c) noexcept {
 		const vec4f k(0.0f, -1.0f / 3.0f, 2.0f / 3.0f, -1.0f);
@@ -55,7 +48,7 @@ namespace engine {
 
 	inline float hue2rgb(float p, float q, float t) noexcept {
 		if (t < 0.0f) {
-			t += 1;
+			t += 1.0f;
 		}
 
 		if (t > 1.0f) {
@@ -107,7 +100,7 @@ namespace engine {
 			return {
 					static_cast<float>((_rgba >> 24u) & 0xffu) / 255.0f,
 					static_cast<float>((_rgba >> 16u) & 0xffu) / 255.0f,
-					static_cast<float>((_rgba >> 8u) & 0xffu)	/ 255.0f,
+					static_cast<float>((_rgba >> 8u) & 0xffu)   / 255.0f,
 					static_cast<float>((_rgba >> 0u) & 0xffu)	/ 255.0f
 			};
 		}

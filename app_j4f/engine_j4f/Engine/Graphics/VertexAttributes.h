@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../Core/Common.h"
+
 #include <array>
 #include <cstdint>
 #include <initializer_list>
@@ -234,6 +236,9 @@ namespace engine {
                     attribute_location += (attribute.sizeInBytes - 1u) / (4u * sizeof(float)) +
                                           1u; // for types size > (4u * sizeof(float)) location must be increased more than one
                     attribute_offset += attribute.sizeInBytes;
+
+                    // do not use this yet
+                    //attribute_offset = alignValue(attribute_offset, attribute.sizeInBytes);
                 }
                 ++attribute_binding;
             }

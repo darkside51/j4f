@@ -104,6 +104,18 @@ namespace engine {
     inline static const vec3f emptyVec3     = vec3f(0.0f, 0.0f, 0.0f);
     inline static const vec3f unitVec3      = vec3f(1.0f, 1.0f, 1.0f);
 
+    template <typename T>
+    inline std::decay_t<T> step(T&& edge, T&& x) noexcept {
+        return std::decay_t<T>(x >= edge);
+    }
+
+    template <typename T>
+    inline std::decay_t<T> smoothstep(T&& edge0, T&& edge1, T&& x) noexcept {
+        T t;
+        t = std::clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
+        return t * t * (3.0 - 2.0 * t);
+    }
+
     inline float inv_sqrt(const float x) { // "инверсный(1.0f / sqrt) квадратный корень Кармака"
         const float xhalf = 0.5f * x;
         union {
