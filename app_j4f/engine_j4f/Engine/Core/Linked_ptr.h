@@ -147,7 +147,7 @@ namespace engine {
 		inline explicit operator bool() const noexcept { return _ptr != nullptr; }
 
 		[[nodiscard]] inline uint32_t use_count() const noexcept { return _ptr->_use_count(); }
-        [[nodiscard]] inline bool unique() const noexcept { return (_ptr->_use_count() == 1); }
+        [[nodiscard]] inline bool unique() const noexcept { return (_ptr->_use_count() == 1u); }
 
 		inline element_type* get() noexcept { return _ptr; }
 		inline const element_type* get() const noexcept { return _ptr; }
@@ -160,7 +160,7 @@ namespace engine {
 		}
 
 		inline void _decrease_counter() noexcept {
-			if (_ptr && _ptr->_decrease_counter() == 0) {
+			if (_ptr && _ptr->_decrease_counter() == 0u) {
 				delete _ptr;
 			}
 		}
