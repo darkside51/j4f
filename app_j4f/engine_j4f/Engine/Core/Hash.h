@@ -68,12 +68,52 @@ namespace engine {
 		}
 	};
 
-    template <typename T>
-    concept arithmetic = std::is_arithmetic_v<T>;
+//    template <typename T>
+//    concept arithmetic = std::is_arithmetic_v<T>;
+//
+//    template <arithmetic T>
+//    struct Hasher<T> {
+//        inline std::size_t operator()(const T k) const noexcept { return k; }
+//    };
 
-    template <arithmetic T>
-    struct Hasher<T> {
-        inline std::size_t operator()(const T k) const noexcept { return k; }
+    template<>
+    struct Hasher<int8_t> {
+        inline std::size_t operator()(const int8_t k) const noexcept { return k; }
+    };
+
+    template<>
+    struct Hasher<int16_t> {
+        inline std::size_t operator()(const int16_t k) const noexcept { return k; }
+    };
+
+    template<>
+    struct Hasher<int32_t> {
+        inline std::size_t operator()(const int32_t k) const noexcept { return k; }
+    };
+
+    template<>
+    struct Hasher<int64_t> {
+        inline std::size_t operator()(const int64_t k) const noexcept { return k; }
+    };
+
+    template<>
+    struct Hasher<uint8_t> {
+        inline std::size_t operator()(const uint8_t k) const noexcept { return k; }
+    };
+
+    template<>
+    struct Hasher<uint16_t> {
+        inline std::size_t operator()(const uint16_t k) const noexcept { return k; }
+    };
+
+    template<>
+    struct Hasher<uint32_t> {
+        inline std::size_t operator()(const uint32_t k) const noexcept { return k; }
+    };
+
+    template<>
+    struct Hasher<uint64_t> {
+        inline std::size_t operator()(const uint64_t k) const noexcept { return k; }
     };
 
     // for heterogenious search
