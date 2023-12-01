@@ -14,6 +14,7 @@ namespace engine {
 	class MeshAnimationTree;
 
 	struct Mesh_Node {
+        inline static constexpr float epsilon = 1e-5f;
 		uint16_t skinIndex = 0xffffu;
 		vec3f translation = vec3f(0.0f, 0.0f, 0.0f);
 		vec3f scale = vec3f(1.0f, 1.0f, 1.0f);
@@ -44,42 +45,42 @@ namespace engine {
 		}
 
 		inline void setTranslation(const vec3f& t) {
-			if (compare(t, translation, 1e-5f)) {
+			if (compare(t, translation, epsilon)) {
 				translation = t;
 				dirtyLocalTransform = true;
 			}
 		}
 
 		inline void setTranslation(vec3f&& t) {
-			if (compare(t, translation, 1e-5f)) {
+			if (compare(t, translation, epsilon)) {
 				translation = std::move(t);
 				dirtyLocalTransform = true;
 			}
 		}
 
 		inline void setScale(const vec3f& s) {
-			if (compare(s, scale, 1e-5f)) {
+			if (compare(s, scale, epsilon)) {
 				scale = s;
 				dirtyLocalTransform = true;
 			}
 		}
 
 		inline void setScale(vec3f&& s) {
-			if (compare(s, scale, 1e-5f)) {
+			if (compare(s, scale, epsilon)) {
 				scale = std::move(s);
 				dirtyLocalTransform = true;
 			}
 		}
 
 		inline void setRotation(const quatf& r) {
-			if (compare(r, rotation, 1e-5f)) {
+			if (compare(r, rotation, epsilon)) {
 				rotation = r;
 				dirtyLocalTransform = true;
 			}
 		}
 
 		inline void setRotation(quatf&& r) {
-			if (compare(r, rotation, 1e-5f)) {
+			if (compare(r, rotation, epsilon)) {
 				rotation = std::move(r);
 				dirtyLocalTransform = true;
 			}

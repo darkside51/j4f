@@ -22,7 +22,7 @@ namespace engine {
 					const std::vector<TreeAnimator::Transform>& ch_transforms = v.getTransforms(i);
 
                     for (auto& ch_transform : ch_transforms) {
-						if (ch_transform.target_node != 0xffffu) {
+						if (ch_transform.target_node != 0xff'ffu) {
 							memcpy(&transforms[ch_transform.target_node], &ch_transform, sizeof(TreeAnimator::Transform));
 						}
 					}
@@ -42,7 +42,7 @@ namespace engine {
 					const float mix = w * 1.0f / (w + w2);
 
                     for (auto& ch_transform : ch_transforms) {
-						if (ch_transform.target_node == 0xffffu) continue;
+						if (ch_transform.target_node == 0xff'ffu) continue;
 						TreeAnimator::Transform& tr0 = transforms[ch_transform.target_node];
 						TreeAnimator::Transform& tr1 = ch_transform;
 
@@ -114,7 +114,7 @@ namespace engine {
 			const size_t childrenCount = children.size();
 			float w = 0.0f;
 
-			size_t firstNoneZeroWeightChild = 0;
+			size_t firstNoneZeroWeightChild = 0u;
 			for (size_t n = 0u; n < childrenCount; ++n) {
 				const auto& v = children[n]->value();
 				w = v.getWeight();
@@ -145,44 +145,44 @@ namespace engine {
 						TreeAnimator::Transform& tr1 = ch_transform;
 
 						switch (tr1.mask) {
-							case 0b00000001:
+							case 0b00'00'00'01u:
 							{
-								tr0.translation = (tr0.mask & 0b00000001) ? glm::mix(tr1.translation, tr0.translation, mix) : tr1.translation;
+								tr0.translation = (tr0.mask & 0b00'00'00'01u) ? glm::mix(tr1.translation, tr0.translation, mix) : tr1.translation;
 							}
 								break;
-							case 0b00000010:
+							case 0b00'00'00'10u:
 							{
-								tr0.rotation = (tr0.mask & 0b00000010) ? glm::normalize(glm::slerp(tr1.rotation, tr0.rotation, mix)) : tr1.rotation;
+								tr0.rotation = (tr0.mask & 0b00'00'00'10u) ? glm::normalize(glm::slerp(tr1.rotation, tr0.rotation, mix)) : tr1.rotation;
 							}
 								break;
-							case 0b00000100:
+							case 0b00'00'01'00u:
 							{
-								tr0.scale = (tr0.mask & 0b00000100) ? glm::mix(tr1.scale, tr0.scale, mix) : tr1.scale;
+								tr0.scale = (tr0.mask & 0b00'00'01'00u) ? glm::mix(tr1.scale, tr0.scale, mix) : tr1.scale;
 							}
 								break;
-							case 0b00000011:
+							case 0b00'00'00'11u:
 							{
-								tr0.translation = (tr0.mask & 0b00000001) ? glm::mix(tr1.translation, tr0.translation, mix) : tr1.translation;
-								tr0.rotation = (tr0.mask & 0b00000010) ? glm::normalize(glm::slerp(tr1.rotation, tr0.rotation, mix)) : tr1.rotation;
+								tr0.translation = (tr0.mask & 0b00'00'00'01u) ? glm::mix(tr1.translation, tr0.translation, mix) : tr1.translation;
+								tr0.rotation = (tr0.mask & 0b00'00'00'10u) ? glm::normalize(glm::slerp(tr1.rotation, tr0.rotation, mix)) : tr1.rotation;
 							}
 								break;
-							case 0b00000101:
+							case 0b00'00'01'01u:
 							{
-								tr0.translation = (tr0.mask & 0b00000001) ? glm::mix(tr1.translation, tr0.translation, mix) : tr1.translation;
-								tr0.scale = (tr0.mask & 0b00000100) ? glm::mix(tr1.scale, tr0.scale, mix) : tr1.scale;
+								tr0.translation = (tr0.mask & 0b00'00'00'01u) ? glm::mix(tr1.translation, tr0.translation, mix) : tr1.translation;
+								tr0.scale = (tr0.mask & 0b00'00'01'00u) ? glm::mix(tr1.scale, tr0.scale, mix) : tr1.scale;
 							}
 								break;
-							case 0b00000110:
+							case 0b00'00'01'10u:
 							{
-								tr0.rotation = (tr0.mask & 0b00000010) ? glm::normalize(glm::slerp(tr1.rotation, tr0.rotation, mix)) : tr1.rotation;
-								tr0.scale = (tr0.mask & 0b00000100) ? glm::mix(tr1.scale, tr0.scale, mix) : tr1.scale;
+								tr0.rotation = (tr0.mask & 0b00'00'00'10u) ? glm::normalize(glm::slerp(tr1.rotation, tr0.rotation, mix)) : tr1.rotation;
+								tr0.scale = (tr0.mask & 0b00'00'01'00u) ? glm::mix(tr1.scale, tr0.scale, mix) : tr1.scale;
 							}
 								break;
-							case 0b00000111:
+							case 0b00'00'01'11u:
 							{
-								tr0.translation = (tr0.mask & 0b00000001) ? glm::mix(tr1.translation, tr0.translation, mix) : tr1.translation;
-								tr0.rotation = (tr0.mask & 0b00000010) ? glm::normalize(glm::slerp(tr1.rotation, tr0.rotation, mix)) : tr1.rotation;
-								tr0.scale = (tr0.mask & 0b00000100) ? glm::mix(tr1.scale, tr0.scale, mix) : tr1.scale;
+								tr0.translation = (tr0.mask & 0b00'00'00'01u) ? glm::mix(tr1.translation, tr0.translation, mix) : tr1.translation;
+								tr0.rotation = (tr0.mask & 0b00'00'00'10u) ? glm::normalize(glm::slerp(tr1.rotation, tr0.rotation, mix)) : tr1.rotation;
+								tr0.scale = (tr0.mask & 0b00'00'01'00u) ? glm::mix(tr1.scale, tr0.scale, mix) : tr1.scale;
 							}
 								break;
 							default:

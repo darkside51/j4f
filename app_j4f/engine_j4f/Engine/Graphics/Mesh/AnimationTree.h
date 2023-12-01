@@ -30,7 +30,7 @@ namespace engine {
 
 		struct Transform {
 			uint8_t mask = 0u;
-			uint16_t target_node = 0xffffu;
+			uint16_t target_node = 0xff'ffu;
 			vec3f scale = vec3f(1.0f);
 			quatf rotation = quatf(1.0f, 0.0f, 0.0f, 0.0f);
 			vec3f translation = vec3f(0.0f);
@@ -102,10 +102,10 @@ namespace engine {
 		inline void operator()(const float time, const uint8_t n) {
 			if (_animation == nullptr) return;
 
-			constexpr float epsilon = 1e-4f;
+			constexpr float epsilon = 1e-5f;
 
 			for (const auto& channel : _animation->channels) {
-				if (channel.sampler == 0xffffu || channel.target_node == 0xffffu) {
+				if (channel.sampler == 0xff'ffu || channel.target_node == 0xff'ffu) {
 					continue;
 				}
 
@@ -116,21 +116,21 @@ namespace engine {
 				for (size_t i = 0u, sz = sampler.inputs.size() - 1u; i < sz; ++i) {
 
 					const float t0 = sampler.inputs[i];
-					const float t1 = sampler.inputs[i + 1];
+					const float t1 = sampler.inputs[i + 1u];
 
-					if ((time >= t0) && (time < t1)) {
+					if ((time >= t0) && (time <= t1)) {
 
 						const vec4f& v0 = sampler.outputs[i];
 
 						switch (sampler.interpolation) {
 							case Mesh_Animation::Interpolation::LINEAR:
 							{
-								const vec4f& v1 = sampler.outputs[i + 1];
+								const vec4f& v1 = sampler.outputs[i + 1u];
 								const float mix_c = (time - t0) / (t1 - t0);
 								switch (channel.path) {
 									case Mesh_Animation::AimationChannelPath::TRANSLATION:
 									{
-										transform.mask |= 0b00'00'00'01;
+										transform.mask |= 0b00'00'00'01u;
 										if (!compare(v0, v1, epsilon)) {
 											transform.translation = v0;
 										} else {
@@ -140,7 +140,7 @@ namespace engine {
 										break;
 									case Mesh_Animation::AimationChannelPath::ROTATION:
 									{
-										transform.mask |= 0b00'00'00'10;
+										transform.mask |= 0b00'00'00'10u;
 										if (!compare(v0, v1, epsilon)) {
 											transform.rotation = quatf(v0.w, v0.x, v0.y, v0.z);
 										} else {
@@ -152,7 +152,7 @@ namespace engine {
 										break;
 									case Mesh_Animation::AimationChannelPath::SCALE:
 									{
-										transform.mask |= 0b00'00'01'00;
+										transform.mask |= 0b00'00'01'00u;
 										if (!compare(v0, v1, epsilon)) {
 											transform.scale = v0;
 										} else {
@@ -169,15 +169,15 @@ namespace engine {
 							{
 								switch (channel.path) {
 									case Mesh_Animation::AimationChannelPath::TRANSLATION:
-										transform.mask |= 0b00'00'00'01;
+										transform.mask |= 0b00'00'00'01u;
 										transform.translation = v0;
 										break;
 									case Mesh_Animation::AimationChannelPath::ROTATION:
-										transform.mask |= 0b00'00'00'10;
+										transform.mask |= 0b00'00'00'10u;
 										transform.rotation = quatf(v0.w, v0.x, v0.y, v0.z);
 										break;
 									case Mesh_Animation::AimationChannelPath::SCALE:
-										transform.mask |= 0b00'00'01'00;
+										transform.mask |= 0b00'00'01'00u;
 										transform.scale = v0;
 										break;
 									default:
@@ -222,40 +222,40 @@ namespace engine {
 				Mesh_Node& target = skeleton->getNode(updateFrame, transform.target_node);
 
 				switch (transform.mask) {
-					case 0b00'00'00'01:
+					case 0b00'00'00'01u:
 					{
 						target.setTranslation(transform.translation);
 					}
 						break;
-					case 0b00'00'00'10:
+					case 0b00'00'00'10u:
 					{
 						target.setRotation(transform.rotation);
 					}
 						break;
-					case 0b00'00'01'00:
+					case 0b00'00'01'00u:
 					{
 						target.setScale(transform.scale);
 					}
 						break;
-					case 0b00'00'00'11:
+					case 0b00'00'00'11u:
 					{
 						target.setTranslation(transform.translation);
 						target.setRotation(transform.rotation);
 					}
 						break;
-					case 0b00'00'01'01:
+					case 0b00'00'01'01u:
 					{
 						target.setTranslation(transform.translation);
 						target.setScale(transform.scale);
 					}
 						break;
-					case 0b00'00'01'10:
+					case 0b00'00'01'10u:
 					{
 						target.setRotation(transform.rotation);
 						target.setScale(transform.scale);
 					}
 						break;
-					case 0b00'00'01'11:
+					case 0b00'00'01'11u:
 					{
 						target.setTranslation(transform.translation);
 						target.setRotation(transform.rotation);
@@ -387,7 +387,7 @@ namespace engine {
 
 	private:
 		std::unique_ptr<AnimatorType> _animator;
-        uint8_t _updateFrameNum = 0;
+        uint8_t _updateFrameNum = 0u;
         bool _active = true;
         float _speed = 1.0f;
 	};

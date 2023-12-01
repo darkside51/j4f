@@ -39,7 +39,7 @@ namespace engine {
         } else {
             auto &fm = engine.getModule<engine::FileManager>();
             int width, height, channels;
-            TextureData::getInfo(fm.getFullPath(params.files[0]).c_str(), &width, &height,
+            TextureData::getInfo(fm.getFullPath(params.files[0u]).c_str(), &width, &height,
                                  &channels); // texture dimensions + channels without load
 
             texture = make_linked<TextureHandler>(renderer, width, height, 1);
@@ -50,7 +50,7 @@ namespace engine {
 
             engine.getModule<AssetManager>().getThreadPool()->enqueue(TaskType::COMMON, [params, texture](
                     const CancellationToken &token) mutable {
-                PROFILE_TIME_SCOPED_M(textureLoading, params.files[0])
+                PROFILE_TIME_SCOPED_M(textureLoading, params.files[0u])
 
                 auto texture_value = texture->get();
 
@@ -68,7 +68,7 @@ namespace engine {
                     imgs.reserve(size);
                     std::vector<const void *> imgsData(size);
 
-                    for (size_t i = 0; i < size; ++i) {
+                    for (size_t i = 0u; i < size; ++i) {
                         imgs.emplace_back(params.files[i], params.formatType);
 
                         if (!imgs[i]) {
@@ -91,7 +91,7 @@ namespace engine {
                 executeCallbacks(texture, AssetLoadingResult::LOADING_SUCCESS);
             });
         } else {
-            PROFILE_TIME_SCOPED_M(textureLoading, params.files[0])
+            PROFILE_TIME_SCOPED_M(textureLoading, params.files[0u])
 
             auto texture_value = texture->get();
             if (params.texData) {
@@ -109,7 +109,7 @@ namespace engine {
                 imgs.reserve(size);
                 std::vector<const void *> imgsData(size);
 
-                for (size_t i = 0; i < size; ++i) {
+                for (size_t i = 0u; i < size; ++i) {
                     imgs.emplace_back(params.files[i], params.formatType);
 
                     if (!imgs[i]) {
@@ -168,8 +168,8 @@ namespace engine {
             };
 
             if (params.cacheName.empty()) {
-                if (params.files.size() > 1) {
-                    size_t length = 0;
+                if (params.files.size() > 1u) {
+                    size_t length = 0u;
                     for (auto&& f : params.files) {
                         length += f.length();
                     }
@@ -183,7 +183,7 @@ namespace engine {
 
                     generate(cacheKey);
                 } else {
-                    generate(params.files[0]);
+                    generate(params.files[0u]);
                 }
             } else {
                 generate(params.cacheName);

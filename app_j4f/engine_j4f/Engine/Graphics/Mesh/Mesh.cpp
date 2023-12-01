@@ -11,6 +11,7 @@
 namespace engine {
 
 	void updateSkeletonAnimation(const CancellationToken& token, MeshSkeleton* skeleton, const float time, const Mesh_Animation* animation, const uint8_t updateFrame) {
+        constexpr float epsilon = 1e-5f;
 		for (const auto& channel : animation->channels) {
 			if (channel.sampler == 0xffff || channel.target_node == 0xffff) continue;
 
@@ -34,7 +35,7 @@ namespace engine {
 						switch (channel.path) {
 						case Mesh_Animation::AimationChannelPath::TRANSLATION:
 						{
-							if (!compare(v0, v1, 1e-4f)) {
+							if (!compare(v0, v1, epsilon)) {
 								target.setTranslation(v0);
 							} else {
 								target.setTranslation(glm::mix(v0, v1, mix_c));
@@ -43,7 +44,7 @@ namespace engine {
 						break;
 						case Mesh_Animation::AimationChannelPath::ROTATION:
 						{
-							if (!compare(v0, v1, 1e-4f)) {
+							if (!compare(v0, v1, epsilon)) {
 								target.setRotation(quatf(v0.w, v0.x, v0.y, v0.z));
 							} else {
 								const quatf q1(v0.w, v0.x, v0.y, v0.z);
@@ -54,7 +55,7 @@ namespace engine {
 						break;
 						case Mesh_Animation::AimationChannelPath::SCALE:
 						{
-							if (!compare(v0, v1, 1e-4f)) {
+							if (!compare(v0, v1, epsilon)) {
 								target.setScale(v0);
 							} else {
 								target.setScale(glm::mix(v0, v1, mix_c));
@@ -251,7 +252,7 @@ namespace engine {
     }
 
     void MeshSkeleton::updateSkins(const uint8_t updateFrame) {
-		size_t skinId = 0;
+		size_t skinId = 0u;
 		_dirtySkins = false;
 		for (const Mesh_Skin& s : _skins) {
 			const Mesh_Node& h = _nodes[updateFrame][s.skeletonRoot]->value();
@@ -296,12 +297,12 @@ namespace engine {
         uint8_t primitiveMode = 0xffu;
 		_renderDescriptor.renderData.reserve(renderDataCount);
 
-		for (size_t i = 0; i < renderDataCount; ++i) {
+		for (size_t i = 0u; i < renderDataCount; ++i) {
             auto & r_data = _renderDescriptor.renderData.emplace_back(std::make_unique<vulkan::RenderData>());
             const size_t partsCount = _meshData->renderData[i].layouts.size();
             r_data->createRenderParts(partsCount);
 
-			for (size_t j = 0; j < partsCount; ++j) {
+			for (size_t j = 0u; j < partsCount; ++j) {
 				auto&& layout = _meshData->renderData[i].layouts[j];
 				if (primitiveMode == 0xffu) {
 					primitiveMode = layout.primitiveMode;
@@ -312,8 +313,8 @@ namespace engine {
                 r_data->renderParts[j] = vulkan::RenderData::RenderPart{
 													layout.firstIndex,	// firstIndex
 													layout.indexCount,	// indexCount
-													0,					// vertexCount (parameter no used with indexed render)
-													0,					// firstVertex
+													0u,					// vertexCount (parameter no used with indexed render)
+													0u,					// firstVertex
 													layout.vbOffset,	// vbOffset
 													layout.ibOffset		// ibOffset
 				};
@@ -353,26 +354,26 @@ namespace engine {
 		vulkan::PrimitiveTopology topology = vulkan::PrimitiveTopology::TRIANGLE_LIST;
 		bool enableRestartTopology = false;
 		switch (_meshData->renderData[0].layouts[0].primitiveMode) {
-			case 0:
+			case 0u:
 				topology = vulkan::PrimitiveTopology::POINT_LIST;
 				break;
-			case 1:
+			case 1u:
 				topology = vulkan::PrimitiveTopology::LINE_LIST;
 				break;
-			case 2:
+			case 2u:
 				topology = vulkan::PrimitiveTopology::LINE_LIST;
 				enableRestartTopology = true;
 				break;
-			case 3:
+			case 3u:
 				topology = vulkan::PrimitiveTopology::LINE_STRIP;
 				break;
-			case 4:
+			case 4u:
 				topology = vulkan::PrimitiveTopology::TRIANGLE_LIST;
 				break;
-			case 5:
+			case 5u:
 				topology = vulkan::PrimitiveTopology::TRIANGLE_STRIP;
 				break;
-			case 6:
+			case 6u:
 				topology = vulkan::PrimitiveTopology::TRIANGLE_FAN;
 				break;
 		}
@@ -382,15 +383,15 @@ namespace engine {
 		_renderState.blendMode = vulkan::CommonBlendModes::blend_none;
 		_renderState.depthState = vulkan::VulkanDepthState(true, true, VK_COMPARE_OP_LESS);
 		_renderState.stencilState = vulkan::VulkanStencilState(false);
-        _renderState.vertexDescription.bindings_strides.emplace_back(0, sizeOfVertex());
+        _renderState.vertexDescription.bindings_strides.emplace_back(0u, sizeOfVertex());
         _renderState.vertexDescription.attributes = getVertexInputAttributes();
 
 		// fixed gpu layout works
-		_fixedGpuLayouts.resize(4);
-		_fixedGpuLayouts[0].second = { "camera_matrix", ViewParams::Ids::CAMERA_TRANSFORM };
-		_fixedGpuLayouts[1].second = { "model_matrix" };
-		_fixedGpuLayouts[2].second = { "skin_matrixes" };
-		_fixedGpuLayouts[3].second = { "skin_matrixes_count" };
+		_fixedGpuLayouts.resize(4u);
+		_fixedGpuLayouts[0u].second = { "camera_matrix", ViewParams::Ids::CAMERA_TRANSFORM };
+		_fixedGpuLayouts[1u].second = { "model_matrix" };
+		_fixedGpuLayouts[2u].second = { "skin_matrixes" };
+		_fixedGpuLayouts[3u].second = { "skin_matrixes_count" };
 	}
 
 //	std::vector<VkVertexInputAttributeDescription> Mesh::getVertexInputAttributes() const {
@@ -448,24 +449,24 @@ namespace engine {
         //new vision
         const uint8_t renderFrameNum = _skeleton->getUpdatedFrameNum();
 
-		for (uint32_t i = 0, sz = _renderDescriptor.renderData.size(); i < sz; ++i) {
+		for (uint32_t i = 0u, sz = _renderDescriptor.renderData.size(); i < sz; ++i) {
 			auto & r_data = _renderDescriptor.renderData[i];
 			if (r_data == nullptr || r_data->pipeline == nullptr) continue;
 
 			const Mesh_Node& node = _skeleton->_nodes[renderFrameNum][_meshData->meshes[i].nodeIndex]->value();
 			
-			if (_fixedGpuLayouts[2].first && _skeleton->dirtySkins()) {
-				if (node.skinIndex != 0xffff) {
-					r_data->setParamForLayout(_fixedGpuLayouts[2].first, &(_skeleton->_skinsMatrices[renderFrameNum][node.skinIndex][0]), false, _skeleton->_skinsMatrices[renderFrameNum][node.skinIndex].size());
+			if (_fixedGpuLayouts[2u].first && _skeleton->dirtySkins()) {
+				if (node.skinIndex != 0xff'ffu) {
+					r_data->setParamForLayout(_fixedGpuLayouts[2u].first, &(_skeleton->_skinsMatrices[renderFrameNum][node.skinIndex][0u]), false, _skeleton->_skinsMatrices[renderFrameNum][node.skinIndex].size());
 				} else {
-					r_data->setParamForLayout(_fixedGpuLayouts[2].first, const_cast<mat4f*>(&(engine::emptyMatrix)), false, 1);
+					r_data->setParamForLayout(_fixedGpuLayouts[2u].first, const_cast<mat4f*>(&(engine::emptyMatrix)), false, 1u);
 				}
 			}
 
-			r_data->setParamForLayout(_fixedGpuLayouts[0].first, &const_cast<mat4f&>(cameraMatrix), false, 1);
+			r_data->setParamForLayout(_fixedGpuLayouts[0u].first, &const_cast<mat4f&>(cameraMatrix), false, 1u);
 
 			mat4f model = worldMatrix * node.modelMatrix;
-			r_data->setParamForLayout(_fixedGpuLayouts[1].first, &model, true, 1);
+			r_data->setParamForLayout(_fixedGpuLayouts[1u].first, &model, true, 1u);
 
 			r_data->prepareRender(/*commandBuffer*/);
 			r_data->render(commandBuffer, currentFrame);
@@ -485,7 +486,7 @@ namespace engine {
         // new vision
         const uint8_t renderFrameNum = _skeleton->getUpdatedFrameNum();
 
-        for (uint32_t i = 0, sz = _renderDescriptor.renderData.size(); i < sz; ++i) {
+        for (uint32_t i = 0u, sz = _renderDescriptor.renderData.size(); i < sz; ++i) {
             auto & r_data = _renderDescriptor.renderData[i];
 			if (r_data == nullptr || r_data->pipeline == nullptr) continue;
 
@@ -493,24 +494,24 @@ namespace engine {
 			
 			// для организации инстансной отрисовки мешей в различных кадрах анимаций, нужно делать storage_buffer для матриц костей и для нужной модельки брать правильное смещение
 			// + может быть нужно дописать возможность передачи параметра в r_data в нужное смещение от начала (либо копировать данные костей в общий буффер, а потом его устанавливать для gpuProgram)
-			if (_fixedGpuLayouts[2].first && _skeleton->dirtySkins()) {
-				if (node.skinIndex != 0xffff) {
-					r_data->setParamForLayout(_fixedGpuLayouts[2].first, &(_skeleton->_skinsMatrices[renderFrameNum][node.skinIndex][0]), false, _skeleton->_skinsMatrices[renderFrameNum][node.skinIndex].size());
-					//r_data->setParamForLayout(0u, _fixedGpuLayouts[2].first, &(_skeleton->_skinsMatrices[renderFrameNum][node.skinIndex][0]), _skeleton->_skinsMatrices[renderFrameNum][node.skinIndex].size());
-					if (_fixedGpuLayouts[3].first) {
-						r_data->setParamForLayout(_fixedGpuLayouts[3].first, _skeleton->_skinsMatrices[renderFrameNum][node.skinIndex].size(), true);
+			if (_fixedGpuLayouts[2u].first && _skeleton->dirtySkins()) {
+				if (node.skinIndex != 0xff'ffu) {
+					r_data->setParamForLayout(_fixedGpuLayouts[2u].first, &(_skeleton->_skinsMatrices[renderFrameNum][node.skinIndex][0u]), false, _skeleton->_skinsMatrices[renderFrameNum][node.skinIndex].size());
+					//r_data->setParamForLayout(0u, _fixedGpuLayouts[2u].first, &(_skeleton->_skinsMatrices[renderFrameNum][node.skinIndex][0u]), _skeleton->_skinsMatrices[renderFrameNum][node.skinIndex].size());
+					if (_fixedGpuLayouts[3u].first) {
+						r_data->setParamForLayout(_fixedGpuLayouts[3u].first, _skeleton->_skinsMatrices[renderFrameNum][node.skinIndex].size(), true);
 					}
 				} else {
-					r_data->setParamForLayout(_fixedGpuLayouts[2].first, const_cast<mat4f*>(&(engine::emptyMatrix)), false, 1);
+					r_data->setParamForLayout(_fixedGpuLayouts[2u].first, const_cast<mat4f*>(&(engine::emptyMatrix)), false, 1u);
 					if (_fixedGpuLayouts[3].first) {
-						r_data->setParamForLayout(_fixedGpuLayouts[3].first, 0, true);
+						r_data->setParamForLayout(_fixedGpuLayouts[3u].first, 0u, true);
 					}
 				}
 			}
 
 			if (node.dirtyModelTransform || _modelMatrixChanged) {
 				mat4f model = worldMatrix * node.modelMatrix;
-				r_data->setParamForLayout(_fixedGpuLayouts[1].first, &model, true, 1);
+				r_data->setParamForLayout(_fixedGpuLayouts[1u].first, &model, true, 1u);
 			}
 		}
 
@@ -541,7 +542,6 @@ namespace engine {
 	void Mesh::drawBoundingBox(const mat4f& cameraMatrix, const mat4f& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame) {
 		if (!_skeleton) return;
 		Engine::getInstance().getModule<Graphics>().getRenderHelper()->drawBoundingBox(_minCorner, _maxCorner, cameraMatrix, worldMatrix, commandBuffer, currentFrame, true);
-		//Engine::getInstance().getModule<Graphics>()->getRenderHelper()->drawSphere((_minCorner + _maxCorner) * 0.5f, 1.0f, cameraMatrix, worldMatrix, commandBuffer, currentFrame, true);
 	}
 
 }
