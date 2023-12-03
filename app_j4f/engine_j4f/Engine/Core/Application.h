@@ -8,7 +8,7 @@ namespace engine {
 	class Game;
 	class Application {
 	public:
-		Application() noexcept;
+		Application();
 		~Application();
         void requestFeatures();
         void onEngineInitComplete();

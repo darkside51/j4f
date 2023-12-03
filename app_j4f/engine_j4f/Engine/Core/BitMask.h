@@ -5,6 +5,9 @@
 #include <cstring>
 #include <type_traits>
 
+#undef min
+#undef max
+
 namespace engine {
 
 	template <typename T>
@@ -85,24 +88,15 @@ namespace engine {
 		}
 
 		inline bool operator== (const BitMaskImpl& bm) const {
-			const size_t sz = _mask.size();
-			const size_t sz2 = bm._mask.size();
-
-			if (sz != sz2) return false;
-
-			return (memcmp(&_mask[0], &bm._mask[0], sz * sizeof(element_type)) == 0);
+			return _mask == bm._mask;
 		}
 
 		inline BitMaskImpl& operator= (const BitMaskImpl& bm) {
-			const size_t sz = bm._mask.size();
-			_mask.resize(sz);
-			memcpy(&_mask[0], &bm._mask[0], sz * sizeof(element_type));
+			_mask = bm._mask;
 			return *this;
 		}
 
 		inline BitMaskImpl& operator= (BitMaskImpl&& bm) noexcept {
-			const size_t sz = bm._mask.size();
-			_mask.resize(sz);
 			_mask = std::move(bm._mask);
 			return *this;
 		}

@@ -2557,7 +2557,7 @@ namespace engine {
 
 	};
 
-	Application::Application() noexcept : _game(std::make_unique<Game>()) {}
+	Application::Application() : _game(std::make_unique<Game>()) {}
 
     Application::~Application() {
         LOG_TAG(Application, "finished");
