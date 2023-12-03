@@ -218,8 +218,9 @@ namespace engine {
 		}
 
         if (_padding != emptyVec2) {
-            _viewTransform[3][0] += _padding.x;
-            _viewTransform[3][1] += _padding.y;
+			constexpr float kViewportNormalizedDim = 2.0f;
+            _viewTransform[3][0] += _padding.x * kViewportNormalizedDim;
+            _viewTransform[3][1] += _padding.y * kViewportNormalizedDim;
         }
 
 		_transform = _projectionTransform * _viewTransform;
