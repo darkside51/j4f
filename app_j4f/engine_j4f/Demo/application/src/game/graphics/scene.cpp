@@ -1,10 +1,17 @@
 #include "scene.h"
 
 #include <Engine/Core/Common.h>
+#include <Engine/Core/Math/mathematic.h>
+
+#include <Engine/Graphics/Animation/AnimationManager.h>
+#include <Engine/Graphics/Animation/ActionAnimation.h>
+#include <Engine/Graphics/Mesh/AnimationTree.h>
 #include <Engine/Graphics/Render/RenderList.h>
 #include <Engine/Graphics/Scene/Node.h>
+#include <Engine/Graphics/Scene/NodeGraphicsLink.h>
 #include <Engine/Graphics/Scene/NodeRenderListHelper.h>
 #include <Engine/Graphics/UI/ImGui/Imgui.h>
+#include <Engine/Utils/ImguiStatObserver.h>
 
 #include <cstdint>
 
@@ -13,19 +20,33 @@ namespace game {
 	engine::RenderList rootRenderList;
 	engine::RenderList uiRenderList;
 
+	engine::GraphicsDataUpdateSystem<engine::Mesh*> meshUpdateSystem;
+
 	Scene::Scene() :
+		_graphicsDataUpdater(std::make_unique<engine::GraphicsDataUpdater>()),
 		_statObserver(std::make_unique<engine::ImguiStatObserver>(engine::ImguiStatObserver::Location::top_left)),
 		_rootNode(std::make_unique<NodeHR>()),
 		_uiNode(std::make_unique<NodeHR>()) {
+		using namespace engine;
 
-		auto imgui = std::make_unique<engine::NodeRendererImpl<engine::ImguiGraphics*>>();
-		imgui->setGraphics(engine::ImguiGraphics::getInstance());
+		auto&& renderer = Engine::getInstance().getModule<Graphics>().getRenderer();
+		const auto [width, height] = renderer->getSize();
+		_worldCamera = _cameras.emplace_back(std::make_unique<Camera>(width, height)).get();
+		_worldCamera->addObserver(this);
+		_worldCamera->enableFrustum();
+		_worldCamera->makeProjection(math_constants::f32::pi / 4.0f, static_cast<float>(width) / static_cast<float>(height), 1.0f, 5000.0f);
+		_worldCamera->setRotation(vec3f(-engine::math_constants::f32::pi / 3.0f, 0.0f, 0.0f));
+		_worldCamera->setPosition(vec3f(0.0f, -500.0f, 300.0f));
+
+		auto imgui = std::make_unique<NodeRenderer<ImguiGraphics*>>();
+		imgui->setGraphics(ImguiGraphics::getInstance());
 		imgui->getRenderDescriptor()->order = kUiOrder;
 		_imguiGraphics = imgui->graphics();
-		 {
-			auto* node = new NodeHR(imgui.release());
-			_uiNode->addChild(node);
+		{
+			placeToUi(imgui.release());
 		}
+
+		registerGraphicsUpdateSystems();
 	}
 
 	Scene::~Scene() {
@@ -33,7 +54,35 @@ namespace game {
 		_uiNode = nullptr;
 	}
 
+	void Scene::onCameraTransformChanged(const engine::Camera* /*camera*/) {}
+
+	void Scene::registerGraphicsUpdateSystems() {
+		_graphicsDataUpdater->registerSystem(meshUpdateSystem);
+	}
+
+	NodePtr Scene::placeToWorld(engine::NodeRenderer* graphics, uint16_t typeId) {
+		auto* node = new NodeHR(graphics);
+		_rootNode->addChild(node);
+		if (typeId == engine::UniqueTypeId<Scene>::getUniqueId<engine::Mesh*>()) {
+			meshUpdateSystem.registerObject(static_cast<engine::NodeRendererImpl<engine::Mesh*>*>(graphics));
+		}
+
+		return NodePtr(node);
+	}
+
+	NodePtr Scene::placeToUi(engine::NodeRenderer* graphics, uint16_t typeId) {
+		auto* node = new NodeHR(graphics);
+		_uiNode->addChild(node);
+		return NodePtr(node);
+	}
+
+	void Scene::resize(const uint16_t w, const uint16_t h) {
+		_worldCamera->resize(w, h);
+	}
+
 	void Scene::update(const float delta) {
+		using namespace engine;
+		Engine::getInstance().getModule<Graphics>().getAnimationManager()->update<MeshAnimationTree, ActionAnimation>(delta);
 	}
 
 	void Scene::render(const float delta) {
@@ -59,14 +108,27 @@ namespace game {
 		commandBuffer.cmdSetScissor(0, 0, width, height);
 		commandBuffer.cmdSetDepthBias(0.0f, 0.0f, 0.0f);
 
-		engine::reloadRenderList(uiRenderList, _uiNode.get(), false, 0);
+		{ // rootNode works
+			const bool mainCameraDirty = _worldCamera->calculateTransform();
+			const mat4f& cameraMatrix = _worldCamera->getTransform();
 
-		if (_imguiGraphics) {
-			_imguiGraphics->update(delta);
-			_statObserver->draw();
+			reloadRenderList(rootRenderList, _rootNode.get(), mainCameraDirty, 0u, engine::FrustumVisibleChecker(_worldCamera->getFrustum()));
+
+			_graphicsDataUpdater->updateData<GraphicsDataUpdateSystem<Mesh*>>();
+
+			rootRenderList.render(commandBuffer, currentFrame, { &cameraMatrix, nullptr, nullptr });
 		}
 
-		uiRenderList.render(commandBuffer, currentFrame, { nullptr, nullptr, nullptr });
+		{ // uiNode works
+			reloadRenderList(uiRenderList, _uiNode.get(), false, 0u);
+
+			if (_imguiGraphics) {
+				_imguiGraphics->update(delta);
+				_statObserver->draw();
+			}
+
+			uiRenderList.render(commandBuffer, currentFrame, { nullptr, nullptr, nullptr });
+		}
 
 		commandBuffer.cmdEndRenderPass();
 		commandBuffer.end();

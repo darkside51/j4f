@@ -1,6 +1,8 @@
 #include "game.h"
 #include "graphics/scene.h"
 
+#include <Engine/File/FileManager.h>
+#include <Engine/Graphics/UI/ImGui/Imgui.h>
 #include <Platform_inc.h>
 
 namespace engine {
@@ -13,6 +15,10 @@ namespace engine {
     }
 
 	void Game::onEngineInitComplete() {
+        FileManager& fm = Engine::getInstance().getModule<FileManager>();
+        auto&& fs = fm.getFileSystem<DefaultFileSystem>();
+        fm.mapFileSystem(fs);
+
         _scene = std::make_unique<game::Scene>();
 	}
 
@@ -29,13 +35,22 @@ namespace engine {
     }
 
 	void Game::resize(const uint16_t w, const uint16_t h) {
+        if (_scene) {
+            _scene->resize(w, h);
+        }
 	}
 
     bool Game::onInputPointerEvent(const PointerEvent& event) {
+        if (_scene && _scene->getUiGraphics()->onInputPointerEvent(event)) {
+            return true;
+        }
         return false;
     }
 
     bool Game::onInputWheelEvent(const float dx, const float dy) {
+        if (_scene && _scene->getUiGraphics()->onInputWheelEvent(dx, dy)) {
+            return true;
+        }
         return false;
     }
 
@@ -53,6 +68,10 @@ namespace engine {
             return true;
         default:
             break;
+        }
+
+        if (_scene && _scene->getUiGraphics()->onInpuKeyEvent(event)) {
+            return true;
         }
 
         return false;
