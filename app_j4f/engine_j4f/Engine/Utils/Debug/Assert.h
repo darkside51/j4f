@@ -13,7 +13,7 @@
         #define ENGINE_BREAK
     #endif
 
-    #define ENGINE_BREAK_CONDITION(x) if (!x) ENGINE_BREAK;
+    #define ENGINE_BREAK_CONDITION(x) if (!(x)) ENGINE_BREAK;
     #define ENGINE_BREAK_CONDITION_DO(x, tag, message, todo) if (!(x)) { ENGINE_BREAK;  \
         LOG_TAG_LEVEL(engine::LogLevel::L_ERROR, tag, "%s", message);                   \
         todo;                                                                           \

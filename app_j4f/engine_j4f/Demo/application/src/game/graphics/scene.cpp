@@ -20,13 +20,13 @@ namespace game {
 	engine::RenderList rootRenderList;
 	engine::RenderList uiRenderList;
 
-	engine::GraphicsDataUpdateSystem<engine::Mesh*> meshUpdateSystem;
-
 	Scene::Scene() :
 		_graphicsDataUpdater(std::make_unique<engine::GraphicsDataUpdater>()),
 		_statObserver(std::make_unique<engine::ImguiStatObserver>(engine::ImguiStatObserver::Location::top_left)),
 		_rootNode(std::make_unique<NodeHR>()),
 		_uiNode(std::make_unique<NodeHR>()) {
+        registerGraphicsUpdateSystems();
+
 		using namespace engine;
 
 		auto&& renderer = Engine::getInstance().getModule<Graphics>().getRenderer();
@@ -45,8 +45,6 @@ namespace game {
 		{
 			placeToUi(imgui.release());
 		}
-
-		registerGraphicsUpdateSystems();
 	}
 
 	Scene::~Scene() {
@@ -57,23 +55,9 @@ namespace game {
 	void Scene::onCameraTransformChanged(const engine::Camera* /*camera*/) {}
 
 	void Scene::registerGraphicsUpdateSystems() {
-		_graphicsDataUpdater->registerSystem(meshUpdateSystem);
-	}
-
-	NodePtr Scene::placeToWorld(engine::NodeRenderer* graphics, uint16_t typeId) {
-		auto* node = new NodeHR(graphics);
-		_rootNode->addChild(node);
-		if (typeId == engine::UniqueTypeId<Scene>::getUniqueId<engine::Mesh*>()) {
-			meshUpdateSystem.registerObject(static_cast<engine::NodeRendererImpl<engine::Mesh*>*>(graphics));
-		}
-
-		return NodePtr(node);
-	}
-
-	NodePtr Scene::placeToUi(engine::NodeRenderer* graphics, uint16_t typeId) {
-		auto* node = new NodeHR(graphics);
-		_uiNode->addChild(node);
-		return NodePtr(node);
+        using namespace engine;
+        registerUpdateSystem<Mesh*>();
+        registerUpdateSystem<ImguiGraphics*>();
 	}
 
 	void Scene::resize(const uint16_t w, const uint16_t h) {
@@ -82,7 +66,8 @@ namespace game {
 
 	void Scene::update(const float delta) {
 		using namespace engine;
-		Engine::getInstance().getModule<Graphics>().getAnimationManager()->update<MeshAnimationTree, ActionAnimation>(delta);
+        Engine::getInstance().getModule<Graphics>().getAnimationManager()->update(delta);
+		//Engine::getInstance().getModule<Graphics>().getAnimationManager()->update<MeshAnimationTree, ActionAnimation>(delta);
 	}
 
 	void Scene::render(const float delta) {
@@ -108,27 +93,26 @@ namespace game {
 		commandBuffer.cmdSetScissor(0, 0, width, height);
 		commandBuffer.cmdSetDepthBias(0.0f, 0.0f, 0.0f);
 
-		{ // rootNode works
+		{ // fill rootNode
 			const bool mainCameraDirty = _worldCamera->calculateTransform();
-			const mat4f& cameraMatrix = _worldCamera->getTransform();
-
 			reloadRenderList(rootRenderList, _rootNode.get(), mainCameraDirty, 0u, engine::FrustumVisibleChecker(_worldCamera->getFrustum()));
-
-			_graphicsDataUpdater->updateData<GraphicsDataUpdateSystem<Mesh*>>();
-
-			rootRenderList.render(commandBuffer, currentFrame, { &cameraMatrix, nullptr, nullptr });
 		}
 
-		{ // uiNode works
+		{ // fill uiNode
 			reloadRenderList(uiRenderList, _uiNode.get(), false, 0u);
 
 			if (_imguiGraphics) {
 				_imguiGraphics->update(delta);
 				_statObserver->draw();
 			}
-
-			uiRenderList.render(commandBuffer, currentFrame, { nullptr, nullptr, nullptr });
 		}
+
+        _graphicsDataUpdater->updateData();
+        //_graphicsDataUpdater->updateData<GraphicsDataUpdateSystem<Mesh*>>();
+        
+        // render nodes
+        rootRenderList.render(commandBuffer, currentFrame, { &_worldCamera->getTransform(), nullptr, nullptr });
+        uiRenderList.render(commandBuffer, currentFrame, { nullptr, nullptr, nullptr });
 
 		commandBuffer.cmdEndRenderPass();
 		commandBuffer.end();

@@ -5,6 +5,7 @@
 #include <Engine/Core/Ref_ptr.h>
 #include <Engine/Graphics/Camera.h>
 #include <Engine/Graphics/Scene/NodeGraphicsLink.h>
+#include <Engine/Utils/Debug/Assert.h>
 
 #include <cstdint>
 #include <memory>
@@ -13,7 +14,6 @@
 namespace engine {
 	class Node;
 	class NodeRenderer;
-	class GraphicsDataUpdater;
 	class ImguiStatObserver;
 	class ImguiGraphics;
 }
@@ -40,24 +40,50 @@ namespace game {
 
 		template <typename T>
 		NodePtr placeToWorld(NodeRenderer<T>* graphics) {
-			return placeToWorld(graphics, engine::UniqueTypeId<Scene>::getUniqueId<T>());
+            return placeToNode(graphics, NodePtr(_rootNode.get()));
 		}
 
 		template <typename T>
 		NodePtr placeToUi(NodeRenderer<T>* graphics) {
-			return placeToUi(graphics, engine::UniqueTypeId<Scene>::getUniqueId<T>());
+            return placeToNode(graphics, NodePtr(_uiNode.get()));
 		}
 
 		engine::ref_ptr<engine::ImguiGraphics>& getUiGraphics() noexcept { return _imguiGraphics; }
 
 	private:
-		NodePtr placeToWorld(engine::NodeRenderer* graphics, uint16_t typeId);
-		NodePtr placeToUi(engine::NodeRenderer* graphics, uint16_t typeId);
+        template <typename T>
+        void registerUpdateSystem() {
+            auto const typeId = engine::UniqueTypeId<Scene>::getUniqueId<T>();
+            auto system = std::make_unique<engine::GraphicsDataUpdateSystem<T>>();
+            _graphicsDataUpdater->registerSystem(system.get());
+            auto const systemsCount = _graphicsUpdateSystems.size();
+            if (typeId < systemsCount) {
+                _graphicsUpdateSystems[typeId] = std::move(system);
+            } else {
+                ENGINE_BREAK_CONDITION(typeId == systemsCount);
+                _graphicsUpdateSystems.emplace_back(std::move(system));
+            }
+        }
+
+        template <typename T>
+        NodePtr placeToNode(NodeRenderer<T>* graphics, NodePtr parent) {
+            auto* node = new NodeHR(graphics);
+            parent->addChild(node);
+
+            auto const typeId = engine::UniqueTypeId<Scene>::getUniqueId<T>();
+            if (typeId < _graphicsUpdateSystems.size()) {
+                auto && system = static_cast<engine::GraphicsDataUpdateSystem<T>*>(_graphicsUpdateSystems[typeId].get());
+                system->registerObject(graphics);
+            }
+
+            return NodePtr(node);
+        }
 
 		void onCameraTransformChanged(const engine::Camera* camera) override;
 		void registerGraphicsUpdateSystems();
 
 		std::unique_ptr<engine::GraphicsDataUpdater> _graphicsDataUpdater;
+        std::vector<std::unique_ptr<engine::IGraphicsDataUpdateSystem>> _graphicsUpdateSystems;
 
 		std::unique_ptr<engine::ImguiStatObserver> _statObserver;
 		engine::ref_ptr<engine::ImguiGraphics> _imguiGraphics;
