@@ -27,6 +27,6 @@ namespace engine {
 		bool onInpuCharEvent(const uint16_t code) override;
 
 	private:
-		std::unique_ptr<game::Scene> _scene = nullptr;
+		std::unique_ptr<game::Scene> _scene;
 	};
 }

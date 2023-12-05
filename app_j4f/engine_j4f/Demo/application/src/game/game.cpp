@@ -7,7 +7,7 @@
 
 namespace engine {
 
-	Game::Game() {
+	Game::Game() : _scene(nullptr) {
         Engine::getInstance().getModule<Input>().addObserver(this);
     }
 	Game::~Game() {

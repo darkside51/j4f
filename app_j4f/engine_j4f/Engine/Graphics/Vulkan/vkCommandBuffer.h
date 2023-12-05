@@ -597,7 +597,7 @@ namespace vulkan {
 			return false;
 		}
 
-		inline void cmdSetViewport(const float x, const float y, const float w, const float h, const float minDepth = 0.0f, const float maxDepth = 1.0f, const bool useNegative = true) {
+		inline void cmdSetViewport(const float x, const float y, const float w, const float h, const float minDepth = 0.0f, const float maxDepth = 1.0f, const bool useNegative = false) {
 			// using negative viewport height
 			VkViewport viewport;
 			if (useNegative) {

@@ -57,10 +57,10 @@ namespace game {
 		void onCameraTransformChanged(const engine::Camera* camera) override;
 		void registerGraphicsUpdateSystems();
 
-		std::unique_ptr<engine::GraphicsDataUpdater> _graphicsDataUpdater = nullptr;
+		std::unique_ptr<engine::GraphicsDataUpdater> _graphicsDataUpdater;
 
-		std::unique_ptr<engine::ImguiStatObserver> _statObserver = nullptr;
-		engine::ref_ptr<engine::ImguiGraphics> _imguiGraphics = nullptr;
+		std::unique_ptr<engine::ImguiStatObserver> _statObserver;
+		engine::ref_ptr<engine::ImguiGraphics> _imguiGraphics;
 
 		std::unique_ptr<NodeHR> _rootNode;
 		std::unique_ptr<NodeHR> _uiNode;

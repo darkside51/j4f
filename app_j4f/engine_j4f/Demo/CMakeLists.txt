@@ -28,7 +28,7 @@ endif()
 
 add_definitions(-Dj4f_PLATFORM_${j4f_PLATFORM})
 
-########## движковый флаги
+########## движковые флаги
 if(STATISTIC_ENABLED)
 	add_definitions(-DENABLE_STATISTIC)
 endif()
@@ -43,6 +43,14 @@ endif()
 
 if(GPU_VALIDATION_ENABLED)
 	add_definitions(-DGPU_VALIDATION_ENABLED)
+endif()
+
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+	set(j4f_PLATFORM "LINUX")
+	set(STATISTIC_ENABLED true)
+	set(PROFILER_ENABLE false)
+	set(GPU_DEBUG_MARKER_ENABLED false)
+	set(GPU_VALIDATION_ENABLED true)
 endif()
 
 ########## собираем engine

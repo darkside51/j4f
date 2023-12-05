@@ -4,3 +4,5 @@ app_j4f/example/.kdev4
 app_j4f/example/example.kdev4
 app_j4f/engine_j4f/3rd_party/freetype
 app_j4f/engine_j4f/Demo/build
+app_j4f/engine_j4f/Demo/.idea
+app_j4f/engine_j4f/Demo/.kdev4
