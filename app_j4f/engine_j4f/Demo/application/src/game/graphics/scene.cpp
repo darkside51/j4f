@@ -6,12 +6,14 @@
 #include <Engine/Graphics/Animation/AnimationManager.h>
 #include <Engine/Graphics/Animation/ActionAnimation.h>
 #include <Engine/Graphics/Mesh/AnimationTree.h>
+#include <Engine/Graphics/Plane/Plane.h>
 #include <Engine/Graphics/Render/RenderList.h>
 #include <Engine/Graphics/Scene/Node.h>
 #include <Engine/Graphics/Scene/NodeGraphicsLink.h>
 #include <Engine/Graphics/Scene/NodeRenderListHelper.h>
 #include <Engine/Graphics/UI/ImGui/Imgui.h>
 #include <Engine/Utils/ImguiStatObserver.h>
+
 
 #include <cstdint>
 
@@ -35,8 +37,6 @@ namespace game {
 		_worldCamera->addObserver(this);
 		_worldCamera->enableFrustum();
 		_worldCamera->makeProjection(math_constants::f32::pi / 4.0f, static_cast<float>(width) / static_cast<float>(height), 1.0f, 5000.0f);
-		_worldCamera->setRotation(vec3f(-engine::math_constants::f32::pi / 3.0f, 0.0f, 0.0f));
-		_worldCamera->setPosition(vec3f(0.0f, -500.0f, 300.0f));
 
 		auto imgui = std::make_unique<NodeRenderer<ImguiGraphics*>>();
 		imgui->setGraphics(ImguiGraphics::getInstance());
@@ -56,8 +56,9 @@ namespace game {
 
 	void Scene::registerGraphicsUpdateSystems() {
         using namespace engine;
-        registerUpdateSystem<Mesh*>();
         registerUpdateSystem<ImguiGraphics*>();
+        registerUpdateSystem<Mesh*>();
+        registerUpdateSystem<Plane*>();
 	}
 
 	void Scene::resize(const uint16_t w, const uint16_t h) {

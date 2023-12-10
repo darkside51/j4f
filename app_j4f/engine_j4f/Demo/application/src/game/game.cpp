@@ -1,5 +1,7 @@
 #include "game.h"
+#include "game_controller.h"
 #include "graphics/scene.h"
+#include "world.h"
 
 #include <Engine/File/FileManager.h>
 #include <Engine/Graphics/UI/ImGui/Imgui.h>
@@ -7,7 +9,7 @@
 
 namespace engine {
 
-	Game::Game() : _scene(nullptr) {
+	Game::Game() : _controller(std::make_unique<game::GameController>()), _scene(nullptr) {
         Engine::getInstance().getModule<Input>().addObserver(this);
     }
 	Game::~Game() {
@@ -20,11 +22,13 @@ namespace engine {
         fm.mapFileSystem(fs);
 
         _scene = std::make_unique<game::Scene>();
+        _world = std::make_unique<game::World>(_scene);
 	}
 
 	void Game::update(const float delta) {
         if (_scene) {
             _scene->update(delta);
+            _world->update(delta);
         }
 	}
 
@@ -44,14 +48,14 @@ namespace engine {
         if (_scene && _scene->getUiGraphics()->onInputPointerEvent(event)) {
             return true;
         }
-        return false;
+        return _controller->onInputPointerEvent(event);
     }
 
     bool Game::onInputWheelEvent(const float dx, const float dy) {
         if (_scene && _scene->getUiGraphics()->onInputWheelEvent(dx, dy)) {
             return true;
         }
-        return false;
+        return _controller->onInputWheelEvent(dx, dy);
     }
 
     bool Game::onInpuKeyEvent(const KeyEvent& event) {
@@ -74,9 +78,9 @@ namespace engine {
             return true;
         }
 
-        return false;
+        return _controller->onInpuKeyEvent(event);
     }
 
-    bool Game::onInpuCharEvent(const uint16_t code) { return false; }
+    bool Game::onInpuCharEvent(const uint16_t code) { return _controller->onInpuCharEvent(code); }
 
 }

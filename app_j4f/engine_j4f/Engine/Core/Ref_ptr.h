@@ -13,7 +13,7 @@ namespace engine {
         ref_ptr() = default;
         explicit ref_ptr(T* ptr) : _ptr(ptr) {}
         ref_ptr(nullptr_t) : _ptr(nullptr) {}
-        ref_ptr(std::unique_ptr<T> & ptr) : _ptr(*ptr) {}
+        ref_ptr(std::unique_ptr<T> & ptr) : _ptr(ptr.get()) {}
 
         ~ref_ptr() { _ptr = nullptr; }
 

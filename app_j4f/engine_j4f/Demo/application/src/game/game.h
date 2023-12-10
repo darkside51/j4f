@@ -6,8 +6,10 @@
 #include <memory>
 #include <vector>
 
-namespace game{
+namespace game {
 	class Scene;
+    class World;
+    class GameController;
 }
 
 namespace engine {
@@ -27,6 +29,8 @@ namespace engine {
 		bool onInpuCharEvent(const uint16_t code) override;
 
 	private:
+        std::unique_ptr<game::GameController> _controller;
 		std::unique_ptr<game::Scene> _scene;
+        std::unique_ptr<game::World> _world;
 	};
 }
