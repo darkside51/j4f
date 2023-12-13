@@ -177,18 +177,16 @@ namespace engine {
         }
 	}
 
-    inline void executeTaskCollection(std::deque<linked_ptr<TaskBase>>&& tasks) {
+    inline void executeTaskCollection(WorkerTasks && tasks) {
         while (!tasks.empty()) {
-            if (tasks.front()->state() == TaskState::IDLE) {
-                tasks.front()->operator()();
-            }
+            tasks.front()();
             tasks.pop_front();
         }
     }
 
 	void Engine::update(const float delta,
                         const std::chrono::steady_clock::time_point& /*currentTime*/,
-                        std::deque<linked_ptr<TaskBase>>&& tasks) {
+                        WorkerTasks && tasks) {
 		executeTaskCollection(std::move(tasks));
 
         if (_application) {
@@ -204,7 +202,7 @@ namespace engine {
 
 	void Engine::render(const float delta,
                            const std::chrono::steady_clock::time_point& currentTime,
-                           std::deque<linked_ptr<TaskBase>>&& tasks) {
+                           WorkerTasks && tasks) {
 		_graphics->beginFrame();
 
 		executeTaskCollection(std::move(tasks));

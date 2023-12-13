@@ -70,10 +70,7 @@ namespace engine {
                 }
             });
 
-            threadCommutator.enqueue(c.targetThreadId,
-                                     [execute = std::move(execute)](const CancellationToken &) mutable {
-                                         execute();
-                                     });
+            threadCommutator.enqueue(c.targetThreadId,std::move(execute));
 		}
 	}
 
@@ -125,10 +122,7 @@ namespace engine {
         auto && threadCommutator = engine.getModule<WorkerThreadsCommutator>();
 
         threadCommutator.enqueue(engine.getThreadCommutationId(Engine::Workers::RENDER_THREAD),
-                                  [mData](const CancellationToken &){ mData->fillGpuData(); });
-
-//        threadCommutator.enqueue(engine.getThreadCommutationId(Engine::Workers::UPDATE_THREAD),
-//                                 [mData](const CancellationToken &){ mData->fillGpuData(); });
+                                  [mData](){ mData->fillGpuData(); });
 
 		executeCallbacks(mData, AssetLoadingResult::LOADING_SUCCESS);
 	}

@@ -2,20 +2,24 @@
 
 #include <atomic>
 #include <cstdint>
+#include <forward_list>
+#include <functional>
 
 namespace engine {
 
+    using WorkerTasks = std::forward_list<std::function<void()>>;
+
     enum class TaskState : uint8_t {
-        IDLE = 0,
-        RUN = 1,
-        COMPLETE = 2,
-        CANCELED = 3
+        IDLE = 0u,
+        RUN = 1u,
+        COMPLETE = 2u,
+        CANCELED = 3u
     };
 
     enum class TaskType : uint8_t { // max value is 7 (using with 1 << TaskType)
-        COMMON = 0,
-        USER_CONTROL = 1, // cancel ����� ������ ������ �� ������� ������������ �������, ��� ThreadPool ������ �������� ����� ������ ������ ��� ��������� � stop()
-        MAX_VALUE = 8
+        COMMON = 0u,
+        USER_CONTROL = 1u, // cancel ����� ������ ������ �� ������� ������������ �������, ��� ThreadPool ������ �������� ����� ������ ������ ��� ��������� � stop()
+        MAX_VALUE = 8u
     };
 
     class CancellationToken final {

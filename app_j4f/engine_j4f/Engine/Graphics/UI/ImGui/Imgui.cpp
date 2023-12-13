@@ -53,7 +53,7 @@ namespace engine {
                                                }
                                );
 
-    void generateShaders(const CancellationToken &token, ImguiGraphics *g) {
+    void generateShaders(ImguiGraphics *g) {
         glsl_to_sprirv::initialize();
         glsl_to_sprirv::convert(VK_SHADER_STAGE_VERTEX_BIT, imgui_vsh, ImguiGraphics::imguiVsh);
         glsl_to_sprirv::convert(VK_SHADER_STAGE_FRAGMENT_BIT, imgui_psh, ImguiGraphics::imguiPsh);

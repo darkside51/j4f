@@ -13,7 +13,7 @@ namespace engine {
 
     class ImguiGraphics : public RenderedEntity, public IRenderDescriptorCustomRenderer {
         friend class Graphics;
-        friend void generateShaders(const CancellationToken& token, ImguiGraphics* g);
+        friend void generateShaders(ImguiGraphics* g);
     public:
         inline static ImguiGraphics* getInstance() noexcept {
             static ImguiGraphics* imgui = new ImguiGraphics();

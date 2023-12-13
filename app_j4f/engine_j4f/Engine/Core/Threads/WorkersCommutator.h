@@ -21,18 +21,16 @@ namespace engine {
         }
 
         template<class F, typename... Args>
-        auto enqueue(const uint16_t workerId, F &&f,
-                     Args &&... args) -> linked_ptr<Task2<typename std::invoke_result_t<std::decay_t<F>, const CancellationToken &, std::decay_t<Args>...>>> {
+        void enqueue(const uint16_t workerId, F &&f,
+                     Args &&... args)  {
 
             auto it = _workers.find(workerId);
 
-            ENGINE_BREAK_CONDITION_DO(it != _workers.end(), THREADS, "no worker with id", return nullptr)
+            ENGINE_BREAK_CONDITION_DO(it != _workers.end(), THREADS, "no worker with id", return)
 
-            using return_type = typename std::invoke_result_t<std::decay_t<F>, const CancellationToken &, std::decay_t<Args>...>;
-            auto task = make_linked<Task2<return_type>>(TaskType::COMMON, std::forward<F>(f), std::forward<Args>(args)...);
-            it->second->linkTask(task);
-
-            return task;
+            it->second->emplaceTask([f = std::forward<F>(f), args...]() mutable {
+               f(std::forward<Args>(args)...);
+            });
         }
 
         WorkerThread* getWorkerThreadByCommutationId(const uint16_t workerId) const {

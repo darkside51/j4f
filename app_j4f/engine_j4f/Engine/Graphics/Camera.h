@@ -69,10 +69,10 @@ namespace engine {
 		std::vector<Frustum> _frustums;
 	};
 
-	enum class ProjectionType {
-		PERSPECTIVE = 0,
-		ORTHO = 1,
-		CUSTOM = 2
+	enum class ProjectionType : uint8_t {
+		PERSPECTIVE = 0u,
+		ORTHO = 1u,
+		CUSTOM = 2u
 	};
 
 	class ICameraTransformChangeObserver {
@@ -105,6 +105,9 @@ namespace engine {
 		~Camera() noexcept {
 			disableFrustum();
 		}
+
+        Camera(Camera&& cam) noexcept;
+        Camera(const Camera & cam) = delete;
 
 		void resize(const float w, const float h) noexcept;
 		vec2f worldToScreen(const vec3f& p) const noexcept;

@@ -34,8 +34,8 @@ namespace game {
 		void render(const float delta);
 		void resize(const uint16_t w, const uint16_t h);
 
-		engine::ref_ptr<engine::Camera>& getWorldCamera() noexcept {
-			return _worldCamera;
+		engine::Camera& getWorldCamera() noexcept {
+			return _cameras[0];
 		}
 
         NodePtr placeToWorld() {
@@ -106,7 +106,6 @@ namespace game {
 		std::unique_ptr<NodeHR> _rootNode;
 		std::unique_ptr<NodeHR> _uiNode;
 
-		std::vector<std::unique_ptr<engine::Camera>> _cameras;
-		engine::ref_ptr<engine::Camera> _worldCamera;
+		std::vector<engine::Camera> _cameras;
 	};
 }

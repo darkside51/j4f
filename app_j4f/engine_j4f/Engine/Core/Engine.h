@@ -5,8 +5,7 @@
 #include "Ref_ptr.h"
 #include "Version.h"
 
-#include "Threads/Task2.h"
-#include <deque>
+#include "Threads/TaskCommon.h"
 
 #include <array>
 #include <cassert>
@@ -20,12 +19,12 @@ namespace engine {
 	class Graphics;
 	class Statistic;
 	class Application;
-	class WorkerThread;
+    class WorkerThread;
 
 	class Engine {
-        private:
-            class EngineModuleEnumerator;
-            class EmplacedModuleEnumerator; // focus :)
+    private:
+        class EngineModuleEnumerator;
+        class EmplacedModuleEnumerator; // focus :)
 
 	public:
         enum class Workers: uint8_t {
@@ -97,8 +96,8 @@ namespace engine {
 		Engine();
 		void initComplete();
 
-		void render(const float delta, const std::chrono::steady_clock::time_point& currentTime, std::deque<linked_ptr<TaskBase>>&& tasks);
-		void update(const float delta, const std::chrono::steady_clock::time_point& currentTime, std::deque<linked_ptr<TaskBase>>&& tasks);
+		void render(const float delta, const std::chrono::steady_clock::time_point& currentTime, WorkerTasks && tasks);
+		void update(const float delta, const std::chrono::steady_clock::time_point& currentTime, WorkerTasks && tasks);
 
 		std::vector<std::unique_ptr<IEngineModule>> _modules;
 

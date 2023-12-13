@@ -1,5 +1,10 @@
 #pragma once
 
+#include "../../Log/Log.h"
+#include "Synchronisations.h"
+#include "TaskCommon.h"
+#include "../Configs.h"
+
 #include <thread>
 #include <atomic>
 #include <mutex>
@@ -9,21 +14,15 @@
 #include <condition_variable>
 #include <optional>
 
-#include "Task2Queue.h"
-#include "../../Log/Log.h"
-#include "Synchronisations.h"
-#include "../Configs.h"
-
 namespace engine {
 
 	class WorkerThread {
-        using TasksCollection = std::deque<linked_ptr<TaskBase>>;
 	public:
 		template <typename T, typename F, typename... Args>
 		explicit WorkerThread(F T::* f, T* t, Args&&... args) :
 			_task([f, t, args...](const float time,
                                   const std::chrono::steady_clock::time_point& currentTime,
-                                  TasksCollection&& tasks) {
+                                  WorkerTasks && tasks) {
                 (t->*f)(time, currentTime, std::move(tasks), std::forward<Args>(args)...);
             }) {
 		}
@@ -32,7 +31,7 @@ namespace engine {
 		explicit WorkerThread(F&& f, Args&&... args) :
 			_task([f = std::forward<F>(f), args...](const float time,
                                                     const std::chrono::steady_clock::time_point& currentTime,
-                                                    TasksCollection&& tasks) {
+                                                    WorkerTasks && tasks) {
                 f(time, currentTime, std::move(tasks), std::forward<Args>(args)...);
             }) {
 		}
@@ -83,9 +82,16 @@ namespace engine {
 					}
 
 					_time = currentTime;
-					_task(static_cast<float>(durationTime), currentTime, _linkedTasks.stealTasks());
 
-					_frameId.fetch_add(1, std::memory_order_relaxed); // increase frameId at the end of frame
+                    WorkerTasks tasks;
+                    {
+                        std::lock_guard<std::mutex> lock(_tasksMutex);
+                        tasks = std::move(_tasks);
+                    }
+
+                    _task(static_cast<float>(durationTime), currentTime, std::move(tasks));
+
+					_frameId.fetch_add(1u, std::memory_order_relaxed); // increase frameId at the end of frame
 				}
 
 				_wait.test_and_set(std::memory_order_relaxed);
@@ -172,14 +178,9 @@ namespace engine {
 			_fpsLimitType = t;
 		}
 
-        template <typename T>
-        void linkTask(const linked_ptr<T>& task) noexcept {
-            _linkedTasks.enqueue(task);
-        }
-
-        template <typename T>
-        void linkTask(linked_ptr<T>&& task) noexcept {
-            _linkedTasks.enqueue(std::move(task));
+        void emplaceTask(std::function<void()>&& task) {
+            std::lock_guard<std::mutex> lock(_tasksMutex);
+            _tasks.emplace_front(std::move(task));
         }
 
 		[[nodiscard]] inline uint16_t frameId() const noexcept { return _frameId.load(std::memory_order_relaxed); }
@@ -202,19 +203,20 @@ namespace engine {
 		std::mutex _mutex;
 		std::condition_variable _condition;
 
-		std::function<void(const float, const std::chrono::steady_clock::time_point&, std::deque<linked_ptr<TaskBase>>&&)> _task = nullptr;
+        std::function<void(const float, const std::chrono::steady_clock::time_point&, WorkerTasks&&)> _task = nullptr;
 
 		std::atomic_flag _callbackLock;
 		std::function<bool()> _onPause = nullptr;
 
 		std::chrono::steady_clock::time_point _time;
-		std::atomic_uint16_t _frameId = { 0 };
+		std::atomic_uint16_t _frameId = { 0u };
 
         double _stealedTime = 0.0f;
 		double _targetFrameTime = std::numeric_limits<float>::max();
 		FpsLimitType _fpsLimitType = FpsLimitType::F_DONT_CARE;
 
-        Task2Queue<SpinLock, void> _linkedTasks;
+        std::mutex _tasksMutex;
+        WorkerTasks _tasks;
 	};
 
 }

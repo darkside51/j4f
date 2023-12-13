@@ -154,6 +154,25 @@ namespace engine {
         _padding(emptyVec2)
 	{}
 
+    Camera::Camera(Camera&& cam) noexcept :
+            _projectionType(cam._projectionType),
+            _dirty(cam._dirty),
+            _size(cam._size),
+            _near_far(cam._near_far),
+            _transform(std::move(cam._transform)),
+            _invTransform(std::move(cam._invTransform)),
+            _invViewTransform(std::move(cam._invViewTransform)),
+            _viewTransform(std::move(cam._viewTransform)),
+            _projectionTransform(std::move(cam._projectionTransform)),
+            _frustum(std::move(cam._frustum)),
+            _rotationOrder(cam._rotationOrder),
+            _scale(cam._scale),
+            _rotation(cam._rotation),
+            _position(cam._position),
+            _padding(cam._padding) {
+
+    }
+
 	void Camera::makeProjection(const float fov, const float aspect, const float znear, const float zfar) noexcept {
 		_projectionType = ProjectionType::PERSPECTIVE;
 		_projectionTransform = glm::perspective(fov, aspect, znear, zfar);
