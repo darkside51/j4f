@@ -1,5 +1,6 @@
 #pragma once
 
+#include "graphics/camera_controller.h"
 #include <Engine/Input/Input.h>
 
 namespace game {
@@ -10,6 +11,6 @@ namespace game {
         bool onInpuKeyEvent(const engine::KeyEvent& event);
         bool onInpuCharEvent(const uint16_t code);
     private:
-
+        CameraController _cameraController;
     };
 }

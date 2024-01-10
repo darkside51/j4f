@@ -304,7 +304,7 @@ namespace engine {
     }
 
 	void GLFWDevice::start() {
-		//constexpr float kDeviceSleepMilliseconds = 33.333; // ~ 30fps
+		//constexpr float kDeviceSleepMilliseconds = 33.333f; // ~ 30fps
         constexpr float kDeviceSleepMilliseconds = 16.667f; // ~ 60fps
 
 		while (!glfwWindowShouldClose(_window)) {
@@ -313,7 +313,8 @@ namespace engine {
 			//}
             //glfwWaitEvents();
 
-            glfwPollEvents();
+            //glfwPollEvents();
+            glfwWaitEvents();
             std::this_thread::sleep_for(std::chrono::duration<float, std::milli>(kDeviceSleepMilliseconds));
 		}
 

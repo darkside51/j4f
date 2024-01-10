@@ -180,7 +180,8 @@ namespace engine {
 
         void emplaceTask(std::function<void()>&& task) {
             std::lock_guard<std::mutex> lock(_tasksMutex);
-            _tasks.emplace_front(std::move(task));
+            _tasks.emplace_back(std::move(task));
+            //_tasks.emplace_front(std::move(task));
         }
 
 		[[nodiscard]] inline uint16_t frameId() const noexcept { return _frameId.load(std::memory_order_relaxed); }

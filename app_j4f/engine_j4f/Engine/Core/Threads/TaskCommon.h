@@ -2,12 +2,14 @@
 
 #include <atomic>
 #include <cstdint>
+#include <deque>
 #include <forward_list>
 #include <functional>
 
 namespace engine {
 
-    using WorkerTasks = std::forward_list<std::function<void()>>;
+//    using WorkerTasks = std::forward_list<std::function<void()>>;
+    using WorkerTasks = std::deque<std::function<void()>>;
 
     enum class TaskState : uint8_t {
         IDLE = 0u,

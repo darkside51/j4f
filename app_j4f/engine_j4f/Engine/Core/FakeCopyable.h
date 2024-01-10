@@ -1,24 +1,27 @@
 #pragma once
 
-#include <stdexcept>
+#include <cstdio>
 
 namespace engine {
 
-    struct ThrowOnCopy {
-        ThrowOnCopy() = default;
-        ThrowOnCopy(const ThrowOnCopy&) { throw std::runtime_error("copy no copyable object with wrapper!"); }
-        ThrowOnCopy(ThrowOnCopy&&) = default;
-        ThrowOnCopy& operator=(ThrowOnCopy&&) = default;
+    struct TerminateOnCopy {
+        TerminateOnCopy() = default;
+        TerminateOnCopy(const TerminateOnCopy&) {
+            printf("copy no copyable object with wrapper!\n");
+            std::terminate();
+        }
+        TerminateOnCopy(TerminateOnCopy&&) noexcept = default;
+        TerminateOnCopy& operator=(TerminateOnCopy&&) noexcept = default;
     };
 
     template<typename T>
-    struct CopyWrapper : ThrowOnCopy {
+    struct CopyWrapper : TerminateOnCopy {
         CopyWrapper(T&& t) : target(std::forward<T>(t)) { }
 
         CopyWrapper(CopyWrapper&&) = default;
 
         CopyWrapper(const CopyWrapper& other)
-                : ThrowOnCopy(other),                             // this will throw
+                : TerminateOnCopy(other),                             // this will throw
                   target(std::move(const_cast<T&>(other.target))) // never reached
         { }
 
