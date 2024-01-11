@@ -10,6 +10,8 @@ namespace game {
         bool onInputWheelEvent(const float dx, const float dy);
         bool onInpuKeyEvent(const engine::KeyEvent& event);
         bool onInpuCharEvent(const uint16_t code);
+
+        CameraController & getCameraController() & { return _cameraController; }
     private:
         CameraController _cameraController;
     };

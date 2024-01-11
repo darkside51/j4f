@@ -1,5 +1,7 @@
 #include "scene.h"
 
+#include "camera_controller.h"
+
 #include <Engine/Core/Common.h>
 #include <Engine/Core/Math/mathematic.h>
 
@@ -13,7 +15,6 @@
 #include <Engine/Graphics/Scene/NodeRenderListHelper.h>
 #include <Engine/Graphics/UI/ImGui/Imgui.h>
 #include <Engine/Utils/ImguiStatObserver.h>
-
 
 #include <cstdint>
 
@@ -66,6 +67,11 @@ namespace game {
         _cameras[0].resize(w, h);
     }
 
+    void Scene::assignCameraController(engine::ref_ptr<CameraController> controller) noexcept {
+        _controller = controller;
+        _controller->assignCamera(engine::make_ref(_cameras[0]));
+    }
+
     void Scene::update(const float delta) {
         using namespace engine;
         Engine::getInstance().getModule<Graphics>().getAnimationManager()->update(delta);
@@ -100,7 +106,8 @@ namespace game {
         commandBuffer.cmdSetDepthBias(0.0f, 0.0f, 0.0f);
 
         { // fill rootNode
-            const bool mainCameraDirty = worldCamera.calculateTransform();
+//            const bool mainCameraDirty = worldCamera.calculateTransform();
+            const bool mainCameraDirty = _controller ? _controller->update(delta) : false;
             reloadRenderList(rootRenderList, _rootNode.get(), mainCameraDirty, 0u,
                              engine::FrustumVisibleChecker(worldCamera.getFrustum()));
         }

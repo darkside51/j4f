@@ -1,5 +1,4 @@
 #include "game.h"
-#include "game_controller.h"
 #include "graphics/scene.h"
 #include "world.h"
 
@@ -9,7 +8,7 @@
 
 namespace engine {
 
-	Game::Game() : _controller(std::make_unique<game::GameController>()), _scene(nullptr) {
+	Game::Game() : _scene(nullptr) {
         Engine::getInstance().getModule<Input>().addObserver(this);
     }
 	Game::~Game() {
@@ -23,6 +22,13 @@ namespace engine {
 
         _scene = std::make_unique<game::Scene>();
         _world = std::make_unique<game::World>(_scene);
+
+        auto & cameraController = _controller.getCameraController();
+        _scene->assignCameraController(engine::make_ref(cameraController));
+        cameraController.setPosition(vec3f(0.0f, -500.0f, 300.0f));
+
+        auto &&camera = _scene->getWorldCamera();
+        camera.setRotation(vec3f(-engine::math_constants::f32::pi / 3.0f, 0.0f, 0.0f));
 	}
 
 	void Game::update(const float delta) {
@@ -48,14 +54,14 @@ namespace engine {
         if (_scene && _scene->getUiGraphics()->onInputPointerEvent(event)) {
             return true;
         }
-        return _controller->onInputPointerEvent(event);
+        return _controller.onInputPointerEvent(event);
     }
 
     bool Game::onInputWheelEvent(const float dx, const float dy) {
         if (_scene && _scene->getUiGraphics()->onInputWheelEvent(dx, dy)) {
             return true;
         }
-        return _controller->onInputWheelEvent(dx, dy);
+        return _controller.onInputWheelEvent(dx, dy);
     }
 
     bool Game::onInpuKeyEvent(const KeyEvent& event) {
@@ -78,9 +84,9 @@ namespace engine {
             return true;
         }
 
-        return _controller->onInpuKeyEvent(event);
+        return _controller.onInpuKeyEvent(event);
     }
 
-    bool Game::onInpuCharEvent(const uint16_t code) { return _controller->onInpuCharEvent(code); }
+    bool Game::onInpuCharEvent(const uint16_t code) { return _controller.onInpuCharEvent(code); }
 
 }

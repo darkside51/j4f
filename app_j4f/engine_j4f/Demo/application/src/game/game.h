@@ -1,5 +1,6 @@
 #pragma once
 
+#include "game_controller.h"
 #include <Engine/Input/Input.h>
 
 #include <cstdint>
@@ -29,7 +30,7 @@ namespace engine {
 		bool onInpuCharEvent(const uint16_t code) override;
 
 	private:
-        std::unique_ptr<game::GameController> _controller;
+        game::GameController _controller;
 		std::unique_ptr<game::Scene> _scene;
         std::unique_ptr<game::World> _world;
 	};

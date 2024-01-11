@@ -1,5 +1,6 @@
 #include "game_controller.h"
 
+#include <Engine/Core/Math/mathematic.h>
 #include <Engine/Core/Threads/WorkersCommutator.h>
 #include <Engine/Graphics/Graphics.h>
 #include <Engine/Log/Log.h>
@@ -13,20 +14,27 @@ namespace game {
         constexpr float kMoveBorderWidth = 20.0f;
         switch (event.state) {
             case engine::InputEventState::IES_NONE: {
+                static engine::vec2f currentDirection{0.0f, 0.0f};
 
-                if (event.x < kMoveBorderWidth || event.x > width - kMoveBorderWidth || event.y < kMoveBorderWidth ||
-                    event.y > height - kMoveBorderWidth) {
+                const bool xOnBorder = event.x < kMoveBorderWidth || event.x > width - kMoveBorderWidth;
+                const bool yOnBorder = event.y < kMoveBorderWidth || event.y > height - kMoveBorderWidth;
+
+                const float dx = xOnBorder ? event.x - width * 0.5f : 0.0f;
+                const float dy = yOnBorder ? event.y - height * 0.5f : 0.0f;
+
+                const engine::vec2f direction{(dx == 0.0f ? 0.0f : (dx > 0.0f ? 1.0f : -1.0f)),
+                                              (dy == 0.0f ? 0.0f : (dy > 0.0f ? 1.0f : -1.0f))};
+
+                if (currentDirection != direction) {
+                    currentDirection = direction;
                     engineInstance.getModule<engine::WorkerThreadsCommutator>().enqueue(
-                            engineInstance.getThreadCommutationId(engine::Engine::Workers::UPDATE_THREAD),
-                            [x = event.x, y = event.y, width, height]() {
-                                if (x < kMoveBorderWidth || x > width - kMoveBorderWidth) {
-                                    LOG_TAG_LEVEL(engine::LogLevel::L_MESSAGE, GameController, "move camera by ox");
-                                }
-
-                                if (y < kMoveBorderWidth || y > height - kMoveBorderWidth) {
-                                    LOG_TAG_LEVEL(engine::LogLevel::L_MESSAGE, GameController, "move camera by oy");
-                                }
+                            engineInstance.getThreadCommutationId(engine::Engine::Workers::RENDER_THREAD),
+                            [direction, this]() {
+                                _cameraController.move(direction);
+//                                LOG_TAG_LEVEL(engine::LogLevel::L_MESSAGE, GameController, "move camera by %f,%f",
+//                                              direction.x, direction.y);
                             });
+                    return true;
                 }
             }
                 break;

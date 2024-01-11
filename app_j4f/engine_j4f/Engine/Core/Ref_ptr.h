@@ -77,4 +77,14 @@ namespace engine {
     private:
         T* _ptr = nullptr;
     };
+
+    template<typename T>
+    ref_ptr<T> make_ref(T & value) {
+        return ref_ptr<T>(&value);
+    }
+
+    template<typename T>
+    ref_ptr<T> make_ref(T * value) {
+        return ref_ptr<T>(value);
+    }
 }

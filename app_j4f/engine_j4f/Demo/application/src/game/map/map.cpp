@@ -12,11 +12,6 @@ namespace game {
     Map::Map(engine::ref_ptr<Scene> scene) : _scene(scene) {
         _mapNode = _scene->placeToWorld();
         makeMapNode();
-
-        using namespace engine;
-        auto &&camera = _scene->getWorldCamera();
-        camera.setRotation(vec3f(-engine::math_constants::f32::pi / 3.0f, 0.0f, 0.0f));
-        camera.setPosition(vec3f(0.0f, -500.0f, 300.0f));
     }
 
     Map::~Map() {}

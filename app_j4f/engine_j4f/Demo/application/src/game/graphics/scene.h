@@ -19,6 +19,8 @@ namespace engine {
 }
 
 namespace game {
+    class CameraController;
+
 	template <typename T>
 	using NodeRenderer = engine::NodeRendererImpl<T>;
 
@@ -37,6 +39,8 @@ namespace game {
 		engine::Camera& getWorldCamera() noexcept {
 			return _cameras[0];
 		}
+
+        void assignCameraController(engine::ref_ptr<CameraController> controller) noexcept;
 
         NodePtr placeToWorld() {
             auto* node = new NodeHR();
@@ -107,5 +111,6 @@ namespace game {
 		std::unique_ptr<NodeHR> _uiNode;
 
 		std::vector<engine::Camera> _cameras;
+        engine::ref_ptr<CameraController> _controller;
 	};
 }
