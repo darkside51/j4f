@@ -958,6 +958,7 @@ namespace vulkan {
             _texturesToFree.resize(_swapChainImagesCount);
 
 			_currentFrame = 0u;
+            _acquireImageIndex = 0u;
 		}
 	}
 
@@ -967,6 +968,12 @@ namespace vulkan {
             LOG_TAG_LEVEL(engine::LogLevel::L_ERROR, GRAPHICS, "VulkanRenderer: waitFenceAndReset result = %s", string_VkResult(result));
             return;
         }
+
+        const VkResult acquireImageResult = _swapChain.acquireNextImage(_presentCompleteSemaphores[_currentFrame].semaphore, &_acquireImageIndex);
+        if (acquireImageResult != VK_SUCCESS && acquireImageResult != VK_SUBOPTIMAL_KHR) { // acquire failed - skip this frame to present
+            LOG_TAG_LEVEL(engine::LogLevel::L_ERROR, GRAPHICS, "VulkanRenderer: swapChain acquireNextImage result = %s", string_VkResult(acquireImageResult));
+			return;
+		}
 
 		if (_mainSupportCommandBuffers[_currentFrame].begin() == VK_SUCCESS) {
             for (auto&& [size, buffer] : _dynamicGPUBuffers) {
@@ -1014,20 +1021,7 @@ namespace vulkan {
             buffer->unmap(_currentFrame);
         }
 
-		uint32_t aciquireImageIndex = 0u;
-		const VkResult result = _swapChain.acquireNextImage(_presentCompleteSemaphores[_currentFrame].semaphore, &aciquireImageIndex);
-		if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) { // acquire failed - skip this frame to present
-			const VkResult fenceStatus = vkGetFenceStatus(_vulkanDevice->device, _waitFences[_currentFrame].fence);
-			if (fenceStatus != VK_SUCCESS) {
-				_waitFences[_currentFrame].destroy();
-				_waitFences[_currentFrame] = vulkan::VulkanFence(_vulkanDevice->device, VK_FENCE_CREATE_SIGNALED_BIT);
-			}
-			_currentFrame = (_currentFrame + 1u) % _swapChainImagesCount;
-            LOG_TAG_LEVEL(engine::LogLevel::L_ERROR, GRAPHICS, "VulkanRenderer: swapChain acquireNextImage result = %s", string_VkResult(result));
-			return;
-		}
-
-		const VkSubmitInfo submitInfos[2] = {
+		const VkSubmitInfo submitInfos[2u] = {
         _mainSupportCommandBuffers.prepareToSubmit(_currentFrame),
         _mainRenderCommandBuffers.prepareToSubmit(_currentFrame)
         };
@@ -1045,7 +1039,7 @@ namespace vulkan {
                 // present the current buffer to the swap chain
                 // pass the semaphore signaled by the command buffer submission from the submit info as the wait semaphore for swap chain presentation
                 // this ensures that the image is not presented to the windowing system until all commands have been submitted
-                const VkResult presentResult = _swapChain.queuePresent(_presentQueue, aciquireImageIndex,
+                const VkResult presentResult = _swapChain.queuePresent(_presentQueue, _acquireImageIndex,
                                                                        _mainRenderCommandBuffers.m_completeSemaphores[_currentFrame].semaphore);
                 if (!((presentResult == VK_SUCCESS) || (presentResult == VK_SUBOPTIMAL_KHR))) {
                     LOG_TAG_LEVEL(engine::LogLevel::L_ERROR, GRAPHICS, "VulkanRenderer: _swapChain queuePresent = %s", string_VkResult(presentResult));

@@ -512,7 +512,7 @@ namespace vulkan {
 		inline VulkanCommandBuffer& getRenderCommandBuffer() noexcept { return _mainRenderCommandBuffers[_currentFrame]; }
 		inline VulkanCommandBuffer& getSupportCommandBuffer() noexcept { return _mainSupportCommandBuffers[_currentFrame]; }
 
-		inline const VulkanFrameBuffer& getFrameBuffer() const noexcept { return _frameBuffers[_currentFrame]; }
+		inline const VulkanFrameBuffer& getFrameBuffer() const noexcept { return _frameBuffers[_acquireImageIndex]; }
 
 		inline uint32_t getCurrentFrame() const noexcept { return _currentFrame; }
 		inline VkRenderPass getMainRenderPass() const noexcept { return _mainRenderPass; }
@@ -590,6 +590,7 @@ namespace vulkan {
 		uint32_t _width = 0u;
         uint32_t _height = 0u;
 		uint32_t _currentFrame = 0u;
+        uint32_t _acquireImageIndex = 0u;
 		uint32_t _swapChainImagesCount = 0u;
 		uint8_t _mainDepthFormatBits = 24u;
 
