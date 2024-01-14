@@ -1083,37 +1083,37 @@ namespace vulkan {
 	) {
 		// todo: need synchronisations for cache it
 		// get value from cache
-		const uint8_t topologyKey = static_cast<uint8_t>(topology.topology) << 0 | static_cast<uint8_t>(topology.enableRestart) << 4;   // 5 bit
-		const uint8_t rasterizationKey = static_cast<uint8_t>(rasterization.poligonMode)		<< 0 |
-										 static_cast<uint8_t>(rasterization.cullMode)			<< 2 |
-										 static_cast<uint8_t>(rasterization.faceOrientation)	<< 4 |
-										 static_cast<uint8_t>(rasterization.discardEnable)		<< 5;								    // 6 bit
+		const uint8_t topologyKey = static_cast<uint8_t>(topology.topology) << 0 | static_cast<uint8_t>(topology.enableRestart) << 4u;   // 5 bit
+		const uint8_t rasterizationKey = static_cast<uint8_t>(rasterization.poligonMode)		<< 0u |
+										 static_cast<uint8_t>(rasterization.cullMode)			<< 2u |
+										 static_cast<uint8_t>(rasterization.faceOrientation)	<< 4u |
+										 static_cast<uint8_t>(rasterization.discardEnable)		<< 5u;								    // 6 bit
 
         // https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkPipelineDepthStencilStateCreateInfo.html#_members
         // depthWriteEnable controls whether depth writes are enabled when depthTestEnable is VK_TRUE.
         // Depth writes are always disabled when depthTestEnable is VK_FALSE.
         const bool depthTestEnable = depthState.depthTestEnabled || depthState.depthWriteEnabled;
 		const VkCompareOp compareOp = depthState.depthTestEnabled ? depthState.compareOp : VkCompareOp::VK_COMPARE_OP_ALWAYS;
-        const uint16_t depthKey = static_cast<uint16_t>(compareOp)						<< 0 |
-                                  static_cast<uint16_t>(depthTestEnable)                << 3 |
-                                  static_cast<uint16_t>(depthState.depthWriteEnabled)   << 4;	// 5 bit							    // 16 bit
+        const uint16_t depthKey = static_cast<uint16_t>(compareOp)						<< 0u |
+                                  static_cast<uint16_t>(depthTestEnable)                << 3u |
+                                  static_cast<uint16_t>(depthState.depthWriteEnabled)   << 4u;	// 5 bit							    // 16 bit
 
                                   const uint16_t programId = program->getId();															// 16 bit
 
-		const uint64_t composite_key = static_cast<uint64_t>(topologyKey)		<< 0 |
-									   static_cast<uint64_t>(rasterizationKey)	<< 5 |
-									   static_cast<uint64_t>(depthKey)			<< 11 |
-									   static_cast<uint64_t>(programId)			<< 16 |
-									   static_cast<uint64_t>(subpass)			<< 32;													// 40 bit
+		const uint64_t composite_key = static_cast<uint64_t>(topologyKey)		<< 0u |
+									   static_cast<uint64_t>(rasterizationKey)	<< 5u |
+									   static_cast<uint64_t>(depthKey)			<< 11u |
+									   static_cast<uint64_t>(programId)			<< 16u |
+									   static_cast<uint64_t>(subpass)			<< 32u;													// 40 bit
 
-		const uint64_t stencil_key = static_cast<uint64_t>(stencilState.enabled)		<< 0 |
-									 static_cast<uint64_t>(stencilState.failOp)			<< 1 |
-									 static_cast<uint64_t>(stencilState.passOp)			<< 4 |
-									 static_cast<uint64_t>(stencilState.depthFailOp)	<< 7 |
-									 static_cast<uint64_t>(stencilState.compareOp)		<< 10 |
-									 static_cast<uint64_t>(stencilState.compareMask)	<< 13 |
-									 static_cast<uint64_t>(stencilState.writeMask)		<< 21 |
-									 static_cast<uint64_t>(stencilState.reference)		<< 29;										    // 37 bit
+		const uint64_t stencil_key = static_cast<uint64_t>(stencilState.enabled)		<< 0u |
+									 static_cast<uint64_t>(stencilState.failOp)			<< 1u |
+									 static_cast<uint64_t>(stencilState.passOp)			<< 4u |
+									 static_cast<uint64_t>(stencilState.depthFailOp)	<< 7u |
+									 static_cast<uint64_t>(stencilState.compareOp)		<< 10u |
+									 static_cast<uint64_t>(stencilState.compareMask)	<< 13u |
+									 static_cast<uint64_t>(stencilState.writeMask)		<< 21u |
+									 static_cast<uint64_t>(stencilState.reference)		<< 29u;										    // 37 bit
 
 		const uint32_t blendKey = blendMode();
 

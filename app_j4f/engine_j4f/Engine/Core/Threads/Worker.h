@@ -14,6 +14,9 @@
 #include <condition_variable>
 #include <optional>
 
+#undef min
+#undef max
+
 namespace engine {
 
 	class WorkerThread {
