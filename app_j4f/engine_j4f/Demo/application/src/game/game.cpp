@@ -25,10 +25,6 @@ namespace engine {
 
         auto & cameraController = _controller.getCameraController();
         _scene->assignCameraController(engine::make_ref(cameraController));
-        cameraController.setPosition(vec3f(0.0f, -500.0f, 300.0f));
-
-        auto &&camera = _scene->getWorldCamera();
-        camera.setRotation(vec3f(-engine::math_constants::f32::pi / 3.0f, 0.0f, 0.0f));
 	}
 
 	void Game::update(const float delta) {
