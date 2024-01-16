@@ -5,6 +5,8 @@
 namespace game {
     constexpr float kEps = 1e-5f;
     constexpr float kCameraMoveSpeed = 500.0f;
+    constexpr float kMaxPitch = 0.0f; // in radians
+    constexpr float kMinPitch = -1.125f; // in radians
 
     void CameraController::setPosition(const engine::vec3f & position) noexcept {
         if (engine::compare(position, _position, kEps)) {
@@ -29,6 +31,7 @@ namespace game {
     void CameraController::addPitchYaw(const engine::vec2f& py) noexcept {
         if (py.x > kEps || py.x < -kEps || py.y > kEps || py.y < -kEps) {
             _pitchYaw += py;
+            _pitchYaw.x = std::clamp(_pitchYaw.x, kMinPitch, kMaxPitch);
             _dirty = true;
         }
     }
@@ -53,10 +56,10 @@ namespace game {
         const float rz = _pitchYaw.y;
         if (rx != 0.0f || rz != 0.0f) {
             // use spherical coordinates
-            const float crx = std::cosf(rx);
-            const float crz = std::cosf(rz);
-            const float srx = std::sinf(rx);
-            const float srz = std::sinf(rz);
+            const float crx = cosf(rx);
+            const float crz = cosf(rz);
+            const float srx = sinf(rx);
+            const float srz = sinf(rz);
 
             const float x = _len * srx * srz;
             const float y = _len * srx * crz;

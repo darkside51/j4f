@@ -27,7 +27,7 @@ namespace game {
         bool _dirty = true;
         engine::vec3f _position = engine::vec3f(0.0f);
         engine::vec2f _moveDirection = engine::vec2f(0.0f);
-        engine::vec2f _pitchYaw = engine::vec2f(-1.0f, 0.0f);
+        engine::vec2f _pitchYaw = engine::vec2f(-engine::math_constants::f32::pi / 4.0f, 0.0f);
         engine::ref_ptr<engine::Camera> _camera;
         float _len = 300.0f;
     };
