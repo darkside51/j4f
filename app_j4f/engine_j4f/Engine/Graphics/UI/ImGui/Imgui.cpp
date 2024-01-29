@@ -108,7 +108,7 @@ namespace engine {
         _renderState.vertexDescription.attributes = VulkanAttributesProvider::convert(attributes);
 
         _renderDescriptor.renderData.push_back(std::make_unique<vulkan::RenderData>());
-        _renderDescriptor.renderData[0]->indexType = VK_INDEX_TYPE_UINT16;
+        _renderDescriptor.renderData[0u]->indexType = VK_INDEX_TYPE_UINT16;
 
         auto &&graphics = Engine::getInstance().getModule<Graphics>();
 
@@ -122,10 +122,10 @@ namespace engine {
         _program = reinterpret_cast<vulkan::VulkanGpuProgram *>(gpuProgramManager->getProgram(psiCTextured));
 
         // fixed gpu layout works
-        _fixedGpuLayouts.resize(3);
-        _fixedGpuLayouts[0].second = {"u_scale"};
-        _fixedGpuLayouts[1].second = {"u_translate"};
-        _fixedGpuLayouts[2].second = {"u_texture"};
+        _fixedGpuLayouts.resize(3u);
+        _fixedGpuLayouts[0u].second = {"u_scale"};
+        _fixedGpuLayouts[1u].second = {"u_translate"};
+        _fixedGpuLayouts[2u].second = {"u_texture"};
 
         setPipeline(graphics.getRenderer()->getGraphicsPipeline(_renderState, _program));
         _initComplete = true;
@@ -138,23 +138,23 @@ namespace engine {
         int height = 0;
         io.Fonts->GetTexDataAsAlpha8(&pixels, &width, &height);
 
-        uint8_t *uploadData = static_cast<uint8_t *>(malloc(static_cast<size_t>(width * height * 4)));
+        uint8_t *uploadData = static_cast<uint8_t *>(malloc(static_cast<size_t>(width * height * 4u)));
         uint8_t *dstPtr = uploadData;
         uint8_t *srcPtr = pixels;
 
         uint32_t totalSize = height * width;
-        for (uint32_t i = 0; i < totalSize; ++i) {
-            dstPtr[0] = *srcPtr;
-            dstPtr[1] = *srcPtr;
-            dstPtr[2] = *srcPtr;
-            dstPtr[3] = *srcPtr;
+        for (uint32_t i = 0u; i < totalSize; ++i) {
+            dstPtr[0u] = *srcPtr;
+            dstPtr[1u] = *srcPtr;
+            dstPtr[2u] = *srcPtr;
+            dstPtr[3u] = *srcPtr;
 
-            srcPtr += 1;
-            dstPtr += 4;
+            srcPtr += 1u;
+            dstPtr += 4u;
         }
 
         auto &&renderer = Engine::getInstance().getModule<Graphics>().getRenderer();
-        _fontTexture = new vulkan::VulkanTexture(renderer, width, height, 1);
+        _fontTexture = new vulkan::VulkanTexture(renderer, width, height, 1u);
         _fontTexture->setSampler(renderer->getSampler(
                 VK_FILTER_LINEAR,
                 VK_FILTER_LINEAR,
@@ -166,9 +166,9 @@ namespace engine {
         ));
 
         const void *imageData = &uploadData[0];
-        _fontTexture->create(imageData, VK_FORMAT_R8G8B8A8_UNORM, 32, false,
+        _fontTexture->create(imageData, VK_FORMAT_R8G8B8A8_UNORM, 32u, false,
                              false, VK_IMAGE_VIEW_TYPE_2D);
-        _fontTexture->createSingleDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0);
+        _fontTexture->createSingleDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0u);
         free(uploadData);
 
         io.Fonts->SetTexID(_fontTexture);
@@ -185,7 +185,7 @@ namespace engine {
 
     void ImguiGraphics::update(const float delta) {
         ImGuiIO &io = ImGui::GetIO();
-        io.DeltaTime = (delta > 0.0) ? delta : (1.0f / 60.0f);
+        io.DeltaTime = (delta > 0.0f) ? delta : (1.0f / 60.0f);
 
         const auto [width, height] = Engine::getInstance().getModule<Graphics>().getSize();
         io.DisplaySize = ImVec2(width, height);
@@ -217,17 +217,17 @@ namespace engine {
         std::array translate{(drawData->DisplayPos.x - drawData->DisplaySize.x * 0.5f) * scale[0],
                              (drawData->DisplayPos.y - drawData->DisplaySize.y * 0.5f) * scale[1]};
 
-        setParamForLayout(_fixedGpuLayouts[0].first, scale.data(), true, 2);
-        setParamForLayout(_fixedGpuLayouts[1].first, translate.data(), true, 2);
+        setParamForLayout(_fixedGpuLayouts[0].first, scale.data(), true, 2u);
+        setParamForLayout(_fixedGpuLayouts[1].first, translate.data(), true, 2u);
 
         const auto currentScissor = commandBuffer.getCurrentScissor();
 
         size_t vOffset;
         size_t iOffset;
 
-        auto &renderData = _renderDescriptor.renderData[0];
+        auto &renderData = _renderDescriptor.renderData[0u];
 
-        for (int i = 0; i < drawData->CmdListsCount; ++i) {
+        for (uint32_t i = 0u; i < drawData->CmdListsCount; ++i) {
             const ImDrawList *drawList = drawData->CmdLists[i];
             const uint32_t vertexBufferSize = drawList->VtxBuffer.size() * sizeof(ImDrawVert);
             const uint32_t indexBufferSize = drawList->IdxBuffer.size() * sizeof(ImDrawIdx);
@@ -242,21 +242,21 @@ namespace engine {
             uint32_t indexBufferOffset = 0u;
             const uint32_t firstIndex = iOffset / sizeof(ImDrawIdx);
 
-            for (int j = 0; j < drawList->CmdBuffer.Size; ++j) {
+            for (uint32_t j = 0u; j < drawList->CmdBuffer.Size; ++j) {
                 ImDrawCmd const &cmd = drawList->CmdBuffer[j];
                 commandBuffer.cmdSetScissor(cmd.ClipRect.x, cmd.ClipRect.y, cmd.ClipRect.z - cmd.ClipRect.x,
                                             cmd.ClipRect.w - cmd.ClipRect.y);
 
                 auto *texture = static_cast<vulkan::VulkanTexture *>(cmd.TextureId);
-                setParamForLayout(_fixedGpuLayouts[2].first, texture, false);
+                setParamForLayout(_fixedGpuLayouts[2u].first, texture, false);
 
                 vulkan::RenderData::RenderPart renderPart{
-                        firstIndex,                                            // firstIndex
-                        static_cast<uint32_t>(cmd.ElemCount),        // indexCount
-                        0,                                        // vertexCount (parameter no used with indexed render)
-                        0,                                        // firstVertex
+                        firstIndex,                                 // firstIndex
+                        static_cast<uint32_t>(cmd.ElemCount),       // indexCount
+                        0u,                                         // vertexCount (parameter no used with indexed render)
+                        0u,                                         // firstVertex
                         vOffset,                                    // vbOffset
-                        indexBufferOffset                            // ibOffset
+                        indexBufferOffset                           // ibOffset
                 };
 
                 renderData->setRenderParts(&renderPart, 1u);

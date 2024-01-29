@@ -19,7 +19,7 @@ namespace vulkan {
 
 	class VulkanTexture { 
 	public:
-		VulkanTexture(VulkanRenderer* renderer, const uint32_t w, const uint32_t h, const uint32_t d = 1) noexcept : _renderer(renderer), _width(w), _height(h), _depth(d), _img(nullptr), _sampler(VK_NULL_HANDLE), _descriptor(VK_NULL_HANDLE), _generationState(VulkanTextureCreationState::UNKNOWN), _imageLayout(VK_IMAGE_LAYOUT_MAX_ENUM), _arrayLayers(1) {}
+		VulkanTexture(VulkanRenderer* renderer, const uint32_t w, const uint32_t h, const uint32_t d = 1u) noexcept : _renderer(renderer), _width(w), _height(h), _depth(d), _img(nullptr), _sampler(VK_NULL_HANDLE), _descriptor(VK_NULL_HANDLE), _generationState(VulkanTextureCreationState::UNKNOWN), _imageLayout(VK_IMAGE_LAYOUT_MAX_ENUM), _arrayLayers(1) {}
 		VulkanTexture(
 			VulkanRenderer* renderer,
 			VkImageLayout layout,
@@ -28,7 +28,7 @@ namespace vulkan {
 			VkSampler sampler,
 			const uint32_t w,
 			const uint32_t h,
-			const uint32_t d = 1
+			const uint32_t d = 1u
 		) noexcept : _renderer(renderer), _width(w), _height(h), _depth(d), _img(img), _descriptor(readyDescriptorSet.first), _descriptorPoolId(readyDescriptorSet.second), _sampler(sampler), _generationState(VulkanTextureCreationState::CREATION_COMPLETE), _imageLayout(layout), _arrayLayers(1) {}
 
         VulkanTexture(VulkanTexture&& t) noexcept :

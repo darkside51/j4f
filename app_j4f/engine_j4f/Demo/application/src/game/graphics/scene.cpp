@@ -16,6 +16,8 @@
 #include <Engine/Graphics/UI/ImGui/Imgui.h>
 #include <Engine/Utils/ImguiStatObserver.h>
 
+#include <imgui.h>
+
 #include <cstdint>
 
 namespace game {
@@ -118,6 +120,8 @@ namespace game {
             if (_imguiGraphics) {
                 _imguiGraphics->update(delta);
                 _statObserver->draw();
+
+                ImGui::ShowDemoWindow();
             }
         }
 
