@@ -68,7 +68,9 @@ namespace game {
     }
 
     void Map::update(const float delta) {
-
+        for (auto & obj : _objects) {
+            obj->updateNodeTransform();
+        }
     }
 
 }
