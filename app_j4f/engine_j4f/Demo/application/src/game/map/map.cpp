@@ -7,10 +7,11 @@
 #include <cstdint>
 #include <vector>
 
+#include "../service_locator.h"
+
 namespace game {
 
-    Map::Map(engine::ref_ptr<Scene> scene) : _scene(scene) {
-        _mapNode = _scene->placeToWorld();
+    Map::Map() {
         makeMapNode();
     }
 
@@ -18,6 +19,9 @@ namespace game {
 
     void Map::makeMapNode() {
         using namespace engine;
+
+        auto scene = ServiceLocator::instance().getService<Scene>();
+        _mapNode = scene->placeToWorld();
 
         const float size = 10000.0f;
         const float uvSize = 100.0f;
@@ -60,7 +64,7 @@ namespace game {
             plane->setProgram(program);
         }
 
-        auto &&planeNode = _scene->placeToNode(plane.release(), _mapNode);
+        auto &&planeNode = scene->placeToNode(plane.release(), _mapNode);
 
         mat4f transform(1.0f);
         translateMatrixTo(transform, vec3f(-size * 0.5f, -size * 0.5f, 0.0f));

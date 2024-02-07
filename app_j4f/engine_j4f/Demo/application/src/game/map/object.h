@@ -3,7 +3,7 @@
 #include <Engine/Core/Math/mathematic.h>
 
 #include <Engine/Core/Hierarchy.h>
-#include <Engine/Core/Ref_ptr.h>
+#include <Engine/Core/ref_ptr.h>
 #include <Engine/Graphics/Scene/NodeGraphicsLink.h>
 #include <Engine/Utils/Debug/Assert.h>
 
@@ -17,9 +17,9 @@ namespace game {
 
     class MapObject {
     public:
-        MapObject(uint32_t id, std::string && name) : _id(id), _name(std::move(name)) {}
-        MapObject(uint32_t id, const std::string & name) : _id(id), _name(name) {}
-        MapObject(uint32_t id, std::string_view name) : _id(id), _name(name) {}
+        MapObject(std::string && name) : _name(std::move(name)) {}
+        MapObject(const std::string & name) : _name(name) {}
+        MapObject(std::string_view name) : _name(name) {}
 
         template <typename VEC3>
         void setPosition(VEC3 position) {
@@ -83,7 +83,6 @@ namespace game {
         engine::vec3f _scale = {1.0f, 1.0f, 1.0f};
         bool _transformDirty = false;
 
-        uint32_t _id;
         std::string _name;
         NodePtr _node;
     };

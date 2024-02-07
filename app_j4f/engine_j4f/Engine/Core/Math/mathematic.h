@@ -104,6 +104,20 @@ namespace engine {
     inline static const vec3f emptyVec3     = vec3f(0.0f, 0.0f, 0.0f);
     inline static const vec3f unitVec3      = vec3f(1.0f, 1.0f, 1.0f);
 
+    inline mat4f makeMatrix(const float scale) noexcept {
+        return {scale, 0.0f, 0.0f, 0.0f,
+                0.0f, scale, 0.0f, 0.0f,
+                0.0f, 0.0f, scale, 0.0f,
+                0.0f, 0.0f, 0.0f, 1.0f};
+    }
+
+    inline mat4f makeMatrix(const vec3f& scale) noexcept {
+        return {scale.x, 0.0f, 0.0f, 0.0f,
+                0.0f, scale.y, 0.0f, 0.0f,
+                0.0f, 0.0f, scale.z, 0.0f,
+                0.0f, 0.0f, 0.0f, 1.0f};
+    }
+
     template <typename T>
     inline std::decay_t<T> step(T&& edge, T&& x) noexcept {
         return std::decay_t<T>(x >= edge);

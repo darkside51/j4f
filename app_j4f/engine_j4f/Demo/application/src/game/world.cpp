@@ -3,7 +3,7 @@
 
 namespace game {
 
-    World::World(engine::ref_ptr<Scene> scene) : _scene(scene), _map(std::make_unique<Map>(_scene)) {
+    World::World() : _map(std::make_unique<Map>()) {
 
     }
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Engine/Core/Ref_ptr.h>
+#include <Engine/Core/ref_ptr.h>
 #include <memory>
 
 namespace game {
@@ -9,13 +9,12 @@ namespace game {
 
     class World {
     public:
-        World(engine::ref_ptr<Scene> scene);
+        World();
         ~World();
 
         void update(const float delta);
 
     private:
-        engine::ref_ptr<Scene> _scene;
         std::unique_ptr<Map> _map;
     };
 

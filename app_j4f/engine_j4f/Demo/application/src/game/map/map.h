@@ -10,7 +10,7 @@ namespace game {
 
     class Map {
     public:
-        Map(engine::ref_ptr<Scene> scene);
+        Map();
         ~Map();
 
         void addObject(std::unique_ptr<MapObject> && object) {
@@ -27,7 +27,6 @@ namespace game {
 
     private:
         void makeMapNode();
-        engine::ref_ptr<Scene> _scene;
         NodePtr _mapNode;
 
         std::vector<std::unique_ptr<MapObject>> _objects;

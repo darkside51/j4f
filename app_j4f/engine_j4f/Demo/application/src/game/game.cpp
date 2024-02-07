@@ -6,6 +6,8 @@
 #include <Engine/Graphics/UI/ImGui/Imgui.h>
 #include <Platform_inc.h>
 
+#include "service_locator.h"
+
 namespace engine {
 
 	Game::Game() : _scene(nullptr) {
@@ -21,7 +23,10 @@ namespace engine {
         fm.mapFileSystem(fs);
 
         _scene = std::make_unique<game::Scene>();
-        _world = std::make_unique<game::World>(_scene);
+        game::ServiceLocator::instance().registerService<game::Scene>(_scene);
+
+        _world = std::make_unique<game::World>();
+        game::ServiceLocator::instance().registerService<game::World>(_world);
 
         auto & cameraController = _controller.getCameraController();
         _scene->assignCameraController(engine::make_ref(cameraController));
