@@ -17,6 +17,7 @@ namespace game {
 
     class MapObject {
     public:
+        MapObject() : _name("") {}
         MapObject(std::string && name) : _name(std::move(name)) {}
         MapObject(const std::string & name) : _name(name) {}
         MapObject(std::string_view name) : _name(name) {}
