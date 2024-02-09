@@ -9,9 +9,9 @@ layout (set = 0, binding = 0) uniform UBO {
 	mat4 skin_matrixes[192];
 } u_ubo;
 
-layout (set = 1, binding = 0) uniform sampler2DArray u_texture;
+layout (set = 1, binding = 0) uniform sampler2D u_texture;
 
 void main() {
-	vec4 color = texture(u_texture, vec3(in_uv, 0.0));
+	vec4 color = texture(u_texture, in_uv);
 	out_color = color;
 }

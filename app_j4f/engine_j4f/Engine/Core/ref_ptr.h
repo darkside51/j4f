@@ -144,4 +144,9 @@ namespace engine {
     ref_ptr<T> make_ref(T * value) noexcept {
         return ref_ptr<T>(value);
     }
+
+    template<typename T>
+    ref_ptr<T> make_ref(std::unique_ptr<T> & value) noexcept {
+        return ref_ptr<T>(value.get());
+    }
 }
