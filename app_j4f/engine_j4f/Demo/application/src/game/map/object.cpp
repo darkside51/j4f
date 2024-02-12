@@ -4,7 +4,7 @@
 
 namespace game {
 
-    void MapObject::updateNodeTransform() noexcept {
+    void MapObject::updateTransform() noexcept {
         if (!_node || !_transformDirty) return;
         _transformDirty = false;
 

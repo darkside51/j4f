@@ -7,6 +7,9 @@
 namespace game {
     class UnitsManager {
     public:
+        Unit& createUnit();
+        void removeUnit();
+
         void update(const float delta);
 
     private:

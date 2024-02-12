@@ -59,13 +59,13 @@ namespace game {
             }
         }
 
-        void updateNodeTransform() noexcept;
+        void updateTransform() noexcept;
 
     private:
         template <typename VEC3>
         void setTransformation(VEC3 value, engine::vec3f & arg) {
             constexpr float kEps = 0.1f;
-            if (engine::compare(value, arg, kEps)) {
+            if (!engine::compare(value, arg, kEps)) {
                 return;
             }
 

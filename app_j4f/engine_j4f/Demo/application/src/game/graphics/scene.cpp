@@ -121,7 +121,7 @@ namespace game {
                 _imguiGraphics->update(delta);
                 _statObserver->draw();
 
-                ImGui::ShowDemoWindow();
+                //ImGui::ShowDemoWindow();
             }
         }
 

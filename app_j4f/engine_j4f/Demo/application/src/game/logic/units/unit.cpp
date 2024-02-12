@@ -37,7 +37,7 @@ namespace game {
                                                          AttributesSemantic::TEXCOORD_0);
             mesh_params.latency = 3;
             mesh_params.flags->async = 1;
-            mesh_params.callbackThreadId = 0;
+            mesh_params.callbackThreadId = 1;
 
             //meshesGraphicsBuffer = new MeshGraphicsDataBuffer(10 * 1024 * 1024, 10 * 1024 * 1024); // or create with default constructor for unique buffer for mesh
             mesh_params.graphicsBuffer = new MeshGraphicsDataBuffer();
@@ -58,37 +58,123 @@ namespace game {
                                        animationManager->registerAnimation(_animations.get());
                                        animationManager->addTarget(_animations.get(), asset->getSkeleton().get());
 
-                                       MeshLoadingParams anim1;
-                                       //anim1.file = "resources/assets/models/nuke_man/idle_angry.gltf";
-                                       anim1.file = "resources/assets/models/nuke_man/running.gltf";
-                                       anim1.flags->async = 1;
-                                       anim1.callbackThreadId = 1;
+                                       {
+                                           MeshLoadingParams anim;
+                                           anim.file = "resources/assets/models/nuke_man/idle_angry.gltf";
+                                           anim.flags->async = 0;
+                                           anim.callbackThreadId = 1;
 
-                                       assetManager.loadAsset<Mesh*>(anim1,
-                                                             [mainAsset = asset.get(), this](std::unique_ptr<Mesh>&& asset, const AssetLoadingResult result) {
-                                                                 _animations->getAnimator()->addChild(new MeshAnimationTree::AnimatorType(
-                                                                         &asset->getMeshData()->animations[0], 1.0f,
-                                                                         mainAsset->getSkeleton()->getLatency()));
-                                                             }
-                                       );
-                                       
+                                           assetManager.loadAsset<Mesh *>(anim,
+                                                                          [mainAsset = asset.get(), this](
+                                                                                  std::unique_ptr<Mesh> &&asset,
+                                                                                  const AssetLoadingResult result) {
+                                                                              _animations->getAnimator()->addChild(
+                                                                                      new MeshAnimationTree::AnimatorType(
+                                                                                              &asset->getMeshData()->animations[0],
+                                                                                              1.0f,
+                                                                                              mainAsset->getSkeleton()->getLatency()));
+                                                                          }
+                                           );
+                                       }
+
+                                       {
+                                           MeshLoadingParams anim;
+                                           anim.file = "resources/assets/models/nuke_man/running.gltf";
+                                           anim.flags->async = 0;
+                                           anim.callbackThreadId = 1;
+
+                                           assetManager.loadAsset<Mesh *>(anim,
+                                                                          [mainAsset = asset.get(), this](
+                                                                                  std::unique_ptr<Mesh> &&asset,
+                                                                                  const AssetLoadingResult result) {
+                                                                              _animations->getAnimator()->addChild(
+                                                                                      new MeshAnimationTree::AnimatorType(
+                                                                                              &asset->getMeshData()->animations[0],
+                                                                                              0.0f,
+                                                                                              mainAsset->getSkeleton()->getLatency()));
+                                                                          }
+                                           );
+                                       }
+
                                        //////////////////////
-                                       mat4f wtr = makeMatrix(50.0f);
-                                       rotateMatrix_xyz(wtr, vec3f(0.0, 0.0, 0.0f));
-                                       translateMatrixTo(wtr, vec3f(0.0f, -0.0f, 0.0f));
-
-                                       auto && node = mesh->getNode();
-                                       node->setLocalMatrix(wtr);
+                                       //auto && node = mesh->getNode();
                                        //node->setBoundingVolume(BoundingVolume::make<SphereVolume>(vec3f(0.0f, 0.0f, 0.4f), 0.5f));
                                        mesh->setGraphics(asset.release());
                                    });
         }
 
         auto &&node = scene->placeToWorld(mesh.release()); // scene->placeToNode(mesh.release(), _mapNode); ??
+        _mapObject.assignNode(node);
+        _mapObject.setScale(vec3f(50.0f));
     }
 
     Unit::~Unit() = default;
+    Unit::Unit(Unit &&) noexcept = default;
 
-    void update(const float delta) {}
+    void Unit::updateAnimationState(const float delta) {
+        if (!_animations) return;
+        constexpr float kAnimChangeSpeed = 4.0f;
+        const float animChangeSpeed = kAnimChangeSpeed * delta;
+        auto &animations = _animations->getAnimator()->children();
+        if (animations.size() <= _currentAnimId) return;
+
+        auto &currentAnim = animations[_currentAnimId]->value();
+        if (currentAnim.getWeight() < 1.0f) {
+            uint8_t i = 0u;
+            for (auto &animation: animations) {
+                if (i != _currentAnimId) {
+                    auto &anim = animation->value();
+                    anim.setWeight(std::max(anim.getWeight() - animChangeSpeed, 0.0f));
+                }
+                ++i;
+            }
+            currentAnim.setWeight(std::min(currentAnim.getWeight() + animChangeSpeed, 1.0f));
+        }
+    }
+
+    void Unit::update(const float delta) {
+        using namespace engine;
+        switch (_state) {
+            case UnitState::Undefined :
+                _state = UnitState::Idle;
+                break;
+            case UnitState::Idle :
+                _currentAnimId = 0u;
+                break;
+            case UnitState::Walking :
+                _currentAnimId = 1u;
+                break;
+            case UnitState::Running :
+                _currentAnimId = 1u;
+                break;
+        }
+
+        const auto & p = _mapObject.getPosition();
+        if (p != _moveTarget) {
+            const auto vec = _moveTarget - p;
+            const float speed = 80.0f * delta;
+            if (glm::dot(vec, vec) > speed) {
+                _state = UnitState::Running;
+                const float kAngleSpeed = 4.5f * delta;
+                const auto direction = as_normalized(vec);
+                constexpr float kEps = 0.1f;
+                if (compare(_direction, direction, kEps)) {
+                    _direction = as_normalized(_direction + (direction - _direction) * kAngleSpeed);
+                } else {
+                    _direction = direction;
+                }
+                const float rz = atan2(_direction.x, -_direction.y);
+                _mapObject.setRotation(vec3f(0.0f, 0.0f, rz));
+                _mapObject.setPosition(p + _direction * speed);
+            } else {
+                _mapObject.setPosition(_moveTarget);
+            }
+        } else {
+            _state = UnitState::Idle;
+        }
+
+        updateAnimationState(delta);
+        _mapObject.updateTransform();
+    }
 
 }

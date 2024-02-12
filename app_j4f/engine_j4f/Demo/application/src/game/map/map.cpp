@@ -71,14 +71,8 @@ namespace game {
         mat4f transform(1.0f);
         translateMatrixTo(transform, vec3f(-size * 0.5f, -size * 0.5f, 0.0f));
         planeNode->value().setLocalMatrix(transform);
-
-        static Unit u;
     }
 
-    void Map::update(const float delta) {
-        for (auto & obj : _objects) {
-            obj->updateNodeTransform();
-        }
-    }
+    void Map::update(const float delta) {}
 
 }

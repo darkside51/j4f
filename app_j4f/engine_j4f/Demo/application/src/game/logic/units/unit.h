@@ -5,6 +5,7 @@
 #include "../entity.h"
 #include "../../map/object.h"
 
+#include <cstdint>
 #include <memory>
 
 namespace engine {
@@ -25,13 +26,21 @@ namespace game {
         Unit();
         ~Unit();
 
+        Unit(Unit &&) noexcept;
+
+        void setMoveTarget(engine::vec3f && t) { _moveTarget = t; }
+
         void update(const float delta);
 
     private:
+        void updateAnimationState(const float delta);
+
+        uint8_t _currentAnimId = 0u;
         UnitState _state = UnitState::Undefined;
         MapObject _mapObject;
         std::unique_ptr<engine::MeshAnimationTree> _animations;
         engine::vec3f _moveTarget = {0.0f, 0.0f, 0.0f};
+        engine::vec3f _direction = {0.0f, -1.0f, 0.0f};
         engine::ref_ptr<Entity> _target = nullptr;
     };
 

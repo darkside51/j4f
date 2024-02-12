@@ -13,7 +13,7 @@ namespace game {
         Map();
         ~Map();
 
-        void addObject(std::unique_ptr<MapObject> && object) {
+        /*void addObject(std::unique_ptr<MapObject> && object) {
             _objects.emplace_back(std::move(object));
         }
 
@@ -21,14 +21,12 @@ namespace game {
             _objects.erase(std::remove_if(_objects.begin(), _objects.end(), [object](const auto& obj){
                 return obj.get() == object.get();
             }), _objects.end());
-        }
+        }*/
 
         void update(const float delta);
 
     private:
         void makeMapNode();
         NodePtr _mapNode;
-
-        std::vector<std::unique_ptr<MapObject>> _objects;
     };
 }
