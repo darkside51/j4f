@@ -10,11 +10,16 @@
 #include <Engine/Graphics/Mesh/Mesh.h>
 #include <Engine/Graphics/Mesh/MeshLoader.h>
 
+#include <Engine/Graphics/Texture/TexturePtrLoader.h>
+
 #include "../../service_locator.h"
 
 #include <memory>
 
 namespace game {
+
+    engine::TexturePtr texture;
+    auto meshGraphicsBuffer = new engine::MeshGraphicsDataBuffer();
 
     Unit::Unit() : Entity(this), _animations(nullptr) {
         using namespace engine;
@@ -40,15 +45,24 @@ namespace game {
             mesh_params.callbackThreadId = 1;
 
             //meshesGraphicsBuffer = new MeshGraphicsDataBuffer(10 * 1024 * 1024, 10 * 1024 * 1024); // or create with default constructor for unique buffer for mesh
-            mesh_params.graphicsBuffer = new MeshGraphicsDataBuffer();
+            mesh_params.graphicsBuffer = meshGraphicsBuffer;
         }
 
         auto scene = ServiceLocator::instance().getService<Scene>();
         auto mesh = std::make_unique<NodeRenderer<Mesh*>>();
         {
+            TexturePtrLoadingParams textureParams;
+            textureParams.files = { "resources/assets/models/nuke_man/texture.png" };
+            textureParams.flags->async = 1;
+            textureParams.flags->use_cache = 1;
+            textureParams.cacheName = "vulkan_logo";
+            texture = assetManager.loadAsset<TexturePtr>(textureParams);
+
             assetManager.loadAsset<Mesh *>(mesh_params,
                                    [this, mesh = engine::make_ref(mesh), program, &assetManager](std::unique_ptr<Mesh> && asset, const AssetLoadingResult result) mutable {
+                                       //
                                        asset->setProgram(program);
+                                       asset->setParamByName("u_texture", texture.get(), false);
 
                                        // animations
                                        _animations = std::make_unique<MeshAnimationTree>(0.0f, asset->getNodesCount(),
@@ -60,7 +74,7 @@ namespace game {
 
                                        {
                                            MeshLoadingParams anim;
-                                           anim.file = "resources/assets/models/nuke_man/idle_angry.gltf";
+                                           anim.file = "resources/assets/models/nuke_man/idle.gltf";
                                            anim.flags->async = 0;
                                            anim.callbackThreadId = 1;
 
@@ -108,7 +122,10 @@ namespace game {
         _mapObject.setScale(vec3f(50.0f));
     }
 
-    Unit::~Unit() = default;
+    Unit::~Unit() {
+        texture = nullptr;
+        delete meshGraphicsBuffer;
+    }
     Unit::Unit(Unit &&) noexcept = default;
 
     void Unit::updateAnimationState(const float delta) {
@@ -132,11 +149,9 @@ namespace game {
         }
     }
 
-    void Unit::update(const float delta) {
-        using namespace engine;
-        switch (_state) {
+    void Unit::setState(const UnitState state) noexcept {
+        switch (state) {
             case UnitState::Undefined :
-                _state = UnitState::Idle;
                 break;
             case UnitState::Idle :
                 _currentAnimId = 0u;
@@ -148,16 +163,19 @@ namespace game {
                 _currentAnimId = 1u;
                 break;
         }
+        _state = state;
+    }
 
+    void Unit::update(const float delta) {
+        using namespace engine;
         const auto & p = _mapObject.getPosition();
         if (p != _moveTarget) {
             const auto vec = _moveTarget - p;
-            const float speed = 80.0f * delta;
-            if (glm::dot(vec, vec) > speed) {
-                _state = UnitState::Running;
+            if (glm::dot(vec, vec) > 16.0f) {
                 const float kAngleSpeed = 4.5f * delta;
                 const auto direction = as_normalized(vec);
                 constexpr float kEps = 0.1f;
+                const float moveSpeed = 80.0f * delta;
                 if (compare(_direction, direction, kEps)) {
                     _direction = as_normalized(_direction + (direction - _direction) * kAngleSpeed);
                 } else {
@@ -165,12 +183,14 @@ namespace game {
                 }
                 const float rz = atan2(_direction.x, -_direction.y);
                 _mapObject.setRotation(vec3f(0.0f, 0.0f, rz));
-                _mapObject.setPosition(p + _direction * speed);
+                _mapObject.setPosition(p + _direction * moveSpeed);
+                setState(UnitState::Running);
             } else {
                 _mapObject.setPosition(_moveTarget);
+                setState(UnitState::Idle);
             }
         } else {
-            _state = UnitState::Idle;
+            setState(UnitState::Idle);
         }
 
         updateAnimationState(delta);

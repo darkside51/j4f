@@ -33,6 +33,7 @@ namespace game {
         void update(const float delta);
 
     private:
+        void setState(const UnitState state) noexcept;
         void updateAnimationState(const float delta);
 
         uint8_t _currentAnimId = 0u;
