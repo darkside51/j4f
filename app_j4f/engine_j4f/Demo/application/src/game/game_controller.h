@@ -1,6 +1,7 @@
 #pragma once
 
 #include "graphics/camera_controller.h"
+#include "logic/player_controller.h"
 #include <Engine/Input/Input.h>
 
 #include <array>
@@ -14,6 +15,7 @@ namespace game {
         bool onInpuCharEvent(const uint16_t code);
 
         CameraController & getCameraController() & { return _cameraController; }
+        PlayerController & getPlayerController() & { return _playerController; }
     private:
         bool moveCamera(const engine::PointerEvent& event);
         bool rotateCamera(const engine::PointerEvent& event);
@@ -21,6 +23,7 @@ namespace game {
 
         std::array<bool, 3u> _mouseButtons = { false, false, false };
         CameraController _cameraController;
+        PlayerController _playerController;
 
         engine::vec2f _cameraMoveDirection = engine::vec2f{ 0.0f, 0.0f };
         engine::vec2f _cameraRotation = engine::vec2f{ 0.0f, 0.0f };

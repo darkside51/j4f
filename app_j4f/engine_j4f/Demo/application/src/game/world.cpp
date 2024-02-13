@@ -2,11 +2,15 @@
 #include "map/map.h"
 #include "logic/units/units_manager.h"
 
+#include "service_locator.h"
+#include "logic/player_controller.h"
+
 namespace game {
 
     World::World() : _map(std::make_unique<Map>()), _unitsManager(std::make_unique<UnitsManager>()) {
         auto & unit = _unitsManager->createUnit();
-        unit.setMoveTarget({-1000.0f, 1000.0f, 0.0f});
+        auto playerController = ServiceLocator::instance().getService<PlayerController>();
+        playerController->assign(unit);
     }
 
     World::~World() {

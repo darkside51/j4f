@@ -85,6 +85,8 @@ namespace game {
                 break;
         }
 
+        _playerController.onPointerEvent(event);
+
         return false;
     }
 

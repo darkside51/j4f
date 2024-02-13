@@ -28,7 +28,7 @@ namespace game {
 
         Unit(Unit &&) noexcept;
 
-        void setMoveTarget(engine::vec3f && t) { _moveTarget = t; }
+        void setMoveTarget(const engine::vec3f & t) { _moveTarget = t; }
 
         void update(const float delta);
 

@@ -36,8 +36,8 @@ namespace game {
 		void render(const float delta);
 		void resize(const uint16_t w, const uint16_t h);
 
-		engine::Camera& getWorldCamera() noexcept {
-			return _cameras[0];
+		engine::Camera& getCamera(uint8_t id) noexcept {
+			return _cameras[id];
 		}
 
         void assignCameraController(engine::ref_ptr<CameraController> controller) noexcept;

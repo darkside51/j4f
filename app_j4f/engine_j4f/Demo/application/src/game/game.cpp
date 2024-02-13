@@ -22,6 +22,8 @@ namespace engine {
         auto&& fs = fm.getFileSystem<DefaultFileSystem>();
         fm.mapFileSystem(fs);
 
+        game::ServiceLocator::instance().registerService<game::PlayerController>(&_controller.getPlayerController());
+
         _scene = std::make_unique<game::Scene>();
         game::ServiceLocator::instance().registerService<game::Scene>(_scene);
 

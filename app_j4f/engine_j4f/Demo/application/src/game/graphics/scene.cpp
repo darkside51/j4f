@@ -39,7 +39,7 @@ namespace game {
         auto &worldCamera = _cameras.emplace_back(width, height);
         worldCamera.addObserver(this);
         worldCamera.enableFrustum();
-        worldCamera.makeProjection(math_constants::f32::pi / 4.0f,
+        worldCamera.makeProjection(math_constants::f32::pi / 3.0f,
                                    static_cast<float>(width) / static_cast<float>(height), 1.0f, 5000.0f);
 
         auto imgui = std::make_unique<NodeRenderer<ImguiGraphics *>>();
