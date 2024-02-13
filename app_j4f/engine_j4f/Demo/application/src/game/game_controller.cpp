@@ -6,7 +6,7 @@
 #include <Engine/Log/Log.h>
 
 namespace game {
-    constexpr float kMoveBorderWidth = 20.0f;
+    constexpr float kMoveBorderWidth = 4.0f;
     constexpr float kCameraRotationSpeed = 0.005f;
     constexpr float kCameraZoomSpeed = 20.0f;
 
