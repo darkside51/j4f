@@ -16,6 +16,8 @@
 
 #include <memory>
 
+#include <Engine/Graphics/Features/Shadows/CascadeShadowMap.h>
+
 namespace game {
 
     engine::TexturePtr texture;
@@ -48,7 +50,6 @@ namespace game {
             mesh_params.graphicsBuffer = meshGraphicsBuffer;
         }
 
-        auto scene = ServiceLocator::instance().getService<Scene>();
         auto mesh = std::make_unique<NodeRenderer<Mesh*>>();
         {
             TexturePtrLoadingParams textureParams;
@@ -117,12 +118,17 @@ namespace game {
                                    });
         }
 
+        auto scene = ServiceLocator::instance().getService<Scene>();
+        scene->getShadowMap()->registerProgramAsReciever(program);
+
         auto &&node = scene->placeToWorld(mesh.release()); // scene->placeToNode(mesh.release(), _mapNode); ??
+        scene->addShadowCastNode(node);
         _mapObject.assignNode(node);
         _mapObject.setScale(vec3f(50.0f));
     }
 
     Unit::~Unit() {
+        ServiceLocator::instance().getService<Scene>()->removeShadowCastNode(_mapObject.getNode());
         texture = nullptr;
         delete meshGraphicsBuffer;
     }

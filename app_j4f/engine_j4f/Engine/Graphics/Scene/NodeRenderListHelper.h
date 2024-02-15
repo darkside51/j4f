@@ -24,8 +24,8 @@ namespace engine {
 
 	template<typename V>
 	struct RenderListEmplacer final {
-		inline static bool _(NodeHR* node, RenderList& list, const bool dirtyVisible, const uint8_t visibleId, V&& visibleChecker) {
-			if (NodeUpdater::_<V>(node, dirtyVisible, visibleId, std::forward<V>(visibleChecker))) {
+		inline static bool _(NodeHR* node, RenderList& list, const bool dirtyVisible, const uint8_t visibleId, V&& visibleChecker, bool needResetChanged) {
+			if (NodeUpdater::_<V>(node, dirtyVisible, visibleId, std::forward<V>(visibleChecker), needResetChanged)) {
 				if (NodeRenderer* renderObject = node->value().getRenderer()) {
 					renderObject->setNeedUpdate(true);
 					list.addDescriptor(renderObject->getRenderDescriptor());
@@ -53,23 +53,34 @@ namespace engine {
 
 	// reload list by nodes hierarchy
 	template<typename V = EmptyVisibleChecker>
-	inline void reloadRenderList(RenderList& list, NodeHR* node, const bool dirtyVisible, const uint8_t visibleId, V&& visibleChecker = V()) {
+	inline void reloadRenderList(RenderList& list, NodeHR* node, const bool dirtyVisible, const uint8_t visibleId, V&& visibleChecker = V(), bool needResetChanged = true) {
 		using list_emplacer_type = RenderListEmplacer<V>;
 		list.clear();
-		node->execute_with<list_emplacer_type>(list, dirtyVisible, visibleId, std::forward<V>(visibleChecker));
+		node->execute_with<list_emplacer_type>(list, dirtyVisible, visibleId, std::forward<V>(visibleChecker), needResetChanged);
 		list.sort();
 	}
 
 	// reload list by nodes hierarchy array
 	template<typename V = EmptyVisibleChecker>
-	inline void reloadRenderList(RenderList& list, NodeHR** node, size_t count, const bool dirtyVisible, const uint8_t visibleId, V&& visibleChecker = V()) {
+	inline void reloadRenderList(RenderList& list, NodeHR** node, size_t count, const bool dirtyVisible, const uint8_t visibleId, V&& visibleChecker = V(), bool needResetChanged = true) {
 		using list_emplacer_type = RenderListEmplacer<V>;
 		list.clear();
-		for (size_t i = 0; i < count; ++i) {
-			node[i]->execute_with<list_emplacer_type>(list, dirtyVisible, visibleId, std::forward<V>(visibleChecker));
+		for (size_t i = 0u; i < count; ++i) {
+			node[i]->execute_with<list_emplacer_type>(list, dirtyVisible, visibleId, std::forward<V>(visibleChecker), needResetChanged);
 		}
 		list.sort();
 	}
+
+    // reload list by nodes hierarchy array
+    template<typename V = EmptyVisibleChecker>
+    inline void reloadRenderList(RenderList& list, engine::ref_ptr<NodeHR>* node, size_t count, const bool dirtyVisible, const uint8_t visibleId, V&& visibleChecker = V(), bool needResetChanged = true) {
+        using list_emplacer_type = RenderListEmplacer<V>;
+        list.clear();
+        for (size_t i = 0u; i < count; ++i) {
+            node[i]->execute_with<list_emplacer_type>(list, dirtyVisible, visibleId, std::forward<V>(visibleChecker), needResetChanged);
+        }
+        list.sort();
+    }
 
 	// reload list by some parts of nodes hierarchy
 	inline void startReloadRenderList(RenderList& list) {

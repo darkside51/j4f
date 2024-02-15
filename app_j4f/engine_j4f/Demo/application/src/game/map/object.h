@@ -59,6 +59,8 @@ namespace game {
             }
         }
 
+        NodePtr getNode() noexcept { return _node; }
+
         void updateTransform() noexcept;
 
     private:

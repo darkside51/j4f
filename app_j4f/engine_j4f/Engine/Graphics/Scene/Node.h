@@ -85,9 +85,11 @@ namespace engine {
 
 	struct NodeUpdater final {
 		template<typename V>
-		inline static bool _(NodeHR* node, const bool dirtyVisible, const uint8_t visibleId, V&& visibleChecker) {
+		inline static bool _(NodeHR* node, const bool dirtyVisible, const uint8_t visibleId, V&& visibleChecker, bool needResetChanged) {
 			Node& mNode = node->value();
-			mNode._modelChanged = false;
+            if (needResetChanged) {
+                mNode._modelChanged = false;
+            }
 
 			const auto&& parent = node->getParent();
 			if (parent) {

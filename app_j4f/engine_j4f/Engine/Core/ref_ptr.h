@@ -51,6 +51,7 @@ namespace engine {
         explicit inline operator bool() const noexcept { return _ptr != nullptr; }
 
         inline bool operator == (nullptr_t) noexcept { return _ptr == nullptr; }
+        inline bool operator == (const ref_ptr& ptr) noexcept { return _ptr == ptr._ptr; }
 
         element_type& operator* () {
             if (_ptr) {

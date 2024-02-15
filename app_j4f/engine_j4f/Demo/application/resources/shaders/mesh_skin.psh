@@ -5,11 +5,7 @@ layout (location = 1) in vec3 in_normal;
 
 layout (location = 0) out vec4 out_color;
 
-layout (set = 0, binding = 0) uniform UBO {
-	mat4 skin_matrixes[192];
-} u_ubo;
-
-layout (set = 1, binding = 0) uniform sampler2D u_texture;
+layout (set = 2, binding = 0) uniform sampler2D u_texture;
 
 void main() {
 	vec4 color = texture(u_texture, in_uv);

@@ -1,4 +1,8 @@
 #include <Engine/Core/Application.h>
+#include <Engine/Core/Engine.h>
+#include <Engine/Graphics/Graphics.h>
+#include <Engine/Graphics/Features/Shadows/CascadeShadowMap.h>
+
 
 #include "game/game.h"
 
@@ -7,7 +11,9 @@ namespace engine {
 Application::Application() : _game(std::make_unique<Game>()) {}
 Application::~Application() {}
 
-void Application::requestFeatures() {}
+void Application::requestFeatures() {
+    Engine::getInstance().getModule<Graphics>().features().request<CascadeShadowMap>(ShadowMapTechnique::SMT_INSTANCE_DRAW);
+}
 
 void Application::onEngineInitComplete() {
 	_game->onEngineInitComplete();

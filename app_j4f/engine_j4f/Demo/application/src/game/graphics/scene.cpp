@@ -16,6 +16,9 @@
 #include <Engine/Graphics/UI/ImGui/Imgui.h>
 #include <Engine/Utils/ImguiStatObserver.h>
 
+#include <Engine/Graphics/Features/Shadows/CascadeShadowMap.h>
+#include <Engine/Graphics/Features/Shadows/ShadowMapHelper.h>
+
 #include <imgui.h>
 
 #include <cstdint>
@@ -24,6 +27,13 @@ namespace game {
     constexpr uint16_t kUiOrder = 255u;
     engine::RenderList rootRenderList;
     engine::RenderList uiRenderList;
+    engine::RenderList shadowRenderList;
+
+    /// cascade shadow map
+    constexpr uint8_t kShadowMapCascadeCount = 3u;
+    constexpr uint16_t kShadowMapDim = 2048;
+    const auto lightPos = engine::vec3f{-400.0f, -600.0f, 1000.0f};
+    //// cascade shadow map
 
     Scene::Scene() :
             _graphicsDataUpdater(std::make_unique<engine::GraphicsDataUpdater>()),
@@ -49,6 +59,11 @@ namespace game {
         {
             placeToUi(imgui.release());
         }
+
+        const vec2f nearFar(1.0f, 5500.0f);
+        _shadowMap = std::make_unique<CascadeShadowMap>(kShadowMapDim, 32u, kShadowMapCascadeCount, nearFar, 250.0f, 2500.0f);
+        _shadowMap->setLamdas(1.0f, 1.0f, 1.0f);
+        _shadowMap->setLightPosition(lightPos);
     }
 
     Scene::~Scene() {
@@ -56,7 +71,9 @@ namespace game {
         _uiNode = nullptr;
     }
 
-    void Scene::onCameraTransformChanged(const engine::Camera * /*camera*/) {}
+    void Scene::onCameraTransformChanged(const engine::Camera* camera) {
+        _shadowMap->updateCascades(camera);
+    }
 
     void Scene::registerGraphicsUpdateSystems() {
         using namespace engine;
@@ -90,8 +107,45 @@ namespace game {
 
         const auto [width, height] = renderer->getSize();
 
+        _shadowMap->updateShadowUniformsForRegesteredPrograms(worldCamera.getViewTransform());
+
+        { // fill rootNode
+            const bool mainCameraDirty = _controller ? _controller->update(delta) : false;
+            reloadRenderList(rootRenderList, _rootNode.get(), mainCameraDirty, 0u,
+                             engine::FrustumVisibleChecker(worldCamera.getFrustum()), true);
+
+            // shadows
+            reloadRenderList(shadowRenderList, _shadowCastNodes.data(), _shadowCastNodes.size(), false, 0u, {}, false);
+        }
+
+        { // fill uiNode
+            reloadRenderList(uiRenderList, _uiNode.get(), false, 0u);
+        }
+
         auto &commandBuffer = renderer->getRenderCommandBuffer();
         commandBuffer.begin();
+
+        ///// shadow pass
+        vulkan::VulkanGpuProgram *program;
+        auto mesh_skin_shadow_program = CascadeShadowMap::getShadowProgram<MeshSkinnedShadow>();
+        for (auto & n : _shadowCastNodes) {
+            auto & node = n->value();
+            if (node.isVisible(0u)) {
+                auto && mesh = node.getRenderer<NodeRenderer<Mesh*>>();
+                program = mesh->setProgram(mesh_skin_shadow_program, _shadowMap->getRenderPass());
+            }
+        }
+
+        renderShadowMap(_shadowMap.get(), shadowRenderList, commandBuffer, currentFrame);
+
+        for (auto & n : _shadowCastNodes) {
+            auto & node = n->value();
+            if (node.isVisible(0u)) {
+                auto && mesh = node.getRenderer<NodeRenderer<Mesh*>>();
+                mesh->setProgram(program);
+            }
+        }
+        ///// shadow pass
 
         std::array<VkClearValue, 2> clearValues = {
                 VkClearValue{0.5f, 0.5f, 0.5f, 1.0f}, // for 1st attachment (color)
@@ -107,16 +161,7 @@ namespace game {
         commandBuffer.cmdSetScissor(0, 0, width, height);
         commandBuffer.cmdSetDepthBias(0.0f, 0.0f, 0.0f);
 
-        { // fill rootNode
-//            const bool mainCameraDirty = worldCamera.calculateTransform();
-            const bool mainCameraDirty = _controller ? _controller->update(delta) : false;
-            reloadRenderList(rootRenderList, _rootNode.get(), mainCameraDirty, 0u,
-                             engine::FrustumVisibleChecker(worldCamera.getFrustum()));
-        }
-
-        { // fill uiNode
-            reloadRenderList(uiRenderList, _uiNode.get(), false, 0u);
-
+        {
             if (_imguiGraphics) {
                 _imguiGraphics->update(delta);
                 _statObserver->draw();

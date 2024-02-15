@@ -3,6 +3,7 @@
 
 #include <Engine/Graphics/Plane/Plane.h>
 #include <Engine/Graphics/GpuProgramsManager.h>
+#include <Engine/Graphics/Features/Shadows/CascadeShadowMap.h>
 
 #include <cstdint>
 #include <vector>
@@ -59,11 +60,14 @@ namespace game {
         {
             auto &&gpuProgramManager = Engine::getInstance().getModule<Graphics>().getGpuProgramsManager();
             const std::vector<engine::ProgramStageInfo> psi = {
-                    {ProgramStage::VERTEX, "resources/shaders/texture.vsh.spv"},
-                    {ProgramStage::FRAGMENT, "resources/shaders/texture.psh.spv"}
+                    {ProgramStage::VERTEX, "resources/shaders/shadows_plane.vsh.spv"},
+                    {ProgramStage::FRAGMENT, "resources/shaders/shadows_plane.psh.spv"}
             };
             auto &&program = gpuProgramManager->getProgram(psi);
             plane->setProgram(program);
+
+            plane->graphics()->setParamByName("u_shadow_map", scene->getShadowMap()->getTexture(), false);
+            scene->getShadowMap()->registerProgramAsReciever(program);
         }
 
         auto &&planeNode = scene->placeToNode(plane.release(), _mapNode);

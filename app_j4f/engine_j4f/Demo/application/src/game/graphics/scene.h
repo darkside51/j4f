@@ -12,6 +12,7 @@
 #include <vector>
 
 namespace engine {
+    class CascadeShadowMap;
 	class Node;
 	class NodeRenderer;
 	class ImguiStatObserver;
@@ -81,7 +82,19 @@ namespace game {
             return NodePtr(node);
         }
 
+        void addShadowCastNode(NodePtr node) {
+            _shadowCastNodes.emplace_back(node);
+        }
+
+        void removeShadowCastNode(NodePtr node) {
+            _shadowCastNodes.erase(
+                    std::remove(_shadowCastNodes.begin(), _shadowCastNodes.end(), node),
+                    _shadowCastNodes.end());
+        }
+
 		engine::ref_ptr<engine::ImguiGraphics>& getUiGraphics() noexcept { return _imguiGraphics; }
+
+        engine::ref_ptr<engine::CascadeShadowMap> getShadowMap() noexcept { return _shadowMap; }
 
 	private:
         template <typename T>
@@ -109,6 +122,9 @@ namespace game {
 
 		std::unique_ptr<NodeHR> _rootNode;
 		std::unique_ptr<NodeHR> _uiNode;
+
+        std::unique_ptr<engine::CascadeShadowMap> _shadowMap;
+        std::vector<NodePtr> _shadowCastNodes;
 
 		std::vector<engine::Camera> _cameras;
         engine::ref_ptr<CameraController> _controller;

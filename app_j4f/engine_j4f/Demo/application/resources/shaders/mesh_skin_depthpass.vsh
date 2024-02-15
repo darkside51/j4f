@@ -1,5 +1,7 @@
 #version 450
 
+#extension GL_ARB_shader_viewport_layer_array : enable
+
 #define SHADOW_MAP_CASCADE_COUNT 3
 
 layout (location = 0) in vec3 a_position;
@@ -15,7 +17,7 @@ layout (set = 0, binding = 0) uniform shadowUBO {
 	vec3 camera_position;
 } u_shadow;
 
-layout(set = 1, binding = 0) uniform UBO {
+layout (set = 1, binding = 0) uniform UBO {
 	mat4 skin_matrixes[192];
 } u_ubo;
 
@@ -23,9 +25,6 @@ layout(push_constant) uniform PUSH_CONST {
 	mat4 camera_matrix;
 	mat4 model_matrix;
 } u_push_const;
-
-layout (location = 0) out vec2 out_uv;
-layout (location = 1) out vec3 out_normal;
 
 out gl_PerVertex {
     vec4 gl_Position;   
@@ -38,10 +37,6 @@ void main() {
 			  	+ u_ubo.skin_matrixes[joints.z] * a_weights.z
 			  	+ u_ubo.skin_matrixes[joints.w] * a_weights.w;
 
-	vec3 normal = normalize((u_push_const.model_matrix * (skin * vec4(a_normal, 0.0))).xyz);
-	
-	vec4 world_position = u_push_const.model_matrix * (skin * vec4(a_position, 1.0));
-	gl_Position = u_push_const.camera_matrix * world_position;
-	out_uv = a_uv;
-	out_normal = normal;
+	gl_Position = u_shadow.cascade_matrix[gl_InstanceIndex] * u_push_const.model_matrix * skin * vec4(a_position, 1.0);
+    gl_Layer = gl_InstanceIndex;
 }
