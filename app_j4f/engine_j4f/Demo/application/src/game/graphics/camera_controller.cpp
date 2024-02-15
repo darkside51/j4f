@@ -7,6 +7,8 @@ namespace game {
     constexpr float kCameraMoveSpeed = 500.0f;
     constexpr float kMaxPitch = 0.0f; // in radians
     constexpr float kMinPitch = -1.125f; // in radians
+    constexpr float kMinLen = 100.0f;
+    constexpr float kMaxLen = 500.0f;
 
     void CameraController::setPosition(const engine::vec3f & position) noexcept {
         if (engine::compare(position, _position, kEps)) {
@@ -37,8 +39,9 @@ namespace game {
     }
 
     void CameraController::addLen(const float l) noexcept {
-        if (l > kEps || l < kEps) {
+        if (l > kEps || l < -kEps) {
             _len += l;
+            _len = std::clamp(_len, kMinLen, kMaxLen);
             _dirty = true;
         }
     }

@@ -29,9 +29,9 @@ namespace game {
     engine::RenderList uiRenderList;
     engine::RenderList shadowRenderList;
 
-    /// cascade shadow map
+    //// cascade shadow map
     constexpr uint8_t kShadowMapCascadeCount = 3u;
-    constexpr uint16_t kShadowMapDim = 2048;
+    constexpr uint16_t kShadowMapDim = 1536u;
     const auto lightPos = engine::vec3f{-400.0f, -600.0f, 1000.0f};
     //// cascade shadow map
 
@@ -50,7 +50,7 @@ namespace game {
         worldCamera.addObserver(this);
         worldCamera.enableFrustum();
         worldCamera.makeProjection(math_constants::f32::pi / 3.0f,
-                                   static_cast<float>(width) / static_cast<float>(height), 1.0f, 5000.0f);
+                                   static_cast<float>(width) / static_cast<float>(height), 1.0f, 2000.0f);
 
         auto imgui = std::make_unique<NodeRenderer<ImguiGraphics *>>();
         imgui->setGraphics(ImguiGraphics::getInstance());
@@ -60,8 +60,8 @@ namespace game {
             placeToUi(imgui.release());
         }
 
-        const vec2f nearFar(1.0f, 5500.0f);
-        _shadowMap = std::make_unique<CascadeShadowMap>(kShadowMapDim, 32u, kShadowMapCascadeCount, nearFar, 250.0f, 2500.0f);
+        const vec2f nearFar(1.0f, 2000.0f);
+        _shadowMap = std::make_unique<CascadeShadowMap>(kShadowMapDim, 32u, kShadowMapCascadeCount, nearFar, 250.0f, 1000.0f);
         _shadowMap->setLamdas(1.0f, 1.0f, 1.0f);
         _shadowMap->setLightPosition(lightPos);
     }
