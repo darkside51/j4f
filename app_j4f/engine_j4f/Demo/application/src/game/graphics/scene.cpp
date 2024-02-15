@@ -64,6 +64,9 @@ namespace game {
         _shadowMap = std::make_unique<CascadeShadowMap>(kShadowMapDim, 32u, kShadowMapCascadeCount, nearFar, 250.0f, 1000.0f);
         _shadowMap->setLamdas(1.0f, 1.0f, 1.0f);
         _shadowMap->setLightPosition(lightPos);
+
+        auto mesh_skin_shadow_program = CascadeShadowMap::getShadowProgram<MeshSkinnedShadow>();
+        _shadowMap->registerProgramAsReciever(mesh_skin_shadow_program);
     }
 
     Scene::~Scene() {

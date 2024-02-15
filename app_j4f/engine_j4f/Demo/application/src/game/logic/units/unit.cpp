@@ -16,8 +16,6 @@
 
 #include <memory>
 
-#include <Engine/Graphics/Features/Shadows/CascadeShadowMap.h>
-
 namespace game {
 
     engine::TexturePtr texture;
@@ -119,8 +117,6 @@ namespace game {
         }
 
         auto scene = ServiceLocator::instance().getService<Scene>();
-        scene->getShadowMap()->registerProgramAsReciever(program);
-
         auto &&node = scene->placeToWorld(mesh.release()); // scene->placeToNode(mesh.release(), _mapNode); ??
         scene->addShadowCastNode(node);
         _mapObject.assignNode(node);
