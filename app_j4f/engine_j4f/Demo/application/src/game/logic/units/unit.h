@@ -2,15 +2,12 @@
 
 #include <Engine/Core/Math/mathematic.h>
 #include <Engine/Core/ref_ptr.h>
+#include <Engine/Graphics/Mesh/AnimationTree.h>
 #include "../entity.h"
 #include "../../map/object.h"
 
 #include <cstdint>
 #include <memory>
-
-namespace engine {
-    class MeshAnimationTree;
-}
 
 namespace game {
 
@@ -21,15 +18,16 @@ namespace game {
         Running = 3u,
     };
 
-    class Unit : public Entity {
+class Unit : public Entity, public engine::IAnimationObserver {
     public:
         Unit();
         ~Unit();
 
         Unit(Unit &&) noexcept;
 
-        void setMoveTarget(const engine::vec3f & t) { _moveTarget = t; }
+        void onEvent(engine::AnimationEvent event, const engine::MeshAnimator* animator) override;
 
+        void setMoveTarget(const engine::vec3f & t) { _moveTarget = t; }
         void update(const float delta);
 
     private:

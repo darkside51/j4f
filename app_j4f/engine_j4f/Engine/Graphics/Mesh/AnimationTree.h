@@ -9,6 +9,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <vector>
 
 namespace engine {
 
@@ -19,6 +20,14 @@ namespace engine {
 		Process = 3u,
 		Finish = 4u,
 	};
+
+    class MeshAnimator;
+
+    class IAnimationObserver {
+    public:
+        virtual ~IAnimationObserver() = default;
+        virtual void onEvent(AnimationEvent event, const MeshAnimator* animator) = 0;
+    };
 
 	class MeshAnimator {
 	public:
@@ -65,10 +74,10 @@ namespace engine {
 			}
 		}
 
-		inline State update(const float dt, const uint8_t i) {
+		inline State update(const float dt, const uint8_t i, std::vector<IAnimationObserver*>& observers) {
 			if (_animation == nullptr) return State::Unknown;
 
-			auto event = AnimationEvent::Unknown;
+			auto event = _time == 0.0f ? AnimationEvent::NewLoop : AnimationEvent::Unknown;
 			auto state = State::Process;
 
 			_time += _speed * dt;
@@ -82,13 +91,14 @@ namespace engine {
 					event = AnimationEvent::EndLoop;
 				}
 			} else {
-				event = (event == AnimationEvent::EndLoop) ? AnimationEvent::NewLoop : AnimationEvent::Process;
+				event = (event == AnimationEvent::NewLoop) ? AnimationEvent::NewLoop : AnimationEvent::Process;
 			}
 
 			_frameTimes[i] = _animation->start + _time;
 
-			// todo: translate event to observers
-			// observer->onEvent(event);
+            for (auto & observer : observers) {
+                observer->onEvent(event, this);
+            }
 			return state;
 		}
 
@@ -204,7 +214,12 @@ namespace engine {
         [[nodiscard]] inline const std::vector<Transform>& getTransforms(const uint8_t i) const { return _transforms[i]; }
 
         [[nodiscard]] inline float getWeight() const noexcept { return _weight; }
-		inline void setWeight(const float w) { _weight = w; }
+		inline void setWeight(const float w) noexcept {
+            _weight = w;
+            if (_weight == 0.0f) {
+                _time = 0.0f;
+            }
+        }
 
         [[nodiscard]] inline float getSpeed() const noexcept { return _speed; }
 		inline void setSpeed(const float s) { _speed = s; }
@@ -284,10 +299,10 @@ namespace engine {
 		using TreeAnimator = MeshAnimator;
 		using AnimatorType = HierarchyRaw<TreeAnimator>;
 
-		inline static bool _(AnimatorType* animator, const float delta, const uint8_t i, bool& finished) {
+		inline static bool _(AnimatorType* animator, const float delta, const uint8_t i, bool& finished, std::vector<IAnimationObserver*>& observers) {
 			if (animator->value().getWeight() > 0.0f) {
-				auto const state = animator->value().update(delta, i);
-				finished |= state == MeshAnimator::State::End;
+				auto const state = animator->value().update(delta, i, observers);
+				finished |= (state == MeshAnimator::State::End);
 			}
 			return true;
 		}
@@ -315,9 +330,9 @@ namespace engine {
 		using AnimatorType = HierarchyRaw<TreeAnimator>;
 
 	private:
-		inline static bool updateAnimators(AnimatorType* animator, const float delta, const uint8_t i) {
+		inline static bool updateAnimators(AnimatorType* animator, const float delta, const uint8_t i, std::vector<IAnimationObserver*>& observers) {
 			if (animator->value().getWeight() > 0.0f) {
-				animator->value().update(delta, i);
+				animator->value().update(delta, i, observers);
 			}
 			return true;
 		}
@@ -329,11 +344,11 @@ namespace engine {
 		inline void update(const float delta, const uint8_t i) noexcept {
 			bool finished = false;
 			if (_animator->value().getWeight() >= 1.0f) {
-				auto const state = _animator->value().update(delta, i);
+				auto const state = _animator->value().update(delta, i, _observers);
 				finished |= state == MeshAnimator::State::End;
 			} else {
-				//_animator->execute(updateAnimators, delta, i);
-				_animator->execute_with<AnimatorUpdater>(delta, i, finished);
+				//_animator->execute(updateAnimators, delta, i, _observers);
+				_animator->execute_with<AnimatorUpdater>(delta, i, finished, _observers);
 			}
 
 			if (finished) {
@@ -385,10 +400,23 @@ namespace engine {
         inline void setSpeed(const float s) noexcept { _speed = s; }
         [[nodiscard]] inline float getSpeed() const noexcept { return _speed; }
 
+        inline void addObserver(IAnimationObserver* observer) {
+            if (std::find(_observers.begin(), _observers.end(), observer) == _observers.end()) {
+                _observers.emplace_back(observer);
+            }
+        }
+
+        inline void removeObserver(IAnimationObserver* observer) {
+            _observers.erase(
+                    std::remove(_observers.begin(), _observers.end(), observer),
+                    _observers.end());
+        }
+
 	private:
 		std::unique_ptr<AnimatorType> _animator;
         uint8_t _updateFrameNum = 0u;
         bool _active = true;
         float _speed = 1.0f;
+        std::vector<IAnimationObserver*> _observers;
 	};
 }

@@ -66,6 +66,7 @@ namespace game {
                                        // animations
                                        _animations = std::make_unique<MeshAnimationTree>(0.0f, asset->getNodesCount(),
                                                                         asset->getSkeleton()->getLatency());
+                                       _animations->addObserver(this);
 
                                        auto && animationManager = Engine::getInstance().getModule<Graphics>().getAnimationManager();
                                        animationManager->registerAnimation(_animations.get());
@@ -129,6 +130,19 @@ namespace game {
         delete meshGraphicsBuffer;
     }
     Unit::Unit(Unit &&) noexcept = default;
+
+    void Unit::onEvent(engine::AnimationEvent event, const engine::MeshAnimator* animator) {
+        using namespace engine;
+        switch (event) {
+            case AnimationEvent::NewLoop:
+                break;
+            case AnimationEvent::EndLoop:
+                break;
+            case AnimationEvent::Finish:
+                break;
+            default: break;
+        }
+    }
 
     void Unit::updateAnimationState(const float delta) {
         if (!_animations) return;
