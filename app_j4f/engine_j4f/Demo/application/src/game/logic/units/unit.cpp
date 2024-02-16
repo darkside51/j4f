@@ -129,7 +129,16 @@ namespace game {
         texture = nullptr;
         delete meshGraphicsBuffer;
     }
+
     Unit::Unit(Unit &&) noexcept = default;
+
+    engine::vec3f Unit::getPosition() const {
+        // for render thread
+        const auto& m = _mapObject.getTransform();
+        return { m[3][0], m[3][1], m[3][2] };
+        // for update thread
+        return _mapObject.getPosition();
+    }
 
     void Unit::onEvent(engine::AnimationEvent event, const engine::MeshAnimator* animator) {
         using namespace engine;
@@ -191,10 +200,10 @@ namespace game {
             if (glm::dot(vec, vec) > kAngleSpeed) {
                 const float angleSpeed = kAngleSpeed * delta;
                 const auto direction = as_normalized(vec);
-                constexpr float kEps = 0.1f;
                 const float moveSpeed = kAngleSpeed * 5.5f * delta;
-                if (compare(_direction, direction, kEps)) {
-                    _direction = as_normalized(_direction + (direction - _direction) * angleSpeed);
+                const auto sub = (direction - _direction);
+                if (vec_length(sub) > angleSpeed) {
+                    _direction = as_normalized(_direction + as_normalized(sub) * angleSpeed);
                 } else {
                     _direction = direction;
                 }

@@ -16,6 +16,9 @@ namespace game {
 
         CameraController & getCameraController() & { return _cameraController; }
         PlayerController & getPlayerController() & { return _playerController; }
+
+        void onRenderFrame();
+
     private:
         bool moveCamera(const engine::PointerEvent& event);
         bool rotateCamera(const engine::PointerEvent& event);

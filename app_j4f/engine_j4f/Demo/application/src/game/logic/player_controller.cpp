@@ -13,6 +13,11 @@ namespace game {
         _unit = engine::make_ref(const_cast<Unit&>(unit));
     }
 
+    engine::vec3f PlayerController::getPlayerPosition() const {
+        if (!_unit) return {0.0f, 0.0f, 0.0f};
+        return _unit->getPosition();
+    }
+
     void PlayerController::onPointerEvent(const engine::PointerEvent &event) {
         if (!_unit) return;
 

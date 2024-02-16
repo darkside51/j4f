@@ -101,4 +101,9 @@ namespace game {
     bool GameController::onInpuCharEvent(const uint16_t code) {
         return false;
     }
+
+    void GameController::onRenderFrame() {
+        constexpr float kHeight = 25.0f;
+        _cameraController.setPosition(_playerController.getPlayerPosition() + engine::vec3f{ 0.0f, 0.0f, kHeight });
+    }
 }

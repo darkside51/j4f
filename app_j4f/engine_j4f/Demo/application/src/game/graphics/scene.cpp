@@ -106,7 +106,11 @@ namespace game {
 
         auto &worldCamera = _cameras[0];
 
-        auto &&renderer = Engine::getInstance().getModule<Graphics>().getRenderer();
+        auto && graphics = Engine::getInstance().getModule<Graphics>();
+        auto && renderer = graphics.getRenderer();
+        auto && renderHelper = graphics.getRenderHelper();
+        auto && autoBatcher = renderHelper->getAutoBatchRenderer();
+
         const uint32_t currentFrame = renderer->getCurrentFrame();
 
         const auto [width, height] = renderer->getSize();
@@ -180,9 +184,6 @@ namespace game {
         // render nodes
         rootRenderList.render(commandBuffer, currentFrame, {&worldCamera.getTransform(), nullptr, nullptr});
         uiRenderList.render(commandBuffer, currentFrame, {nullptr, nullptr, nullptr});
-
-        auto&& renderHelper = Engine::getInstance().getModule<Graphics>().getRenderHelper();
-        auto&& autoBatcher = renderHelper->getAutoBatchRenderer();
 
         // draw bounding boxes
         constexpr bool kDrawBoundingVolumes = false;

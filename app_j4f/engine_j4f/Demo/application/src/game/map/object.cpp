@@ -4,6 +4,10 @@
 
 namespace game {
 
+    const engine::mat4f& MapObject::getTransform() const noexcept {
+        return _node->value().localMatrix();
+    }
+
     void MapObject::updateTransform() noexcept {
         if (!_node || !_transformDirty) return;
         _transformDirty = false;

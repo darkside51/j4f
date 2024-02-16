@@ -62,6 +62,7 @@ namespace game {
         NodePtr getNode() noexcept { return _node; }
 
         void updateTransform() noexcept;
+        const engine::mat4f& getTransform() const noexcept;
 
     private:
         template <typename VEC3>

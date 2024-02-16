@@ -30,6 +30,8 @@ class Unit : public Entity, public engine::IAnimationObserver {
         void setMoveTarget(const engine::vec3f & t) { _moveTarget = t; }
         void update(const float delta);
 
+        engine::vec3f getPosition() const;
+
     private:
         void setState(const UnitState state) noexcept;
         void updateAnimationState(const float delta);

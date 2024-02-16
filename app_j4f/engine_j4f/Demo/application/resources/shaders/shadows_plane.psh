@@ -20,7 +20,7 @@ layout (set = 2, binding = 0) uniform sampler2D u_texture;
 float textureProj(vec4 shCoord, vec2 offset, uint cascade, float minLight) {
 	//float dist = texture(u_shadow_map, vec3(shCoord.xy + offset, cascade)).r; // for sampler2DArray u_shadow_map;
 		
-	float bias = 0.001;
+	float bias = 0.0002;
 	float depth = shCoord.z - bias;
 	//return mix(1.0, minLight, step(dist, depth));
 

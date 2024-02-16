@@ -42,6 +42,8 @@ namespace engine {
 	}
 
 	void Game::render(const float delta) {
+        _controller.onRenderFrame();
+
         if (_scene) {
             _scene->render(delta);
         }
