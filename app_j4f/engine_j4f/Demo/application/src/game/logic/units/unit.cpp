@@ -111,8 +111,8 @@ namespace game {
                                        }
 
                                        //////////////////////
-                                       //auto && node = mesh->getNode();
-                                       //node->setBoundingVolume(BoundingVolume::make<SphereVolume>(vec3f(0.0f, 0.0f, 0.4f), 0.5f));
+                                       auto && node = mesh->getNode();
+                                       node->setBoundingVolume(BoundingVolume::make<SphereVolume>(vec3f(0.0f, 0.0f, 0.4f), 0.42f));
                                        mesh->setGraphics(asset.release());
                                    });
         }

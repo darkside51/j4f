@@ -10,6 +10,7 @@
 #include <Engine/Graphics/Mesh/AnimationTree.h>
 #include <Engine/Graphics/Plane/Plane.h>
 #include <Engine/Graphics/Render/RenderList.h>
+#include <Engine/Graphics/Render/AutoBatchRender.h>
 #include <Engine/Graphics/Scene/Node.h>
 #include <Engine/Graphics/Scene/NodeGraphicsLink.h>
 #include <Engine/Graphics/Scene/NodeRenderListHelper.h>
@@ -179,6 +180,18 @@ namespace game {
         // render nodes
         rootRenderList.render(commandBuffer, currentFrame, {&worldCamera.getTransform(), nullptr, nullptr});
         uiRenderList.render(commandBuffer, currentFrame, {nullptr, nullptr, nullptr});
+
+        auto&& renderHelper = Engine::getInstance().getModule<Graphics>().getRenderHelper();
+        auto&& autoBatcher = renderHelper->getAutoBatchRenderer();
+
+        // draw bounding boxes
+        constexpr bool kDrawBoundingVolumes = false;
+        if constexpr (kDrawBoundingVolumes) {
+            renderNodesBounds(_rootNode.get(), worldCamera.getTransform(), commandBuffer, currentFrame, 0u);
+        }
+
+        //Engine::getInstance().getModule<Graphics>().getRenderHelper()->drawSphere({0.0f, 0.0f, 0.0f}, 1.0f, worldCamera.getTransform(), makeMatrix(1.0f), commandBuffer, currentFrame, true);
+        autoBatcher->draw(commandBuffer, currentFrame);
 
         commandBuffer.cmdEndRenderPass();
         commandBuffer.end();

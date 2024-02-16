@@ -77,8 +77,9 @@ namespace engine {
             if (Engine::getInstance().getModule<Input>().isAltPressed()) {
                 if (event.state != InputEventState::IES_RELEASE) break;
                 Engine::getInstance().getModule<Device>().setFullscreen(!Engine::getInstance().getModule<Device>().isFullscreen());
+                return true;
             }
-            return true;
+            break;
         default:
             break;
         }
