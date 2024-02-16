@@ -31,8 +31,8 @@ namespace game {
 
     //// cascade shadow map
     constexpr uint8_t kShadowMapCascadeCount = 3u;
-    constexpr uint16_t kShadowMapDim = 1536u;
-    const auto lightPos = engine::vec3f{-400.0f, -600.0f, 1000.0f};
+    constexpr uint16_t kShadowMapDim = 2048u;
+    const auto lightPos = engine::vec3f{-600.0f, -700.0f, 700.0f};
     //// cascade shadow map
 
     Scene::Scene() :
@@ -61,7 +61,7 @@ namespace game {
         }
 
         const vec2f nearFar(1.0f, 2000.0f);
-        _shadowMap = std::make_unique<CascadeShadowMap>(kShadowMapDim, 32u, kShadowMapCascadeCount, nearFar, 250.0f, 1000.0f);
+        _shadowMap = std::make_unique<CascadeShadowMap>(kShadowMapDim, 32u, kShadowMapCascadeCount, nearFar, 400.0f, 1200.0f);
         _shadowMap->setLamdas(1.0f, 1.0f, 1.0f);
         _shadowMap->setLightPosition(lightPos);
 
