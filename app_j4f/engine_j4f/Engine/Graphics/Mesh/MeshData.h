@@ -3,10 +3,14 @@
 #include "../../Core/Math/mathematic.h"
 #include "../../Core/ref_ptr.h"
 
+#include <limits>
 #include <string>
 #include <vector>
 #include <cstdint>
 #include <memory>
+
+#undef min
+#undef max
 
 namespace gltf {
 	struct Layout;

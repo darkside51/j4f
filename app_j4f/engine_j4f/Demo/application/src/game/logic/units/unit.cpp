@@ -187,13 +187,14 @@ namespace game {
         const auto & p = _mapObject.getPosition();
         if (p != _moveTarget) {
             const auto vec = _moveTarget - p;
-            if (glm::dot(vec, vec) > 16.0f) {
-                const float kAngleSpeed = 12.0f * delta;
+            constexpr float kAngleSpeed = 16.0f;
+            if (glm::dot(vec, vec) > kAngleSpeed) {
+                const float angleSpeed = kAngleSpeed * delta;
                 const auto direction = as_normalized(vec);
                 constexpr float kEps = 0.1f;
-                const float moveSpeed = 85.0f * delta;
+                const float moveSpeed = kAngleSpeed * 5.5f * delta;
                 if (compare(_direction, direction, kEps)) {
-                    _direction = as_normalized(_direction + (direction - _direction) * kAngleSpeed);
+                    _direction = as_normalized(_direction + (direction - _direction) * angleSpeed);
                 } else {
                     _direction = direction;
                 }

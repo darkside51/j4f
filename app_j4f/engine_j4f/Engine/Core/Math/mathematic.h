@@ -21,6 +21,9 @@
 #include <cstdint>
 #include <type_traits>
 
+#undef min
+#undef max
+
 namespace engine {
 
     namespace math_constants {
@@ -125,7 +128,7 @@ namespace engine {
 
     template <typename T>
     inline std::decay_t<T> smoothstep(T&& edge0, T&& edge1, T&& x) noexcept {
-        T t;
+        std::decay_t<T> t;
         t = std::clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
         return t * t * (3.0 - 2.0 * t);
     }
