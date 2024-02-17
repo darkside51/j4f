@@ -735,15 +735,25 @@ namespace vulkan {
 			cmdBindIndexBuffer(indices.m_buffer, offset, type);
 		}
 
+        inline void cmdDraw(const uint32_t vertexCount, const uint32_t firstVertex = 0, const uint32_t instanceCount = 1, const uint32_t firstInstance = 0) {
+            vkCmdDraw(m_commandBuffer, vertexCount, instanceCount, firstVertex, firstInstance);
+            STATISTIC_ADD_DRAW_CALL
+        }
+
 		inline void cmdDrawIndexed(const uint32_t indexCount, const uint32_t firstIndex = 0, const uint32_t instanceCount = 1, const int32_t vertexOffset = 0, const uint32_t firstInstance = 0) const {
 			vkCmdDrawIndexed(m_commandBuffer, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
 			STATISTIC_ADD_DRAW_CALL
 		}
 
-		inline void cmdDraw(const uint32_t vertexCount, const uint32_t firstVertex = 0, const uint32_t instanceCount = 1, const uint32_t firstInstance = 0) {
-			vkCmdDraw(m_commandBuffer, vertexCount, instanceCount, firstVertex, firstInstance);
-			STATISTIC_ADD_DRAW_CALL
-		}
+        inline void cmdDrawIndirect(VkBuffer buffer, VkDeviceSize offset, const uint32_t drawCount, const uint32_t stride) {
+            vkCmdDrawIndirect(m_commandBuffer, buffer, offset, drawCount, stride);
+            STATISTIC_ADD_DRAW_CALL
+        }
+
+        inline void cmdDrawIndexedIndirect(VkBuffer buffer, VkDeviceSize offset, const uint32_t drawCount, const uint32_t stride) {
+            vkCmdDrawIndexedIndirect(m_commandBuffer, buffer, offset, drawCount, stride);
+            STATISTIC_ADD_DRAW_CALL
+        }
 
 		inline void cmdCopyBuffer(const VulkanBuffer& src, const VulkanBuffer& dst, const VkBufferCopy* copyRegion) const {
 			if (copyRegion == nullptr) {
@@ -981,7 +991,7 @@ namespace vulkan {
 		}
 
 		////////
-		inline void prepareRender(
+		inline void bindDescriptors(
 			const VulkanPipeline* pipeline,						// пайплайн
 			const uint32_t frame,								// номер кадра отрисовки
 			const VulkanPushConstant* pushConstants,			// пуш константы
@@ -1069,7 +1079,7 @@ namespace vulkan {
 			const uint32_t firstInstance = 0u,					// номер первого инстанса
 			const VkDeviceSize vbOffset = 0u					// оффсет в вершинном буфере
 		) {
-			prepareRender(pipeline, frame, pushConstants, firstSet, dynamicOffsetsCount, dynamicOffsets, externalSetsCount, externalSets);
+            bindDescriptors(pipeline, frame, pushConstants, firstSet, dynamicOffsetsCount, dynamicOffsets, externalSetsCount, externalSets);
 
 			cmdBindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipeline);
 			cmdBindVertexBuffer(vertexes, vbOffset);
@@ -1077,6 +1087,31 @@ namespace vulkan {
 			// draw
 			cmdDraw(vertexCount, firstVertex, instanceCount, firstInstance);
 		}
+
+        inline void renderIndirect(
+                const VulkanPipeline* pipeline,						// пайплайн
+                const uint32_t frame,								// номер кадра отрисовки
+                const VulkanPushConstant* pushConstants,			// пуш константы
+                const uint32_t firstSet,							// номер первого сет привязки
+                const uint8_t dynamicOffsetsCount,					// количество оффсетов для динамических буфферов
+                const uint32_t* dynamicOffsets,						// оффсеты для динамических буфферов
+                const uint8_t externalSetsCount,					// количество дополнительных сетов, которые хочется привязать
+                const VkDescriptorSet* externalSets,				// дополнительные сеты, которые хочется привязать
+                const VulkanBuffer& vertexes,						// вершины
+                const VulkanBuffer& buffer,
+                const VkDeviceSize offset,
+                const uint32_t drawCount,
+                const uint32_t stride,
+                const VkDeviceSize vbOffset = 0u					// оффсет в вершинном буфере
+        ) {
+            bindDescriptors(pipeline, frame, pushConstants, firstSet, dynamicOffsetsCount, dynamicOffsets, externalSetsCount, externalSets);
+
+            cmdBindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipeline);
+            cmdBindVertexBuffer(vertexes, vbOffset);
+
+            // draw
+            cmdDrawIndirect(buffer.m_buffer, offset, drawCount, stride);
+        }
 
 		inline void renderIndexed(
 			const VulkanPipeline* pipeline,						// пайплайн
@@ -1098,7 +1133,7 @@ namespace vulkan {
 			const VkDeviceSize ibOffset = 0u,					// оффсет в индексном буффере
 			const VkIndexType indexType = VK_INDEX_TYPE_UINT32	// тип индексов
 			) {
-				prepareRender(pipeline, frame, pushConstants, firstSet, dynamicOffsetsCount, dynamicOffsets, externalSetsCount, externalSets);
+                bindDescriptors(pipeline, frame, pushConstants, firstSet, dynamicOffsetsCount, dynamicOffsets, externalSetsCount, externalSets);
 
 				cmdBindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipeline);
 				cmdBindVertexBuffer(vertexes, vbOffset);
@@ -1107,6 +1142,35 @@ namespace vulkan {
 				// draw indexed
 				cmdDrawIndexed(indexCount, firstIndex, instanceCount, firstVertex, firstInstance);
 		};
+
+        inline void renderIndexedIndirect(
+                const VulkanPipeline* pipeline,						// пайплайн
+                const uint32_t frame,								// номер кадра отрисовки
+                const VulkanPushConstant* pushConstants,			// пуш константы
+                const uint32_t firstSet,							// номер первого сет привязки
+                const uint8_t dynamicOffsetsCount,					// количество оффсетов для динамических буфферов
+                const uint32_t* dynamicOffsets,						// оффсеты для динамических буфферов
+                const uint8_t externalSetsCount,					// количество дополнительных сетов, которые хочется привязать
+                const VkDescriptorSet* externalSets,				// дополнительные сеты, которые хочется привязать
+                const VulkanBuffer& vertexes,						// вершины
+                const VulkanBuffer& indexes,						// индексы
+                const VulkanBuffer& buffer,
+                const VkDeviceSize offset,
+                const uint32_t drawCount,
+                const uint32_t stride,
+                const VkDeviceSize vbOffset = 0u,					// оффсет в вершинном буфере
+                const VkDeviceSize ibOffset = 0u,					// оффсет в индексном буффере
+                const VkIndexType indexType = VK_INDEX_TYPE_UINT32	// тип индексов
+        ) {
+            bindDescriptors(pipeline, frame, pushConstants, firstSet, dynamicOffsetsCount, dynamicOffsets, externalSetsCount, externalSets);
+
+            cmdBindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipeline);
+            cmdBindVertexBuffer(vertexes, vbOffset);
+            cmdBindIndexBuffer(indexes, ibOffset, indexType);
+
+            // draw indexed
+            cmdDrawIndexedIndirect(buffer.m_buffer, offset, drawCount, stride);
+        };
 
         // getters
         std::optional<VkRect2D> getCurrentScissor() const noexcept {

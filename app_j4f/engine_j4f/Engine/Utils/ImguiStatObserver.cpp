@@ -150,27 +150,30 @@ namespace engine {
 
         const auto bgColor = IM_COL32(0, 0, 0, 100);
 
-        ImGuiStyleColorChanger _1(ImGuiCol_Text, IM_COL32(200, 200, 200, 200));
-        ImGuiStyleColorChanger _2(ImGuiCol_ButtonActive, IM_COL32(50, 50, 50, 200));
-        ImGuiStyleColorChanger _3(ImGuiCol_ButtonHovered, IM_COL32(0, 0, 0, 200));
-        ImGuiStyleColorChanger _4(ImGuiCol_WindowBg, bgColor);
-        ImGuiStyleColorChanger _5(ImGuiCol_TitleBg, bgColor);
-        ImGuiStyleColorChanger _6(ImGuiCol_TitleBgCollapsed, bgColor);
-        ImGuiStyleColorChanger _7(ImGuiCol_TitleBgActive, bgColor);
-        ImGuiStyleColorChanger _8(ImGuiCol_HeaderActive, IM_COL32(50, 50, 50, 200));
-        ImGuiStyleColorChanger _9(ImGuiCol_HeaderHovered, IM_COL32(0, 0, 0, 200));
-        ImGuiStyleColorChanger _10(ImGuiCol_PlotLines, IM_COL32(0, 0, 0, 200));
-        ImGuiStyleColorChanger _11(ImGuiCol_FrameBg, IM_COL32(200, 200, 200, 100));
+        const std::array<ImGuiStyleColorChanger, 11u> changedColors = {
+                ImGuiStyleColorChanger{ImGuiCol_Text, IM_COL32(200, 200, 200, 200)},
+                {ImGuiCol_ButtonActive, IM_COL32(50, 50, 50, 200)},
+                {ImGuiCol_ButtonHovered, IM_COL32(0, 0, 0, 200)},
+                {ImGuiCol_WindowBg, bgColor},
+                {ImGuiCol_TitleBg, bgColor},
+                {ImGuiCol_TitleBgCollapsed, bgColor},
+                {ImGuiCol_TitleBgActive, bgColor},
+                {ImGuiCol_HeaderActive, IM_COL32(50, 50, 50, 200)},
+                {ImGuiCol_HeaderHovered, IM_COL32(0, 0, 0, 200)},
+                {ImGuiCol_PlotLines, IM_COL32(0, 0, 0, 200)},
+                {ImGuiCol_FrameBg, IM_COL32(200, 200, 200, 100)}
+        };
 
 #ifdef _DEBUG
-        if (ImGui::Begin("info(debug):", nullptr, window_flags)) {
+        constexpr char* kBuildType = "info(debug):";
 #else
-            if (ImGui::Begin("info(release):", nullptr, window_flags)) {
+        constexpr char* kBuildType = "info(release):";
 #endif
+        if (ImGui::Begin(kBuildType, nullptr, window_flags)) {
+            ImGui::Text(_timeString.c_str());
 
             if (ImGui::TreeNodeEx("platform", ImGuiTreeNodeFlags_OpenOnArrow)) {
                 ImGui::Text(_os.c_str());
-                ImGui::Text(_timeString.c_str());
                 ImGui::TreePop();
             }
             ImGui::Separator();
@@ -191,17 +194,20 @@ namespace engine {
 
                 ImGui::Separator();
                 ImGui::BulletText(_renderFps.c_str());
-                ImGui::PlotLines("", _renderFps_array.data(), _renderFps_array.size(),
-                                 _fps_array_idx, NULL, 0.0, _maxRenderFps,
-                                 ImVec2(0, 30.0f));
+//                ImGui::PlotLines("", _renderFps_array.data(), _renderFps_array.size(),
+//                                 _fps_array_idx, NULL, 0.0, _maxRenderFps,
+//                                 ImVec2(0, 30.0f));
+                ImGui::PlotHistogram("", _renderFps_array.data(), _renderFps_array.size(),
+                                     _fps_array_idx, NULL, 0.0, _maxRenderFps, ImVec2(0, 30.0f));
 
                 ImGui::BulletText(_updateFps.c_str());
-                ImGui::PlotLines("", _updateFps_array.data(), _updateFps_array.size(),
-                                 _fps_array_idx, NULL, 0.0, _maxUpdateFps,
-                                 ImVec2(0, 30.0f));
+//                ImGui::PlotLines("", _updateFps_array.data(), _updateFps_array.size(),
+//                                 _fps_array_idx, NULL, 0.0, _maxUpdateFps,
+//                                 ImVec2(0, 30.0f));
+                ImGui::PlotHistogram("", _updateFps_array.data(), _updateFps_array.size(),
+                                     _fps_array_idx, NULL, 0.0, _maxUpdateFps, ImVec2(0, 30.0f));
 
-//                ImGui::PlotHistogram("", _renderFps_array.data(), _renderFps_array.size(),
-//                                                 _fps_array_idx, NULL, 0.0, _maxRenderFps, ImVec2(0, 30.0f));
+
 
                 ImGui::TreePop();
             }
