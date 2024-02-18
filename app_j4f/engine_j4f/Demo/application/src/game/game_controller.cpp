@@ -95,7 +95,7 @@ namespace game {
     }
 
     bool GameController::onInpuKeyEvent(const engine::KeyEvent &event) {
-        return false;
+        return _playerController.onKeyEvent(event);
     }
 
     bool GameController::onInpuCharEvent(const uint16_t code) {

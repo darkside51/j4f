@@ -46,4 +46,27 @@ namespace game {
                 break;
         }
     }
+
+    bool PlayerController::onKeyEvent(const engine::KeyEvent& event) {
+        if (!_unit) return false;
+        if (event.state == engine::InputEventState::IES_RELEASE) {
+            switch (event.key) {
+            case engine::KeyboardKey::K_1:
+                _unit->setState(UnitState::Special, 3u);
+                return true;
+            case engine::KeyboardKey::K_2:
+                _unit->setState(UnitState::Special, 4u);
+                return true;
+            case engine::KeyboardKey::K_3:
+                _unit->setState(UnitState::Special, 5u);
+                return true;
+            case engine::KeyboardKey::K_4:
+                _unit->setState(UnitState::Special, 6u);
+                return true;
+            default:
+                return false;
+            }
+        }
+        return false;
+    }
 }

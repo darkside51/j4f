@@ -16,6 +16,7 @@ namespace game {
         Idle = 1u,
         Walking = 2u,
         Running = 3u,
+        Special = 4u,
     };
 
 class Unit : public Entity, public engine::IAnimationObserver {
@@ -31,9 +32,9 @@ class Unit : public Entity, public engine::IAnimationObserver {
         void update(const float delta);
 
         engine::vec3f getPosition() const;
+        void setState(const UnitState state, uint8_t specialAnimId = 0u) noexcept;
 
     private:
-        void setState(const UnitState state) noexcept;
         void updateAnimationState(const float delta);
 
         uint8_t _currentAnimId = 0u;

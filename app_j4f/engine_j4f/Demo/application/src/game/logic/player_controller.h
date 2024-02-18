@@ -12,6 +12,8 @@ namespace game {
         void assign(const Unit & unit);
 
         void onPointerEvent(const engine::PointerEvent &event);
+        bool onKeyEvent(const engine::KeyEvent& event);
+
         engine::vec3f getPlayerPosition() const;
     private:
         engine::ref_ptr<Unit> _unit;

@@ -68,49 +68,38 @@ namespace game {
                                        _animations = std::make_unique<MeshAnimationTree>(0.0f, asset->getNodesCount(),
                                                                         asset->getSkeleton()->getLatency());
                                        _animations->addObserver(this);
-                                       _animations->getAnimator()->resize(2u);
+                                       _animations->getAnimator()->resize(7u);
 
                                        auto && animationManager = Engine::getInstance().getModule<Graphics>().getAnimationManager();
                                        animationManager->registerAnimation(_animations.get());
                                        animationManager->addTarget(_animations.get(), asset->getSkeleton().get());
 
-                                       {
+                                       const auto loadAnim = [&assetManager, this, mainAsset = asset.get()](const std::string file, uint8_t id, float weight, bool infinity = true, float speed = 1.0f) {
                                            MeshLoadingParams anim;
-                                           anim.file = "resources/assets/models/nuke_man/idle.gltf";
+                                           anim.file = file;
                                            anim.flags->async = 1;
                                            anim.callbackThreadId = 1;
 
-                                           assetManager.loadAsset<Mesh *>(anim,
-                                                                          [mainAsset = asset.get(), this](
-                                                                                  std::unique_ptr<Mesh> &&asset,
-                                                                                  const AssetLoadingResult result) mutable {
-                                                                                  _animations->getAnimator()->assignChild(0u, 
-                                                                                      new MeshAnimationTree::AnimatorType(
-                                                                                              &asset->getMeshData()->animations[0],
-                                                                                              1.0f,
-                                                                                              mainAsset->getSkeleton()->getLatency()));
-                                                                          }
+                                           assetManager.loadAsset<Mesh*>(anim,
+                                               [mainAsset, this, id, weight, speed, infinity](
+                                                   std::unique_ptr<Mesh>&& asset,
+                                                   const AssetLoadingResult result) mutable {
+                                                       _animations->getAnimator()->assignChild(id,
+                                                       new MeshAnimationTree::AnimatorType(
+                                                           &asset->getMeshData()->animations[0],
+                                                           weight,
+                                                           mainAsset->getSkeleton()->getLatency(), speed, infinity));
+                                               }
                                            );
-                                       }
+                                       };
 
-                                       {
-                                           MeshLoadingParams anim;
-                                           anim.file = "resources/assets/models/nuke_man/running.gltf";
-                                           anim.flags->async = 1;
-                                           anim.callbackThreadId = 1;
-
-                                           assetManager.loadAsset<Mesh *>(anim,
-                                                                          [mainAsset = asset.get(), this](
-                                                                                  std::unique_ptr<Mesh> &&asset,
-                                                                                  const AssetLoadingResult result) mutable {
-                                                                                  _animations->getAnimator()->assignChild(1u, 
-                                                                                      new MeshAnimationTree::AnimatorType(
-                                                                                              &asset->getMeshData()->animations[0],
-                                                                                              0.0f,
-                                                                                              mainAsset->getSkeleton()->getLatency()));
-                                                                          }
-                                           );
-                                       }
+                                       loadAnim("resources/assets/models/nuke_man/idle.gltf", 0u, 1.0f);
+                                       loadAnim("resources/assets/models/nuke_man/idle_angry.gltf", 1u, 0.0f);
+                                       loadAnim("resources/assets/models/nuke_man/running.gltf", 2u, 0.0f);
+                                       loadAnim("resources/assets/models/nuke_man/yelling.gltf", 3u, 0.0f, false); 
+                                       loadAnim("resources/assets/models/nuke_man/hokey_pokey.gltf", 4u, 0.0f, false);
+                                       loadAnim("resources/assets/models/nuke_man/dancing0.gltf", 5u, 0.0f, false);
+                                       loadAnim("resources/assets/models/nuke_man/kick0.gltf", 6u, 0.0f, false);
 
                                        //////////////////////
                                        auto && node = mesh->getNode();
@@ -154,6 +143,7 @@ namespace game {
             case AnimationEvent::EndLoop:
                 break;
             case AnimationEvent::Finish:
+                setState(UnitState::Idle, _currentAnimId == 6 ? 1u : 0u);
                 break;
             default: break;
         }
@@ -161,6 +151,10 @@ namespace game {
 
     void Unit::updateAnimationState(const float delta) {
         if (!_animations) return;
+
+        // if unit is alive
+        _animations->activate();
+
         constexpr float kAnimChangeSpeed = 4.0f;
         const float animChangeSpeed = kAnimChangeSpeed * delta;
         auto &animations = _animations->getAnimator()->children();
@@ -180,26 +174,34 @@ namespace game {
         }
     }
 
-    void Unit::setState(const UnitState state) noexcept {
+    void Unit::setState(const UnitState state, uint8_t specialAnimId) noexcept {
         switch (state) {
             case UnitState::Undefined :
                 break;
             case UnitState::Idle :
-                _currentAnimId = 0u;
+                _currentAnimId = specialAnimId;
                 break;
             case UnitState::Walking :
                 _currentAnimId = 1u;
                 break;
             case UnitState::Running :
-                _currentAnimId = 1u;
+                _currentAnimId = 2u;
+                break;
+            case UnitState::Special:
+                _moveTarget = _mapObject.getPosition();
+                _currentAnimId = specialAnimId;
+                break;
+            default:
                 break;
         }
+
         _state = state;
     }
 
     void Unit::update(const float delta) {
         using namespace engine;
         const auto & p = _mapObject.getPosition();
+
         if (p != _moveTarget) {
             const auto vec = _moveTarget - p;
             constexpr float kAngleSpeed = 16.0f;
@@ -221,7 +223,7 @@ namespace game {
                 _moveTarget = p; // stop move
                 setState(UnitState::Idle);
             }
-        } else {
+        } else if (_state == UnitState::Running) {
             setState(UnitState::Idle);
         }
 
