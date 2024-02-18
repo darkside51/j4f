@@ -227,11 +227,11 @@ namespace vulkan {
 
 					m_descriptorSetLayoutBindings[i].push_back(bindingDescription);
 
-					uint32_t sizeInBytes = 0;
+					uint32_t sizeInBytes = 0u;
 					parseBuffer(binding, bindingDescription, sizeInBytes);
 
 					const auto minUboAlignment = static_cast<uint32_t>(renderer->getDevice()->gpuProperties.limits.minUniformBufferOffsetAlignment);
-					if (minUboAlignment > 0) {
+					if (minUboAlignment > 0u) {
 						sizeInBytes = engine::alignValue(sizeInBytes, minUboAlignment);
 					}
 
@@ -255,11 +255,11 @@ namespace vulkan {
 
 					m_descriptorSetLayoutBindings[i].push_back(bindingDescription);
 
-					uint32_t sizeInBytes = 0;
+					uint32_t sizeInBytes = 0u;
 					parseBuffer(binding, bindingDescription, sizeInBytes);
 
 					const size_t minUboAlignment = renderer->getDevice()->gpuProperties.limits.minUniformBufferOffsetAlignment;
-					if (minUboAlignment > 0) {
+					if (minUboAlignment > 0u) {
 						sizeInBytes = engine::alignValue(sizeInBytes, minUboAlignment);
 					}
 
@@ -286,11 +286,11 @@ namespace vulkan {
 
 					m_descriptorSetLayoutBindings[i].push_back(bindingDescription);
 
-					uint32_t sizeInBytes = 0;
+					uint32_t sizeInBytes = 0u;
 					parseBuffer(binding, bindingDescription, sizeInBytes);
 
 					const auto minUboAlignment = static_cast<uint32_t>(renderer->getDevice()->gpuProperties.limits.minUniformBufferOffsetAlignment);
-					if (minUboAlignment > 0) {
+					if (minUboAlignment > 0u) {
 						sizeInBytes = engine::alignValue(sizeInBytes, minUboAlignment);
 					}
 
@@ -314,11 +314,11 @@ namespace vulkan {
 
 					m_descriptorSetLayoutBindings[i].push_back(bindingDescription);
 
-					uint32_t sizeInBytes = 0;
+					uint32_t sizeInBytes = 0u;
 					parseBuffer(binding, bindingDescription, sizeInBytes);
 
 					const size_t minUboAlignment = renderer->getDevice()->gpuProperties.limits.minUniformBufferOffsetAlignment;
-					if (minUboAlignment > 0) {
+					if (minUboAlignment > 0u) {
 						sizeInBytes = engine::alignValue(sizeInBytes, minUboAlignment);
 					}
 
