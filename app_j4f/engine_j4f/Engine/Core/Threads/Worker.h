@@ -188,7 +188,7 @@ namespace engine {
         }
 
 		[[nodiscard]] inline uint16_t frameId() const noexcept { return _frameId.load(std::memory_order_relaxed); }
-        [[nodiscard]] inline std::optional<std::thread::id> threadId() const noexcept { return _threadId; }
+        [[nodiscard]] inline const std::optional<std::thread::id>& threadId() const noexcept { return _threadId; }
 
 	private:
 		inline void sleep() {

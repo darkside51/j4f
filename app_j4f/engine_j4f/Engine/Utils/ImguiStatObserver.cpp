@@ -165,9 +165,9 @@ namespace engine {
         };
 
 #ifdef _DEBUG
-        constexpr char* kBuildType = "info(debug):";
+        const char* kBuildType = "info(debug):";
 #else
-        constexpr char* kBuildType = "info(release):";
+        const char* kBuildType = "info(release):";
 #endif
         if (ImGui::Begin(kBuildType, nullptr, window_flags)) {
             ImGui::Text(_timeString.c_str());

@@ -9,6 +9,7 @@
 #include <Engine/Graphics/GpuProgramsManager.h>
 #include <Engine/Graphics/Mesh/Mesh.h>
 #include <Engine/Graphics/Mesh/MeshLoader.h>
+#include <Engine/Core/Threads/WorkersCommutator.h>
 
 #include <Engine/Graphics/Texture/TexturePtrLoader.h>
 
@@ -67,6 +68,7 @@ namespace game {
                                        _animations = std::make_unique<MeshAnimationTree>(0.0f, asset->getNodesCount(),
                                                                         asset->getSkeleton()->getLatency());
                                        _animations->addObserver(this);
+                                       _animations->getAnimator()->resize(2u);
 
                                        auto && animationManager = Engine::getInstance().getModule<Graphics>().getAnimationManager();
                                        animationManager->registerAnimation(_animations.get());
@@ -75,14 +77,14 @@ namespace game {
                                        {
                                            MeshLoadingParams anim;
                                            anim.file = "resources/assets/models/nuke_man/idle.gltf";
-                                           anim.flags->async = 0;
+                                           anim.flags->async = 1;
                                            anim.callbackThreadId = 1;
 
                                            assetManager.loadAsset<Mesh *>(anim,
                                                                           [mainAsset = asset.get(), this](
                                                                                   std::unique_ptr<Mesh> &&asset,
-                                                                                  const AssetLoadingResult result) {
-                                                                              _animations->getAnimator()->addChild(
+                                                                                  const AssetLoadingResult result) mutable {
+                                                                                  _animations->getAnimator()->assignChild(0u, 
                                                                                       new MeshAnimationTree::AnimatorType(
                                                                                               &asset->getMeshData()->animations[0],
                                                                                               1.0f,
@@ -94,14 +96,14 @@ namespace game {
                                        {
                                            MeshLoadingParams anim;
                                            anim.file = "resources/assets/models/nuke_man/running.gltf";
-                                           anim.flags->async = 0;
+                                           anim.flags->async = 1;
                                            anim.callbackThreadId = 1;
 
                                            assetManager.loadAsset<Mesh *>(anim,
                                                                           [mainAsset = asset.get(), this](
                                                                                   std::unique_ptr<Mesh> &&asset,
-                                                                                  const AssetLoadingResult result) {
-                                                                              _animations->getAnimator()->addChild(
+                                                                                  const AssetLoadingResult result) mutable {
+                                                                                  _animations->getAnimator()->assignChild(1u, 
                                                                                       new MeshAnimationTree::AnimatorType(
                                                                                               &asset->getMeshData()->animations[0],
                                                                                               0.0f,
@@ -133,11 +135,15 @@ namespace game {
     Unit::Unit(Unit &&) noexcept = default;
 
     engine::vec3f Unit::getPosition() const {
-        // for render thread
-        const auto& m = _mapObject.getTransform();
-        return { m[3][0], m[3][1], m[3][2] };
-        // for update thread
-        return _mapObject.getPosition();
+        using namespace engine;
+        if (Engine::getInstance().getModule<WorkerThreadsCommutator>().checkCurrentThreadIs(static_cast<uint8_t>(Engine::Workers::RENDER_THREAD))) {
+            // for render thread
+            const auto& m = _mapObject.getTransform();
+            return { m[3][0], m[3][1], m[3][2] };
+        } else {         
+            // for update thread
+            return _mapObject.getPosition();
+        }        
     }
 
     void Unit::onEvent(engine::AnimationEvent event, const engine::MeshAnimator* animator) {
@@ -158,7 +164,7 @@ namespace game {
         constexpr float kAnimChangeSpeed = 4.0f;
         const float animChangeSpeed = kAnimChangeSpeed * delta;
         auto &animations = _animations->getAnimator()->children();
-        if (animations.size() <= _currentAnimId) return;
+        if (animations.size() <= _currentAnimId || !animations[_currentAnimId]) return;
 
         auto &currentAnim = animations[_currentAnimId]->value();
         if (currentAnim.getWeight() < 1.0f) {

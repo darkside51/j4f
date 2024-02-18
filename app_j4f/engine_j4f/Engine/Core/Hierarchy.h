@@ -96,6 +96,10 @@ namespace engine {
 			_children.reserve(sz);
 		}
 
+		inline void resize(const size_t sz) {
+			_children.resize(sz);
+		}
+
 		//template <typename... Args>
 		//children_type& makeChild(Args&&... args) {
 			// todo!
@@ -393,6 +397,44 @@ namespace engine {
 		inline const Hierarchy* getNext() const { return _next; }
 
 		inline T* operator-> () { return &_value; }
+
+		inline children_type& childAt(const size_t i) { return _children[i]; }
+		inline const children_type& childAt(const size_t i) const { return _children[i]; }
+
+		inline void assignChild(const size_t i, children_type c) {
+			if (!_children.empty() && i < _children.size()) {
+				if constexpr (std::is_pointer<children_type>()) {
+					if (i > 0u && _children[i - 1]) {
+						_children[i - 1]->_next = c;
+						c->_prev = _children[i - 1];
+					}
+					if (i < _children.size() - 1 && _children[i + 1]) {
+						_children[i + 1]->_prev = c;
+						c->_next = _children[i + 1];
+					}
+				} else {
+					if (i > 0u && _children[i - 1]) {
+						_children[i - 1]->_next = c.get();
+						c->_prev = _children[i - 1].get();
+					}
+					if (i < _children.size() - 1 && _children[i + 1]) {
+						_children[i + 1]->_prev = c.get();
+						c->_next = _children[i + 1].get();
+					}
+				}
+			}
+
+			if constexpr (std::is_pointer<children_type>()) {
+				delete _children[i];
+			}
+
+			c->_parent = this;
+			if constexpr (is_unique_pointer<children_type>::value) {
+				_children[i] = std::move(c);
+			} else {
+				_children[i] = c;
+			}
+		}
 
 	private:
 		T _value;
