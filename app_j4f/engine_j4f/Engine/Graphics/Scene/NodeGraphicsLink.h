@@ -16,20 +16,21 @@ namespace vulkan {
 namespace engine {
 
 	struct RenderDescriptor;
+    class RenderedEntity;
 
 	class RenderObject {
 	public:
-		virtual ~RenderObject() { _descriptor = nullptr; };
+		virtual ~RenderObject() { _renderEntity = nullptr; };
 
 		RenderObject() = default;
-		explicit RenderObject(RenderDescriptor* d) noexcept : _descriptor(d) {}
-		[[nodiscard]] inline RenderDescriptor* getRenderDescriptor() const noexcept { return _descriptor; }
+		[[nodiscard]] RenderDescriptor& getRenderDescriptor() noexcept;
+        [[nodiscard]] inline RenderedEntity* getRenderEntity() const noexcept { return _renderEntity; }
 		inline void setNeedUpdate(const bool value) noexcept { _needUpdateData = value; }
         [[nodiscard]] inline bool getNeedUpdate() const noexcept { return _needUpdateData; }
 
 	protected:
-		RenderDescriptor* _descriptor = nullptr;
 		bool _needUpdateData = false;
+        RenderedEntity* _renderEntity = nullptr;
 	};
 
 	class NodeRenderer : public RenderObject {
@@ -78,10 +79,13 @@ namespace engine {
             }
 
 			_graphics = nullptr;
+            _renderEntity = nullptr;
 		}
 
 		NodeRendererImpl() = default;
-		explicit NodeRendererImpl(type&& g) : RenderObject(&g->getRenderDescriptor()), _graphics(g) {}
+		explicit NodeRendererImpl(type&& g) : RenderObject(&g->getRenderDescriptor()), _graphics(g) {
+            _renderEntity = _graphics;
+        }
 
         template <typename Type = type>
 		inline void setGraphics(Type&& g, const bool own = true) {
@@ -92,11 +96,11 @@ namespace engine {
             }
 
 			_isGraphicsOwner = own;
-			_descriptor = &g->getRenderDescriptor();
 			_graphics = std::forward<Type>(g);
+            _renderEntity = _graphics;
 		}
 
-		inline void resetGraphics() { _graphics = nullptr; _isGraphicsOwner = false; }
+		inline void resetGraphics() { _graphics = nullptr; _isGraphicsOwner = false; _renderEntity = nullptr; }
 
 		inline void updateRenderData() {
 			if (getNeedUpdate()) {

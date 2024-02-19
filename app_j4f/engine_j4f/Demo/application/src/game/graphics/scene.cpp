@@ -10,6 +10,7 @@
 #include <Engine/Graphics/Mesh/AnimationTree.h>
 #include <Engine/Graphics/Plane/Plane.h>
 #include <Engine/Graphics/Render/RenderList.h>
+#include <Engine/Graphics/Render/RenderDescriptor.h>
 #include <Engine/Graphics/Render/AutoBatchRender.h>
 #include <Engine/Graphics/Scene/Node.h>
 #include <Engine/Graphics/Scene/NodeGraphicsLink.h>
@@ -55,7 +56,7 @@ namespace game {
 
         auto imgui = std::make_unique<NodeRenderer<ImguiGraphics *>>();
         imgui->setGraphics(ImguiGraphics::getInstance());
-        imgui->getRenderDescriptor()->order = kUiOrder;
+        imgui->getRenderDescriptor().order = kUiOrder;
         _imguiGraphics = imgui->graphics();
         {
             placeToUi(imgui.release());
@@ -123,7 +124,8 @@ namespace game {
                              engine::FrustumVisibleChecker(worldCamera.getFrustum()), true);
 
             // shadows
-            reloadRenderList(shadowRenderList, _shadowCastNodes.data(), _shadowCastNodes.size(), false, 0u, {}, false);
+            reloadRenderList(shadowRenderList, _shadowCastNodes.data(), _shadowCastNodes.size(),
+                             false, 0u, {}, false);
         }
 
         { // fill uiNode
@@ -134,25 +136,15 @@ namespace game {
         commandBuffer.begin();
 
         ///// shadow pass
-        vulkan::VulkanGpuProgram *program;
-        auto mesh_skin_shadow_program = CascadeShadowMap::getShadowProgram<MeshSkinnedShadow>();
-        for (auto & n : _shadowCastNodes) {
-            auto & node = n->value();
-            if (node.isVisible(0u)) {
-                auto && mesh = node.getRenderer<NodeRenderer<Mesh*>>();
-                program = mesh->setProgram(mesh_skin_shadow_program, _shadowMap->getRenderPass());
-            }
-        }
-
-        renderShadowMap(_shadowMap.get(), shadowRenderList, commandBuffer, currentFrame);
-
-        for (auto & n : _shadowCastNodes) {
-            auto & node = n->value();
-            if (node.isVisible(0u)) {
-                auto && mesh = node.getRenderer<NodeRenderer<Mesh*>>();
-                mesh->setProgram(program);
-            }
-        }
+        renderShadowMap(_shadowMap.get(), shadowRenderList, commandBuffer, currentFrame,
+                        [this](engine::RenderedEntity* entity){
+                                // need set correct program
+                                auto mesh_skin_shadow_program = CascadeShadowMap::getShadowProgram<MeshSkinnedShadow>();
+                                return entity->setProgram(mesh_skin_shadow_program, _shadowMap->getRenderPass());
+                            }, [](engine::RenderedEntity* entity, vulkan::VulkanGpuProgram* program){
+                                entity->setProgram(program);
+                            }
+        );
         ///// shadow pass
 
         std::array<VkClearValue, 2> clearValues = {
@@ -182,8 +174,15 @@ namespace game {
         //_graphicsDataUpdater->updateData<GraphicsDataUpdateSystem<Mesh*>>();
 
         // render nodes
-        rootRenderList.render(commandBuffer, currentFrame, {&worldCamera.getTransform(), nullptr, nullptr});
-        uiRenderList.render(commandBuffer, currentFrame, {nullptr, nullptr, nullptr});
+        rootRenderList.render(commandBuffer, currentFrame,
+                              {&worldCamera.getTransform(),
+                               nullptr,
+                               nullptr});
+
+        uiRenderList.render(commandBuffer, currentFrame,
+                            {nullptr,
+                             nullptr,
+                             nullptr});
 
         // draw bounding boxes
         constexpr bool kDrawBoundingVolumes = false;
