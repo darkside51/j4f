@@ -71,6 +71,9 @@ namespace game {
                                            std::unique_ptr<Mesh> && asset, const AssetLoadingResult result) mutable {
                                        asset->setProgram(program);
                                        asset->setParamByName("u_texture", texture.get(), false);
+                                       asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
+                                           renderState.rasterizationState.cullMode = vulkan::CullMode::CULL_MODE_NONE;
+                                       });
 
                                        // animations
                                        _animations = std::make_unique<MeshAnimationTree>(0.0f, asset->getNodesCount(),
