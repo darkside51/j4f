@@ -7,6 +7,8 @@
 #include "../../Core/Engine.h"
 #include "../../Graphics/VertexAttributes.h"
 
+#include "../../Graphics/Text/FontLoader.h"
+
 #include <imgui.h>
 
 namespace engine {
@@ -61,12 +63,12 @@ namespace engine {
         g->createRenderData();
     }
 
-    ImguiGraphics::ImguiGraphics() {
+    ImguiGraphics::ImguiGraphics(std::string_view fontName, float size) {
         Engine::getInstance().getModule<WorkerThreadsCommutator>().enqueue(
                 Engine::getInstance().getThreadCommutationId(Engine::Workers::UPDATE_THREAD), generateShaders, this);
 
         ImGui::CreateContext();
-        createFontTexture();
+        createFontTexture(fontName, size);
         setupKeyMap();
 
         ImGuiIO &io = ImGui::GetIO();
@@ -131,8 +133,25 @@ namespace engine {
         _initComplete = true;
     }
 
-    void ImguiGraphics::createFontTexture() {
+    void ImguiGraphics::createFontTexture(std::string_view fontName, float size) {
         ImGuiIO &io = ImGui::GetIO();
+        if (!fontName.empty()) {
+            auto && assetManager = Engine::getInstance().getModule<AssetManager>();
+            FontLoadingParams font_loading_params(fontName);
+            auto* font = assetManager.loadAsset<Font*>(font_loading_params);
+            io.Fonts->AddFontDefault();
+
+            ImFontConfig config;
+            config.MergeMode = false; // remove the flag so that the font is used for all text
+            config.OversampleH = 2;
+            config.OversampleV = 2;
+            config.PixelSnapH = false;
+            config.FontDataOwnedByAtlas = false;
+
+            auto iconRanges = io.Fonts->GetGlyphRangesDefault();
+            _mainFont = io.Fonts->AddFontFromMemoryTTF(font->fontData->fdata, font->fontData->fileSize, size, &config, iconRanges);
+        }
+
         unsigned char *pixels = nullptr;
         int width = 0;
         int height = 0;
@@ -190,10 +209,17 @@ namespace engine {
         const auto [width, height] = Engine::getInstance().getModule<Graphics>().getSize();
         io.DisplaySize = ImVec2(width, height);
         ImGui::NewFrame();
+
+        if (_mainFont) {
+            ImGui::PushFont(_mainFont.get());
+        }
     }
 
     void ImguiGraphics::render(vulkan::VulkanCommandBuffer &commandBuffer, const uint32_t currentFrame,
                                const ViewParams & /*viewParams*/, const uint16_t /*drawCount*/) {
+        if (_mainFont) {
+            ImGui::PopFont();
+        }
 
         if (!_initComplete) {
             ImGui::Render();

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../../Core/ref_ptr.h"
 #include "../../Render/RenderedEntity.h"
 #include "../../Render/RenderHelper.h"
 #include "../../../Input/Input.h"
@@ -8,6 +9,9 @@
 #include <cstdint>
 #include <utility>
 #include <unordered_map>
+#include <string_view>
+
+struct ImFont;
 
 namespace engine {
 
@@ -15,8 +19,8 @@ namespace engine {
         friend class Graphics;
         friend void generateShaders(ImguiGraphics* g);
     public:
-        inline static ImguiGraphics* getInstance() noexcept {
-            static ImguiGraphics* imgui = new ImguiGraphics();
+        inline static ImguiGraphics* getInstance(std::string_view fontName = {}, float size = 16.0f) noexcept {
+            static ImguiGraphics* imgui = new ImguiGraphics(fontName, size);
             return imgui;
         }
 
@@ -36,9 +40,9 @@ namespace engine {
         inline static std::vector<unsigned int> imguiPsh = {};
 
     private:
-        ImguiGraphics();
+        ImguiGraphics(std::string_view fontName, float size);
         void createRenderData();
-        void createFontTexture();
+        void createFontTexture(std::string_view fontName, float size);
         void destroyFontTexture();
         void setupKeyMap();
         void destroy();
@@ -49,6 +53,7 @@ namespace engine {
         vulkan::VulkanTexture* _fontTexture = nullptr;
         std::unordered_map<uint8_t, std::pair<uint8_t, uint8_t>> _keyMap;
         bool _initComplete = false;
+        ref_ptr<ImFont> _mainFont = nullptr; // memory free with imgui
     };
 
 }

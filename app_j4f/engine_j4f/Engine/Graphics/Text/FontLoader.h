@@ -4,6 +4,7 @@
 #include "../../Core/AssetManager.h"
 
 #include <atomic>
+#include <string_view>
 
 namespace engine {
 
@@ -11,6 +12,7 @@ namespace engine {
 	struct AssetLoadingParams<Font> : public AssetLoadingFlags {
 		std::string file;
 		AssetLoadingParams(const std::string& f) : file(f) {}
+        AssetLoadingParams(std::string_view f) : file(f) {}
 	};
 
 	using FontLoadingParams = AssetLoadingParams<Font>;

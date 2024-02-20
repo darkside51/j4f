@@ -1,6 +1,7 @@
 #include "scene.h"
 
 #include "camera_controller.h"
+#include "ui_manager.h"
 
 #include <Engine/Core/Common.h>
 #include <Engine/Core/Math/mathematic.h>
@@ -41,7 +42,8 @@ namespace game {
             _graphicsDataUpdater(std::make_unique<engine::GraphicsDataUpdater>()),
             _statObserver(std::make_unique<engine::ImguiStatObserver>(engine::ImguiStatObserver::Location::top_left)),
             _rootNode(std::make_unique<NodeHR>()),
-            _uiNode(std::make_unique<NodeHR>()) {
+            _uiNode(std::make_unique<NodeHR>()),
+            _uiManager(std::make_unique<UIManager>()) {
         registerGraphicsUpdateSystems();
 
         using namespace engine;
@@ -55,13 +57,12 @@ namespace game {
                                    static_cast<float>(width) / static_cast<float>(height), 1.0f, 3500.0f);
 
         auto imgui = std::make_unique<NodeRenderer<ImguiGraphics *>>();
-        imgui->setGraphics(ImguiGraphics::getInstance());
+        imgui->setGraphics(ImguiGraphics::getInstance("resources/assets/fonts/OpenSans/OpenSans-Bold.ttf", 20.0f));
         imgui->getRenderDescriptor().order = kUiOrder;
         _imguiGraphics = imgui->graphics();
         {
             placeToUi(imgui.release());
         }
-
 
         _shadowMap = std::make_unique<CascadeShadowMap>(kShadowMapDim, 32u, kShadowMapCascadeCount,
                                                         worldCamera.getNearFar(), 400.0f, 1200.0f);
@@ -133,6 +134,17 @@ namespace game {
             reloadRenderList(uiRenderList, _uiNode.get(), false, 0u);
         }
 
+        { // ui
+            if (_imguiGraphics) {
+                _imguiGraphics->update(delta);
+                _uiManager->draw();
+                //ImGui::ShowDemoWindow();
+                if (_statObserver) {
+                    _statObserver->draw();
+                }
+            }
+        }
+
         auto &commandBuffer = renderer->getRenderCommandBuffer();
         commandBuffer.begin();
 
@@ -161,15 +173,6 @@ namespace game {
                                      false);
         commandBuffer.cmdSetScissor(0, 0, width, height);
         commandBuffer.cmdSetDepthBias(0.0f, 0.0f, 0.0f);
-
-        {
-            if (_imguiGraphics) {
-                _imguiGraphics->update(delta);
-                _statObserver->draw();
-
-                //ImGui::ShowDemoWindow();
-            }
-        }
 
         _graphicsDataUpdater->updateData();
         //_graphicsDataUpdater->updateData<GraphicsDataUpdateSystem<Mesh*>>();

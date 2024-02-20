@@ -182,7 +182,8 @@ namespace engine {
     public:
         template <typename T>
         inline void registerSystem(T&& s) {
-			static const auto id = UniqueTypeId<IGraphicsDataUpdateSystem>::getUniqueId<std::decay_t<T>>();
+			static const auto id =
+                    UniqueTypeId<IGraphicsDataUpdateSystem>::getUniqueId<std::remove_pointer_t<std::decay_t<T>>>();
 			if (_systems.size() <= id) {
 				_systems.resize(id + 1u);
 			} else if (_systems[id] != nullptr) {
@@ -225,7 +226,7 @@ namespace engine {
 
         template<typename T>
         inline void update_data_strict() {
-            static const auto id = UniqueTypeId<IGraphicsDataUpdateSystem>::getUniqueId<T>();
+            static const auto id = UniqueTypeId<IGraphicsDataUpdateSystem>::getUniqueId<std::decay_t<T>>();
             if (_systems.size() > id) {
                 static_cast<T*>(_systems[id].get())->updateRenderData();
             }

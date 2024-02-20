@@ -150,7 +150,7 @@ namespace engine {
 
         const auto bgColor = IM_COL32(0, 0, 0, 100);
 
-        const std::array<ImGuiStyleColorChanger, 11u> changedColors = {
+        const std::array<ImGuiStyleColorChanger, 13u> changedColors = {
                 ImGuiStyleColorChanger{ImGuiCol_Text, IM_COL32(200, 200, 200, 200)},
                 {ImGuiCol_ButtonActive, IM_COL32(50, 50, 50, 200)},
                 {ImGuiCol_ButtonHovered, IM_COL32(0, 0, 0, 200)},
@@ -161,7 +161,9 @@ namespace engine {
                 {ImGuiCol_HeaderActive, IM_COL32(50, 50, 50, 200)},
                 {ImGuiCol_HeaderHovered, IM_COL32(0, 0, 0, 200)},
                 {ImGuiCol_PlotLines, IM_COL32(0, 0, 0, 200)},
-                {ImGuiCol_FrameBg, IM_COL32(200, 200, 200, 100)}
+                {ImGuiCol_FrameBg, IM_COL32(200, 200, 200, 100)},
+                {ImGuiCol_PlotHistogram, IM_COL32(60, 60, 60, 200)},
+                {ImGuiCol_PlotHistogramHovered, IM_COL32(0, 0, 0, 200)},
         };
 
 #ifdef _DEBUG

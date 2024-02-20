@@ -21,6 +21,7 @@ namespace engine {
 
 namespace game {
     class CameraController;
+    class UIManager;
 
 	template <typename T>
 	using NodeRenderer = engine::NodeRendererImpl<T>;
@@ -122,6 +123,8 @@ namespace game {
 
 		std::unique_ptr<NodeHR> _rootNode;
 		std::unique_ptr<NodeHR> _uiNode;
+
+        std::unique_ptr<UIManager> _uiManager;
 
         std::unique_ptr<engine::CascadeShadowMap> _shadowMap;
         std::vector<NodePtr> _shadowCastNodes;
