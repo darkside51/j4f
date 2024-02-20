@@ -113,8 +113,7 @@ namespace engine {
 
 		inline vulkan::VulkanGpuProgram* setProgram(vulkan::VulkanGpuProgram* program, VkRenderPass renderPass = nullptr) {
 			if (_renderDescriptor.renderData.empty()) return nullptr;
-            if (std::holds_alternative<std::monostate>(_renderState.vertexDescription.attributes)) return nullptr;
-//			if (_renderState.vertexDescription.attributes.empty()) return nullptr;
+            //if (std::holds_alternative<std::monostate>(_renderState.vertexDescription.attributes)) return nullptr;
 
 			auto&& renderer = Engine::getInstance().getModule<Graphics>().getRenderer();
 			vulkan::VulkanPipeline* pipeline = renderer->getGraphicsPipeline(_renderState, program, renderPass);

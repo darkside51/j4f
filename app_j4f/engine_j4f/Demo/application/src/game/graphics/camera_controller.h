@@ -20,6 +20,7 @@ namespace game {
 
         void addPitchYaw(const engine::vec2f& py) noexcept;
         void addLen(const float l) noexcept;
+        void resize(const uint16_t w, const uint16_t h) noexcept;
 
         bool update(const float delta);
 

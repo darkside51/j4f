@@ -46,6 +46,14 @@ namespace game {
         }
     }
 
+    void CameraController::resize(const uint16_t w, const uint16_t h) noexcept {
+        auto && size = _camera->getSize();
+        if (size.x != w || size.y != h) {
+            _camera->resize(w, h);
+            _dirty = true;
+        }
+    }
+
     bool CameraController::update(const float delta) {
         if ((!_dirty && _moveDirection == engine::vec2f{0.0f, 0.0f}) || _camera == nullptr) return false;
         _dirty = false;

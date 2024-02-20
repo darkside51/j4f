@@ -9,8 +9,11 @@ namespace game {
     constexpr float kMoveBorderWidth = 4.0f;
     constexpr float kCameraRotationSpeed = 0.005f;
     constexpr float kCameraZoomSpeed = 20.0f;
+    constexpr bool kFollowPlayerMode = true;
 
     bool GameController::moveCamera(const engine::PointerEvent& event) {
+        if constexpr (kFollowPlayerMode) return false;
+
         auto&& engineInstance = engine::Engine::getInstance();
         auto&& renderer = engineInstance.getModule<engine::Graphics>().getRenderer();
         const auto [width, height] = renderer->getSize();
@@ -103,6 +106,8 @@ namespace game {
     }
 
     void GameController::onRenderFrame() {
+        if constexpr (!kFollowPlayerMode) return;
+
         constexpr float kHeight = 25.0f;
         _cameraController.setPosition(_playerController.getPlayerPosition() + engine::vec3f{ 0.0f, 0.0f, kHeight });
     }

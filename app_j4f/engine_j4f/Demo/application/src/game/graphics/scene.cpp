@@ -88,7 +88,7 @@ namespace game {
     }
 
     void Scene::resize(const uint16_t w, const uint16_t h) {
-        _cameras[0].resize(w, h);
+        _controller->resize(w,h);
     }
 
     void Scene::assignCameraController(engine::ref_ptr<CameraController> controller) noexcept {

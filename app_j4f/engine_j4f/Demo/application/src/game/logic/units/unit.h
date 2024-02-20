@@ -9,6 +9,10 @@
 #include <cstdint>
 #include <memory>
 
+namespace engine {
+    struct MeshGraphicsDataBuffer;
+}
+
 namespace game {
 
     enum class UnitState : uint8_t {
@@ -21,7 +25,7 @@ namespace game {
 
 class Unit : public Entity, public engine::IAnimationObserver {
     public:
-        Unit();
+        Unit(engine::ref_ptr<engine::MeshGraphicsDataBuffer> graphicsBuffer);
         ~Unit();
 
         Unit(Unit &&) noexcept;

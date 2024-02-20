@@ -20,10 +20,10 @@
 namespace game {
 
     engine::TexturePtr texture;
-    auto meshGraphicsBuffer = new engine::MeshGraphicsDataBuffer();
 
-    Unit::Unit() : Entity(this), _animations(nullptr) {
+    Unit::Unit(engine::ref_ptr<engine::MeshGraphicsDataBuffer> graphicsBuffer) : Entity(this), _animations(nullptr) {
         using namespace engine;
+        auto && serviceLocator = ServiceLocator::instance();
 
         auto && assetManager = Engine::getInstance().getModule<AssetManager>();
         auto && gpuProgramManager = Engine::getInstance().getModule<Graphics>().getGpuProgramsManager();
@@ -34,6 +34,7 @@ namespace game {
         };
         auto &&program = gpuProgramManager->getProgram(psi);
 
+        const uint8_t latency = 3u;
         MeshLoadingParams mesh_params;
         {
             using namespace gltf;
@@ -41,12 +42,12 @@ namespace game {
             mesh_params.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL,
                                                          AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT,
                                                          AttributesSemantic::TEXCOORD_0);
-            mesh_params.latency = 3;
+            mesh_params.latency = latency;
             mesh_params.flags->async = 1;
             mesh_params.callbackThreadId = 1;
 
-            //meshesGraphicsBuffer = new MeshGraphicsDataBuffer(10 * 1024 * 1024, 10 * 1024 * 1024); // or create with default constructor for unique buffer for mesh
-            mesh_params.graphicsBuffer = meshGraphicsBuffer;
+            // or create with default constructor for unique buffer for mesh
+            mesh_params.graphicsBuffer = graphicsBuffer;
         }
 
         auto mesh = std::make_unique<NodeRenderer<Mesh*>>();
@@ -55,12 +56,19 @@ namespace game {
             textureParams.files = { "resources/assets/models/nuke_man/texture.png" };
             textureParams.flags->async = 1;
             textureParams.flags->use_cache = 1;
-            textureParams.cacheName = "vulkan_logo";
             texture = assetManager.loadAsset<TexturePtr>(textureParams);
 
+            auto meshPtr = mesh.release();
+            auto scene = serviceLocator.getService<Scene>();
+            auto &&node = scene->placeToWorld(meshPtr); // scene->placeToNode(mesh.release(), _mapNode); ??
+            scene->addShadowCastNode(node);
+            _mapObject.assignNode(node);
+            _mapObject.setScale(vec3f(50.0f));
+
             assetManager.loadAsset<Mesh *>(mesh_params,
-                                   [this, mesh = engine::make_ref(mesh), program, &assetManager](std::unique_ptr<Mesh> && asset, const AssetLoadingResult result) mutable {
-                                       //
+                                   [this, mesh = engine::make_ref(meshPtr), program,
+                                    &assetManager](
+                                           std::unique_ptr<Mesh> && asset, const AssetLoadingResult result) mutable {
                                        asset->setProgram(program);
                                        asset->setParamByName("u_texture", texture.get(), false);
 
@@ -74,9 +82,12 @@ namespace game {
                                        animationManager->registerAnimation(_animations.get());
                                        animationManager->addTarget(_animations.get(), asset->getSkeleton().get());
 
-                                       const auto loadAnim = [&assetManager, this, mainAsset = asset.get()](const std::string file, uint8_t id, float weight, bool infinity = true, float speed = 1.0f) {
+                                       const auto loadAnim =
+                                               [&assetManager, this, mainAsset = asset.get()](
+                                                       const std::string file, uint8_t id, float weight,
+                                                       bool infinity = true, float speed = 1.0f) {
                                            MeshLoadingParams anim;
-                                           anim.file = file;
+                                           anim.file = "resources/assets/models/" + file;
                                            anim.flags->async = 1;
                                            anim.callbackThreadId = 1;
 
@@ -93,32 +104,25 @@ namespace game {
                                            );
                                        };
 
-                                       loadAnim("resources/assets/models/nuke_man/idle.gltf", 0u, 1.0f);
-                                       loadAnim("resources/assets/models/nuke_man/idle_angry.gltf", 1u, 0.0f);
-                                       loadAnim("resources/assets/models/nuke_man/running.gltf", 2u, 0.0f);
-                                       loadAnim("resources/assets/models/nuke_man/yelling.gltf", 3u, 0.0f, false); 
-                                       loadAnim("resources/assets/models/nuke_man/hokey_pokey.gltf", 4u, 0.0f, false);
-                                       loadAnim("resources/assets/models/nuke_man/dancing0.gltf", 5u, 0.0f, false);
-                                       loadAnim("resources/assets/models/nuke_man/kick0.gltf", 6u, 0.0f, false);
+                                       loadAnim("nuke_man/idle.gltf", 0u, 1.0f);
+                                       loadAnim("nuke_man/idle_angry.gltf", 1u, 0.0f);
+                                       loadAnim("nuke_man/running.gltf", 2u, 0.0f);
+                                       loadAnim("nuke_man/yelling.gltf", 3u, 0.0f, false);
+                                       loadAnim("nuke_man/hokey_pokey.gltf", 4u, 0.0f, false);
+                                       loadAnim("nuke_man/dancing0.gltf", 5u, 0.0f, false);
+                                       loadAnim("nuke_man/kick0.gltf", 6u, 0.0f, false);
 
                                        //////////////////////
-                                       auto && node = mesh->getNode();
-                                       node->setBoundingVolume(BoundingVolume::make<SphereVolume>(vec3f(0.0f, 0.0f, 0.4f), 0.42f));
+                                       auto && node = _mapObject.getNode()->value();
+                                       node.setBoundingVolume(BoundingVolume::make<SphereVolume>(vec3f(0.0f, 0.0f, 0.4f), 0.42f));
                                        mesh->setGraphics(asset.release());
                                    });
         }
-
-        auto scene = ServiceLocator::instance().getService<Scene>();
-        auto &&node = scene->placeToWorld(mesh.release()); // scene->placeToNode(mesh.release(), _mapNode); ??
-        scene->addShadowCastNode(node);
-        _mapObject.assignNode(node);
-        _mapObject.setScale(vec3f(50.0f));
     }
 
     Unit::~Unit() {
         ServiceLocator::instance().getService<Scene>()->removeShadowCastNode(_mapObject.getNode());
         texture = nullptr;
-        delete meshGraphicsBuffer;
     }
 
     Unit::Unit(Unit &&) noexcept = default;
@@ -143,7 +147,7 @@ namespace game {
             case AnimationEvent::EndLoop:
                 break;
             case AnimationEvent::Finish:
-                setState(UnitState::Idle, _currentAnimId == 6 ? 1u : 0u);
+                setState(UnitState::Idle, _currentAnimId == 6u ? 1u : 0u);
                 break;
             default: break;
         }
@@ -204,11 +208,11 @@ namespace game {
 
         if (p != _moveTarget) {
             const auto vec = _moveTarget - p;
-            constexpr float kAngleSpeed = 16.0f;
+            constexpr float kAngleSpeed = 12.0f;
             if (glm::dot(vec, vec) > kAngleSpeed) {
                 const float angleSpeed = kAngleSpeed * delta;
                 const auto direction = as_normalized(vec);
-                const float moveSpeed = kAngleSpeed * 5.5f * delta;
+                const float moveSpeed = kAngleSpeed * 7.0f * delta;
                 const auto sub = (direction - _direction);
                 if (vec_length(sub) > angleSpeed) {
                     _direction = as_normalized(_direction + as_normalized(sub) * angleSpeed);
