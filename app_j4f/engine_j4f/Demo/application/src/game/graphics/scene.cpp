@@ -52,7 +52,7 @@ namespace game {
         worldCamera.addObserver(this);
         worldCamera.enableFrustum();
         worldCamera.makeProjection(math_constants::f32::pi / 3.0f,
-                                   static_cast<float>(width) / static_cast<float>(height), 1.0f, 2000.0f);
+                                   static_cast<float>(width) / static_cast<float>(height), 1.0f, 3500.0f);
 
         auto imgui = std::make_unique<NodeRenderer<ImguiGraphics *>>();
         imgui->setGraphics(ImguiGraphics::getInstance());
@@ -62,8 +62,9 @@ namespace game {
             placeToUi(imgui.release());
         }
 
-        const vec2f nearFar(1.0f, 2000.0f);
-        _shadowMap = std::make_unique<CascadeShadowMap>(kShadowMapDim, 32u, kShadowMapCascadeCount, nearFar, 400.0f, 1200.0f);
+
+        _shadowMap = std::make_unique<CascadeShadowMap>(kShadowMapDim, 32u, kShadowMapCascadeCount,
+                                                        worldCamera.getNearFar(), 400.0f, 1200.0f);
         _shadowMap->setLamdas(1.0f, 1.0f, 1.0f);
         _shadowMap->setLightPosition(lightPos);
 
@@ -190,7 +191,7 @@ namespace game {
             renderNodesBounds(_rootNode.get(), worldCamera.getTransform(), commandBuffer, currentFrame, 0u);
         }
 
-        //Engine::getInstance().getModule<Graphics>().getRenderHelper()->drawSphere({0.0f, 0.0f, 0.0f}, 1.0f, worldCamera.getTransform(), makeMatrix(1.0f), commandBuffer, currentFrame, true);
+        //Engine::getInstance().getModule<Graphics>().getRenderHelper()->drawSphere({0.0f, 0.0f, 0.5f}, 5.0f, worldCamera.getTransform(), makeMatrix(1.0f), commandBuffer, currentFrame, true);
         autoBatcher->draw(commandBuffer, currentFrame);
 
         commandBuffer.cmdEndRenderPass();

@@ -4,6 +4,7 @@
 #include <Engine/Graphics/Plane/Plane.h>
 #include <Engine/Graphics/GpuProgramsManager.h>
 #include <Engine/Graphics/Features/Shadows/CascadeShadowMap.h>
+#include <Engine/Graphics/Texture/TexturePtrLoader.h>
 
 #include <cstdint>
 #include <vector>
@@ -14,11 +15,15 @@
 
 namespace game {
 
+    engine::TexturePtr textureGround;
+
     Map::Map() {
         makeMapNode();
     }
 
-    Map::~Map() {}
+    Map::~Map() {
+        textureGround = nullptr;
+    }
 
     void Map::makeMapNode() {
         using namespace engine;
@@ -26,8 +31,8 @@ namespace game {
         auto scene = ServiceLocator::instance().getService<Scene>();
         _mapNode = scene->placeToWorld();
 
-        const float size = 10000.0f;
-        const float uvSize = 100.0f;
+        const float size = 50000.0f;
+        const float uvSize = 200.0f;
 
         auto planeGraphics = std::make_unique<Plane>(
                 std::make_shared<TextureFrame>(
@@ -70,11 +75,35 @@ namespace game {
             scene->getShadowMap()->registerProgramAsReciever(program);
         }
 
-        auto &&planeNode = scene->placeToNode(plane.release(), _mapNode);
+        auto plainPtr = plane.release();
+        auto &&planeNode = scene->placeToNode(plainPtr, _mapNode);
 
         mat4f transform(1.0f);
         translateMatrixTo(transform, vec3f(-size * 0.5f, -size * 0.5f, 0.0f));
         planeNode->value().setLocalMatrix(transform);
+
+        /////////
+        auto && assetManager = Engine::getInstance().getModule<AssetManager>();
+        TexturePtrLoadingParams textureParams;
+        textureParams.files = { "resources/assets/textures/ground/sand5.jpg" };
+        textureParams.flags->async = 1;
+        textureParams.flags->use_cache = 1;
+
+        textureGround = assetManager.loadAsset<TexturePtr>(textureParams, [](TexturePtr const & asset, const AssetLoadingResult result) {
+            auto&& renderer = Engine::getInstance().getModule<Graphics>().getRenderer();
+            textureGround->get()->setSampler(
+                    renderer->getSampler(
+                            VK_FILTER_LINEAR,
+                            VK_FILTER_LINEAR,
+                            VK_SAMPLER_MIPMAP_MODE_LINEAR,
+                            VK_SAMPLER_ADDRESS_MODE_REPEAT,
+                            VK_SAMPLER_ADDRESS_MODE_REPEAT,
+                            VK_SAMPLER_ADDRESS_MODE_REPEAT,
+                            VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK
+                    ));
+        });
+
+        plainPtr->graphics()->setParamByName("u_texture", textureGround.get(), false);
     }
 
     void Map::update(const float delta) {}
