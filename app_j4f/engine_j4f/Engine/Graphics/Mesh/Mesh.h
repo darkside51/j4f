@@ -236,7 +236,7 @@ namespace engine {
 		void draw(const mat4f& cameraMatrix, const mat4f& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame);
 		void drawBoundingBox(const mat4f& cameraMatrix, const mat4f& worldMatrix, vulkan::VulkanCommandBuffer& commandBuffer, const uint32_t currentFrame);
 
-		void updateRenderData(const mat4f& worldMatrix, const bool worldMatrixChanged);
+		void updateRenderData(RenderDescriptor & renderDescriptor, const mat4f& worldMatrix, const bool worldMatrixChanged);
 		inline void updateModelMatrixChanged(const bool worldMatrixChanged) noexcept { _modelMatrixChanged |= worldMatrixChanged; }
 
 		inline void setCameraMatrix(const mat4f& cameraMatrix, const bool copy = false) {

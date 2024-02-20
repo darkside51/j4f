@@ -84,9 +84,10 @@ namespace game {
 
     void Scene::registerGraphicsUpdateSystems() {
         using namespace engine;
-        registerUpdateSystem<ImguiGraphics *>();
-        registerUpdateSystem<Mesh *>();
-        registerUpdateSystem<Plane *>();
+        registerUpdateSystem<ImguiGraphics*>();
+        registerUpdateSystem<Mesh*>();
+        registerUpdateSystem<Plane*>();
+        registerUpdateSystem<ReferenceEntity<Mesh>*>();
     }
 
     void Scene::resize(const uint16_t w, const uint16_t h) {

@@ -115,7 +115,22 @@ namespace game {
                                        //////////////////////
                                        auto && node = _mapObject.getNode()->value();
                                        node.setBoundingVolume(BoundingVolume::make<SphereVolume>(vec3f(0.0f, 0.0f, 0.4f), 0.42f));
-                                       mesh->setGraphics(asset.release());
+                                       auto meshGraphics = asset.release();
+                                       mesh->setGraphics(meshGraphics);
+
+                                       // test add refEntity
+//                                       auto meshRef = std::make_unique<NodeRenderer<ReferenceEntity<Mesh>*>>();
+//                                       auto g = new ReferenceEntity<Mesh>(meshGraphics);
+//                                       g->setProgram(program);
+//                                       g->setParamByName("u_texture", texture.get(), false);
+//                                       meshRef->setGraphics(g);
+//                                       auto && serviceLocator = ServiceLocator::instance();
+//                                       auto scene = serviceLocator.getService<Scene>();
+//                                       auto &&node2 = scene->placeToNode(meshRef.release(), _mapObject.getNode());
+//                                       scene->addShadowCastNode(node2);
+//                                       auto matrix = engine::makeMatrix(1.0f);
+//                                       engine::translateMatrixTo(matrix, {1.0f, 0.0f, 0.0f});
+//                                       node2->value().setLocalMatrix(matrix);
                                    });
         }
     }

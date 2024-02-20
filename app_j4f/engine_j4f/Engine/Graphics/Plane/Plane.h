@@ -14,7 +14,7 @@ namespace engine {
 		Plane(const vec2f& sz, const engine::GpuParamsType& params = nullptr);
 		Plane(const std::shared_ptr<TextureFrame>& f, const engine::GpuParamsType& params = nullptr);
 
-		void updateRenderData(const mat4f& worldMatrix, const bool worldMatrixChanged);
+		void updateRenderData(RenderDescriptor & renderDescriptor, const mat4f& worldMatrix, const bool worldMatrixChanged);
 		inline void updateModelMatrixChanged(const bool worldMatrixChanged) noexcept { _modelMatrixChanged |= worldMatrixChanged; }
 
 		void setFrame(const std::shared_ptr<TextureFrame>& f);

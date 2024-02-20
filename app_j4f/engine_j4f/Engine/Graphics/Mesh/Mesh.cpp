@@ -473,7 +473,7 @@ namespace engine {
 		}
 	}
 
-	void Mesh::updateRenderData(const mat4f& worldMatrix, const bool worldMatrixChanged) { // called when mesh is visible
+	void Mesh::updateRenderData(RenderDescriptor & renderDescriptor, const mat4f& worldMatrix, const bool worldMatrixChanged) { // called when mesh is visible
 		if (!_skeleton) return;
         _skeleton->_requestAnimUpdate = true;
 
@@ -486,8 +486,8 @@ namespace engine {
         // new vision
         const uint8_t renderFrameNum = _skeleton->getUpdatedFrameNum();
 
-        for (uint32_t i = 0u, sz = _renderDescriptor.renderData.size(); i < sz; ++i) {
-            auto & r_data = _renderDescriptor.renderData[i];
+        for (uint32_t i = 0u, sz = renderDescriptor.renderData.size(); i < sz; ++i) {
+            auto & r_data = renderDescriptor.renderData[i];
 			if (r_data == nullptr || r_data->pipeline == nullptr) continue;
 
 			const Mesh_Node& node = _skeleton->_nodes[renderFrameNum][_meshData->meshes[i].nodeIndex]->value();

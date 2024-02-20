@@ -52,13 +52,13 @@ namespace engine {
         [](T v) {
             if constexpr (is_pointer_v<T> || is_smart_pointer_v<T>) {
                 v->getRenderDescriptor();
-                v->updateRenderData(mat4f(), bool());
+                v->updateRenderData([]()-> engine::RenderDescriptor& { }(), mat4f(), bool());
                 v->updateModelMatrixChanged(bool());
                 v->setProgram([]() -> vulkan::VulkanGpuProgram * { return nullptr; }(),
                               VkRenderPass()); // wow!, it work :)
             } else {
                 v.getRenderDescriptor();
-                v.updateRenderData(mat4f(), bool());
+                v.updateRenderData([]()-> engine::RenderDescriptor& { }(), mat4f(), bool());
                 v.updateModelMatrixChanged(bool());
                 v.setProgram([]() -> vulkan::VulkanGpuProgram * { return nullptr; }(),
                               VkRenderPass());
@@ -105,7 +105,7 @@ namespace engine {
 		inline void updateRenderData() {
 			if (getNeedUpdate()) {
 				if (_graphics && _node) {
-					_graphics->updateRenderData(_node->model(), _node->modelChanged());
+					_graphics->updateRenderData(getRenderDescriptor(), _node->model(), _node->modelChanged());
 				}
 				setNeedUpdate(false);
 			} else {

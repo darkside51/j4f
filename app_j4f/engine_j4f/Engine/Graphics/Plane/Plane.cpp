@@ -94,7 +94,7 @@ namespace engine {
 		setPipeline(Engine::getInstance().getModule<Graphics>().getRenderer()->getGraphicsPipeline(_renderState, pipeline->program));
 	}
 
-	void Plane::updateRenderData(const mat4f& worldMatrix, const bool worldMatrixChanged) {
+	void Plane::updateRenderData(RenderDescriptor & /*renderDescriptor*/, const mat4f& worldMatrix, const bool worldMatrixChanged) {
 		_modelMatrixChanged |= worldMatrixChanged;
 
 		if (_modelMatrixChanged || _frameChanged) {

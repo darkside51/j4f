@@ -84,12 +84,17 @@ namespace engine {
     template<typename V = EmptyVisibleChecker, typename T = Empty>
     inline void reloadRenderList(RenderList& list, engine::ref_ptr<NodeHR>* node, size_t count, const bool dirtyVisible,
                                  const uint8_t visibleId, V&& visibleChecker = {}, bool needResetChanged = true,
-                                 T&& callback = {}) {
+                                 T&& callback = {}, bool withChildren = false) {
         using list_emplacer_type = RenderListEmplacer<V, T>;
         list.clear();
         for (size_t i = 0u; i < count; ++i) {
-            node[i]->execute_with<list_emplacer_type>(list, dirtyVisible, visibleId,
-                                                      std::forward<V>(visibleChecker), needResetChanged, callback);
+            if (withChildren) {
+                node[i]->execute_with<list_emplacer_type>(list, dirtyVisible, visibleId,
+                                                          std::forward<V>(visibleChecker), needResetChanged, callback);
+            } else {
+                list_emplacer_type::_(node[i].get(), list, dirtyVisible, visibleId,
+                                      std::forward<V>(visibleChecker), needResetChanged, callback);
+            }
         }
         list.sort();
     }

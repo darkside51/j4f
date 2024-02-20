@@ -26,7 +26,7 @@ namespace engine {
 
         ~ImguiGraphics() override;
 
-        void updateRenderData(const mat4f& /*worldMatrix*/, const bool /*worldMatrixChanged*/);
+        void updateRenderData(RenderDescriptor & renderDescriptor, const mat4f& worldMatrix, const bool worldMatrixChanged);
         inline void updateModelMatrixChanged(const bool /*worldMatrixChanged*/) noexcept { }
 
         void update(const float delta);

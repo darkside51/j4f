@@ -200,7 +200,7 @@ namespace engine {
         }
     }
 
-    void ImguiGraphics::updateRenderData(const mat4f & /*worldMatrix*/, const bool /*worldMatrixChanged*/) {}
+    void ImguiGraphics::updateRenderData(RenderDescriptor & /*renderDescriptor*/, const mat4f & /*worldMatrix*/, const bool /*worldMatrixChanged*/) {}
 
     void ImguiGraphics::update(const float delta) {
         ImGuiIO &io = ImGui::GetIO();
