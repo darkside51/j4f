@@ -108,6 +108,7 @@ set(
 	application/src/game/map
 	application/src/game/logic
 	application/src/game/logic/units
+	application/src/game/ui
 	)
 
 foreach (DIR ${SRC_DIRS})
