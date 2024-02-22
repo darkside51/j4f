@@ -94,8 +94,8 @@ namespace game {
         }
 
 		engine::ref_ptr<engine::ImguiGraphics>& getUiGraphics() noexcept { return _imguiGraphics; }
-
         engine::ref_ptr<engine::CascadeShadowMap> getShadowMap() noexcept { return _shadowMap; }
+        engine::ref_ptr<UIManager> getUIManager() noexcept { return _uiManager; }
 
 	private:
         template <typename T>

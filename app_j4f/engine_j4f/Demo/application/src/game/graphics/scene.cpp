@@ -22,8 +22,6 @@
 #include <Engine/Graphics/Features/Shadows/CascadeShadowMap.h>
 #include <Engine/Graphics/Features/Shadows/ShadowMapHelper.h>
 
-#include <imgui.h>
-
 #include <cstdint>
 
 namespace game {
@@ -138,8 +136,8 @@ namespace game {
         { // ui
             if (_imguiGraphics) {
                 _imguiGraphics->update(delta);
-                _uiManager->draw();
-                //ImGui::ShowDemoWindow();
+                _uiManager->draw(delta);
+           
                 if (_statObserver) {
                     _statObserver->draw();
                 }
