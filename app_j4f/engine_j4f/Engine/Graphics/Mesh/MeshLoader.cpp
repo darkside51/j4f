@@ -70,7 +70,7 @@ namespace engine {
                 }
             });
 
-            threadCommutator.enqueue(c.targetThreadId,std::move(execute));
+            threadCommutator.enqueue(c.targetThreadId, std::move(execute));
 		}
 	}
 

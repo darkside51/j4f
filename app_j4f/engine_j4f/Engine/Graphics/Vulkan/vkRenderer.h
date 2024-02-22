@@ -533,6 +533,8 @@ namespace vulkan {
 		void bindDynamicUniformBufferToDescriptorSet(const VulkanDescriptorSet* descriptorSet, VulkanDynamicBuffer* dynamicBuffer, const uint32_t binding) const;
 		void bindDynamicStorageBufferToDescriptorSet(const VulkanDescriptorSet* descriptorSet, VulkanDynamicBuffer* dynamicBuffer, const uint32_t binding) const;
 
+		VkSampler getDefaultSampler() const noexcept { return _defaultSampler; }
+
 		VkSampler getSampler(
 			const VkFilter minFilter,
 			const VkFilter magFilter,
@@ -697,6 +699,7 @@ namespace vulkan {
 		// empty data
 		VulkanTexture* _emptyTexture = nullptr;
 		VulkanTexture* _emptyTextureArray = nullptr;
+		VkSampler _defaultSampler = nullptr;
 	};
 
 }

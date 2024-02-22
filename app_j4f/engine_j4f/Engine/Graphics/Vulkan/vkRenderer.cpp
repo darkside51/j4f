@@ -21,7 +21,7 @@
 namespace vulkan {
 
 // ---------- initialisation ----------
-	VulkanRenderer::VulkanRenderer() : _width(1024), _height(768), _vSync(false) { }
+	VulkanRenderer::VulkanRenderer() : _width(1024u), _height(768u), _vSync(false) { }
 
 	VulkanRenderer::~VulkanRenderer() {
 		destroy();
@@ -307,6 +307,16 @@ namespace vulkan {
         _buffersToDelete.resize(_swapChainImagesCount);
         _texturesToDelete.resize(_swapChainImagesCount);
         _texturesToFree.resize(_swapChainImagesCount);
+
+		_defaultSampler = getSampler(
+			VK_FILTER_LINEAR,
+			VK_FILTER_LINEAR,
+			VK_SAMPLER_MIPMAP_MODE_NEAREST,
+			VK_SAMPLER_ADDRESS_MODE_REPEAT,
+			VK_SAMPLER_ADDRESS_MODE_REPEAT,
+			VK_SAMPLER_ADDRESS_MODE_REPEAT,
+			VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK
+		);
 
 		createEmptyTexture();
 	}

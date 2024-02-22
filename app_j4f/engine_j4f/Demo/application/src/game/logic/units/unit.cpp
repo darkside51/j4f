@@ -56,6 +56,7 @@ namespace game {
             textureParams.files = { "resources/assets/models/nuke_man/texture.png" };
             textureParams.flags->async = 1;
             textureParams.flags->use_cache = 1;
+            textureParams.callbackThreadId = 0u;
             texture = assetManager.loadAsset<TexturePtr>(textureParams);
 
             auto meshPtr = mesh.release();
@@ -154,9 +155,9 @@ namespace game {
                                        auto scene = serviceLocator.getService<Scene>();
                                        auto &&node2 = scene->placeToNode(meshRef.release(), _mapObject.getNode());
                                        //scene->addShadowCastNode(node2);
-                                       //auto matrix = engine::makeMatrix(1.0f);
+                                       auto matrix = engine::makeMatrix(1.0f);
                                        //engine::translateMatrixTo(matrix, {1.0f, 0.0f, 0.0f});
-                                       //node2->value().setLocalMatrix(matrix);
+                                       node2->value().setLocalMatrix(matrix);
                                    });
         }
     }
@@ -253,7 +254,12 @@ namespace game {
             if (glm::dot(vec, vec) > kAngleSpeed) {
                 const float angleSpeed = kAngleSpeed * delta;
                 const auto direction = as_normalized(vec);
-                const float moveSpeed = kAngleSpeed * 7.0f * delta;
+
+                const uint8_t moveAimId = 2u;
+                const auto & animations = _animations->getAnimator()->children();
+                auto && anim = animations[moveAimId]->value();
+                
+                const float moveSpeed = kAngleSpeed * 7.7f * delta * anim.getWeight();
                 const auto sub = (direction - _direction);
                 if (vec_length(sub) > angleSpeed) {
                     _direction = as_normalized(_direction + as_normalized(sub) * angleSpeed);

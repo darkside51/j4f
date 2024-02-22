@@ -85,13 +85,14 @@ namespace game {
         /////////
         auto && assetManager = Engine::getInstance().getModule<AssetManager>();
         TexturePtrLoadingParams textureParams;
-        textureParams.files = { "resources/assets/textures/ground/sand5.jpg" };
+        textureParams.files = { "resources/assets/textures/ground/sand1.jpg" };
         textureParams.flags->async = 1;
         textureParams.flags->use_cache = 1;
+        textureParams.callbackThreadId = 0u;
 
         textureGround = assetManager.loadAsset<TexturePtr>(textureParams, [](TexturePtr const & asset, const AssetLoadingResult result) {
             auto&& renderer = Engine::getInstance().getModule<Graphics>().getRenderer();
-            textureGround->get()->setSampler(
+            const_cast<TexturePtr&>(asset)->get()->setSampler(
                     renderer->getSampler(
                             VK_FILTER_LINEAR,
                             VK_FILTER_LINEAR,

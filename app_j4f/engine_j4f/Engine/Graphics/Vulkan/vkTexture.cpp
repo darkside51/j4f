@@ -69,15 +69,7 @@ namespace vulkan {
 		}
 		
 		if (_sampler == VK_NULL_HANDLE) { // билинейная фильтрация + MODE_REPEAT по умолчанию
-			_sampler = _renderer->getSampler(
-				VK_FILTER_LINEAR,
-				VK_FILTER_LINEAR,
-				VK_SAMPLER_MIPMAP_MODE_NEAREST,
-				VK_SAMPLER_ADDRESS_MODE_REPEAT,
-				VK_SAMPLER_ADDRESS_MODE_REPEAT,
-				VK_SAMPLER_ADDRESS_MODE_REPEAT,
-				VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK
-			);
+			_sampler = _renderer->getDefaultSampler();
 		}
 
 		auto* staging = new VulkanBuffer();

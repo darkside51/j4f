@@ -42,6 +42,7 @@ namespace engine {
         VkImageViewType imageViewTypeForce = VkImageViewType::VK_IMAGE_VIEW_TYPE_MAX_ENUM;
 
         TextureLoadingFlags textureFlags;
+        uint8_t callbackThreadId = 0u;
 
         std::string cacheName;
         CacheParams cacheParams;
