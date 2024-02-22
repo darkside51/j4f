@@ -267,7 +267,7 @@ namespace vulkan {
 		}
 
 		// find a suitable depth format
-		_mainDepthFormat = _vulkanDevice->getSupportedDepthFormat(_mainDepthFormatBits);
+		_mainDepthFormat = _vulkanDevice->getSupportedDepthFormat(_mainDepthFormatBits, false,true);
 
 		// setupDepthStencil
 		_depthStencil = vulkan::VulkanImage(_vulkanDevice, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
@@ -486,9 +486,15 @@ namespace vulkan {
 			attachments[0] = vulkan::createAttachmentDescription(_swapChain.colorFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_STORE);
 			// depth attachment
 			if (canContinueMainRenderPass) {
-				attachments[1] = vulkan::createAttachmentDescription(_mainDepthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_STORE);
+				attachments[1] = vulkan::createAttachmentDescription(_mainDepthFormat, VK_IMAGE_LAYOUT_UNDEFINED,
+                                                                     VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+                                                                     VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_STORE,
+                                                                     VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_DONT_CARE);
 			} else {
-				attachments[1] = vulkan::createAttachmentDescription(_mainDepthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_DONT_CARE);
+				attachments[1] = vulkan::createAttachmentDescription(_mainDepthFormat, VK_IMAGE_LAYOUT_UNDEFINED,
+                                                                     VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+                                                                     VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                                                                     VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_DONT_CARE);
 			}
 			
 			return attachments;
@@ -504,7 +510,7 @@ namespace vulkan {
 																VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
 																VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
 																VK_ATTACHMENT_LOAD_OP_LOAD, VK_ATTACHMENT_STORE_OP_STORE, 
-																VK_ATTACHMENT_LOAD_OP_DONT_CARE, VK_ATTACHMENT_STORE_OP_DONT_CARE
+																VK_ATTACHMENT_LOAD_OP_LOAD, VK_ATTACHMENT_STORE_OP_DONT_CARE
 																);
 			return attachments;
 		};
@@ -1178,7 +1184,11 @@ namespace vulkan {
 		depthStencilState.depthCompareOp = depthState.compareOp;
 
 		// stencil state
+        // states for back faces and front faces
 		depthStencilState.stencilTestEnable = stencilState.enabled;
+        if (stencilState.enabled) {
+            int a = 0;
+        }
 		depthStencilState.back.failOp = stencilState.failOp;
 		depthStencilState.back.passOp = stencilState.passOp;
 		depthStencilState.back.compareOp = stencilState.compareOp;

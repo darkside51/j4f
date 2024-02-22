@@ -61,7 +61,7 @@ namespace vulkan {
 			return (formatProperties.optimalTilingFeatures & dstFeatures) == dstFeatures;
 		}
 
-        [[nodiscard]] VkFormat getSupportedDepthFormat(const uint8_t minBits, bool samplingSupport = false) const {
+        [[nodiscard]] VkFormat getSupportedDepthFormat(const uint8_t minBits, bool samplingSupport = false, bool useStencil = false) const {
 			constexpr uint8_t formatsCount = 5;
 			std::array<VkFormat, formatsCount> depthFormats = { VK_FORMAT_D16_UNORM, VK_FORMAT_D16_UNORM_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT, VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT };
 			uint8_t i = 0;
@@ -73,7 +73,7 @@ namespace vulkan {
 					i = 2;
 					break;
 				case 32: 
-					i = 3;
+					i = useStencil ? 4 : 3;
 					break;
 				default:
 					return VK_FORMAT_UNDEFINED;

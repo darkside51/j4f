@@ -67,12 +67,18 @@ namespace game {
 
             assetManager.loadAsset<Mesh *>(mesh_params,
                                    [this, mesh = engine::make_ref(meshPtr), program,
-                                    &assetManager](
+                                    &assetManager, &gpuProgramManager](
                                            std::unique_ptr<Mesh> && asset, const AssetLoadingResult result) mutable {
                                        asset->setProgram(program);
                                        asset->setParamByName("u_texture", texture.get(), false);
                                        asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
                                            renderState.rasterizationState.cullMode = vulkan::CullMode::CULL_MODE_NONE;
+                                           renderState.stencilState =
+                                                   vulkan::VulkanStencilState{true, VK_STENCIL_OP_KEEP,
+                                                                              VK_STENCIL_OP_REPLACE,
+                                                                              VK_STENCIL_OP_KEEP,
+                                                                              VK_COMPARE_OP_ALWAYS,
+                                                                              0xffu, 0xffu, 1u};
                                        });
 
                                        // animations
@@ -122,18 +128,35 @@ namespace game {
                                        mesh->setGraphics(meshGraphics);
 
                                        // test add refEntity
-//                                       auto meshRef = std::make_unique<NodeRenderer<ReferenceEntity<Mesh>*>>();
-//                                       auto g = new ReferenceEntity<Mesh>(meshGraphics);
-//                                       g->setProgram(program);
-//                                       g->setParamByName("u_texture", texture.get(), false);
-//                                       meshRef->setGraphics(g);
-//                                       auto && serviceLocator = ServiceLocator::instance();
-//                                       auto scene = serviceLocator.getService<Scene>();
-//                                       auto &&node2 = scene->placeToNode(meshRef.release(), _mapObject.getNode());
-//                                       scene->addShadowCastNode(node2);
-//                                       auto matrix = engine::makeMatrix(1.0f);
-//                                       engine::translateMatrixTo(matrix, {1.0f, 0.0f, 0.0f});
-//                                       node2->value().setLocalMatrix(matrix);
+                                       const std::vector<engine::ProgramStageInfo> psi = {
+                                               {ProgramStage::VERTEX, "resources/shaders/mesh_skin_stroke.vsh.spv"},
+                                               {ProgramStage::FRAGMENT, "resources/shaders/color.psh.spv"}
+                                       };
+                                       auto &&program_stroke = gpuProgramManager->getProgram(psi);
+
+                                       auto meshRef = std::make_unique<NodeRenderer<ReferenceEntity<Mesh>*>>();
+                                       auto g = new ReferenceEntity<Mesh>(meshGraphics);
+                                       g->setProgram(program_stroke);
+                                       //g->setParamByName("u_texture", texture.get(), false);
+                                       g->changeRenderState([](vulkan::VulkanRenderState& renderState) {
+                                           renderState.rasterizationState.cullMode = vulkan::CullMode::CULL_MODE_BACK;
+                                           renderState.depthState.depthTestEnabled = false;
+                                           renderState.depthState.depthWriteEnabled = false;
+                                           renderState.stencilState =
+                                                   vulkan::VulkanStencilState{true, VK_STENCIL_OP_KEEP,
+                                                                              VK_STENCIL_OP_REPLACE,
+                                                                              VK_STENCIL_OP_KEEP,
+                                                                              VK_COMPARE_OP_NOT_EQUAL,
+                                                                              0xffu, 0x0u, 1u};
+                                       });
+                                       meshRef->setGraphics(g);
+                                       auto && serviceLocator = ServiceLocator::instance();
+                                       auto scene = serviceLocator.getService<Scene>();
+                                       auto &&node2 = scene->placeToNode(meshRef.release(), _mapObject.getNode());
+                                       //scene->addShadowCastNode(node2);
+                                       //auto matrix = engine::makeMatrix(1.0f);
+                                       //engine::translateMatrixTo(matrix, {1.0f, 0.0f, 0.0f});
+                                       //node2->value().setLocalMatrix(matrix);
                                    });
         }
     }

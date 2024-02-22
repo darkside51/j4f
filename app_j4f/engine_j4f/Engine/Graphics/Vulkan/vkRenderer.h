@@ -592,7 +592,7 @@ namespace vulkan {
 		uint32_t _currentFrame = 0u;
         uint32_t _acquireImageIndex = 0u;
 		uint32_t _swapChainImagesCount = 0u;
-		uint8_t _mainDepthFormatBits = 24u;
+		uint8_t _mainDepthFormatBits = 32u;
 
 		VkInstance _instance = VK_NULL_HANDLE;
 		VulkanDevice* _vulkanDevice = nullptr;
