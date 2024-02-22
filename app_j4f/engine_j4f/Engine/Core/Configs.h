@@ -18,6 +18,7 @@ namespace engine {
         GpuType gpu_type = GpuType::OTHER;
         bool v_sync = true;
         bool can_continue_main_render_pass = false;
+        bool use_stencil_buffer = false;
         Version render_api_version = Version(1u, 0u, 0u);
 
         struct GPUFeatures {

@@ -487,7 +487,8 @@ namespace vulkan {
 		void createSwapChain(const engine::IRenderSurfaceInitializer* initializer, const bool useVsync);
 		void init(const engine::GraphicConfig& cfg);
 
-		void setupRenderPass(const std::vector<VkAttachmentDescription>& configuredAttachments, const std::vector<VkSubpassDependency>& configuredDependencies, const bool canContinueMainRenderPass);
+		void setupRenderPass(const std::vector<VkAttachmentDescription>& configuredAttachments, const std::vector<VkSubpassDependency>& configuredDependencies, 
+			const bool canContinueMainRenderPass, const bool useStencil);
 		VkResult setupDescriptorPool(const std::vector<VkDescriptorPoolSize>& descriptorPoolCfg);
 
 		void waitWorkComplete() const;
@@ -594,7 +595,7 @@ namespace vulkan {
 		uint32_t _currentFrame = 0u;
         uint32_t _acquireImageIndex = 0u;
 		uint32_t _swapChainImagesCount = 0u;
-		uint8_t _mainDepthFormatBits = 32u;
+		uint8_t _mainDepthFormatBits = 24u;
 
 		VkInstance _instance = VK_NULL_HANDLE;
 		VulkanDevice* _vulkanDevice = nullptr;

@@ -9,6 +9,7 @@
 #include <string>
 #include <cstdint>
 #include <algorithm>
+#include <span>
 
 namespace vulkan {
 
@@ -62,25 +63,28 @@ namespace vulkan {
 		}
 
         [[nodiscard]] VkFormat getSupportedDepthFormat(const uint8_t minBits, bool samplingSupport = false, bool useStencil = false) const {
-			constexpr uint8_t formatsCount = 5;
-			std::array<VkFormat, formatsCount> depthFormats = { VK_FORMAT_D16_UNORM, VK_FORMAT_D16_UNORM_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT, VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT };
-			uint8_t i = 0;
+			constexpr std::array<VkFormat, 5u> depthFormats = { VK_FORMAT_D16_UNORM, VK_FORMAT_D16_UNORM_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT, VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT };
+			constexpr std::array<VkFormat, 3u> depthStencilFormats = {VK_FORMAT_D16_UNORM_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT, VK_FORMAT_D32_SFLOAT_S8_UINT };
+			uint8_t i = 0u;
 
 			switch (minBits) {
-				case 16:
+				case 16u:
 					break;
-				case 24:
-					i = 2;
+				case 24u:
+					i = useStencil ? 1u : 2u;
 					break;
-				case 32: 
-					i = useStencil ? 4 : 3;
+				case 32u: 
+					i = useStencil ? 2u : 3u;
 					break;
 				default:
 					return VK_FORMAT_UNDEFINED;
 			}
 
-			for (; i < formatsCount; ++i) {
-				auto&& format = depthFormats[i];
+			const auto formats = useStencil ? 
+				std::span<const VkFormat>{depthStencilFormats.begin() + i, depthStencilFormats.size() - i} :
+				std::span<const VkFormat>{depthFormats.begin() + i,  depthFormats.size() - i};
+
+			for (auto const format : formats) {
 				VkFormatProperties formatProperties;
 				vkGetPhysicalDeviceFormatProperties(gpu, format, &formatProperties);
 				// format must support depth stencil attachment for optimal tiling

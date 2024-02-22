@@ -54,8 +54,8 @@ namespace game {
         {
             TexturePtrLoadingParams textureParams;
             textureParams.files = { "resources/assets/models/nuke_man/texture.png" };
-            textureParams.flags->async = 1;
-            textureParams.flags->use_cache = 1;
+            textureParams.flags->async = 1u;
+            textureParams.flags->use_cache = 1u;
             textureParams.callbackThreadId = 0u;
             texture = assetManager.loadAsset<TexturePtr>(textureParams);
 
@@ -98,8 +98,8 @@ namespace game {
                                                        bool infinity = true, float speed = 1.0f) {
                                            MeshLoadingParams anim;
                                            anim.file = "resources/assets/models/" + file;
-                                           anim.flags->async = 1;
-                                           anim.callbackThreadId = 1;
+                                           anim.flags->async = 1u;
+                                           anim.callbackThreadId = 1u;
 
                                            assetManager.loadAsset<Mesh*>(anim,
                                                [mainAsset, this, id, weight, speed, infinity](

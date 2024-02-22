@@ -254,7 +254,7 @@ namespace vulkan {
 		// create a semaphore used to synchronize image presentation
 		// ensures that the image is displayed before we start submitting new commands to the queue
 		_presentCompleteSemaphores.reserve(_swapChainImagesCount);
-		for (size_t i = 0; i < _swapChainImagesCount; ++i) {
+		for (size_t i = 0u; i < _swapChainImagesCount; ++i) {
 			_presentCompleteSemaphores.emplace_back(_vulkanDevice->device);
 			_mainSupportCommandBuffers.addWaitSemaphore(_presentCompleteSemaphores[i].semaphore, i);
 		}
@@ -262,12 +262,12 @@ namespace vulkan {
 		_mainRenderCommandBuffers.depend(_mainSupportCommandBuffers);
 
 		// wait fences to sync command buffer access
-		for (uint32_t i = 0; i < _swapChainImagesCount; ++i) {
+		for (uint32_t i = 0u; i < _swapChainImagesCount; ++i) {
 			_waitFences.emplace_back(_vulkanDevice->device, VK_FENCE_CREATE_SIGNALED_BIT);
 		}
 
 		// find a suitable depth format
-		_mainDepthFormat = _vulkanDevice->getSupportedDepthFormat(_mainDepthFormatBits, false,true);
+		_mainDepthFormat = _vulkanDevice->getSupportedDepthFormat(_mainDepthFormatBits, false, cfg.use_stencil_buffer);
 
 		// setupDepthStencil
 		_depthStencil = vulkan::VulkanImage(_vulkanDevice, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
@@ -281,15 +281,15 @@ namespace vulkan {
 		vkCreatePipelineCache(_vulkanDevice->device, &pipelineCacheCreateInfo, nullptr, &_pipelineCache);
 
 		// setupRenderPass
-		setupRenderPass({}, {}, cfg.can_continue_main_render_pass); // todo: VkSubpassDependency parametrisation
+		setupRenderPass({}, {}, cfg.can_continue_main_render_pass, cfg.use_stencil_buffer); // todo: VkSubpassDependency parametrisation
 
 		// setupFrameBuffers
-		std::vector<VkImageView> attachments(2);
-		attachments[1] = _depthStencil.view; // depth/stencil attachment is the same for all frame buffers
+		std::vector<VkImageView> attachments(2u);
+		attachments[1u] = _depthStencil.view; // depth/stencil attachment is the same for all frame buffers
 
 		_frameBuffers.reserve(_swapChainImagesCount);
-		for (size_t i = 0; i < _swapChainImagesCount; ++i) {
-			attachments[0] = _swapChain.images[i].view; // color attachment is the view of the swapchain image
+		for (size_t i = 0u; i < _swapChainImagesCount; ++i) {
+			attachments[0u] = _swapChain.images[i].view; // color attachment is the view of the swapchain image
 			_frameBuffers.emplace_back(_vulkanDevice, _width, _height, 1, _mainRenderPass, attachments.data(), attachments.size());
 		}
 
@@ -297,8 +297,8 @@ namespace vulkan {
 		setupDescriptorPool({}); // todo: descriptor pool parametrisation
 
 		// clear values setup
-		_mainClearValues[0].color = { 0.5f, 0.5f, 0.5f, 1.0f };
-		_mainClearValues[1].depthStencil = { 1.0f, 0 };
+		_mainClearValues[0u].color = { 0.5f, 0.5f, 0.5f, 1.0f };
+		_mainClearValues[1u].depthStencil = { 1.0f, 0u };
 
 		///////////////////////////////// default fill for _mainRenderCommandBuffers
 		buildDefaultMainRenderCommandBuffer();
@@ -323,22 +323,22 @@ namespace vulkan {
 
 	void VulkanRenderer::createEmptyTexture() {
 #ifdef _DEBUG
-		_emptyTexture = new VulkanTexture(this, 2, 2, 1);
-		_emptyTextureArray = new VulkanTexture(this, 2, 2, 1);
-		const uint8_t emptyImg[16] = {
-			100, 100, 100, 255, 160, 160, 160, 255,
-			160, 160, 160, 255, 100, 100, 100, 255
-	};
+		_emptyTexture = new VulkanTexture(this, 2u, 2u, 1u);
+		_emptyTextureArray = new VulkanTexture(this, 2u, 2u, 1u);
+		const uint8_t emptyImg[16u] = {
+			100u, 100u, 100u, 255u, 160u, 160u, 160u, 255u,
+			160u, 160u, 160u, 255u, 100u, 100u, 100u, 255u
+		};
 #else
-		//_emptyTexture = new VulkanTexture(this, 1, 1, 1);
-		//_emptyTextureArray = new VulkanTexture(this, 1, 1, 1);
-		//const uint8_t emptyImg[4] = { 200, 200, 200, 255 };
+		//_emptyTexture = new VulkanTexture(this, 1u, 1u, 1u);
+		//_emptyTextureArray = new VulkanTexture(this, 1u, 1u, 1u);
+		//const uint8_t emptyImg[4u] = { 200u, 200u, 200u, 255u };
 
-		_emptyTexture = new VulkanTexture(this, 2, 2, 1);
-		_emptyTextureArray = new VulkanTexture(this, 2, 2, 1);
-		const uint8_t emptyImg[16] = {
-			100, 100, 100, 255, 160, 160, 160, 255,
-			160, 160, 160, 255, 100, 100, 100, 255
+		_emptyTexture = new VulkanTexture(this, 2u, 2u, 1u);
+		_emptyTextureArray = new VulkanTexture(this, 2u, 2u, 1u);
+		const uint8_t emptyImg[16u] = {
+			100u, 100u, 100u, 255u, 160u, 160u, 160u, 255u,
+			160u, 160u, 160u, 255u, 100u, 100u, 100u, 255u
 		};
 
 #endif
@@ -488,9 +488,10 @@ namespace vulkan {
         _texturesToFree[_currentFrame].push_back(std::move(texture));
     }
 
-	void VulkanRenderer::setupRenderPass(const std::vector<VkAttachmentDescription>& configuredAttachments, const std::vector<VkSubpassDependency>& configuredDependencies, const bool canContinueMainRenderPass) {
+	void VulkanRenderer::setupRenderPass(const std::vector<VkAttachmentDescription>& configuredAttachments, 
+		const std::vector<VkSubpassDependency>& configuredDependencies, const bool canContinueMainRenderPass, const bool useStencil) {
 
-		auto createDefaultAttachments = [this, canContinueMainRenderPass]()->std::vector<VkAttachmentDescription> {
+		auto createDefaultAttachments = [this, canContinueMainRenderPass, useStencil]()->std::vector<VkAttachmentDescription> {
 			std::vector<VkAttachmentDescription> attachments(2);
 			// color attachment
 			attachments[0] = vulkan::createAttachmentDescription(_swapChain.colorFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_STORE);
@@ -499,18 +500,18 @@ namespace vulkan {
 				attachments[1] = vulkan::createAttachmentDescription(_mainDepthFormat, VK_IMAGE_LAYOUT_UNDEFINED,
                                                                      VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
                                                                      VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_STORE,
-                                                                     VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_DONT_CARE);
+																	 (useStencil ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE), VK_ATTACHMENT_STORE_OP_DONT_CARE);
 			} else {
 				attachments[1] = vulkan::createAttachmentDescription(_mainDepthFormat, VK_IMAGE_LAYOUT_UNDEFINED,
                                                                      VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
                                                                      VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                                                                     VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_DONT_CARE);
+																	 (useStencil ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE), VK_ATTACHMENT_STORE_OP_DONT_CARE);
 			}
 			
 			return attachments;
 		};
 
-		auto createDefaultContinueAttachments = [this]()->std::vector<VkAttachmentDescription> {
+		auto createDefaultContinueAttachments = [this, useStencil]()->std::vector<VkAttachmentDescription> {
 			std::vector<VkAttachmentDescription> attachments(2);
 			// color attachment
 			attachments[0] = vulkan::createAttachmentDescription(_swapChain.colorFormat, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, VK_ATTACHMENT_LOAD_OP_LOAD, VK_ATTACHMENT_STORE_OP_STORE);
@@ -520,7 +521,7 @@ namespace vulkan {
 																VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
 																VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
 																VK_ATTACHMENT_LOAD_OP_LOAD, VK_ATTACHMENT_STORE_OP_STORE, 
-																VK_ATTACHMENT_LOAD_OP_LOAD, VK_ATTACHMENT_STORE_OP_DONT_CARE
+																(useStencil ? VK_ATTACHMENT_LOAD_OP_LOAD : VK_ATTACHMENT_LOAD_OP_DONT_CARE), VK_ATTACHMENT_STORE_OP_DONT_CARE
 																);
 			return attachments;
 		};
