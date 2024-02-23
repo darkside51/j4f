@@ -52,7 +52,7 @@ namespace game {
         worldCamera.addObserver(this);
         worldCamera.enableFrustum();
         worldCamera.makeProjection(math_constants::f32::pi / 3.0f,
-                                   static_cast<float>(width) / static_cast<float>(height), 1.0f, 3500.0f);
+                                   static_cast<float>(width) / static_cast<float>(height), 1.0f, 3000.0f);
 
         auto imgui = std::make_unique<NodeRenderer<ImguiGraphics *>>();
         imgui->setGraphics(ImguiGraphics::getInstance("resources/assets/fonts/OpenSans/OpenSans-Bold.ttf", 20.0f));
@@ -117,10 +117,9 @@ namespace game {
 
         const auto [width, height] = renderer->getSize();
 
-        _shadowMap->updateShadowUniformsForRegesteredPrograms(worldCamera.getViewTransform());
-
         { // fill rootNode
             const bool mainCameraDirty = _controller ? _controller->update(delta) : false;
+            _shadowMap->updateShadowUniformsForRegesteredPrograms(worldCamera.getViewTransform());
             reloadRenderList(rootRenderList, _rootNode.get(), mainCameraDirty, 0u,
                              engine::FrustumVisibleChecker(worldCamera.getFrustum()), true);
 
@@ -147,6 +146,9 @@ namespace game {
         auto &commandBuffer = renderer->getRenderCommandBuffer();
         commandBuffer.begin();
 
+        _graphicsDataUpdater->updateData();
+        //_graphicsDataUpdater->updateData<GraphicsDataUpdateSystem<Mesh*>>();
+
         ///// shadow pass
         renderShadowMap(_shadowMap.get(), shadowRenderList, commandBuffer, currentFrame,
                         [this](engine::RenderedEntity* entity){
@@ -172,9 +174,6 @@ namespace game {
                                      false);
         commandBuffer.cmdSetScissor(0, 0, width, height);
         commandBuffer.cmdSetDepthBias(0.0f, 0.0f, 0.0f);
-
-        _graphicsDataUpdater->updateData();
-        //_graphicsDataUpdater->updateData<GraphicsDataUpdateSystem<Mesh*>>();
 
         // render nodes
         rootRenderList.render(commandBuffer, currentFrame,
