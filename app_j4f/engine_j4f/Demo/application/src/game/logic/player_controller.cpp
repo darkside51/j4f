@@ -9,6 +9,14 @@
 
 namespace game {
 
+    PlayerController::PlayerController() {
+        engine::Engine::getInstance().getModule<engine::Bus>().addObserver(this);
+    }
+
+    PlayerController::~PlayerController() {
+        engine::Engine::getInstance().getModule<engine::Bus>().removeObserver(this);
+    }
+
     void PlayerController::assign(const Unit &unit) {
         _unit = engine::make_ref(const_cast<Unit&>(unit));
     }
@@ -68,5 +76,27 @@ namespace game {
             }
         }
         return false;
+    }
+
+    bool PlayerController::processEvent(const uint8_t& id) {
+        if (!_unit) return false;
+        switch (id) {
+            case 0:
+                _unit->setState(UnitState::Special, 3u);
+                return true;
+            case 1:
+                _unit->setState(UnitState::Special, 4u);
+                return true;
+            case 2:
+                _unit->setState(UnitState::Special, 5u);
+                return true;
+            case 3:
+                _unit->setState(UnitState::Special, 6u);
+                return true;
+            default:
+                _unit->setState(UnitState::Idle, 0u);
+                return false;
+        }
+
     }
 }

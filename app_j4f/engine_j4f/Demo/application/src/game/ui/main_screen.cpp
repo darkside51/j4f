@@ -1,5 +1,7 @@
 #include "main_screen.h"
 
+#include <Engine/Core/Engine.h>
+#include <Engine/Events/Bus.h>
 #include <Engine/Utils/StringHelper.h>
 
 #include <imgui.h>
@@ -76,7 +78,7 @@ namespace game {
 			for (uint8_t i = 0u; i < btnCount; ++i) {
 				ImGui::SetCursorPos({ (kWindowRound - kFrameRound) + (btnSize + btnSpace) * i, 5.0f });
 				if (ImGui::Button(engine::fmt_string("#act_{}", i), { btnSize, btnSize })) {
-					//
+                    engine::Engine::getInstance().getModule<engine::Bus>().sendEvent(i);
 				}
 			}
 
