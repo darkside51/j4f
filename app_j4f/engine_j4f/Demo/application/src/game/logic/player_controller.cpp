@@ -78,7 +78,7 @@ namespace game {
         return false;
     }
 
-    bool PlayerController::processEvent(const uint8_t& id) {
+    bool PlayerController::processEvent(const uint8_t & id) {
         if (!_unit) return false;
         switch (id) {
             case 0:

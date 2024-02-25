@@ -43,8 +43,8 @@ namespace game {
                                                          AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT,
                                                          AttributesSemantic::TEXCOORD_0);
             mesh_params.latency = latency;
-            mesh_params.flags->async = 1;
-            mesh_params.callbackThreadId = 1;
+            mesh_params.flags->async = 1u;
+            mesh_params.callbackThreadId = static_cast<uint8_t>(Engine::Workers::UPDATE_THREAD);
 
             // or create with default constructor for unique buffer for mesh
             mesh_params.graphicsBuffer = graphicsBuffer;
@@ -56,7 +56,7 @@ namespace game {
             textureParams.files = { "resources/assets/models/nuke_man/texture.png" };
             textureParams.flags->async = 1u;
             textureParams.flags->use_cache = 1u;
-            textureParams.callbackThreadId = 0u;
+            textureParams.callbackThreadId = static_cast<uint8_t>(Engine::Workers::RENDER_THREAD);
             texture = assetManager.loadAsset<TexturePtr>(textureParams);
 
             auto meshPtr = mesh.release();
@@ -99,7 +99,7 @@ namespace game {
                                            MeshLoadingParams anim;
                                            anim.file = "resources/assets/models/" + file;
                                            anim.flags->async = 1u;
-                                           anim.callbackThreadId = 1u;
+                                           anim.callbackThreadId = static_cast<uint8_t>(Engine::Workers::UPDATE_THREAD);
 
                                            assetManager.loadAsset<Mesh*>(anim,
                                                [mainAsset, this, id, weight, speed, infinity](

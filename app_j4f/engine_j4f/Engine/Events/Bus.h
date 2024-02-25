@@ -58,6 +58,7 @@ namespace engine {
             const uint16_t observer_type_id = UniqueTypeId<IEventObserver>::getUniqueId<EVENT>();
             std::vector<IEventSubscriber*>& subscribers = _eventSubscribers[observer_type_id];
             auto&& ref = const_cast<EventSubscriber<EVENT>&>(s);
+            ref._bus = const_cast<Bus*>(this);
             subscribers.push_back(&(ref));
         }
 
@@ -66,6 +67,7 @@ namespace engine {
             const uint16_t observer_type_id = UniqueTypeId<IEventObserver>::getUniqueId<EVENT>();
             std::vector<IEventSubscriber*>& subscribers = _eventSubscribers[observer_type_id];
             auto&& result = static_cast<EventSubscriber<EVENT>*>(subscribers.emplace_back(new EventSubscriber<EVENT>(callback)));
+            result->_bus = const_cast<Bus*>(this);
             return std::unique_ptr<EventSubscriber<EVENT>>(result);
         }
 
@@ -92,18 +94,18 @@ namespace engine {
             const uint16_t observer_type_id = UniqueTypeId<IEventObserver>::getUniqueId<simple_event_type>();
 
             bool result = false;
-            auto it = _eventObservers.find(observer_type_id);
-            if (it != _eventObservers.end()) {
-                for (IEventObserver* o : it->second) {
-                    result |= static_cast<EventObserverImpl<EVENT>*>(o)->processEvent(evt);
-                    // if (result && notifyOne) { break; }
-                }
-            }
-
             auto it2 = _eventSubscribers.find(observer_type_id);
             if (it2 != _eventSubscribers.end()) {
                 for (IEventSubscriber* o : it2->second) {
                     result |= static_cast<EventSubscriber<EVENT>*>(o)->processEvent(evt);
+                }
+            }
+
+            auto it = _eventObservers.find(observer_type_id);
+            if (it != _eventObservers.end()) {
+                for (IEventObserver* o : it->second) {
+                    result |= static_cast<EventObserverImpl<EVENT>*>(o)->processEvent(std::forward<EVENT>(evt));
+                    // if (result && notifyOne) { break; }
                 }
             }
 
@@ -119,22 +121,31 @@ namespace engine {
 
     template <typename T>
     class EventObserverImpl : public IEventObserver {
+        using type = std::decay_t<T>;
     public:
-        virtual bool processEvent(const T& evt) = 0;
+        virtual bool processEvent(const type& evt) = 0;
+        virtual bool processEvent(type&& evt) = 0;
     };
 
     template <typename T>
     class EventSubscriber : public IEventSubscriber {
+        friend class Bus;
     public:
         using Callback = std::function<bool(const T&)>;
 
         EventSubscriber() = default;
+        ~EventSubscriber() override {
+            if (_bus && _callback) {
+                _bus->removeSubscriber(this);
+                _bus = nullptr;
+            }
+        }
 
         explicit EventSubscriber(Callback&& callback) : _callback(std::move(callback)) {}
         explicit EventSubscriber(const Callback& callback) : _callback(callback) {}
 
-        EventSubscriber(EventSubscriber&& e) noexcept : _callback(std::move(e._callback)) { e._callback = nullptr; e._bus = nullptr; }
-        EventSubscriber(const EventSubscriber& e) : _callback(e.callback) {}
+        EventSubscriber(EventSubscriber&& e) noexcept : _callback(std::move(e._callback)), _bus(e._bus) { e._callback = nullptr; e._bus = nullptr; }
+        EventSubscriber(const EventSubscriber& e) : _callback(e.callback), _bus(e._bus) {}
 
         EventSubscriber& operator= (EventSubscriber&& e) noexcept {
             _callback = std::move(e._callback);
@@ -153,6 +164,7 @@ namespace engine {
 
     private:
         Callback _callback = nullptr;
+        Bus* _bus = nullptr;
     };
 
 

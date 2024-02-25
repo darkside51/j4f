@@ -19,6 +19,7 @@ class PlayerController : public engine::EventObserverImpl<uint8_t> {
         void onPointerEvent(const engine::PointerEvent &event);
         bool onKeyEvent(const engine::KeyEvent& event);
         bool processEvent(const uint8_t & id) override;
+        bool processEvent(uint8_t&& id) override { return processEvent(id); }
 
         engine::vec3f getPlayerPosition() const;
     private:
