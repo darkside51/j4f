@@ -3,6 +3,8 @@
 #include "json.hpp"
 #include "../../Core/AssetManager.h"
 
+#include <string_view>
+
 namespace engine {
 	using Json = nlohmann::json;
 
@@ -10,6 +12,7 @@ namespace engine {
 	struct AssetLoadingParams<Json> : public AssetLoadingFlags {
 		std::string file = "";
 		AssetLoadingParams(const std::string& f) : file(f) {}
+        AssetLoadingParams(std::string_view f) : file(f) {}
 	};
 
 	using JsonLoadingParams = AssetLoadingParams<Json>;

@@ -1,4 +1,5 @@
 #include "game.h"
+#include "graphics/graphics_factory.h"
 #include "graphics/scene.h"
 #include "world.h"
 
@@ -22,6 +23,9 @@ namespace engine {
         auto&& fs = fm.getFileSystem<DefaultFileSystem>();
         fm.mapFileSystem(fs);
 
+        _graphicsFactory = std::make_unique<game::GraphicsFactory>();
+        game::ServiceLocator::instance().registerService<game::GraphicsFactory>(_graphicsFactory);
+
         game::ServiceLocator::instance().registerService<game::PlayerController>(&_controller.getPlayerController());
 
         _scene = std::make_unique<game::Scene>();
@@ -32,7 +36,14 @@ namespace engine {
 
         auto & cameraController = _controller.getCameraController();
         _scene->assignCameraController(engine::make_ref(cameraController));
+
+        initialise();
 	}
+
+    void Game::initialise() {
+        _graphicsFactory->loadObjects(std::string_view{"resources/assets/configs/graphics.json"});
+        _world->create();
+    }
 
 	void Game::update(const float delta) {
         if (_scene) {

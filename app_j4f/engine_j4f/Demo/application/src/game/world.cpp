@@ -12,15 +12,17 @@
 namespace game {
 
     World::World() : _map(std::make_unique<Map>()), _unitsManager(std::make_unique<UnitsManager>()) {
-        auto & unit = _unitsManager->createUnit();
-        auto playerController = ServiceLocator::instance().getService<PlayerController>();
-        playerController->assign(unit);
-
         ServiceLocator::instance().getService<Scene>()->getUIManager()->registerUIModule(std::make_unique<MainScreen>());
     }
 
     World::~World() {
 
+    }
+
+    void World::create() {
+        auto & unit = _unitsManager->createUnit();
+        auto playerController = ServiceLocator::instance().getService<PlayerController>();
+        playerController->assign(unit);
     }
 
     UnitsManager& World::getUnitsManager() {

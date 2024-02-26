@@ -15,6 +15,8 @@ namespace game {
 
         UnitsManager& getUnitsManager();
 
+        void create();
+
         void update(const float delta);
 
     private:

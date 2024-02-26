@@ -1,0 +1,31 @@
+{
+	"gpu_programs" : [
+		{
+			"name" : "mesh_skin",
+			"programs" : [
+				{
+					"type" : 0,
+					"path" : "mesh_skin.vsh.spv"
+				}, 
+				{
+					"type" : 1,
+					"path" : "mesh_skin.fsh.spv"
+				}
+			]
+		},
+		{
+			"name" : "mesh_skin_stroke",
+			"programs" : [
+				{
+					"type" : 0,
+					"path" : "mesh_skin_stroke.vsh.spv"
+				}
+			]
+		}
+	],
+	"animations" : [
+		{
+		
+		}
+	]
+}

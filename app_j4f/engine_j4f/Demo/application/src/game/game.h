@@ -11,6 +11,7 @@ namespace game {
 	class Scene;
     class World;
     class GameController;
+    class GraphicsFactory;
 }
 
 namespace engine {
@@ -29,9 +30,12 @@ namespace engine {
 		bool onInpuKeyEvent(const KeyEvent& event) override;
 		bool onInpuCharEvent(const uint16_t code) override;
 
+        void initialise();
+
 	private:
         game::GameController _controller;
 		std::unique_ptr<game::Scene> _scene;
         std::unique_ptr<game::World> _world;
+        std::unique_ptr<game::GraphicsFactory> _graphicsFactory;
 	};
 }
