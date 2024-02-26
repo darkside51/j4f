@@ -1,11 +1,11 @@
 #pragma once
 
 #include <Engine/Core/Common.h>
-#include <Engine/Core/Hierarchy.h>
 #include <Engine/Core/ref_ptr.h>
 #include <Engine/Graphics/Camera.h>
-#include <Engine/Graphics/Scene/NodeGraphicsLink.h>
 #include <Engine/Utils/Debug/Assert.h>
+
+#include "definitions.h"
 
 #include <cstdint>
 #include <memory>
@@ -13,8 +13,6 @@
 
 namespace engine {
     class CascadeShadowMap;
-	class Node;
-	class NodeRenderer;
 	class ImguiStatObserver;
 	class ImguiGraphics;
 }
@@ -22,12 +20,6 @@ namespace engine {
 namespace game {
     class CameraController;
     class UIManager;
-
-	template <typename T>
-	using NodeRenderer = engine::NodeRendererImpl<T>;
-
-	using NodeHR = engine::HierarchyRaw<engine::Node>;
-	using NodePtr = engine::ref_ptr<NodeHR>;
 
 	class Scene : public engine::ICameraTransformChangeObserver {
 	public:

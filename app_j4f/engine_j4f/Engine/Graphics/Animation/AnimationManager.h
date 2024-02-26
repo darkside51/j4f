@@ -71,7 +71,7 @@ namespace engine {
 
     private:
         template<typename... Args>
-        inline typename std::enable_if<sizeof...(Args) == 0>::type update(const float /*delta*/) noexcept {}
+        inline constexpr typename std::enable_if<sizeof...(Args) == 0>::type update(const float /*delta*/) noexcept {}
 
         template<typename T>
         inline void update_strict(const float delta) noexcept {
