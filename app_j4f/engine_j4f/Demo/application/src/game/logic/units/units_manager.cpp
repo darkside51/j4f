@@ -4,15 +4,11 @@
 
 namespace game {
 
-    UnitsManager::UnitsManager() :
-    _meshGraphicsBuffer(std::make_unique<engine::MeshGraphicsDataBuffer>(10 * 1024 * 1024, 10 * 1024 * 1024)) {
-
-    }
-
+    UnitsManager::UnitsManager() = default;
     UnitsManager::~UnitsManager() = default;
 
-    Unit& UnitsManager::createUnit() {
-        return _units.emplace_back(engine::make_ref(_meshGraphicsBuffer));
+    Unit& UnitsManager::createUnit(std::string_view name) {
+        return _units.emplace_back(name);
     }
 
     void UnitsManager::removeUnit() {
@@ -25,9 +21,5 @@ namespace game {
         for (auto & unit : _units) {
             unit.update(delta);
         }
-    }
-
-    engine::ref_ptr<engine::MeshGraphicsDataBuffer> UnitsManager::getGraphicsBuffer() {
-        return engine::make_ref(_meshGraphicsBuffer);
     }
 }

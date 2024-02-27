@@ -9,7 +9,7 @@
 				}, 
 				{
 					"type" : 1,
-					"path" : "mesh_skin.fsh.spv"
+					"path" : "mesh_skin.psh.spv"
 				}
 			]
 		},
@@ -19,6 +19,10 @@
 				{
 					"type" : 0,
 					"path" : "mesh_skin_stroke.vsh.spv"
+				},
+				{
+					"type" : 1,
+					"path" : "color.psh.spv"
 				}
 			]
 		}
@@ -46,37 +50,38 @@
 			"name": "type0_yelling",
 			"path" : "models/nuke_man/yelling.gltf",
         	"speed" : 1.0,
-        	"infinity" : true
+        	"infinity" : false
 		},
 		{
 			"name": "type0_hokey_pokey",
 			"path" : "models/nuke_man/hokey_pokey.gltf",
         	"speed" : 1.0,
-        	"infinity" : true
+        	"infinity" : false
 		},
 		{
 			"name": "type0_dancing0",
 			"path" : "models/nuke_man/dancing0.gltf",
         	"speed" : 1.0,
-        	"infinity" : true
+        	"infinity" : false
 		},
 		{
 			"name": "type0_kick0",
 			"path" : "models/nuke_man/kick0.gltf",
         	"speed" : 1.0,
-        	"infinity" : true
+        	"infinity" : false
 		}
 	],
 	"meshes" : [
 		{
 			"id" : 0,
 			"path" : "models/nuke_man/model.gltf",
-			"latency" : 3
+			"latency" : 3,
+			"graphicsBuffer" : 0
 		}
 	],
 	"graphics" : [
 		{
-			"name" : "unit_0",
+			"name" : "body_0",
 			"type" : 2,
 			"gpu_program" : "mesh_skin",
 			"descriptor" : 0,
@@ -116,7 +121,32 @@
 					"weight" : 0.0,
 					"id" : 6
 				}
+			],
+			"drawParams" : {
+				"cullMode" : 0,
+				"blendMode" : 0,
+				"depthTest" : true,
+				"depthWrite" : true,
+				"stencilTest" : true,
+				"stencilWrite" : true,
+				"stencilRef" : 1,
+				"stencilFunction" : 7
+			},
+			"textures" : [
+				"models/nuke_man/texture.png"
 			]
+		}
+	],
+	"objects" : [
+		{
+			"name" : "unit_0",
+			"graphics" : "body_0",
+			"order" : 0,
+			"rotationOrder" : 0,
+			"scale" : [50.0, 50.0, 50.0],
+			"rotation" : [0.0, 0.0, 0.0],
+			"position" : [0.0, 0.0, 0.0],
+			"children" : []
 		}
 	]
 }

@@ -8,6 +8,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <string_view>
 
 namespace engine {
     struct MeshGraphicsDataBuffer;
@@ -25,7 +26,7 @@ namespace game {
 
 class Unit : public Entity, public engine::IAnimationObserver {
     public:
-        Unit(engine::ref_ptr<engine::MeshGraphicsDataBuffer> graphicsBuffer);
+        Unit(std::string_view name);
         ~Unit();
 
         Unit(Unit &&) noexcept;

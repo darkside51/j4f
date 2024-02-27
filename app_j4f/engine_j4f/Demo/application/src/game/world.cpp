@@ -20,7 +20,7 @@ namespace game {
     }
 
     void World::create() {
-        auto & unit = _unitsManager->createUnit();
+        auto & unit = _unitsManager->createUnit("unit_0");
         auto playerController = ServiceLocator::instance().getService<PlayerController>();
         playerController->assign(unit);
     }

@@ -1,15 +1,8 @@
 #pragma once
 
 #include "unit.h"
-
-#include <Engine/Core/ref_ptr.h>
-
-#include <memory>
+#include <string_view>
 #include <vector>
-
-namespace engine {
-    struct MeshGraphicsDataBuffer;
-}
 
 namespace game {
     class UnitsManager {
@@ -17,15 +10,12 @@ namespace game {
         UnitsManager();
         ~UnitsManager();
 
-        Unit& createUnit();
+        Unit& createUnit(std::string_view name);
         void removeUnit();
 
         void update(const float delta);
 
-        engine::ref_ptr<engine::MeshGraphicsDataBuffer> getGraphicsBuffer();
-
     private:
-        std::unique_ptr<engine::MeshGraphicsDataBuffer> _meshGraphicsBuffer;
         std::vector<Unit> _units;
     };
 }

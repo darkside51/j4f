@@ -14,6 +14,7 @@
 #include <Engine/Graphics/Texture/TexturePtrLoader.h>
 
 #include "../../service_locator.h"
+#include "../../graphics/graphics_factory.h"
 
 #include <memory>
 
@@ -21,112 +22,166 @@ namespace game {
 
     engine::TexturePtr texture;
 
-    Unit::Unit(engine::ref_ptr<engine::MeshGraphicsDataBuffer> graphicsBuffer) : Entity(this), _animations(nullptr) {
+    Unit::Unit(std::string_view name) : Entity(this), _animations(nullptr) {
         using namespace engine;
-        auto && serviceLocator = ServiceLocator::instance();
+        auto &&serviceLocator = ServiceLocator::instance();
 
-        auto && assetManager = Engine::getInstance().getModule<AssetManager>();
-        auto && gpuProgramManager = Engine::getInstance().getModule<Graphics>().getGpuProgramsManager();
+        auto &&assetManager = Engine::getInstance().getModule<AssetManager>();
+        auto &&gpuProgramManager = Engine::getInstance().getModule<Graphics>().getGpuProgramsManager();
 
-        const std::vector<engine::ProgramStageInfo> psi = {
-                {ProgramStage::VERTEX, "resources/shaders/mesh_skin.vsh.spv"},
-                {ProgramStage::FRAGMENT, "resources/shaders/mesh_skin.psh.spv"}
-        };
-        auto &&program = gpuProgramManager->getProgram(psi);
+        auto graphicsFactory = serviceLocator.getService<GraphicsFactory>();
 
-        const uint8_t latency = 3u;
-        MeshLoadingParams mesh_params;
-        {
-            using namespace gltf;
-            mesh_params.file = "resources/assets/models/nuke_man/model.gltf";
-            mesh_params.semanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL,
-                                                         AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT,
-                                                         AttributesSemantic::TEXCOORD_0);
-            mesh_params.latency = latency;
-            mesh_params.flags->async = 1u;
-            mesh_params.callbackThreadId = static_cast<uint8_t>(Engine::Workers::UPDATE_THREAD);
+        auto it = graphicsFactory->_objects.find(name.data());
+        if (it != graphicsFactory->_objects.end()) {
+            auto const &descriptions = graphicsFactory->_descriptions;
+            auto const &gpuPrograms = graphicsFactory->_gpuPrograms;
+            auto const &animations = graphicsFactory->_animations;
+            auto const &meshes = graphicsFactory->_meshes;
+            auto const &textures = graphicsFactory->_textures;
+            auto const &meshGraphicsBuffers = graphicsFactory->_meshGraphicsBuffers;
 
-            // or create with default constructor for unique buffer for mesh
-            mesh_params.graphicsBuffer = graphicsBuffer;
-        }
+            auto const &object = it->second;
+            auto const &description = descriptions.at(object.description);
 
-        auto mesh = std::make_unique<NodeRenderer<Mesh*>>();
-        {
-            TexturePtrLoadingParams textureParams;
-            textureParams.files = { "resources/assets/models/nuke_man/texture.png" };
-            textureParams.flags->async = 1u;
-            textureParams.flags->use_cache = 1u;
-            textureParams.callbackThreadId = static_cast<uint8_t>(Engine::Workers::RENDER_THREAD);
-            texture = assetManager.loadAsset<TexturePtr>(textureParams);
+            auto const gpuProgramDescription = gpuPrograms[description.gpuProgramId];
 
-            auto meshPtr = mesh.release();
+            std::vector<engine::ProgramStageInfo> psi;
+            for (size_t i = 0u; i < gpuProgramDescription.modules.size(); ++i) {
+                if (!gpuProgramDescription.modules[i].empty()) {
+                    ProgramStage stage;
+                    switch (static_cast<GPUProgramDescription::Module>(i)) {
+                        case GPUProgramDescription::Module::Vertex:
+                            stage = ProgramStage::VERTEX;
+                            break;
+                        case GPUProgramDescription::Module::Fragment:
+                            stage = ProgramStage::FRAGMENT;
+                            break;
+                        case GPUProgramDescription::Module::Geometry:
+                            stage = ProgramStage::GEOMETRY;
+                            break;
+                        case GPUProgramDescription::Module::Compute:
+                            stage = ProgramStage::COMPUTE;
+                            break;
+                    }
+                    psi.emplace_back(stage, "resources/shaders/" + gpuProgramDescription.modules[i]);
+                }
+            }
+
+            auto && program = gpuProgramManager->getProgram(psi);
+
+            NodePtr node;
             auto scene = serviceLocator.getService<Scene>();
-            auto &&node = scene->placeToWorld(meshPtr); // scene->placeToNode(mesh.release(), _mapNode); ??
-            scene->addShadowCastNode(node);
-            _mapObject.assignNode(node);
-            _mapObject.setScale(vec3f(50.0f));
 
-            assetManager.loadAsset<Mesh *>(mesh_params,
-                                   [this, mesh = engine::make_ref(meshPtr), program,
-                                    &assetManager, &gpuProgramManager](
-                                           std::unique_ptr<Mesh> && asset, const AssetLoadingResult result) mutable {
-                                       asset->setProgram(program);
-                                       asset->setParamByName("u_texture", texture.get(), false);
-                                       asset->changeRenderState([](vulkan::VulkanRenderState& renderState) {
-                                           renderState.rasterizationState.cullMode = vulkan::CullMode::CULL_MODE_NONE;
-                                           renderState.stencilState =
-                                                   vulkan::VulkanStencilState{true, VK_STENCIL_OP_KEEP,
-                                                                              VK_STENCIL_OP_REPLACE,
-                                                                              VK_STENCIL_OP_KEEP,
-                                                                              VK_COMPARE_OP_ALWAYS,
-                                                                              0xffu, 0xffu, 1u};
-                                       });
+            switch (description.type) {
+                case GraphicsType::Mesh: {
+                    auto const &meshDescriptor = meshes[description.descriptor];
 
-                                       // animations
-                                       _animations = std::make_unique<MeshAnimationTree>(0.0f, asset->getNodesCount(),
-                                                                        asset->getSkeleton()->getLatency());
-                                       _animations->addObserver(this);
-                                       _animations->getAnimator()->resize(7u);
+                    const uint8_t latency = meshDescriptor.latency;
+                    MeshLoadingParams mesh_params;
+                    mesh_params.file = "resources/assets/" + meshDescriptor.path;
+                    mesh_params.semanticMask = meshDescriptor.semanticMask;
+                    mesh_params.latency = latency;
+                    mesh_params.flags->async = 1u;
+                    mesh_params.callbackThreadId = static_cast<uint8_t>(Engine::Workers::UPDATE_THREAD);
 
-                                       auto && animationManager = Engine::getInstance().getModule<Graphics>().getAnimationManager();
-                                       animationManager->registerAnimation(_animations.get());
-                                       animationManager->addTarget(_animations.get(), asset->getSkeleton().get());
+                    // or create with default constructor for unique buffer for mesh
+                    mesh_params.graphicsBuffer = meshGraphicsBuffers[meshDescriptor.graphicsBufferId];
 
-                                       const auto loadAnim =
-                                               [&assetManager, this, mainAsset = asset.get()](
-                                                       const std::string file, uint8_t id, float weight,
-                                                       bool infinity = true, float speed = 1.0f) {
-                                           MeshLoadingParams anim;
-                                           anim.file = "resources/assets/models/" + file;
-                                           anim.flags->async = 1u;
-                                           anim.callbackThreadId = static_cast<uint8_t>(Engine::Workers::UPDATE_THREAD);
+                    auto mesh = std::make_unique<NodeRenderer<Mesh*>>();
+                    auto meshPtr = mesh.release();
+                    node = scene->placeToWorld(meshPtr); // scene->placeToNode(mesh.release(), _mapNode); ??
 
-                                           assetManager.loadAsset<Mesh*>(anim,
-                                               [mainAsset, this, id, weight, speed, infinity](
-                                                   std::unique_ptr<Mesh>&& asset,
-                                                   const AssetLoadingResult result) mutable {
-                                                       _animations->getAnimator()->assignChild(id,
-                                                       new MeshAnimationTree::AnimatorType(
-                                                           &asset->getMeshData()->animations[0],
-                                                           weight,
-                                                           mainAsset->getSkeleton()->getLatency(), speed, infinity));
-                                               }
-                                           );
-                                       };
+                    auto loadAnim = [&assetManager, this] (
+                            ref_ptr<Mesh> mainAsset, const std::string file, uint8_t id, float weight, bool infinity,
+                            float speed){
+                        MeshLoadingParams anim;
+                        anim.file = "resources/assets/" + file;
+                        anim.flags->async = 1u;
+                        anim.callbackThreadId = static_cast<uint8_t>(Engine::Workers::UPDATE_THREAD);
 
-                                       loadAnim("nuke_man/idle.gltf", 0u, 1.0f);
-                                       loadAnim("nuke_man/idle_angry.gltf", 1u, 0.0f);
-                                       loadAnim("nuke_man/running.gltf", 2u, 0.0f);
-                                       loadAnim("nuke_man/yelling.gltf", 3u, 0.0f, false);
-                                       loadAnim("nuke_man/hokey_pokey.gltf", 4u, 0.0f, false);
-                                       loadAnim("nuke_man/dancing0.gltf", 5u, 0.0f, false);
-                                       loadAnim("nuke_man/kick0.gltf", 6u, 0.0f, false);
+                        assetManager.loadAsset<Mesh*>(
+                                anim,[mainAsset, this, id, weight, speed, infinity] (
+                                        std::unique_ptr<Mesh> && asset,
+                                        const AssetLoadingResult result) mutable {
+                                    _animations->getAnimator()->assignChild(
+                                            id,
+                                            new MeshAnimationTree::AnimatorType(
+                                                    &asset->getMeshData()->animations[0],
+                                                    weight, mainAsset->getSkeleton()->getLatency(),
+                                                    speed, infinity));
+                                }
+                        );
+                    };
 
-                                       //////////////////////
-                                       auto && node = _mapObject.getNode()->value();
-                                       node.setBoundingVolume(BoundingVolume::make<SphereVolume>(vec3f(0.0f, 0.0f, 0.4f), 0.42f));
-                                       auto meshGraphics = asset.release();
-                                       mesh->setGraphics(meshGraphics);
+                    /////// texture loading
+                    TexturePtrLoadingParams textureParams;
+                    textureParams.files = {"resources/assets/models/nuke_man/texture.png"};
+                    textureParams.flags->async = 1u;
+                    textureParams.flags->use_cache = 1u;
+                    textureParams.callbackThreadId = static_cast<uint8_t>(Engine::Workers::RENDER_THREAD);
+                    texture = assetManager.loadAsset<TexturePtr>(textureParams);
+                    /////// texture loading
+
+                    assetManager.loadAsset<Mesh *>(
+                            mesh_params,
+                            [this, &drawParams = description.drawParams,
+                             &animations = description.animations,
+                             &allAnimations = animations,
+                             order = object.order,
+                             loadAnim = std::move(loadAnim),
+                             mesh = engine::make_ref(meshPtr), program,
+                             &assetManager, &gpuProgramManager] (
+                                     std::unique_ptr<Mesh> &&asset,
+                                     const AssetLoadingResult result) mutable {
+                                        asset->setProgram(program);
+                                        asset->setParamByName("u_texture", texture.get(), false);
+                                        asset->changeRenderState(
+                                                [&drawParams](vulkan::VulkanRenderState &renderState) {
+                                                    renderState.rasterizationState.cullMode = drawParams.cullMode;
+                                                    renderState.blendMode = drawParams.blendMode;
+                                                    renderState.depthState.depthTestEnabled = drawParams.depthTest;
+                                                    renderState.depthState.depthWriteEnabled = drawParams.depthWrite;
+                                                    const uint8_t stencilWriteMsk = drawParams.stencilWrite ? 0xffu : 0x0u;
+                                                    renderState.stencilState =
+                                                            vulkan::VulkanStencilState{
+                                                                drawParams.stencilTest,VK_STENCIL_OP_KEEP,
+                                                                VK_STENCIL_OP_REPLACE,VK_STENCIL_OP_KEEP,
+                                                                static_cast<VkCompareOp>(drawParams.stencilFunction),
+                                                                0xffu, stencilWriteMsk,
+                                                                drawParams.stencilRef};
+                                                });
+
+                                        // animations
+                                        if (!animations.empty()) {
+                                            _animations = std::make_unique<MeshAnimationTree>(0.0f,
+                                                                                              asset->getNodesCount(),
+                                                                                              asset->getSkeleton()->getLatency());
+                                            _animations->addObserver(this);
+                                            _animations->getAnimator()->resize(animations.size());
+
+                                            auto && animationManager =
+                                                    Engine::getInstance().getModule<Graphics>().getAnimationManager();
+                                            animationManager->registerAnimation(_animations.get());
+                                            animationManager->addTarget(_animations.get(),
+                                                                        asset->getSkeleton().get());
+
+                                            for (const auto &anim: animations) {
+                                                const auto animId = std::get<size_t>(anim);
+                                                const auto weight = std::get<float>(anim);
+                                                const auto id = std::get<uint8_t>(anim);
+
+                                                const auto &animation = allAnimations[animId];
+                                                loadAnim(asset, animation.path, id, weight,
+                                                         animation.infinity, animation.speed);
+                                            }
+                                        }
+
+                                        auto &&node = _mapObject.getNode()->value();
+                                        node.setBoundingVolume(BoundingVolume::make<SphereVolume>(
+                                                vec3f(0.0f, 0.0f, 0.4f),0.42f));
+                                        auto meshGraphics = asset.release();
+                                        mesh->setGraphics(meshGraphics);
+                                        mesh->getRenderDescriptor().order = order;
 
 //                                       {
 //                                           // test add refEntity
@@ -156,41 +211,56 @@ namespace game {
 //                                           node2->value().setLocalMatrix(matrix);
 //                                       }
 
-                                       {
-                                           // test add refEntity
-                                           const std::vector<engine::ProgramStageInfo> psi = {
-                                                   {ProgramStage::VERTEX,   "resources/shaders/mesh_skin_stroke.vsh.spv"},
-                                                   {ProgramStage::FRAGMENT, "resources/shaders/color.psh.spv"}
-                                           };
-                                           auto &&program_stroke = gpuProgramManager->getProgram(psi);
+                                {
+                                    // test add refEntity
+                                    const std::vector<engine::ProgramStageInfo> psi = {
+                                            {ProgramStage::VERTEX,   "resources/shaders/mesh_skin_stroke.vsh.spv"},
+                                            {ProgramStage::FRAGMENT, "resources/shaders/color.psh.spv"}
+                                    };
+                                    auto &&program_stroke = gpuProgramManager->getProgram(psi);
 
-                                           auto meshRef = std::make_unique<NodeRenderer<ReferenceEntity<Mesh> *>>();
-                                           auto g = new ReferenceEntity<Mesh>(meshGraphics);
-                                           g->setProgram(program_stroke);
-                                           g->changeRenderState([](vulkan::VulkanRenderState &renderState) {
-                                               renderState.rasterizationState.cullMode = vulkan::CullMode::CULL_MODE_BACK;
-                                               renderState.depthState.depthTestEnabled = false;
-                                               renderState.depthState.depthWriteEnabled = true; // if usestroke on one object
-                                               //renderState.depthState.depthWriteEnabled = false; //
-                                               renderState.stencilState =
-                                                       vulkan::VulkanStencilState{true, VK_STENCIL_OP_KEEP,
-                                                                                  VK_STENCIL_OP_KEEP,
-                                                                                  VK_STENCIL_OP_KEEP,
-                                                                                  VK_COMPARE_OP_NOT_EQUAL,
-                                                                                  0xffu, 0x0u, 1u};
-                                           });
-                                           meshRef->setGraphics(g);
-                                           meshRef->getRenderDescriptor().order = 0u; // same order
-                                           auto &&serviceLocator = ServiceLocator::instance();
-                                           auto scene = serviceLocator.getService<Scene>();
-                                           auto &&node2 = scene->placeToNode(meshRef.release(), _mapObject.getNode());
-                                           //scene->addShadowCastNode(node2);
-                                           auto matrix = engine::makeMatrix(1.0f);
-                                           //engine::translateMatrixTo(matrix, {1.0f, 0.0f, 0.0f});
-                                           node2->value().setLocalMatrix(matrix);
-                                       }
-                                   });
+                                    auto meshRef = std::make_unique<NodeRenderer<ReferenceEntity<Mesh> *>>();
+                                    auto g = new ReferenceEntity<Mesh>(meshGraphics);
+                                    g->setProgram(program_stroke);
+                                    g->changeRenderState([](vulkan::VulkanRenderState &renderState) {
+                                        renderState.rasterizationState.cullMode = vulkan::CullMode::CULL_MODE_BACK;
+                                        renderState.depthState.depthTestEnabled = false;
+                                        renderState.depthState.depthWriteEnabled = true; // if usestroke on one object
+                                        //renderState.depthState.depthWriteEnabled = false; //
+                                        renderState.stencilState =
+                                                vulkan::VulkanStencilState{true, VK_STENCIL_OP_KEEP,
+                                                                           VK_STENCIL_OP_KEEP,
+                                                                           VK_STENCIL_OP_KEEP,
+                                                                           VK_COMPARE_OP_NOT_EQUAL,
+                                                                           0xffu, 0x0u, 1u};
+                                    });
+                                    meshRef->setGraphics(g);
+                                    meshRef->getRenderDescriptor().order = 0u; // same order
+                                    auto &&serviceLocator = ServiceLocator::instance();
+                                    auto scene = serviceLocator.getService<Scene>();
+                                    auto &&node2 = scene->placeToNode(meshRef.release(),
+                                                                      _mapObject.getNode());
+                                    auto matrix = engine::makeMatrix(1.0f);
+                                    node2->value().setLocalMatrix(matrix);
+                                }
+                            });
+
+                }
+                    break;
+                default:
+                    break;
+            }
+
+            if (node) {
+                scene->addShadowCastNode(node);
+                _mapObject.assignNode(node);
+                _mapObject.setRotationsOrder(object.rotationsOrder);
+                _mapObject.setScale(object.scale);
+                _mapObject.setRotation(object.rotation);
+                _mapObject.setPosition(object.position);
+            }
         }
+
     }
 
     Unit::~Unit() {
@@ -202,17 +272,18 @@ namespace game {
 
     engine::vec3f Unit::getPosition() const {
         using namespace engine;
-        if (Engine::getInstance().getModule<WorkerThreadsCommutator>().checkCurrentThreadIs(static_cast<uint8_t>(Engine::Workers::RENDER_THREAD))) {
+        if (Engine::getInstance().getModule<WorkerThreadsCommutator>().checkCurrentThreadIs(
+                static_cast<uint8_t>(Engine::Workers::RENDER_THREAD))) {
             // for render thread
-            const auto& m = _mapObject.getTransform();
-            return { m[3][0], m[3][1], m[3][2] };
-        } else {         
+            const auto &m = _mapObject.getTransform();
+            return {m[3][0], m[3][1], m[3][2]};
+        } else {
             // for update thread
             return _mapObject.getPosition();
-        }        
+        }
     }
 
-    void Unit::onEvent(engine::AnimationEvent event, const engine::MeshAnimator* animator) {
+    void Unit::onEvent(engine::AnimationEvent event, const engine::MeshAnimator *animator) {
         using namespace engine;
         switch (event) {
             case AnimationEvent::NewLoop:
@@ -222,7 +293,8 @@ namespace game {
             case AnimationEvent::Finish:
                 setState(UnitState::Idle, _currentAnimId == 6u ? 1u : 0u);
                 break;
-            default: break;
+            default:
+                break;
         }
     }
 
@@ -277,7 +349,7 @@ namespace game {
 
     void Unit::update(const float delta) {
         using namespace engine;
-        const auto & p = _mapObject.getPosition();
+        const auto &p = _mapObject.getPosition();
 
         if (p != _moveTarget) {
             const auto vec = _moveTarget - p;
@@ -287,9 +359,9 @@ namespace game {
                 const auto direction = as_normalized(vec);
 
                 const uint8_t moveAimId = 2u;
-                const auto & animations = _animations->getAnimator()->children();
-                auto && anim = animations[moveAimId]->value();
-                
+                const auto &animations = _animations->getAnimator()->children();
+                auto &&anim = animations[moveAimId]->value();
+
                 const float moveSpeed = kAngleSpeed * 7.7f * delta * anim.getWeight();
                 const auto sub = (direction - _direction);
                 if (vec_length(sub) > angleSpeed) {

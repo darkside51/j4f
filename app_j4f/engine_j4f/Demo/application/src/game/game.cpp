@@ -41,8 +41,10 @@ namespace engine {
 	}
 
     void Game::initialise() {
-        _graphicsFactory->loadObjects(std::string_view{"resources/assets/configs/graphics.json"});
-        _world->create();
+        _graphicsFactory->loadObjects(std::string_view{"resources/assets/configs/graphics.json"},
+                                      [this](){
+                                                    _world->create();
+        });
     }
 
 	void Game::update(const float delta) {

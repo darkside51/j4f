@@ -1,35 +1,38 @@
 #include "graphics_factory.h"
 
+#include <Engine/Graphics/Mesh/MeshLoader.h>
+
 namespace game {
 
-//    template <typename T, typename F, typename... Args>
-//    static void parseArray(std::vector<T>& arr, F&& f, const std::string& name, const engine::Json & js, Args&&... args) {
-//        if (auto targetJs = js.find(name); targetJs != js.end()) {
-//            const size_t count = targetJs->size();
-//            arr.resize(count);
-//            for (size_t i = 0; i < count; ++i) {
-//                f(arr[i], (*targetJs)[i], std::forward<Args>(args)...);
-//            }
-//        }
-//    }
+    GraphicsFactory::GraphicsFactory() {
+        _meshGraphicsBuffers.emplace_back(
+                std::make_unique<engine::MeshGraphicsDataBuffer>(10 * 1024 * 1024, 10 * 1024 * 1024));
+    }
 
-    void GraphicsFactory::loadObjects(std::string_view path) {
+    GraphicsFactory::~GraphicsFactory() = default;
+
+    void GraphicsFactory::loadObjects(std::string_view path, std::function<void()>&& onComplete) {
         using namespace engine;
         JsonLoadingParams jsParams(path);
         jsParams.flags->async = 1u;
 
         const Json js =
                 engine::Engine::getInstance().getModule<engine::AssetManager>().loadAsset<Json>(
-                        jsParams,[this](const Json &asset, const AssetLoadingResult result) {
+                        jsParams,
+                        [this, onComplete = std::move(onComplete)]
+                                (const Json &asset, const AssetLoadingResult result) mutable {
                             if (result == AssetLoadingResult::LOADING_SUCCESS) {
-                                loadObjects(asset);
+                                loadObjects(asset, std::move(onComplete));
                             }
                         });
     }
 
-    void GraphicsFactory::loadObjects(const engine::Json & json) {
+    void GraphicsFactory::loadObjects(const engine::Json & json, std::function<void()>&& onComplete) {
+        using namespace engine;
+        using namespace gltf;
         // load gpu programs
         if (auto array = json.find("gpu_programs"); array != json.end()) {
+            _gpuPrograms.reserve(_gpuPrograms.size() + array->size());
             for (auto &js: *array) {
                 GPUProgramDescription description;
                 description.name = js.value("name", "");
@@ -44,6 +47,7 @@ namespace game {
 
         // load animations
         if (auto array = json.find("animations"); array != json.end()) {
+            _animations.reserve(_animations.size() + array->size());
             for (auto &js: *array) {
                 auto const name = js.value("name", "");
                 auto const path = js.value("path", "");
@@ -56,12 +60,18 @@ namespace game {
 
         // meshes
         if (auto array = json.find("meshes"); array != json.end()) {
-            _meshes.reserve(array->size());
+            auto const defaultSemanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL,
+                                                               AttributesSemantic::JOINTS, AttributesSemantic::WEIGHT,
+                                                               AttributesSemantic::TEXCOORD_0);
+            _meshes.reserve(_meshes.size() + array->size());
             for (auto &js: *array) {
                 auto const id = static_cast<uint16_t>(js.value("id", 0));
                 auto const path = js.value("path", "");
                 auto const latency = static_cast<uint8_t>(js.value("latency", 1));
-                _meshes.emplace_back(id, std::string(path), latency);
+                auto const semanticMask = js.value("semanticMask", defaultSemanticMask);
+                auto const graphicsBufferId = js.value("graphicsBuffer", 0u);
+
+                _meshes.emplace_back(id, std::string(path), latency, semanticMask, graphicsBufferId);
             }
         }
 
@@ -87,7 +97,6 @@ namespace game {
 
                 if (auto animations = js.find("animations"); animations != js.end()) {
                     graphics.animations.reserve(animations->size());
-
                     auto getAnimId = [this](std::string_view name) -> size_t{
                         auto it = std::find_if(_animations.begin(), _animations.end(),
                                                  [name](auto const & anim){
@@ -108,8 +117,80 @@ namespace game {
                         graphics.animations.emplace_back(getAnimId(name), weight, id);
                     }
                 }
+
+                if (auto drawParams = js.find("drawParams"); drawParams != js.end()) {
+                    graphics.drawParams.cullMode =
+                            static_cast<vulkan::CullMode>(drawParams->value("cullMode", 0));
+                    graphics.drawParams.blendMode =
+                            vulkan::VulkanBlendMode(drawParams->value("blendMode", 0));
+                    graphics.drawParams.depthTest = drawParams->value("depthTest", false);
+                    graphics.drawParams.depthWrite = drawParams->value("depthWrite", false);
+                    graphics.drawParams.stencilTest = drawParams->value("stencilTest", false);
+                    graphics.drawParams.stencilWrite = drawParams->value("stencilWrite", false);
+                    graphics.drawParams.stencilRef = drawParams->value("stencilRef", 0);
+                    graphics.drawParams.stencilFunction = drawParams->value("stencilFunction", 0);
+                }
+
+                if (auto textures = js.find("textures"); textures != js.end()) {
+                    graphics.textures.reserve(textures->size());
+                    for (auto & texture: *textures) {
+                        auto const name = texture.get<std::string_view>();
+                        auto it = std::find(_textures.begin(), _textures.end(), name);
+                        if (it != _textures.end()) {
+                            graphics.textures.push_back(std::distance(_textures.begin(), it));
+                        } else {
+                            graphics.textures.push_back(_textures.size());
+                            _textures.emplace_back(name);
+                        }
+                    }
+                }
+
                 _descriptions.emplace(name, std::move(graphics));
             }
+        }
+
+        // objects
+        if (auto array = json.find("objects"); array != json.end()) {
+            std::function<ObjectDescription(const Json &)> loadObject;
+            loadObject = [this, &loadObject](const Json & json)-> ObjectDescription{
+
+                auto const parseVec3 = [](const Json & json,
+                        std::string_view name, vec3f defaultValue = {0.0f, 0.0f, 0.0f})-> vec3f {
+                    if (auto array = json.find(name); array != json.end()) {
+                        return {(*array)[0].get<float>(), (*array)[1].get<float>(), (*array)[2].get<float>()};
+                    } else {
+                        return defaultValue;
+                    }
+                };
+
+                auto const graphics = json.value("graphics", "");
+                auto const order = static_cast<uint16_t>(json.value("order", 0));
+
+                ObjectDescription description = {graphics, order};
+
+                description.rotationsOrder =
+                        static_cast<RotationsOrder>(json.value("rotationOrder", 0));
+                description.scale = parseVec3(json, "scale", {1.0f, 1.0f, 1.0f});
+                description.rotation = parseVec3(json, "rotation");
+                description.position = parseVec3(json, "position");
+
+                if (auto array = json.find("children"); array != json.end()) {
+                    description.children.reserve(array->size());
+                    for (auto &js: *array) {
+                        description.children.push_back(loadObject(js));
+                    }
+                }
+                return description;
+            };
+
+            for (auto &js: *array) {
+                auto const name = js.value("name", "");
+                _objects.emplace(name, loadObject(js));
+            }
+        }
+
+        if (onComplete) {
+            onComplete();
         }
     }
 }
