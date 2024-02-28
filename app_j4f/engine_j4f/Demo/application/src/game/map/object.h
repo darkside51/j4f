@@ -4,12 +4,19 @@
 
 #include <Engine/Core/Hierarchy.h>
 #include <Engine/Core/ref_ptr.h>
+#include <Engine/Core/Linked_ptr.h>
 #include <Engine/Graphics/Scene/NodeGraphicsLink.h>
 #include <Engine/Utils/Debug/Assert.h>
 
 #include <cstdint>
 #include <string>
 #include <string_view>
+#include <vector>
+
+namespace engine {
+    class TextureHandler;
+    using TexturePtr = linked_ptr<TextureHandler>;
+}
 
 namespace game {
     using NodeHR = engine::HierarchyRaw<engine::Node>;
@@ -17,10 +24,11 @@ namespace game {
 
     class MapObject {
     public:
-        MapObject() : _name("") {}
-        MapObject(std::string && name) : _name(std::move(name)) {}
-        MapObject(const std::string & name) : _name(name) {}
-        MapObject(std::string_view name) : _name(name) {}
+        MapObject();
+        MapObject(std::string && name);
+        MapObject(const std::string & name);
+        MapObject(std::string_view name);
+        ~MapObject();
 
         template <typename VEC3>
         void setPosition(VEC3 position) {
@@ -59,6 +67,8 @@ namespace game {
             }
         }
 
+        void addTexture(const engine::TexturePtr & t);
+
         NodePtr getNode() noexcept { return _node; }
 
         void updateTransform() noexcept;
@@ -89,5 +99,6 @@ namespace game {
 
         std::string _name;
         NodePtr _node;
+        std::vector<engine::TexturePtr> _textures;
     };
 }

@@ -5,9 +5,9 @@ layout (location = 1) in vec3 in_normal;
 
 layout (location = 0) out vec4 out_color;
 
-layout (set = 2, binding = 0) uniform sampler2D u_texture;
+layout (set = 2, binding = 0) uniform sampler2D u_texture_0;
 
 void main() {
-	vec4 color = texture(u_texture, in_uv);
+	vec4 color = texture(u_texture_0, in_uv);
 	out_color = color;
 }

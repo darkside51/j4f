@@ -4,7 +4,9 @@
 
 namespace game {
 
-    UnitsManager::UnitsManager() = default;
+    UnitsManager::UnitsManager() {
+        _units.reserve(10u);
+    }
     UnitsManager::~UnitsManager() = default;
 
     Unit& UnitsManager::createUnit(std::string_view name) {
@@ -17,9 +19,9 @@ namespace game {
         //}), _objects.end());
     }
 
-    void UnitsManager::update(const float delta) {
+    void UnitsManager::update(const float delta, const engine::Camera& cam) {
         for (auto & unit : _units) {
-            unit.update(delta);
+            unit.update(delta, cam);
         }
     }
 }

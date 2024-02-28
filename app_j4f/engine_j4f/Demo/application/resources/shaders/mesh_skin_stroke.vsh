@@ -24,7 +24,6 @@ layout(push_constant) uniform PUSH_CONST {
 	mat4 model_matrix;
 } u_push_const;
 
-layout (location = 0) out vec3 out_color;
 
 out gl_PerVertex {
     vec4 gl_Position;   
@@ -39,6 +38,4 @@ void main() {
 	
 	vec4 world_position = u_push_const.model_matrix * (skin * vec4(a_position + a_normal * 0.0575, 1.0));
 	gl_Position = u_push_const.camera_matrix * world_position;
-
-	out_color = vec3(0.28, 0.125, 0.0675);
 }

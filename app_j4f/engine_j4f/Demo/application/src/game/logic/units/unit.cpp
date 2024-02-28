@@ -10,8 +10,11 @@
 #include <Engine/Graphics/Mesh/Mesh.h>
 #include <Engine/Graphics/Mesh/MeshLoader.h>
 #include <Engine/Core/Threads/WorkersCommutator.h>
+#include <Engine/Utils/StringHelper.h>
 
 #include <Engine/Graphics/Texture/TexturePtrLoader.h>
+#include <Engine/Graphics/Color/Color.h>
+#include <Engine/Core/Math/random.h>
 
 #include "../../service_locator.h"
 #include "../../graphics/graphics_factory.h"
@@ -19,8 +22,6 @@
 #include <memory>
 
 namespace game {
-
-    engine::TexturePtr texture;
 
     Unit::Unit(std::string_view name) : Entity(this), _animations(nullptr) {
         using namespace engine;
@@ -72,6 +73,19 @@ namespace game {
             NodePtr node;
             auto scene = serviceLocator.getService<Scene>();
 
+            /////// texture loading
+            std::vector<TexturePtr> objectTextures;
+            objectTextures.reserve(description.textures.size());
+            for (const auto texId : description.textures) {
+                TexturePtrLoadingParams textureParams;
+                textureParams.files = {"resources/assets/" + textures[texId]};
+                textureParams.flags->async = 1u;
+                textureParams.flags->use_cache = 1u;
+                textureParams.callbackThreadId = static_cast<uint8_t>(Engine::Workers::RENDER_THREAD);
+                objectTextures.push_back(assetManager.loadAsset<TexturePtr>(textureParams));
+            }
+            /////// texture loading
+
             switch (description.type) {
                 case GraphicsType::Mesh: {
                     auto const &meshDescriptor = meshes[description.descriptor];
@@ -113,15 +127,6 @@ namespace game {
                         );
                     };
 
-                    /////// texture loading
-                    TexturePtrLoadingParams textureParams;
-                    textureParams.files = {"resources/assets/models/nuke_man/texture.png"};
-                    textureParams.flags->async = 1u;
-                    textureParams.flags->use_cache = 1u;
-                    textureParams.callbackThreadId = static_cast<uint8_t>(Engine::Workers::RENDER_THREAD);
-                    texture = assetManager.loadAsset<TexturePtr>(textureParams);
-                    /////// texture loading
-
                     assetManager.loadAsset<Mesh *>(
                             mesh_params,
                             [this, &drawParams = description.drawParams,
@@ -129,12 +134,22 @@ namespace game {
                              &allAnimations = animations,
                              order = object.order,
                              loadAnim = std::move(loadAnim),
+                             objectTextures,
                              mesh = engine::make_ref(meshPtr), program,
-                             &assetManager, &gpuProgramManager] (
+                             &assetManager, &gpuProgramManager
+                             ] (
                                      std::unique_ptr<Mesh> &&asset,
                                      const AssetLoadingResult result) mutable {
                                         asset->setProgram(program);
-                                        asset->setParamByName("u_texture", texture.get(), false);
+
+                                        // set textures
+                                        uint8_t slot = 0u;
+                                        for (auto & texture : objectTextures) {
+                                            asset->setParamByName(
+                                                    fmtString("u_texture_{}", slot++), texture.get(),
+                                                    false);
+                                        }
+
                                         asset->changeRenderState(
                                                 [&drawParams](vulkan::VulkanRenderState &renderState) {
                                                     renderState.rasterizationState.cullMode = drawParams.cullMode;
@@ -215,14 +230,18 @@ namespace game {
                                     // test add refEntity
                                     const std::vector<engine::ProgramStageInfo> psi = {
                                             {ProgramStage::VERTEX,   "resources/shaders/mesh_skin_stroke.vsh.spv"},
-                                            {ProgramStage::FRAGMENT, "resources/shaders/color.psh.spv"}
+                                            {ProgramStage::FRAGMENT, "resources/shaders/color_param.psh.spv"}
                                     };
                                     auto &&program_stroke = gpuProgramManager->getProgram(psi);
 
                                     auto meshRef = std::make_unique<NodeRenderer<ReferenceEntity<Mesh> *>>();
                                     auto g = new ReferenceEntity<Mesh>(meshGraphics);
                                     g->setProgram(program_stroke);
-                                    g->changeRenderState([](vulkan::VulkanRenderState &renderState) {
+
+                                    Color color(random(0u, 0xffffffffu));
+                                    g->setParamByName("color", color.vec4(), true);
+
+                                    g->changeRenderState([&drawParams](vulkan::VulkanRenderState &renderState) {
                                         renderState.rasterizationState.cullMode = vulkan::CullMode::CULL_MODE_BACK;
                                         renderState.depthState.depthTestEnabled = false;
                                         renderState.depthState.depthWriteEnabled = true; // if usestroke on one object
@@ -232,7 +251,8 @@ namespace game {
                                                                            VK_STENCIL_OP_KEEP,
                                                                            VK_STENCIL_OP_KEEP,
                                                                            VK_COMPARE_OP_NOT_EQUAL,
-                                                                           0xffu, 0x0u, 1u};
+                                                                           0xffu, 0x0u,
+                                                                           drawParams.stencilRef};
                                     });
                                     meshRef->setGraphics(g);
                                     meshRef->getRenderDescriptor().order = 0u; // same order
@@ -254,6 +274,9 @@ namespace game {
             if (node) {
                 scene->addShadowCastNode(node);
                 _mapObject.assignNode(node);
+                for (const auto & texture : objectTextures) {
+                    _mapObject.addTexture(texture);
+                }
                 _mapObject.setRotationsOrder(object.rotationsOrder);
                 _mapObject.setScale(object.scale);
                 _mapObject.setRotation(object.rotation);
@@ -265,12 +288,20 @@ namespace game {
 
     Unit::~Unit() {
         ServiceLocator::instance().getService<Scene>()->removeShadowCastNode(_mapObject.getNode());
-        texture = nullptr;
     }
 
     Unit::Unit(Unit &&) noexcept = default;
 
-    engine::vec3f Unit::getPosition() const {
+    void Unit::setPosition(const engine::vec3f & p) noexcept {
+        _mapObject.setPosition(p);
+        _moveTarget = p;
+    }
+
+    void Unit::setRotation(const engine::vec3f & r) noexcept {
+        _mapObject.setRotation(r);
+    }
+
+    engine::vec3f Unit::getPosition() const noexcept {
         using namespace engine;
         if (Engine::getInstance().getModule<WorkerThreadsCommutator>().checkCurrentThreadIs(
                 static_cast<uint8_t>(Engine::Workers::RENDER_THREAD))) {
@@ -312,8 +343,8 @@ namespace game {
         auto &currentAnim = animations[_currentAnimId]->value();
         if (currentAnim.getWeight() < 1.0f) {
             uint8_t i = 0u;
-            for (auto &animation: animations) {
-                if (i != _currentAnimId) {
+            for (auto & animation: animations) {
+                if (animation && i != _currentAnimId) {
                     auto &anim = animation->value();
                     anim.setWeight(std::max(anim.getWeight() - animChangeSpeed, 0.0f));
                 }
@@ -347,7 +378,7 @@ namespace game {
         _state = state;
     }
 
-    void Unit::update(const float delta) {
+    void Unit::update(const float delta, const engine::Camera& camera) {
         using namespace engine;
         const auto &p = _mapObject.getPosition();
 
@@ -359,10 +390,16 @@ namespace game {
                 const auto direction = as_normalized(vec);
 
                 const uint8_t moveAimId = 2u;
-                const auto &animations = _animations->getAnimator()->children();
-                auto &&anim = animations[moveAimId]->value();
+                float weight = 1.0f;
+                if (_animations) {
+                    const auto &animations = _animations->getAnimator()->children();
+                    if (auto && animation = animations[moveAimId]) {
+                        auto && anim = animation->value();
+                        weight = anim.getWeight();
+                    }
+                }
 
-                const float moveSpeed = kAngleSpeed * 7.7f * delta * anim.getWeight();
+                const float moveSpeed = kAngleSpeed * 7.7f * delta * weight;
                 const auto sub = (direction - _direction);
                 if (vec_length(sub) > angleSpeed) {
                     _direction = as_normalized(_direction + as_normalized(sub) * angleSpeed);
@@ -383,6 +420,10 @@ namespace game {
 
         updateAnimationState(delta);
         _mapObject.updateTransform();
+
+        const auto length = engine::vec_length(camera.getPosition()-_mapObject.getPosition());
+        _mapObject.getNode()->value().getRenderer()->getRenderDescriptor().order = length;
+        _mapObject.getNode()->children()[0]->value().getRenderer()->getRenderDescriptor().order = length;
     }
 
 }

@@ -1,0 +1,11 @@
+#version 450
+
+layout (location = 0) out vec4 out_color;
+
+layout(set = 2, binding = 0) uniform UBO {
+	vec4 color;
+} u_params;
+
+void main() {		
+	out_color = u_params.color;
+}

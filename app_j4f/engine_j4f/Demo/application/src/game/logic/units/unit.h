@@ -12,6 +12,7 @@
 
 namespace engine {
     struct MeshGraphicsDataBuffer;
+    class Camera;
 }
 
 namespace game {
@@ -34,9 +35,13 @@ class Unit : public Entity, public engine::IAnimationObserver {
         void onEvent(engine::AnimationEvent event, const engine::MeshAnimator* animator) override;
 
         void setMoveTarget(const engine::vec3f & t) { _moveTarget = t; }
-        void update(const float delta);
+        void update(const float delta, const engine::Camera& cam);
 
-        engine::vec3f getPosition() const;
+        void setPosition(const engine::vec3f & p) noexcept;
+        engine::vec3f getPosition() const noexcept;
+
+        void setRotation(const engine::vec3f & r) noexcept;
+
         void setState(const UnitState state, uint8_t specialAnimId = 0u) noexcept;
 
     private:

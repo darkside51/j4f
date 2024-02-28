@@ -20,9 +20,16 @@ namespace game {
     }
 
     void World::create() {
-        auto & unit = _unitsManager->createUnit("unit_0");
-        auto playerController = ServiceLocator::instance().getService<PlayerController>();
-        playerController->assign(unit);
+        {
+            auto &unit = _unitsManager->createUnit("unit_0");
+            auto playerController = ServiceLocator::instance().getService<PlayerController>();
+            playerController->assign(unit);
+        }
+        {
+            auto &unit = _unitsManager->createUnit("unit_0");
+            unit.setPosition(engine::vec3f(30.0f, 0.0f, 0.0f));
+            unit.setRotation(engine::vec3f(0.0f, 0.0f, -1.0f));
+        }
     }
 
     UnitsManager& World::getUnitsManager() {
@@ -34,7 +41,8 @@ namespace game {
             _map->update(delta);
         }
 
-        _unitsManager->update(delta);
+        const auto & camera = ServiceLocator::instance().getService<Scene>()->getCamera(0u);
+        _unitsManager->update(delta, camera);
     }
 
 }
