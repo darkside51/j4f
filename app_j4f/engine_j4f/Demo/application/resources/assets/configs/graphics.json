@@ -69,12 +69,24 @@
 			"path" : "models/nuke_man/kick0.gltf",
         	"speed" : 1.0,
         	"infinity" : false
+		},
+		{
+			"name": "type1_idle",
+			"path" : "models/man2/binary/idle.glb",
+        	"speed" : 1.0,
+        	"infinity" : true
 		}
 	],
 	"meshes" : [
 		{
 			"id" : 0,
 			"path" : "models/nuke_man/binary/model.glb",
+			"latency" : 3,
+			"graphicsBuffer" : 0
+		},
+		{
+			"id" : 1,
+			"path" : "models/man2/binary/model.glb",
 			"latency" : 3,
 			"graphicsBuffer" : 0
 		}
@@ -135,6 +147,32 @@
 			"textures" : [
 				"models/nuke_man/texture.png"
 			]
+		},
+		{
+			"name" : "body_1",
+			"type" : 2,
+			"gpu_program" : "mesh_skin",
+			"descriptor" : 1,
+			"animations" : [
+				{
+					"name" : "type1_idle",
+					"weight" : 1.0,
+					"id" : 0
+				}
+			],
+			"drawParams" : {
+				"cullMode" : 0,
+				"blendMode" : 0,
+				"depthTest" : true,
+				"depthWrite" : true,
+				"stencilTest" : true,
+				"stencilWrite" : true,
+				"stencilRef" : 1,
+				"stencilFunction" : 7
+			},
+			"textures" : [
+				"models/man2/texture.png"
+			]
 		}
 	],
 	"objects" : [
@@ -144,6 +182,16 @@
 			"order" : 0,
 			"rotationOrder" : 0,
 			"scale" : [50.0, 50.0, 50.0],
+			"rotation" : [0.0, 0.0, 0.0],
+			"position" : [0.0, 0.0, 0.0],
+			"children" : []
+		},
+		{
+			"name" : "unit_1",
+			"graphics" : "body_1",
+			"order" : 0,
+			"rotationOrder" : 0,
+			"scale" : [60.0, 60.0, 60.0],
 			"rotation" : [0.0, 0.0, 0.0],
 			"position" : [0.0, 0.0, 0.0],
 			"children" : []

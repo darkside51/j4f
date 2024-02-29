@@ -26,7 +26,7 @@ namespace game {
             playerController->assign(unit);
         }
         {
-            auto &unit = _unitsManager->createUnit("unit_0");
+            auto &unit = _unitsManager->createUnit("unit_1");
             unit.setPosition(engine::vec3f(30.0f, 0.0f, 0.0f));
             unit.setRotation(engine::vec3f(0.0f, 0.0f, -1.0f));
         }
