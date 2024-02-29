@@ -30,19 +30,19 @@
 	"animations" : [
 		{
 			"name": "type0_idle",
-			"path" : "models/nuke_man/idle.gltf",
+			"path" : "models/nuke_man/binary/idle.glb",
         	"speed" : 1.0,
         	"infinity" : true
 		},
 		{
 			"name": "type0_idle_angry",
-			"path" : "models/nuke_man/idle_angry.gltf",
+			"path" : "models/nuke_man/binary/idle_fight.glb",
         	"speed" : 1.0,
         	"infinity" : true
 		},
 		{
 			"name": "type0_running",
-			"path" : "models/nuke_man/running.gltf",
+			"path" : "models/nuke_man/binary/running.glb",
         	"speed" : 1.0,
         	"infinity" : true
 		},
@@ -74,7 +74,7 @@
 	"meshes" : [
 		{
 			"id" : 0,
-			"path" : "models/nuke_man/model.gltf",
+			"path" : "models/nuke_man/binary/model.glb",
 			"latency" : 3,
 			"graphicsBuffer" : 0
 		}

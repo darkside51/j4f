@@ -7,6 +7,7 @@
 
 #include <cmath>
 #include <assert.h>
+#include <cstddef>
 
 namespace gltf {
 
@@ -234,7 +235,7 @@ namespace gltf {
 		}
 	}
 
-	void Parser::parseBuffer(Buffer& buffer, const Json& js, const std::string& folder) {
+	void Parser::parseBuffer(Buffer& buffer, const Json& js, const std::string& folder, char* binData) {
 		buffer.name = js.value("name", "");
 		buffer.byteLength = js["byteLength"].get<uint32_t>();
 		const std::string& uri = js.value("uri", "");
@@ -259,6 +260,10 @@ namespace gltf {
 				size_t fsize;
 				buffer.data = fm.readFile((folder + uri), fsize);
 			}
+		} else if (binData) {
+			buffer.data = new char[buffer.byteLength + 1];
+			memcpy(buffer.data, binData, buffer.byteLength);
+			buffer.data[buffer.byteLength] = '\0';
 		}
 	}
 	
@@ -471,14 +476,84 @@ namespace gltf {
 	}
 
 	Layout Parser::loadModel(const std::string& file) {
+		using namespace std::literals;
 		std::string folder;
 		const size_t lastDelimeter = file.find_last_of('/');
 		if (lastDelimeter != std::string::npos) {
 			folder = file.substr(0, lastDelimeter + 1);
 		}
 
-		engine::JsonLoadingParams jsParams(file);
-		const Json js = engine::Engine::getInstance().getModule<engine::AssetManager>().loadAsset<Json>(jsParams);
+		/*std::string ext;
+		const size_t lastDot = file.find_last_of('.');
+		if (lastDot != std::string::npos) {
+			ext = file.substr(lastDot + 1, file.length() - lastDot - 1);
+		}*/
+
+		Json js;
+
+		char* binData = nullptr;
+		size_t binSize = 0u;
+		std::vector<char> bytes;
+		
+		//
+		if (file.ends_with(".glb"sv)) {
+			auto& fm = engine::Engine::getInstance().getModule<engine::FileManager>();
+			fm.readFile(file, bytes);
+
+			if (bytes[0u] == 'g' && bytes[1u] == 'l' && bytes[2u] == 'T' && bytes[3u] == 'F') {
+			} else {
+				return {};
+			}
+
+			uint32_t version;        // 4 bytes
+			uint32_t length;         // 4 bytes
+			uint32_t chunk0_length;  // 4 bytes
+			uint32_t chunk0_format;  // 4 bytes;
+
+			auto const swap4IfBigEndian = [](uint32_t & val) noexcept {
+				if (engine::Engine::getInstance().endian() == engine::Engine::Endian::LittleEndian) {
+					return;
+				}
+				//for bigendian
+				uint32_t tmp = val;
+				unsigned char* dst = reinterpret_cast<unsigned char*>(&val);
+				unsigned char* src = reinterpret_cast<unsigned char*>(&tmp);
+
+				dst[0u] = src[3u];
+				dst[1u] = src[2u];
+				dst[2u] = src[1u];
+				dst[3u] = src[0u];
+			};
+
+			memcpy(&version, &bytes[4u], 4u);
+			swap4IfBigEndian(version);
+			memcpy(&length, &bytes[8u], 4u); // Total glb size, including header and all chunks.
+			swap4IfBigEndian(length);
+			memcpy(&chunk0_length, &bytes[12u], 4u);  // JSON data length
+			swap4IfBigEndian(chunk0_length);
+			memcpy(&chunk0_format, &bytes[16u], 4u);
+			swap4IfBigEndian(chunk0_format);
+
+			constexpr uint8_t headerLength = 20u;
+
+			uint64_t header_and_json_size = headerLength + uint64_t(chunk0_length);
+
+			// parse bin data
+			uint32_t chunk1_length = 0u;  // 4 bytes
+			uint32_t chunk1_format = 0u;  // 4 bytes;
+			memcpy(&chunk1_length, bytes.data() + header_and_json_size, 4u);  // bin data length
+			swap4IfBigEndian(chunk1_length);
+			memcpy(&chunk1_format, bytes.data() + header_and_json_size + 4u, 4u);
+			swap4IfBigEndian(chunk1_format);
+
+			binData = bytes.data() + header_and_json_size + 8u;  // 4 bytes (bin_buffer_length) + 4 bytes(bin_buffer_format)
+			binSize = chunk1_length;
+
+			js = Json::parse(&bytes[headerLength], &bytes[headerLength] + chunk0_length);
+		} else {
+			engine::JsonLoadingParams jsParams(file);
+			js = engine::Engine::getInstance().getModule<engine::AssetManager>().loadAsset<Json>(jsParams);
+		}
 
 		const static map_type<std::string, AttributesSemantic> semantics = {
 			{"POSITION", AttributesSemantic::POSITION},
@@ -535,7 +610,7 @@ namespace gltf {
 		parseArray(layout.scenes,		parseScene,			"scenes",		js);
 		parseArray(layout.nodes,		parseNode,			"nodes",		js);
 		parseArray(layout.meshes,		parseMesh,			"meshes",		js, semantics);
-		parseArray(layout.buffers,		parseBuffer,		"buffers",		js, folder);
+		parseArray(layout.buffers,		parseBuffer,		"buffers",		js, folder, binData);
 		parseArray(layout.bufferViews,	parseBufferView,	"bufferViews",	js);
 		parseArray(layout.accessors,	parseAcessor,		"accessors",	js, accesorTypes);
 		parseArray(layout.animations,	parseAnimation,		"animations",	js, animChannelTypes, interpolationTypes);

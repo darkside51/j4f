@@ -27,7 +27,12 @@ namespace engine {
         class EmplacedModuleEnumerator; // focus :)
 
 	public:
-        enum class Workers: uint8_t {
+		enum class Endian : uint8_t {
+			LittleEndian = 0u,
+			BigEndian = 1u
+		};
+
+        enum class Workers : uint8_t {
             RENDER_THREAD = 0u,
             UPDATE_THREAD = 1u,
             MAX_VALUE
@@ -92,6 +97,8 @@ namespace engine {
             return _workerIds[id];
         }
 
+		inline Endian endian() const noexcept { return _endian; }
+
 	private:
 		Engine();
 		void initComplete();
@@ -110,5 +117,6 @@ namespace engine {
 		float _timeMultiply = 1.0f;
 
         std::array<uint8_t, static_cast<size_t>(Workers::MAX_VALUE)> _workerIds = {};
+		Endian _endian = Endian::LittleEndian;
 	};
 }

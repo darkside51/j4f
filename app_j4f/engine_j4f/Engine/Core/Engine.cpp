@@ -23,7 +23,13 @@
 
 namespace engine {
 
-	Engine::Engine() : _renderThread(nullptr), _updateThread(nullptr) {
+	auto constexpr isLittleEndian = []() {
+		constexpr uint32_t i = 0x01234567u;
+		// return 0 for big endian, 1 for little endian.
+		return (*((uint8_t*)(&i))) == 0x67u;
+	};
+
+	Engine::Engine() : _renderThread(nullptr), _updateThread(nullptr), _endian(isLittleEndian() ? Endian::LittleEndian : Endian::BigEndian) {
 #ifdef _DEBUG
 		enableMemoryLeaksDebugger();
 #endif

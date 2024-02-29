@@ -402,7 +402,7 @@ namespace gltf {
 		static void parseScene(Scene& scene, const Json& js);
 		static void parseNode(Node& node, const Json& js);
 		static void parseMesh(Mesh& mesh, const Json& js, const map_type<std::string, AttributesSemantic>& semantics);
-		static void parseBuffer(Buffer& buffer, const Json& js, const std::string& folder);
+		static void parseBuffer(Buffer& buffer, const Json& js, const std::string& folder, char* binData);
 		static void parseBufferView(BufferView& bufferView, const Json& js);
 		static void parseAcessor(Accessor& acessor, const Json& js, const map_type<std::string, AccessorType>& accesorTypes);
 		static void parseAnimation(Animation& animation, const Json& js, const map_type<std::string, AimationChannelPath>& animChannelTypes, const map_type<std::string, Interpolation>& interpolationTypes);

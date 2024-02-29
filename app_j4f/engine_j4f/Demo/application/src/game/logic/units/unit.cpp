@@ -421,9 +421,19 @@ namespace game {
         updateAnimationState(delta);
         _mapObject.updateTransform();
 
-        const auto length = engine::vec_length(camera.getPosition()-_mapObject.getPosition());
-        _mapObject.getNode()->value().getRenderer()->getRenderDescriptor().order = length;
-        _mapObject.getNode()->children()[0]->value().getRenderer()->getRenderDescriptor().order = length;
+        { //// todo!
+            const auto length = engine::vec_length(camera.getPosition() - _mapObject.getPosition());
+            if (auto&& r = _mapObject.getNode()->value().getRenderer(); r && r->getRenderEntity()) {
+                r->getRenderDescriptor().order = length;
+            }
+
+            if (!_mapObject.getNode()->children().empty()) {
+                if (auto&& r = _mapObject.getNode()->children()[0]->value().getRenderer(); r && r->getRenderEntity()) {
+                    r->getRenderDescriptor().order = length;
+                }
+            }
+        }
+
     }
 
 }
