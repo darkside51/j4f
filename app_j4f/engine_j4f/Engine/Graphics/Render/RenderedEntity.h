@@ -155,31 +155,7 @@ namespace engine {
     class ReferenceEntity : public RenderedEntity {
     public:
         ReferenceEntity(T* entity) : _entity(entity) {
-            _renderState = entity->renderState();
-            _fixedGpuLayouts = entity->getFixedGpuLayouts();
-            auto const & renderDescriptor = entity->getRenderDescriptor();
-            _renderDescriptor.mode = renderDescriptor.mode;
-            _renderDescriptor.customRenderer = renderDescriptor.customRenderer;
-
-            auto const size = renderDescriptor.renderData.size();
-            _renderDescriptor.renderData.resize(size);
-
-            for (size_t i = 0u; i < size; ++i) {
-                auto const & src = renderDescriptor.renderData[i];
-                auto & dst = _renderDescriptor.renderData[i];
-
-                dst = std::make_unique<vulkan::RenderData>();
-                dst->vertexes = src->vertexes;
-                dst->indexes = src->indexes;
-
-                dst->vertexSize = src->vertexSize;
-                dst->batchingParams = src->batchingParams;
-                dst->indexType = src->indexType;
-
-                dst->renderPartsCount = src->renderPartsCount;
-                dst->renderParts = new vulkan::RenderData::RenderPart[dst->renderPartsCount];
-                memcpy(dst->renderParts, src->renderParts, dst->renderPartsCount * sizeof(vulkan::RenderData::RenderPart));
-            }
+			init();
         }
 
         void updateRenderData(RenderDescriptor & renderDescriptor, const mat4f& worldMatrix, const bool worldMatrixChanged) {
@@ -188,6 +164,34 @@ namespace engine {
 
         inline void updateModelMatrixChanged(const bool /*worldMatrixChanged*/) noexcept { }
     private:
+		void init() {
+			_renderState = _entity->renderState();
+			_fixedGpuLayouts = _entity->getFixedGpuLayouts();
+			auto const& renderDescriptor = _entity->getRenderDescriptor();
+			_renderDescriptor.mode = renderDescriptor.mode;
+			_renderDescriptor.customRenderer = renderDescriptor.customRenderer;
+
+			auto const size = renderDescriptor.renderData.size();
+			_renderDescriptor.renderData.resize(size);
+
+			for (size_t i = 0u; i < size; ++i) {
+				auto const& src = renderDescriptor.renderData[i];
+				auto& dst = _renderDescriptor.renderData[i];
+
+				dst = std::make_unique<vulkan::RenderData>();
+				dst->vertexes = src->vertexes;
+				dst->indexes = src->indexes;
+
+				dst->vertexSize = src->vertexSize;
+				dst->batchingParams = src->batchingParams;
+				dst->indexType = src->indexType;
+
+				dst->renderPartsCount = src->renderPartsCount;
+				dst->renderParts = new vulkan::RenderData::RenderPart[dst->renderPartsCount];
+				memcpy(dst->renderParts, src->renderParts, dst->renderPartsCount * sizeof(vulkan::RenderData::RenderPart));
+			}
+		}
+
         T* _entity = nullptr;
     };
 }

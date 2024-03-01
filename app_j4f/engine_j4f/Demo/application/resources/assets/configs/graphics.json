@@ -173,6 +173,21 @@
 			"textures" : [
 				"models/man2/texture.png"
 			]
+		},
+		{
+			"name" : "mesh_stroke_ref",
+			"type" : 1,
+			"gpu_program" : "mesh_skin_stroke",
+			"drawParams" : {
+				"cullMode" : 2,
+				"blendMode" : 0,
+				"depthTest" : false,
+				"depthWrite" : true,
+				"stencilTest" : true,
+				"stencilWrite" : false,
+				"stencilRef" : 1,
+				"stencilFunction" : 5
+			}
 		}
 	],
 	"objects" : [
@@ -184,7 +199,13 @@
 			"scale" : [50.0, 50.0, 50.0],
 			"rotation" : [0.0, 0.0, 0.0],
 			"position" : [0.0, 0.0, 0.0],
-			"children" : []
+			"children" : [
+				{
+					"name" : "unit_stroke",
+					"graphics" : "mesh_stroke_ref",
+					"order" : 0
+				}
+			]
 		},
 		{
 			"name" : "unit_1",
@@ -194,7 +215,13 @@
 			"scale" : [60.0, 60.0, 60.0],
 			"rotation" : [0.0, 0.0, 0.0],
 			"position" : [0.0, 0.0, 0.0],
-			"children" : []
+			"children" : [
+				{
+					"name" : "unit_stroke",
+					"graphics" : "mesh_stroke_ref",
+					"order" : 0
+				}
+			]
 		}
 	]
 }
