@@ -11,6 +11,7 @@
 
 // gltf 2.0 format specification
 // https://www.khronos.org/registry/glTF/specs/2.0/glTF-2.0.html
+// https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.pdf
 
 namespace gltf {
 	using Json = nlohmann::json;
@@ -26,7 +27,7 @@ namespace gltf {
 			std::array<float, 3> data;
 		};
 
-		vec3() = default;
+		vec3() : x(0.0f), y(0.0f), z(0.0f) {}
 		vec3(const float a, const float b, const float c) : x(a), y(b), z(c) {}
 
 		inline float operator[](const uint8_t i) const { return data[i]; }
@@ -41,7 +42,7 @@ namespace gltf {
 			std::array<float, 4> data;
 		};
 
-		vec4() = default;
+		vec4() : x(0.0f), y(0.0f), z(0.0f), w(0.0f) {};
 		vec4(const float a, const float b, const float c, const float d) : x(a), y(b), z(c), w(d) {}
 
 		inline float operator[](const uint8_t i) const { return data[i]; }
@@ -63,93 +64,93 @@ namespace gltf {
 		inline vec4& operator[](const uint8_t i) { return data[i]; }
 	};
 
-	enum class AccessorComponentType {
-		BYTE = 0,
-		UNSIGNED_BYTE = 1,
-		SHORT = 2,
-		UNSIGNED_SHORT = 3,
-		UNSIGNED_INT = 4,
-		FLOAT = 5
+	enum class AccessorComponentType : uint8_t {
+		BYTE = 0u,
+		UNSIGNED_BYTE = 1u,
+		SHORT = 2u,
+		UNSIGNED_SHORT = 3u,
+		UNSIGNED_INT = 4u,
+		FLOAT = 5u
 	};
 
-	enum class AccessorType {
-		SCALAR = 0,
-		VEC2 = 1,
-		VEC3 = 2,
-		VEC4 = 3,
-		MAT2 = 4,
-		MAT3 = 5,
-		MAT4 = 6
+	enum class AccessorType : uint8_t {
+		SCALAR = 0u,
+		VEC2 = 1u,
+		VEC3 = 2u,
+		VEC4 = 3u,
+		MAT2 = 4u,
+		MAT3 = 5u,
+		MAT4 = 6u
 	};
 
 	enum class AttributesSemantic : uint8_t {
-		POSITION = 0,
-		NORMAL = 1,
-		TANGENT = 2,
-		COLOR = 3,
-		JOINTS = 4,
-		WEIGHT = 5,
-		TEXCOORD_0 = 6,
-		TEXCOORD_1 = 7,
-		TEXCOORD_2 = 8,
-		TEXCOORD_3 = 9,
-		TEXCOORD_4 = 10,
-		SEMANTICS_COUNT = 11
+		POSITION = 0u,
+		NORMAL = 1u,
+		TANGENT = 2u,
+		COLOR = 3u,
+		JOINTS = 4u,
+		WEIGHT = 5u,
+		TEXCOORD_0 = 6u,
+		TEXCOORD_1 = 7u,
+		TEXCOORD_2 = 8u,
+		TEXCOORD_3 = 9u,
+		TEXCOORD_4 = 10u,
+		SEMANTICS_COUNT = 11u
 	};
 
 	enum class BufferTarget : uint8_t {
-		ARRAY_BUFFER = 0,
-		ELEMENT_ARRAY_BUFFER = 1,
-		ANY_DATA = 3
+		ARRAY_BUFFER = 0u,
+		ELEMENT_ARRAY_BUFFER = 1u,
+		ANY_DATA = 3u
 	};
 
 	enum class PrimitiveMode : uint8_t {
-		POINTS = 0,
-		LINES = 1,
-		LINE_LOOP = 2,
-		LINE_STRIP = 3,
-		TRIANGLES = 4,
-		TRIANGLE_STRIP = 5,
-		TRIANGLE_FAN = 6
+		POINTS = 0u,
+		LINES = 1u,
+		LINE_LOOP = 2u,
+		LINE_STRIP = 3u,
+		TRIANGLES = 4u,
+		TRIANGLE_STRIP = 5u,
+		TRIANGLE_FAN = 6u
 	};
 
 	enum class AimationChannelPath : uint8_t {
-		TRANSLATION = 0,
-		ROTATION = 1,
-		SCALE = 2,
-		WEIGHTS = 3
+		TRANSLATION = 0u,
+		ROTATION = 1u,
+		SCALE = 2u,
+		WEIGHTS = 3u
 	};
 
 	enum class Interpolation : uint8_t {
-		LINEAR = 0,
-		STEP = 1,
-		CUBICSPLINE = 2
+		LINEAR = 0u,
+		STEP = 1u,
+		CUBICSPLINE = 2u
 	};
 
 	enum class MimeType : uint8_t {
-		JPEG = 0,
-		PNG = 1
+		JPEG = 0u,
+		PNG = 1u
 	};
 
 	enum class AlphaMode : uint8_t {
-		A_OPAQUE = 0,
-		A_MASK = 1,
-		A_BLEND = 2
+		A_OPAQUE = 0u,
+		A_MASK = 1u,
+		A_BLEND = 2u
 	};
 
 	enum class SamplerFilter : uint8_t {
-		NEAREST = 0,
-		LINEAR = 1,
-		NEAREST_MIPMAP_NEAREST = 2,
-		LINEAR_MIPMAP_NEAREST = 3,
-		NEAREST_MIPMAP_LINEAR = 4,
-		LINEAR_MIPMAP_LINEAR = 5
+		NEAREST = 0u,
+		LINEAR = 1u,
+		NEAREST_MIPMAP_NEAREST = 2u,
+		LINEAR_MIPMAP_NEAREST = 3u,
+		NEAREST_MIPMAP_LINEAR = 4u,
+		LINEAR_MIPMAP_LINEAR = 5u
 	};
 
 	enum class SamplerWrap : uint8_t {
-		CLAMP_TO_EDGE = 0,
-		MIRRORED_REPEAT = 1,
-		REPEAT = 2
+		CLAMP_TO_EDGE = 0u,
+		MIRRORED_REPEAT = 1u,
+		REPEAT = 2u
 	};
 
 	struct Scene {
@@ -159,11 +160,11 @@ namespace gltf {
 
 	struct Node {
 		std::string name;
-		uint16_t mesh = 0xffff;
-		uint16_t skin = 0xffff;
-		vec3 scale;
-		vec3 translation;
-		vec4 rotation;
+		uint16_t mesh = 0xffffu;
+		uint16_t skin = 0xffffu;
+		vec3 scale = {1.0f, 1.0f, 1.0f};
+		vec3 translation = {0.0f, 0.0f, 0.0f};
+		vec4 rotation = {0.0f, 0.0f, 0.0f, 1.0f};
 		std::vector<float> weights;
 		std::vector<uint16_t> children;
 	};
@@ -171,7 +172,7 @@ namespace gltf {
 	struct Primitives {
 		std::map<AttributesSemantic, uint16_t> attributes;
 		uint16_t indices;
-		uint16_t material = 0xffff;
+		uint16_t material = 0xffffu;
 		PrimitiveMode mode = PrimitiveMode::TRIANGLES;
 	};
 
@@ -194,13 +195,13 @@ namespace gltf {
 		}
 
 		Buffer() = default;
-		Buffer(Buffer&& b) noexcept : name(std::move(b.name)), data(std::move(b.data)), byteLength(b.byteLength) {
+		Buffer(Buffer&& b) noexcept : name(std::move(b.name)), data(b.data), byteLength(b.byteLength) {
 			b.data = nullptr;
 		}
 
 		const Buffer& operator=(Buffer&& b) noexcept {
 			name = std::move(b.name);
-			data = std::move(b.data);
+			data = b.data;
 			byteLength = b.byteLength;
 			b.data = nullptr;
 			return *this;
@@ -213,8 +214,8 @@ namespace gltf {
 	struct BufferView {
 		std::string name;
 		uint16_t buffer;
-		uint16_t stride = 0xffff;
-		uint32_t offset = 0;
+		uint16_t stride = 0xffffu;
+		uint32_t offset = 0u;
 		uint32_t length;
 		BufferTarget target = BufferTarget::ANY_DATA;
 	};
@@ -223,21 +224,21 @@ namespace gltf {
 		uint32_t count;
 		struct {
 			uint16_t bufferView;
-			uint32_t offset = 0;
+			uint32_t offset = 0u;
 			AccessorComponentType componentType; // may be UNSIGNED_BYTE or UNSIGNED_SHORT or UNSIGNED_INT
 		} indices;
 
 		struct {
 			uint16_t bufferView;
-			uint32_t offset = 0;
+			uint32_t offset = 0u;
 		} values;
 	};
 
 	struct Accessor {
 		std::string name;
-		uint16_t bufferView = 0xffff;
+		uint16_t bufferView = 0xffffu;
 		uint32_t count;
-		uint32_t offset = 0;
+		uint32_t offset = 0u;
 		AccessorComponentType componentType;
 		bool normalized = false;
 		AccessorType type;
@@ -254,7 +255,7 @@ namespace gltf {
 
 		Accessor() = default;
 		Accessor(Accessor&& a) noexcept :
-			name(std::move(a.name)), sparse(std::move(a.sparse)), bufferView(a.bufferView),
+			name(std::move(a.name)), sparse(a.sparse), bufferView(a.bufferView),
 			count(a.count), offset(a.offset), componentType(a.componentType),
 			normalized(a.normalized), type(a.type), min(a.min), max(a.max)
 		{
@@ -263,7 +264,7 @@ namespace gltf {
 
 		const Accessor& operator=(Accessor&& a) noexcept {
 			name = std::move(a.name);
-			sparse = std::move(a.sparse);
+			sparse = a.sparse;
 			bufferView = a.bufferView;
 			count = a.count;
 			offset = a.offset;
@@ -310,7 +311,7 @@ namespace gltf {
 	};
 
 	struct TextureInfo {
-		uint16_t index = 0xffff;
+		uint16_t index = 0xffffu;
 		uint16_t texCoord;
 		float scale = 1.0f; // for normalTexture
 		float strength = 1.0f; // for occolusionTexture
@@ -319,7 +320,7 @@ namespace gltf {
 	struct Material {
 		std::string name;
 		struct {
-			vec4 baseColorFactor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+			vec4 baseColorFactor = {1.0f, 1.0f, 1.0f, 1.0f};
 			TextureInfo baseColorTexture;
 			TextureInfo metallicRoughnessTexture;
 			float metallicFactor = 1.0f;
@@ -329,7 +330,7 @@ namespace gltf {
 		TextureInfo normalTexture;
 		TextureInfo occlusionTexture;
 		TextureInfo emissiveTexture;
-		vec3 emissiveFactor = vec3(0.0f, 0.0f, 0.0f);
+		vec3 emissiveFactor = {0.0f, 0.0f, 0.0f};
 		AlphaMode alphaMode = AlphaMode::A_OPAQUE;
 		float alphaCutoff = 0.5f;
 		bool doubleSided = false;
@@ -344,14 +345,14 @@ namespace gltf {
 
 	struct Skin {
 		std::string name;
-		uint16_t inverseBindMatrices = 0xffff; // The index of the accessor containing the floating-point 4x4 inverse-bind matrices.
-		uint16_t skeleton = 0xffff; // The index of the node used as a skeleton root.
+		uint16_t inverseBindMatrices = 0xffffu; // The index of the accessor containing the floating-point 4x4 inverse-bind matrices.
+		uint16_t skeleton = 0xffffu; // The index of the node used as a skeleton root.
 		std::vector<uint16_t> joints; // Indices of skeleton nodes, used as joints in this skin.
 	};
 
 	struct Texture {
 		std::string name;
-		uint16_t sampler = 0xffff;
+		uint16_t sampler = 0xffffu;
 		uint16_t source;
 	};
 
@@ -386,7 +387,6 @@ namespace gltf {
 			scenes = std::move(d.scenes);
 			skins = std::move(d.skins);
 			textures = std::move(d.textures);
-
 			scene = d.scene;
 			asset = std::move(d.asset);
 			return *this;

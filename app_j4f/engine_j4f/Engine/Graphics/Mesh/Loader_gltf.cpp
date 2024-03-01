@@ -184,8 +184,6 @@ namespace gltf {
 			node.scale.x = (*scaleJs)[0];
 			node.scale.y = (*scaleJs)[1];
 			node.scale.z = (*scaleJs)[2];
-		} else {
-			node.scale = vec3(1.0f, 1.0f, 1.0f);
 		}
 
 		auto rotationJs = js.find("rotation");
@@ -194,8 +192,6 @@ namespace gltf {
 			node.rotation.y = (*rotationJs)[1];
 			node.rotation.z = (*rotationJs)[2];
 			node.rotation.w = (*rotationJs)[3];
-		} else {
-			node.rotation = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 		}
 
 		auto translationJs = js.find("translation");
@@ -203,8 +199,6 @@ namespace gltf {
 			node.translation.x = (*translationJs)[0];
 			node.translation.y = (*translationJs)[1];
 			node.translation.z = (*translationJs)[2];
-		} else {
-			node.translation = vec3(0.0f, 0.0f, 0.0f);
 		}
 	}
 
@@ -229,7 +223,7 @@ namespace gltf {
 			for (auto it = attributes.begin(); it != attributes.end(); ++it) {
 				auto its = semantics.find(it.key());
 				if (its != semantics.end()) {
-					mesh.primitives[i].attributes.emplace(semantics.at(it.key()), it.value().get<uint16_t>());
+					mesh.primitives[i].attributes.emplace(its->second, it.value().get<uint16_t>());
 				}
 			}
 		}

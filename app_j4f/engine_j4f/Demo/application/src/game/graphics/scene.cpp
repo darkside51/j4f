@@ -118,7 +118,7 @@ namespace game {
         const auto [width, height] = renderer->getSize();
 
         { // fill rootNode
-            const bool mainCameraDirty = _controller ? _controller->update(delta) : false;
+            const bool mainCameraDirty = _controller && _controller->update(delta);
             _shadowMap->updateShadowUniformsForRegesteredPrograms(worldCamera.getViewTransform());
             reloadRenderList(rootRenderList, _rootNode.get(), mainCameraDirty, 0u,
                              engine::FrustumVisibleChecker(worldCamera.getFrustum()), true);
