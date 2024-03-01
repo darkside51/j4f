@@ -161,7 +161,7 @@
 				}
 			],
 			"drawParams" : {
-				"cullMode" : 0,
+				"cullMode" : 2,
 				"blendMode" : 0,
 				"depthTest" : true,
 				"depthWrite" : true,

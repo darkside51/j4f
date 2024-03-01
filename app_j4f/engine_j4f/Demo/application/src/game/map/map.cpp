@@ -32,7 +32,7 @@ namespace game {
         _mapNode = scene->placeToWorld();
 
         const float size = 50000.0f;
-        const float uvSize = 200.0f;
+        const float uvSize = 300.0f;
 
         auto planeGraphics = std::make_unique<Plane>(
                 std::make_shared<TextureFrame>(
@@ -85,7 +85,7 @@ namespace game {
         /////////
         auto && assetManager = Engine::getInstance().getModule<AssetManager>();
         TexturePtrLoadingParams textureParams;
-        textureParams.files = { "resources/assets/textures/ground/sand1.jpg" };
+        textureParams.files = { "resources/assets/textures/ground/sand5.jpg" };
         textureParams.flags->async = 1;
         textureParams.flags->use_cache = 1;
         textureParams.callbackThreadId = 0u;

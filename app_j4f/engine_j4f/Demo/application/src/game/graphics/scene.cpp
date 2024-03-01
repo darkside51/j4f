@@ -162,7 +162,7 @@ namespace game {
         ///// shadow pass
 
         std::array<VkClearValue, 2> clearValues = {
-                VkClearValue{0.5f, 0.5f, 0.5f, 1.0f}, // for 1st attachment (color)
+                VkClearValue{0.5f, 0.75f, 0.85f, 1.0f}, // for 1st attachment (color)
                 VkClearValue{1.0f, 0} // for 2nd attachment (depthStencil)
         };
         commandBuffer.cmdBeginRenderPass(renderer->getMainRenderPass(), {{0,     0},

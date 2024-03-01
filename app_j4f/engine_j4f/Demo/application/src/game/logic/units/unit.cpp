@@ -378,6 +378,15 @@ namespace game {
         _state = state;
     }
 
+    struct OrderChanger final {
+        inline static bool _(NodeHR* node, const int16_t order) noexcept {
+            if (auto && r = node->value().getRenderer(); r && r->getRenderEntity()) {
+                r->getRenderDescriptor().order = order;
+            }
+            return true;
+        }
+    };
+
     void Unit::update(const float delta, const engine::Camera& camera) {
         using namespace engine;
         const auto &p = _mapObject.getPosition();
@@ -421,19 +430,8 @@ namespace game {
         updateAnimationState(delta);
         _mapObject.updateTransform();
 
-        { //// todo!
-            const auto length = engine::vec_length(camera.getPosition() - _mapObject.getPosition());
-            if (auto&& r = _mapObject.getNode()->value().getRenderer(); r && r->getRenderEntity()) {
-                r->getRenderDescriptor().order = length;
-            }
-
-            if (!_mapObject.getNode()->children().empty()) {
-                if (auto&& r = _mapObject.getNode()->children()[0]->value().getRenderer(); r && r->getRenderEntity()) {
-                    r->getRenderDescriptor().order = length;
-                }
-            }
-        }
-
+        const auto length = engine::vec_length(camera.getPosition() - _mapObject.getPosition());
+        _mapObject.getNode()->execute_with<OrderChanger>(static_cast<int16_t>(length));
     }
 
 }
