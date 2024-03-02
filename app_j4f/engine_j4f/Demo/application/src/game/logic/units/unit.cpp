@@ -265,31 +265,32 @@ namespace game {
         case GraphicsType::Reference:
         {
             auto meshRef = std::make_unique<NodeRenderer<ReferenceEntity<Mesh>*>>();
+            auto graphics = new ReferenceEntity<Mesh>([renderer = parent->value().getRenderer(), drawParams = description.drawParams, program](ReferenceEntity<Mesh>* graphics) {
+                if (auto && e = renderer->getRenderEntity()) {
+                    graphics->init(static_cast<Mesh*>(e));
+                    graphics->setProgram(program);
+                    graphics->changeRenderState([&drawParams](vulkan::VulkanRenderState& renderState) {
+                        renderState.rasterizationState.cullMode = drawParams.cullMode;
+                        renderState.blendMode = drawParams.blendMode;
+                        renderState.depthState.depthTestEnabled = drawParams.depthTest;
+                        renderState.depthState.depthWriteEnabled = drawParams.depthWrite;
+                        const uint8_t stencilWriteMsk = drawParams.stencilWrite ? 0xffu : 0x0u;
+                        renderState.stencilState =
+                            vulkan::VulkanStencilState{ drawParams.stencilTest, VK_STENCIL_OP_KEEP,
+                                                       VK_STENCIL_OP_KEEP,
+                                                       VK_STENCIL_OP_KEEP,
+                                                       static_cast<VkCompareOp>(drawParams.stencilFunction),
+                                                       0xffu, stencilWriteMsk,
+                                                       drawParams.stencilRef };
+                        });
 
-            while (parent->value().getRenderer()->getRenderEntity() == nullptr) { // todo!!!!!!!!!!!!!!!!!!
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            }
+                    Color color(random(0u, 0xffffffffu));
+                    graphics->setParamByName("color", color.vec4(), true);
+                    return true;
+                }
+                return false;
+             });
 
-            auto graphics = new ReferenceEntity<Mesh>(static_cast<Mesh*>(parent->value().getRenderer()->getRenderEntity()));
-            graphics->setProgram(program);
-
-            Color color(random(0u, 0xffffffffu));
-            graphics->setParamByName("color", color.vec4(), true);
-
-            graphics->changeRenderState([&drawParams = description.drawParams](vulkan::VulkanRenderState& renderState) {
-                renderState.rasterizationState.cullMode = drawParams.cullMode;
-                renderState.blendMode = drawParams.blendMode;
-                renderState.depthState.depthTestEnabled = drawParams.depthTest;
-                renderState.depthState.depthWriteEnabled = drawParams.depthWrite;
-                const uint8_t stencilWriteMsk = drawParams.stencilWrite ? 0xffu : 0x0u;
-                renderState.stencilState =
-                    vulkan::VulkanStencilState{ drawParams.stencilTest, VK_STENCIL_OP_KEEP,
-                                               VK_STENCIL_OP_KEEP,
-                                               VK_STENCIL_OP_KEEP,
-                                               static_cast<VkCompareOp>(drawParams.stencilFunction),
-                                               0xffu, stencilWriteMsk,
-                                               drawParams.stencilRef };
-                });
             meshRef->setGraphics(graphics);
             meshRef->getRenderDescriptor().order = 0u; // same order
             auto&& node = scene->placeToNode(meshRef.release(), parent);

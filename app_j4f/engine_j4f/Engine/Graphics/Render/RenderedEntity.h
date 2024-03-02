@@ -153,18 +153,28 @@ namespace engine {
 
     template <typename T>
     class ReferenceEntity : public RenderedEntity {
+		using EntityCreator = std::function<bool(ReferenceEntity *)>;
     public:
-        ReferenceEntity(T* entity) : _entity(entity) {
+        explicit ReferenceEntity(T* entity) : _entity(entity) {
 			init();
         }
 
+		explicit ReferenceEntity(EntityCreator&& creator) : _creator(creator) {}
+
         void updateRenderData(RenderDescriptor & renderDescriptor, const mat4f& worldMatrix, const bool worldMatrixChanged) {
+			if (_creator && _creator(this)) {
+				_creator = nullptr;
+			}
+
+			if (!_entity) return;
+
             _entity->updateRenderData(renderDescriptor, worldMatrix, worldMatrixChanged);
         }
 
         inline void updateModelMatrixChanged(const bool /*worldMatrixChanged*/) noexcept { }
-    private:
-		void init() {
+    
+		void init(T* entity) {
+			_entity = entity;
 			_renderState = _entity->renderState();
 			_fixedGpuLayouts = _entity->getFixedGpuLayouts();
 			auto const& renderDescriptor = _entity->getRenderDescriptor();
@@ -192,6 +202,8 @@ namespace engine {
 			}
 		}
 
+	private:
+		EntityCreator _creator = nullptr;
         T* _entity = nullptr;
     };
 }
