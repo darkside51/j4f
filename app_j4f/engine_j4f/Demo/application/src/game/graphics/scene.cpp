@@ -106,7 +106,25 @@ namespace game {
     void Scene::render(const float delta) {
         using namespace engine;
 
-        auto &worldCamera = _cameras[0];
+        auto &mainCamera = _cameras[0];
+
+        {
+            constexpr float radius = 700.0f;
+            static float angle = 1.0f;
+            static bool night = false;
+            angle += delta * 0.01f;
+            const float c = cosf(angle);
+            const float s = sinf(angle);
+            const float h = (s > 0.5f) ? 1.0f : 0.0f;
+            const vec3f lightPos(h * radius * c, 300.0f, h * radius * s);
+            if (_shadowMap->setLightPosition(lightPos)) {
+                night = false;
+                _shadowMap->updateCascades(&mainCamera);
+            } else if (!night) {
+                night = true;
+                angle += math_constants::f32::pi;
+            }
+        }
 
         auto && graphics = Engine::getInstance().getModule<Graphics>();
         auto && renderer = graphics.getRenderer();
@@ -119,9 +137,9 @@ namespace game {
 
         { // fill rootNode
             const bool mainCameraDirty = _controller && _controller->update(delta);
-            _shadowMap->updateShadowUniformsForRegesteredPrograms(worldCamera.getViewTransform());
+            _shadowMap->updateShadowUniformsForRegesteredPrograms(mainCamera.getViewTransform());
             reloadRenderList(rootRenderList, _rootNode.get(), mainCameraDirty, 0u,
-                             engine::FrustumVisibleChecker(worldCamera.getFrustum()), true);
+                             engine::FrustumVisibleChecker(mainCamera.getFrustum()), true);
 
             // shadows
             reloadRenderList(shadowRenderList, _shadowCastNodes.data(), _shadowCastNodes.size(),
@@ -177,7 +195,7 @@ namespace game {
 
         // render nodes
         rootRenderList.render(commandBuffer, currentFrame,
-                              {&worldCamera.getTransform(),
+                              {&mainCamera.getTransform(),
                                nullptr,
                                nullptr});
 
@@ -189,10 +207,10 @@ namespace game {
         // draw bounding boxes
         constexpr bool kDrawBoundingVolumes = false;
         if constexpr (kDrawBoundingVolumes) {
-            renderNodesBounds(_rootNode.get(), worldCamera.getTransform(), commandBuffer, currentFrame, 0u);
+            renderNodesBounds(_rootNode.get(), mainCamera.getTransform(), commandBuffer, currentFrame, 0u);
         }
 
-        //Engine::getInstance().getModule<Graphics>().getRenderHelper()->drawSphere({0.0f, 0.0f, 0.5f}, 5.0f, worldCamera.getTransform(), makeMatrix(1.0f), commandBuffer, currentFrame, true);
+        //Engine::getInstance().getModule<Graphics>().getRenderHelper()->drawSphere({0.0f, 0.0f, 0.5f}, 5.0f, mainCamera.getTransform(), makeMatrix(1.0f), commandBuffer, currentFrame, true);
         autoBatcher->draw(commandBuffer, currentFrame);
 
         commandBuffer.cmdEndRenderPass();

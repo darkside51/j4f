@@ -126,7 +126,14 @@ namespace engine {
 		}
 
 		template <typename T>
-		inline void setLightPosition(T&& lightPosition) { _lightDirection = as_normalized(-lightPosition); }
+		inline bool setLightPosition(T&& lightPosition, const float epsilon = 1e-5f) {
+			const auto normalisedPosition = as_normalized(-lightPosition);
+			if (compare(_lightDirection, normalisedPosition, epsilon)) {
+				_lightDirection = as_normalized(-lightPosition);
+				return true;
+			}
+			return false;
+		}
 
 		inline uint8_t getCascadesCount() const { return _cascadesCount; }
 		inline uint16_t getDimension() const { return _dimension; }

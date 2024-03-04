@@ -112,6 +112,9 @@ namespace engine {
 				if (dirtyVisible || mNode._modelChanged) {
 					if (auto&& volume = mNode._boundingVolume) {
 						const bool visible = visibleChecker(volume.get(), mNode._model);
+						if (!mNode.isVisible(visibleId) && visible) { 
+							mNode._modelChanged = true; // visible has been changed to true - need recalculate children transforms
+						}
 						mNode.setVisible(visibleId, visible);
 						return visible;
 					} else {
