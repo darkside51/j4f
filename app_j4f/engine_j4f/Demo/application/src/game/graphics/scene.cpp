@@ -108,7 +108,7 @@ namespace game {
 
         auto &mainCamera = _cameras[0];
 
-        {
+        { //
             constexpr float radius = 700.0f;
             static float angle = 1.0f;
             static bool night = false;

@@ -9,7 +9,7 @@ namespace engine {
 	size_t Mesh_Data::loadMeshes(const gltf::Layout& layout, const std::vector<gltf::AttributesSemantic>& allowedAttributes,
 		size_t& vbOffset, const size_t ibOffset, const bool useOffsetsInRenderData) {
 
-		size_t vertex_offset = 0;
+		size_t vertex_offset = 0u;
 
 		auto&& gltf_meshes = layout.meshes;
 		if (!gltf_meshes.empty()) {
@@ -21,9 +21,9 @@ namespace engine {
 			const uint8_t allowedAttributesCount = allowedAttributes.size();
 			std::vector<const float*> buffers(semanticsCount);
 			std::vector<uint8_t> buffersDimensions(semanticsCount);
-			std::vector<uint8_t> allowedAttributesFound(allowedAttributesCount);
+			std::vector<bool> allowedAttributesFound(allowedAttributesCount);
 
-			uint32_t commonVertexCount = 0;
+			uint32_t commonVertexCount = 0u;
 
 			for (auto&& mesh : gltf_meshes) {
 				meshes.emplace_back(); // insert object with default constructor
@@ -33,14 +33,14 @@ namespace engine {
 					const auto firstIndex = static_cast<uint32_t>(indexBuffer.size());
 					const auto firstVertex = static_cast<uint32_t>(vertexBuffer.size());
 
-					uint32_t mesh_vertexCount = 0;
-					uint32_t mesh_indexCount = 0;
-					uint32_t mesh_vertexSize = 0;
-					uint8_t attributesCount = 0;
+					uint32_t mesh_vertexCount = 0u;
+					uint32_t mesh_indexCount = 0u;
+					uint32_t mesh_vertexSize = 0u;
+					uint8_t attributesCount = 0u;
 
-					for (uint8_t i = 0; i < semanticsCount; ++i) {
+					for (uint8_t i = 0u; i < semanticsCount; ++i) {
 						buffers[i] = nullptr;
-						if (i < allowedAttributesCount) { allowedAttributesFound[i] = 0; }
+						if (i < allowedAttributesCount) { allowedAttributesFound[i] = false; }
 					}
 
 					// vertex attributes
@@ -52,7 +52,7 @@ namespace engine {
 							auto attrIt = std::find(allowedAttributes.begin(), allowedAttributes.end(), semantic);
 							if (attrIt == allowedAttributes.end()) continue;
 							const auto distance = std::distance(allowedAttributes.begin(), attrIt);
-							allowedAttributesFound[distance] = 1;
+							allowedAttributesFound[distance] = true;
 						}
 
 						++attributesCount;
@@ -68,39 +68,39 @@ namespace engine {
 
 						switch (accessor.type) {
 							case gltf::AccessorType::VEC2:
-								buffersDimensions[static_cast<uint8_t>(semantic)] = 2;
-								mesh_vertexSize += 2;
+								buffersDimensions[static_cast<uint8_t>(semantic)] = 2u;
+								mesh_vertexSize += 2u;
 									break;
 							case gltf::AccessorType::VEC3:
-								buffersDimensions[static_cast<uint8_t>(semantic)] = 3;
-								mesh_vertexSize += 3;
+								buffersDimensions[static_cast<uint8_t>(semantic)] = 3u;
+								mesh_vertexSize += 3u;
 									break;
 							case gltf::AccessorType::VEC4:
-								buffersDimensions[static_cast<uint8_t>(semantic)] = 4;
-								mesh_vertexSize += 4;
+								buffersDimensions[static_cast<uint8_t>(semantic)] = 4u;
+								mesh_vertexSize += 4u;
 									break;
 							default:
 								break;
 						}
 					}
 
-					if ((allowedAttributesCount != 0) && (attributesCount != allowedAttributesCount)) {
-						for (uint8_t i = 0; i < allowedAttributesCount; ++i) {
-							if (allowedAttributesFound[i] == 0) {
+					if ((allowedAttributesCount != 0u) && (attributesCount != allowedAttributesCount)) {
+						for (uint8_t i = 0u; i < allowedAttributesCount; ++i) {
+							if (!allowedAttributesFound[i]) {
 								const auto a_idx = static_cast<uint8_t>(allowedAttributes[i]);
 								switch (allowedAttributes[i]) {
 									case gltf::AttributesSemantic::JOINTS:
 									case gltf::AttributesSemantic::WEIGHT:
 									case gltf::AttributesSemantic::TANGENT:
 									{
-										mesh_vertexSize += 4;
-										buffersDimensions[a_idx] = 4;
+										mesh_vertexSize += 4u;
+										buffersDimensions[a_idx] = 4u;
 									}
 										break;
                                     case gltf::AttributesSemantic::COLOR: // vec4 or vec3?
                                     {
-                                        mesh_vertexSize += 1;
-                                        buffersDimensions[a_idx] = 1;
+                                        mesh_vertexSize += 1u;
+                                        buffersDimensions[a_idx] = 1u;
                                     }
                                         break;
 									case gltf::AttributesSemantic::TEXCOORD_0:
@@ -109,8 +109,8 @@ namespace engine {
 									case gltf::AttributesSemantic::TEXCOORD_3:
 									case gltf::AttributesSemantic::TEXCOORD_4:
 									{
-										mesh_vertexSize += 2;
-										buffersDimensions[a_idx] = 2;
+										mesh_vertexSize += 2u;
+										buffersDimensions[a_idx] = 2u;
 									}
 									break;
 									default:
@@ -122,11 +122,11 @@ namespace engine {
 
 					vertexBuffer.resize(firstVertex + mesh_vertexSize * mesh_vertexCount);
 
-					uint32_t idx = 0;
+					uint32_t idx = 0u;
 
-					if (allowedAttributesCount != 0) { // use only allowed attributes
-						for (size_t v = 0; v < mesh_vertexCount; ++v) {
-							for (uint8_t i = 0; i < allowedAttributesCount; ++i) {
+					if (allowedAttributesCount != 0u) { // use only allowed attributes
+						for (size_t v = 0u; v < mesh_vertexCount; ++v) {
+							for (uint8_t i = 0u; i < allowedAttributesCount; ++i) {
 								const auto a_idx = static_cast<uint8_t>(allowedAttributes[i]);
 								const uint32_t dataSize = buffersDimensions[a_idx];
 
@@ -149,11 +149,11 @@ namespace engine {
 								} else {
 									if (a_idx == static_cast<uint8_t>(gltf::AttributesSemantic::WEIGHT)) {
 										vertexBuffer[firstVertex + idx + 0] = 1.0f; // first weight = 1.0f
-										for (uint32_t c = 1; c < dataSize; ++c) {
+										for (uint32_t c = 1u; c < dataSize; ++c) {
 											vertexBuffer[firstVertex + idx + c] = 0.0f;
 										}
 									} else {
-										for (uint32_t c = 0; c < dataSize; ++c) {
+										for (uint32_t c = 0u; c < dataSize; ++c) {
 											vertexBuffer[firstVertex + idx + c] = 0.0f;
 										}
 									}
@@ -163,8 +163,8 @@ namespace engine {
 							}
 						}
 					} else {
-						for (size_t v = 0; v < mesh_vertexCount; ++v) {
-							for (uint8_t i = 0; i < semanticsCount; ++i) {
+						for (size_t v = 0u; v < mesh_vertexCount; ++v) {
+							for (uint8_t i = 0u; i < semanticsCount; ++i) {
 								if (const float* buffer = buffers[i]) {
 									const uint32_t dataSize = buffersDimensions[i];
 									if (i == static_cast<uint8_t>(gltf::AttributesSemantic::JOINTS)) {
@@ -192,41 +192,45 @@ namespace engine {
 
 					if (!useOffsetsInRenderData) {
 						const auto vertex_size_change = vbOffset % (mesh_vertexSize * sizeof(float)); // ��������� � ����������� ������, ������������ � ������, ���� ����������� �� ������� - ����� ������� �������������� ��������
-						vertex_offset = vertex_size_change ? mesh_vertexSize * sizeof(float) - vertex_size_change : 0; // ����������� �������� ���, ����� index ������� ��� ���������
+						vertex_offset = vertex_size_change ? mesh_vertexSize * sizeof(float) - vertex_size_change : 0u; // ����������� �������� ���, ����� index ������� ��� ���������
 					}
 
-					if (vertexSize == 0) {
+					if (vertexSize == 0u) {
 						vbOffset += vertex_offset;
 						vertexSize = mesh_vertexSize;
 					}
 
-					const uint32_t startVertex = (useOffsetsInRenderData ? 0 : (vbOffset / (mesh_vertexSize * sizeof(float))));
-					const uint32_t startIndex = (useOffsetsInRenderData ? 0 : (ibOffset / (sizeof(uint32_t))));
+					const uint32_t startVertex = (useOffsetsInRenderData ? 0u : (vbOffset / (mesh_vertexSize * sizeof(float))));
+					const uint32_t startIndex = (useOffsetsInRenderData ? 0u : (ibOffset / (sizeof(uint32_t))));
 
 					switch (accessor.componentType) {
 						case gltf::AccessorComponentType::UNSIGNED_INT:
-							for (uint32_t index = 0; index < mesh_indexCount; ++index) {
+							for (uint32_t index = 0u; index < mesh_indexCount; ++index) {
 								const size_t offset = accessor.offset + bufferView.offset + index * sizeof(uint32_t);
-								const uint8_t v1 = buffer.data[offset + 0];
-								const uint8_t v2 = buffer.data[offset + 1];
-								const uint8_t v3 = buffer.data[offset + 2];
-								const uint8_t v4 = buffer.data[offset + 3];
-								const uint32_t v = (static_cast<uint32_t>(v1) << 0) | (static_cast<uint32_t>(v2) << 8) | (static_cast<uint32_t>(v3) << 16) | (static_cast<uint32_t>(v4) << 24);
+								const auto v1 = static_cast<uint8_t>(buffer.data[offset + 0]);
+								const auto v2 = static_cast<uint8_t>(buffer.data[offset + 1]);
+								const auto v3 = static_cast<uint8_t>(buffer.data[offset + 2]);
+								const auto v4 = static_cast<uint8_t>(buffer.data[offset + 3]);
+								const auto v = static_cast<uint32_t>((static_cast<uint32_t>(v1) << 0) | 
+									(static_cast<uint32_t>(v2) << 8) | (static_cast<uint32_t>(v3) << 16) | 
+									(static_cast<uint32_t>(v4) << 24));
 								indexBuffer[firstIndex + index] = startVertex + commonVertexCount + v;
 							}
 								break;
 						case gltf::AccessorComponentType::UNSIGNED_SHORT:
-							for (uint32_t index = 0; index < mesh_indexCount; ++index) {
+							for (uint32_t index = 0u; index < mesh_indexCount; ++index) {
 								const size_t offset = accessor.offset + bufferView.offset + index * sizeof(uint16_t);
-								const uint8_t v1 = buffer.data[offset + 0];
-								const uint8_t v2 = buffer.data[offset + 1];
-								const uint16_t v = (static_cast<uint16_t>(v1) << 0) | (static_cast<uint16_t>(v2) << 8);
+								const auto v1 = static_cast<uint8_t>(buffer.data[offset + 0]);
+								const auto v2 = static_cast<uint8_t>(buffer.data[offset + 1]);
+								const auto v = static_cast<uint16_t>((static_cast<uint16_t>(v1) << 0) | 
+									(static_cast<uint16_t>(v2) << 8));
 								indexBuffer[firstIndex + index] = startVertex + commonVertexCount + v;
 							}
 								break;
 						case gltf::AccessorComponentType::UNSIGNED_BYTE:
-							for (uint32_t index = 0; index < mesh_indexCount; ++index) {
-								indexBuffer[firstIndex + index] = startVertex + commonVertexCount + buffer.data[accessor.offset + bufferView.offset + index];
+							for (uint32_t index = 0u; index < mesh_indexCount; ++index) {
+								indexBuffer[firstIndex + index] = startVertex + commonVertexCount + 
+									buffer.data[accessor.offset + bufferView.offset + index];
 							}
 							break;
 						default:
@@ -239,8 +243,8 @@ namespace engine {
 							static_cast<uint8_t>(primitive.mode),
 							firstIndex + startIndex,					// firstIndex
 							mesh_indexCount,							// indexCount
-							(useOffsetsInRenderData ? vbOffset : 0),	// vbOffset
-							(useOffsetsInRenderData ? ibOffset : 0),	// ibOffset
+							(useOffsetsInRenderData ? vbOffset : 0u),	// vbOffset
+							(useOffsetsInRenderData ? ibOffset : 0u),	// ibOffset
 							minCorner,
 							maxCorner
 						});
