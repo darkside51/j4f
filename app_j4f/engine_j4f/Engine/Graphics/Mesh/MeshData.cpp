@@ -260,15 +260,15 @@ namespace engine {
 		return vertex_offset;
 	}
 
-	void Mesh_Data::initMeshNodeId(const gltf::Layout& layout, const uint16_t nodeId) {
-		const gltf::Node& node = layout.nodes[nodeId];
+	void Mesh_Data::initMeshNodeId(const uint16_t nodeId) {
+		const gltf::Node& node = nodes[nodeId];
 
-		if (node.mesh != 0xffff) {
+		if (node.mesh != 0xffffu) {
 			meshes[node.mesh].nodeIndex = nodeId;
 		}
 
 		for (const uint16_t cNodeId : node.children) {
-			initMeshNodeId(layout, cNodeId);
+			initMeshNodeId(cNodeId);
 		}
 	}
 
@@ -277,7 +277,7 @@ namespace engine {
 		nodes = layout.nodes; // copy data
 
 		for (const uint16_t nodeId : sceneNodes) {
-			initMeshNodeId(layout, nodeId);
+			initMeshNodeId(nodeId);
 		}
 	}
 

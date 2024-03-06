@@ -124,7 +124,7 @@ namespace engine {
 
 		void loadAnimations(const gltf::Layout& layout);
 
-		void initMeshNodeId(const gltf::Layout& layout, const uint16_t nodeId);
+		void initMeshNodeId(const uint16_t nodeId);
 
 		void uploadGpuData(std::unique_ptr<vulkan::VulkanBuffer>& vertices, std::unique_ptr<vulkan::VulkanBuffer>& indices, const size_t vbOffset, const size_t ibOffset);
 
