@@ -70,7 +70,7 @@ namespace game {
     struct GraphicsDescription {
         GraphicsType type = GraphicsType::None;
         size_t gpuProgramId = 0u;
-        std::vector<std::tuple<size_t, float, uint8_t>> animations; // animationid + weight + id
+        std::vector<std::tuple<size_t, float, uint8_t>> * animations = nullptr; // animationid + weight + id
         uint16_t descriptor = 0u;
         DrawParams drawParams;
         std::vector<uint16_t> textures;
@@ -103,6 +103,7 @@ namespace game {
         std::vector<AnimationDescription> _animations;
         std::vector<MeshDescription> _meshes;
         std::vector<std::string> _textures;
+        std::unordered_map<std::string, std::vector<std::tuple<size_t, float, uint8_t>>> _animationSets;
 
         std::vector<std::unique_ptr<engine::MeshGraphicsDataBuffer>> _meshGraphicsBuffers;
     };

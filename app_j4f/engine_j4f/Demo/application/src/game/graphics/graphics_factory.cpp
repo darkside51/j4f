@@ -58,6 +58,37 @@ namespace game {
             }
         }
 
+        auto loadAnimations = [this](auto && animations,
+                                                std::vector<std::tuple<size_t, float, uint8_t>> & anims){
+            auto getAnimId = [this](std::string_view name) -> size_t{
+                auto it = std::find_if(_animations.begin(), _animations.end(),
+                                       [name](auto const & anim){
+                                           return anim.name == name;
+                                       });
+                if (it != _animations.end()) {
+                    return std::distance(_animations.begin(), it);
+                }
+
+                return 0u;
+            };
+
+            for (auto &animJs: *animations) {
+                auto const name = animJs.value("name", "");
+                auto const weight = animJs.value("weight", 0.0f);
+                auto const id = static_cast<uint8_t>(animJs.value("id", 0));
+
+                anims.emplace_back(getAnimId(name), weight, id);
+            }
+        };
+
+        // animation sets
+        if (auto array = json.find("animation_sets"); array != json.end()) {
+            for (auto const & js: *array) {
+                auto const & name = js.value("name", "");
+                loadAnimations(js.find("animations"), _animationSets[name]);
+            }
+        }
+
         // meshes
         if (auto array = json.find("meshes"); array != json.end()) {
             auto const defaultSemanticMask = makeSemanticsMask(AttributesSemantic::POSITION, AttributesSemantic::NORMAL,
@@ -95,26 +126,11 @@ namespace game {
                     graphics.gpuProgramId = std::distance(_gpuPrograms.begin(), it);
                 }
 
-                if (auto animations = js.find("animations"); animations != js.end()) {
-                    graphics.animations.reserve(animations->size());
-                    auto getAnimId = [this](std::string_view name) -> size_t{
-                        auto it = std::find_if(_animations.begin(), _animations.end(),
-                                                 [name](auto const & anim){
-                                                     return anim.name == name;
-                                                 });
-                        if (it != _animations.end()) {
-                            return std::distance(_animations.begin(), it);
-                        }
-
-                        return 0u;
-                    };
-
-                    for (auto &animJs: *animations) {
-                        auto const name = animJs.value("name", "");
-                        auto const weight = animJs.value("weight", 0.0f);
-                        auto const id = static_cast<uint8_t>(animJs.value("id", 0));
-
-                        graphics.animations.emplace_back(getAnimId(name), weight, id);
+                // animation set
+                if (auto animationsSet = js.find("animation_set"); animationsSet != js.end()) {
+                    auto const & key = animationsSet->get<std::string>();
+                    if (auto it = _animationSets.find(key); it != _animationSets.end()) {
+                        graphics.animations = &it->second;
                     }
                 }
 

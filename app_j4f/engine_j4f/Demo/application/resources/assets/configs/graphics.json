@@ -91,12 +91,9 @@
 			"graphicsBuffer" : 0
 		}
 	],
-	"graphics" : [
+	"animation_sets" : [
 		{
-			"name" : "body_0",
-			"type" : 2,
-			"gpu_program" : "mesh_skin",
-			"descriptor" : 0,
+			"name" : "set_0",
 			"animations" : [
 				{
 					"name" : "type0_idle",
@@ -133,7 +130,26 @@
 					"weight" : 0.0,
 					"id" : 6
 				}
-			],
+			]
+		},
+		{
+			"name" : "set_1",
+			"animations" : [
+				{
+					"name" : "type1_idle",
+					"weight" : 1.0,
+					"id" : 0
+				}
+			]
+		}	
+	],
+	"graphics" : [
+		{
+			"name" : "body_0",
+			"type" : 2,
+			"gpu_program" : "mesh_skin",
+			"descriptor" : 0,
+			"animation_set" : "set_0",
 			"drawParams" : {
 				"cullMode" : 0,
 				"blendMode" : 0,
@@ -153,13 +169,7 @@
 			"type" : 2,
 			"gpu_program" : "mesh_skin",
 			"descriptor" : 1,
-			"animations" : [
-				{
-					"name" : "type1_idle",
-					"weight" : 1.0,
-					"id" : 0
-				}
-			],
+			"animation_set" : "set_1",
 			"drawParams" : {
 				"cullMode" : 2,
 				"blendMode" : 0,

@@ -160,11 +160,11 @@ namespace game {
                             });
 
                         // animations
-                        if (!animations.empty()) {
+                        if (animations && !animations->empty()) {
                             animationTree = std::make_unique<MeshAnimationTree>(0.0f,
                                 asset->getNodesCount(),
                                 asset->getSkeleton()->getLatency());
-                            animationTree->getAnimator()->resize(animations.size());
+                            animationTree->getAnimator()->resize(animations->size());
                             
                             if (animationObserver) {
                                 animationTree->addObserver(animationObserver);
@@ -176,7 +176,7 @@ namespace game {
                             animationManager->addTarget(animationTree.get(),
                                 asset->getSkeleton().get());
 
-                            for (const auto& anim : animations) {
+                            for (const auto& anim : *animations) {
                                 const auto animId = std::get<size_t>(anim);
                                 const auto weight = std::get<float>(anim);
                                 const auto id = std::get<uint8_t>(anim);
