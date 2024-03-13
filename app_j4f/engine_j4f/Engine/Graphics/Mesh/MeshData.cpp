@@ -378,7 +378,7 @@ namespace engine {
 			for (size_t j = 0; j < animCannelsCount; ++j) {
 				const gltf::AnimationChannel& gltf_channel = gltf_animation.channels[j];
 				Mesh_Animation::AnimationChannel& channel = animation.channels[j];
-				channel.path = static_cast<Mesh_Animation::AimationChannelPath>(gltf_channel.path);
+				channel.path = static_cast<Mesh_Animation::AnimationChannelPath>(gltf_channel.path);
 				channel.sampler = gltf_channel.sampler;
 				channel.target_node = gltf_channel.target_node;
 				if (channel.target_node < animation.minTargetNodeId) { animation.minTargetNodeId = channel.target_node; }

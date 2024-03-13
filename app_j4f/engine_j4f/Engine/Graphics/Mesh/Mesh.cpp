@@ -33,7 +33,7 @@ namespace engine {
 						const vec4f& v1 = sampler.outputs[i + 1];
 						const float mix_c = (time - t0) / (t1 - t0);
 						switch (channel.path) {
-						case Mesh_Animation::AimationChannelPath::TRANSLATION:
+						case Mesh_Animation::AnimationChannelPath::TRANSLATION:
 						{
 							if (!compare(v0, v1, epsilon)) {
 								target.setTranslation(v0);
@@ -42,7 +42,7 @@ namespace engine {
 							}
 						}
 						break;
-						case Mesh_Animation::AimationChannelPath::ROTATION:
+						case Mesh_Animation::AnimationChannelPath::ROTATION:
 						{
 							if (!compare(v0, v1, epsilon)) {
 								target.setRotation(quatf(v0.w, v0.x, v0.y, v0.z));
@@ -53,7 +53,7 @@ namespace engine {
 							}
 						}
 						break;
-						case Mesh_Animation::AimationChannelPath::SCALE:
+						case Mesh_Animation::AnimationChannelPath::SCALE:
 						{
 							if (!compare(v0, v1, epsilon)) {
 								target.setScale(v0);
@@ -70,13 +70,13 @@ namespace engine {
 					case Mesh_Animation::Interpolation::STEP:
 					{
 						switch (channel.path) {
-						case Mesh_Animation::AimationChannelPath::TRANSLATION:
+						case Mesh_Animation::AnimationChannelPath::TRANSLATION:
 							target.setTranslation(v0);
 							break;
-						case Mesh_Animation::AimationChannelPath::ROTATION:
+						case Mesh_Animation::AnimationChannelPath::ROTATION:
 							target.setRotation(quatf(v0.w, v0.x, v0.y, v0.z));
 							break;
-						case Mesh_Animation::AimationChannelPath::SCALE:
+						case Mesh_Animation::AnimationChannelPath::SCALE:
 							target.setScale(v0);
 							break;
 						default:

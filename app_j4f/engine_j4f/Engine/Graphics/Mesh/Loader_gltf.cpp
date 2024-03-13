@@ -280,77 +280,77 @@ namespace gltf {
 		}
 	}
 
-	void Parser::parseAcessor(Accessor& acessor, const Json& js, const map_type<std::string, AccessorType>& accesorTypes) {
-		acessor.name = js.value("name", "");
-		acessor.bufferView = js.value("bufferView", 0xffff);
-		acessor.count = js["count"].get<uint32_t>();
-		acessor.offset = js.value("byteOffset", 0);
-		acessor.normalized = js.value("normalized", false);
+	void Parser::parseAccessor(Accessor& accessor, const Json& js, const map_type<std::string, AccessorType>& accesorTypes) {
+        accessor.name = js.value("name", "");
+        accessor.bufferView = js.value("bufferView", 0xffff);
+        accessor.count = js["count"].get<uint32_t>();
+        accessor.offset = js.value("byteOffset", 0);
+        accessor.normalized = js.value("normalized", false);
 
 		const uint16_t componentType = js["componentType"].get<uint16_t>();
 		switch (componentType) {
 		case 5120:
-			acessor.componentType = AccessorComponentType::BYTE;
+            accessor.componentType = AccessorComponentType::BYTE;
 			break;
 		case 5121:
-			acessor.componentType = AccessorComponentType::UNSIGNED_BYTE;
+            accessor.componentType = AccessorComponentType::UNSIGNED_BYTE;
 			break;
 		case 5122:
-			acessor.componentType = AccessorComponentType::SHORT;
+            accessor.componentType = AccessorComponentType::SHORT;
 			break;
 		case 5123:
-			acessor.componentType = AccessorComponentType::UNSIGNED_SHORT;
+            accessor.componentType = AccessorComponentType::UNSIGNED_SHORT;
 			break;
 		case 5125:
-			acessor.componentType = AccessorComponentType::UNSIGNED_INT;
+            accessor.componentType = AccessorComponentType::UNSIGNED_INT;
 			break;
 		case 5126:
-			acessor.componentType = AccessorComponentType::FLOAT;
+            accessor.componentType = AccessorComponentType::FLOAT;
 			break;
 		default:
 			break;
 		}
 
 		const std::string& type = js["type"].get<std::string>();
-		acessor.type = accesorTypes.at(type);
+        accessor.type = accesorTypes.at(type);
 
 		if (auto minJs = js.find("min"); minJs != js.end()) {
-			acessor.min = minJs->get<std::vector<float>>();
+            accessor.min = minJs->get<std::vector<float>>();
 		}
 
 		if (auto maxJs = js.find("max"); maxJs != js.end()) {
-			acessor.max = maxJs->get<std::vector<float>>();
+            accessor.max = maxJs->get<std::vector<float>>();
 		}
 
 		if (auto sparseJs = js.find("sparse"); sparseJs != js.end()) {
-			acessor.sparse = new AccessorSparse();
-			acessor.sparse->count = sparseJs->at("count").get<uint32_t>();
+            accessor.sparse.emplace();
+            accessor.sparse->count = sparseJs->at("count").get<uint32_t>();
 
 			const Json& indices = sparseJs->at("indices");
-			acessor.sparse->indices.bufferView = indices["bufferView"].get<uint16_t>();
-			acessor.sparse->indices.offset = indices.value("byteOffset", 0);
+            accessor.sparse->indices.bufferView = indices["bufferView"].get<uint16_t>();
+            accessor.sparse->indices.offset = indices.value("byteOffset", 0);
 			const uint16_t componentType = indices["componentType"].get<uint16_t>();
 			switch (componentType) {
 			case 5121:
-				acessor.sparse->indices.componentType = AccessorComponentType::UNSIGNED_BYTE;
+                accessor.sparse->indices.componentType = AccessorComponentType::UNSIGNED_BYTE;
 				break;
 			case 5123:
-				acessor.sparse->indices.componentType = AccessorComponentType::UNSIGNED_SHORT;
+                accessor.sparse->indices.componentType = AccessorComponentType::UNSIGNED_SHORT;
 				break;
 			case 5125:
-				acessor.sparse->indices.componentType = AccessorComponentType::UNSIGNED_INT;
+                accessor.sparse->indices.componentType = AccessorComponentType::UNSIGNED_INT;
 				break;
 			default:
 				break;
 			}
 
 			const Json& values = sparseJs->at("values");
-			acessor.sparse->values.bufferView = values["bufferView"].get<uint16_t>();
-			acessor.sparse->values.offset = values.value("byteOffset", 0);
+            accessor.sparse->values.bufferView = values["bufferView"].get<uint16_t>();
+            accessor.sparse->values.offset = values.value("byteOffset", 0);
 		}
 	}
 
-	void Parser::parseAnimation(Animation& animation, const Json& js, const map_type<std::string, AimationChannelPath>& animChannelTypes, const map_type<std::string, Interpolation>& interpolationTypes) {
+	void Parser::parseAnimation(Animation& animation, const Json& js, const map_type<std::string, AnimationChannelPath>& animChannelTypes, const map_type<std::string, Interpolation>& interpolationTypes) {
 		animation.name = js.value("name", "");
 		// channels
 		const Json& channels = js["channels"];
@@ -573,11 +573,11 @@ namespace gltf {
 			{"MAT4", AccessorType::MAT4}
 		};
 
-		const static map_type<std::string, AimationChannelPath> animChannelTypes = {
-			{"translation", AimationChannelPath::TRANSLATION},
-			{"rotation", AimationChannelPath::ROTATION},
-			{"scale", AimationChannelPath::SCALE},
-			{"weights", AimationChannelPath::WEIGHTS}
+		const static map_type<std::string, AnimationChannelPath> animChannelTypes = {
+			{"translation", AnimationChannelPath::TRANSLATION},
+			{"rotation", AnimationChannelPath::ROTATION},
+			{"scale", AnimationChannelPath::SCALE},
+			{"weights", AnimationChannelPath::WEIGHTS}
 		};
 
 		const static map_type<std::string, Interpolation> interpolationTypes = {
@@ -606,7 +606,7 @@ namespace gltf {
 		parseArray(layout.meshes,		parseMesh,			"meshes",		js, semantics);
 		parseArray(layout.buffers,		parseBuffer,		"buffers",		js, folder, binData);
 		parseArray(layout.bufferViews,	parseBufferView,	"bufferViews",	js);
-		parseArray(layout.accessors,	parseAcessor,		"accessors",	js, accesorTypes);
+		parseArray(layout.accessors,	parseAccessor,		"accessors",	js, accesorTypes);
 		parseArray(layout.animations,	parseAnimation,		"animations",	js, animChannelTypes, interpolationTypes);
 		parseArray(layout.skins,		parseSkin,			"skins",		js);
 		parseArray(layout.samplers,		parseSampler,		"samplers",		js);

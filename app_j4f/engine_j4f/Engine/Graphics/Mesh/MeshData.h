@@ -45,7 +45,7 @@ namespace engine {
 			CUBICSPLINE = 2u
 		};
 
-		enum class AimationChannelPath : uint8_t {
+		enum class AnimationChannelPath : uint8_t {
 			TRANSLATION = 0u,
 			ROTATION = 1u,
 			SCALE = 2u,
@@ -61,7 +61,7 @@ namespace engine {
 		struct AnimationChannel {
 			uint16_t sampler = 0u;
 			uint16_t target_node = 0u;
-			AimationChannelPath path = AimationChannelPath::TRANSLATION;
+			AnimationChannelPath path = AnimationChannelPath::TRANSLATION;
 		};
 
 		std::string name;

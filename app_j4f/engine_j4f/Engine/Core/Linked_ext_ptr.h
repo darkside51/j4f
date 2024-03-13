@@ -35,14 +35,14 @@ namespace engine {
 			_control = nullptr;
 		}
 
-		inline const linked_weak_ptr& operator= (const linked_weak_ptr& p) {
+		inline linked_weak_ptr& operator= (const linked_weak_ptr& p) {
 			_decrease_counter();
 			_control = p._control;
 			_increase_counter();
 			return *this;
 		}
 
-		inline const linked_weak_ptr& operator= (linked_weak_ptr&& p) noexcept {
+		inline linked_weak_ptr& operator= (linked_weak_ptr&& p) noexcept {
 			_decrease_counter();
 			_control = p._control;
 			p._control = nullptr;
@@ -91,14 +91,14 @@ namespace engine {
 		linked_ext_ptr(Args&&... args) : linked_ptr<T>(std::forward<Args>(args)...), _weak_control(new weak_control_type()) { }
 
 /*
-		inline const linked_ext_ptr& operator= (const linked_ext_ptr& p) {
+		inline linked_ext_ptr& operator= (const linked_ext_ptr& p) {
 			_decrease_counter();
 			_control = p._control;
 			_increase_counter();
 			return *this;
 		}
 
-		inline const linked_ext_ptr& operator= (linked_ext_ptr&& p) noexcept {
+		inline linked_ext_ptr& operator= (linked_ext_ptr&& p) noexcept {
 			_decrease_counter();
 			_control = p._control;
 			p._ptr = nullptr;

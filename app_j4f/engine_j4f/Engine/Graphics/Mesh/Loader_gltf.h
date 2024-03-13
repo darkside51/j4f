@@ -4,6 +4,7 @@
 
 #include <array>
 #include <vector>
+#include <optional>
 #include <string>
 #include <map>
 #include <unordered_map>
@@ -114,7 +115,7 @@ namespace gltf {
 		TRIANGLE_FAN = 6u
 	};
 
-	enum class AimationChannelPath : uint8_t {
+	enum class AnimationChannelPath : uint8_t {
 		TRANSLATION = 0u,
 		ROTATION = 1u,
 		SCALE = 2u,
@@ -199,7 +200,7 @@ namespace gltf {
 			b.data = nullptr;
 		}
 
-		const Buffer& operator=(Buffer&& b) noexcept {
+        Buffer& operator=(Buffer&& b) noexcept {
 			name = std::move(b.name);
 			data = b.data;
 			byteLength = b.byteLength;
@@ -208,7 +209,7 @@ namespace gltf {
 		}
 
 		Buffer(const Buffer&) = delete;
-		const Buffer& operator=(const Buffer&) = delete;
+        Buffer& operator=(const Buffer&) = delete;
 	};
 
 	struct BufferView {
@@ -244,41 +245,21 @@ namespace gltf {
 		AccessorType type;
 		std::vector<float> min; // [1 - 16] it can be 1, 2, 3, 4, 9, or 16
 		std::vector<float> max; // [1 - 16] it can be 1, 2, 3, 4, 9, or 16
-		AccessorSparse* sparse = nullptr; // no required
+		std::optional<AccessorSparse> sparse = std::nullopt; // no required
 
-		~Accessor() {
-			if (sparse) {
-				delete sparse;
-				sparse = nullptr;
-			}
-		}
+		~Accessor() = default;
 
 		Accessor() = default;
 		Accessor(Accessor&& a) noexcept :
-			name(std::move(a.name)), sparse(a.sparse), bufferView(a.bufferView),
+			name(std::move(a.name)), sparse(std::move(a.sparse)), bufferView(a.bufferView),
 			count(a.count), offset(a.offset), componentType(a.componentType),
-			normalized(a.normalized), type(a.type), min(a.min), max(a.max)
-		{
-			a.sparse = nullptr;
+			normalized(a.normalized), type(a.type), min(a.min), max(a.max) {
+
 		}
 
-		const Accessor& operator=(Accessor&& a) noexcept {
-			name = std::move(a.name);
-			sparse = a.sparse;
-			bufferView = a.bufferView;
-			count = a.count;
-			offset = a.offset;
-			componentType = a.componentType;
-			normalized = a.normalized;
-			type = a.type;
-			min = a.min;
-			max = a.max;
-			a.sparse = nullptr;
-			return *this;
-		}
-
+        Accessor& operator=(Accessor&& a) noexcept = default;
 		Accessor(const Accessor&) = delete;
-		const Accessor& operator=(const Accessor&) = delete;
+        Accessor& operator=(const Accessor&) = delete;
 	};
 
 	struct Asset {
@@ -294,7 +275,7 @@ namespace gltf {
 	struct AnimationChannel {
 		uint16_t sampler = 0u;
 		uint16_t target_node = 0u;
-		AimationChannelPath path = AimationChannelPath::TRANSLATION;
+		AnimationChannelPath path = AnimationChannelPath::TRANSLATION;
 	};
 
 	struct Animation {
@@ -374,7 +355,7 @@ namespace gltf {
 
 		Layout() = default;
 		Layout(Layout&&) noexcept = default;
-		const Layout& operator=(Layout&& d) noexcept {
+        Layout& operator=(Layout&& d) noexcept {
 			accessors = std::move(d.accessors);
 			animations = std::move(d.animations);
 			buffers = std::move(d.buffers);
@@ -393,7 +374,7 @@ namespace gltf {
 		}
 
 		Layout(const Layout&) = delete;
-		const Layout& operator=(const Layout&) = delete;
+        Layout& operator=(const Layout&) = delete;
 	};
 
 	class Parser {
@@ -404,8 +385,8 @@ namespace gltf {
 		static void parseMesh(Mesh& mesh, const Json& js, const map_type<std::string, AttributesSemantic>& semantics);
 		static void parseBuffer(Buffer& buffer, const Json& js, const std::string& folder, char* binData);
 		static void parseBufferView(BufferView& bufferView, const Json& js);
-		static void parseAcessor(Accessor& acessor, const Json& js, const map_type<std::string, AccessorType>& accesorTypes);
-		static void parseAnimation(Animation& animation, const Json& js, const map_type<std::string, AimationChannelPath>& animChannelTypes, const map_type<std::string, Interpolation>& interpolationTypes);
+		static void parseAccessor(Accessor& accessor, const Json& js, const map_type<std::string, AccessorType>& accesorTypes);
+		static void parseAnimation(Animation& animation, const Json& js, const map_type<std::string, AnimationChannelPath>& animChannelTypes, const map_type<std::string, Interpolation>& interpolationTypes);
 		static void parseSkin(Skin& skin, const Json& js);
 		static void parseSampler(Sampler& sampler, const Json& js);
 		static void parseTexture(Texture& texture, const Json& js);

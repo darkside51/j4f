@@ -44,7 +44,7 @@ namespace engine {
 		}
 
 		WorkerThread(const WorkerThread&) = delete;
-		const WorkerThread& operator= (WorkerThread&) = delete;
+        WorkerThread& operator= (const WorkerThread&) = delete;
 
 		inline void run() {
             _time = std::chrono::steady_clock::now();

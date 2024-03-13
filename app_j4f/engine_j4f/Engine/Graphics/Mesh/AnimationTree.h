@@ -138,7 +138,7 @@ namespace engine {
 								const vec4f& v1 = sampler.outputs[i + 1u];
 								const float mix_c = (time - t0) / (t1 - t0);
 								switch (channel.path) {
-									case Mesh_Animation::AimationChannelPath::TRANSLATION:
+									case Mesh_Animation::AnimationChannelPath::TRANSLATION:
 									{
 										transform.mask |= 0b00'00'00'01u;
 										if (!compare(v0, v1, epsilon)) {
@@ -148,7 +148,7 @@ namespace engine {
 										}
 									}
 										break;
-									case Mesh_Animation::AimationChannelPath::ROTATION:
+									case Mesh_Animation::AnimationChannelPath::ROTATION:
 									{
 										transform.mask |= 0b00'00'00'10u;
 										if (!compare(v0, v1, epsilon)) {
@@ -160,7 +160,7 @@ namespace engine {
 										}
 									}
 										break;
-									case Mesh_Animation::AimationChannelPath::SCALE:
+									case Mesh_Animation::AnimationChannelPath::SCALE:
 									{
 										transform.mask |= 0b00'00'01'00u;
 										if (!compare(v0, v1, epsilon)) {
@@ -178,15 +178,15 @@ namespace engine {
 							case Mesh_Animation::Interpolation::STEP:
 							{
 								switch (channel.path) {
-									case Mesh_Animation::AimationChannelPath::TRANSLATION:
+									case Mesh_Animation::AnimationChannelPath::TRANSLATION:
 										transform.mask |= 0b00'00'00'01u;
 										transform.translation = v0;
 										break;
-									case Mesh_Animation::AimationChannelPath::ROTATION:
+									case Mesh_Animation::AnimationChannelPath::ROTATION:
 										transform.mask |= 0b00'00'00'10u;
 										transform.rotation = quatf(v0.w, v0.x, v0.y, v0.z);
 										break;
-									case Mesh_Animation::AimationChannelPath::SCALE:
+									case Mesh_Animation::AnimationChannelPath::SCALE:
 										transform.mask |= 0b00'00'01'00u;
 										transform.scale = v0;
 										break;

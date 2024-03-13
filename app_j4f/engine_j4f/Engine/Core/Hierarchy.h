@@ -76,7 +76,7 @@ namespace engine {
 		}
 
 		Hierarchy(const Hierarchy& h) = delete;
-		const Hierarchy& operator= (const Hierarchy& h) = delete;
+        Hierarchy& operator= (const Hierarchy& h) = delete;
 
 		inline void invalidateLinks() {
 			if (_prev) {

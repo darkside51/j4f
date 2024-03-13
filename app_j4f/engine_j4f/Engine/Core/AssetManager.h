@@ -282,14 +282,14 @@ if (oldLoader) {
 			h._data = nullptr;
 		}
 
-		const AssetDataHandler& operator= (AssetDataHandler&& h) noexcept {
+        AssetDataHandler& operator= (AssetDataHandler&& h) noexcept {
 			_data = std::move(h._data);
 			h._data = nullptr;
 			return *this;
 		}
 
 		AssetDataHandler(const AssetDataHandler& h) = delete;
-		const AssetDataHandler& operator= (const AssetDataHandler& h) = delete;
+        AssetDataHandler& operator= (const AssetDataHandler& h) = delete;
 
 		const IAssetData* get() const { return _data; }
 		IAssetData* get() { return _data; }
