@@ -257,7 +257,7 @@ namespace engine {
 		for (const Mesh_Skin& s : _skins) {
 			const Mesh_Node& h = _nodes[updateFrame][s.skeletonRoot]->value();
 
-			const bool emptyInverse = _useRootTransfrom || !memcmp(&(h.modelMatrix), &emptyMatrix, sizeof(mat4f));
+			const bool emptyInverse = _useRootTransform || !memcmp(&(h.modelMatrix), &emptyMatrix, sizeof(mat4f));
 			const auto numJoints = s.joints.size();
 
 			std::vector<mat4f>& skin_matrices = _skinsMatrices[updateFrame][skinId];

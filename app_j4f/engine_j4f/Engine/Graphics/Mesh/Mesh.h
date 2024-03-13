@@ -134,8 +134,8 @@ namespace engine {
         [[nodiscard]] inline uint8_t getLatency() const noexcept { return _latency; }
         [[nodiscard]] inline bool dirtySkins() const noexcept { return _dirtySkins; }
 
-		inline void setUseRootTransfrom(const bool use) noexcept { _useRootTransfrom = use; }
-		[[nodeiscard]] inline bool getUseRootTransfrom() const noexcept { return _useRootTransfrom; }
+		inline void setUseRootTransform(const bool use) noexcept { _useRootTransform = use; }
+		[[nodeiscard]] inline bool getUseRootTransform() const noexcept { return _useRootTransform; }
 
 	private:
 		void loadNode(const Mesh_Data* mData, const uint16_t nodeId, HierarchyUnique<Mesh_Node>* parent, const uint8_t h);
@@ -204,7 +204,7 @@ namespace engine {
 		uint8_t _updateFrameNum = 0u;
 		bool _dirtySkins = true;
         bool _requestAnimUpdate = false;
-		bool _useRootTransfrom = true;
+		bool _useRootTransform = true;
 
         std::atomic<uint8_t> _updatedFrameNum = {0u};
 	};

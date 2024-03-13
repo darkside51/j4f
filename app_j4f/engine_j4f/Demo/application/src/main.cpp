@@ -9,7 +9,7 @@ int main() {
         true,                       // v_sync
         false,                      // can_continue_main_render_pass
         true,                       // use_stencil_buffer
-        engine::Version(1, 0, 0)    // render_api_version
+        engine::Version(1u, 0u, 0u)    // render_api_version
     };
     engine::Engine::getInstance().init(config);
     return 1;

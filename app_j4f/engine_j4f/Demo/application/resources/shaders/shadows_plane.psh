@@ -38,10 +38,10 @@ float filterPCF(vec4 sc, uint cascade, float minLight) {
 	int count = 0;
 	int range = 1;
 
-	for (int x = -range; x <= range; x++) {
-		for (int y = -range; y <= range; y++) {
+	for (int x = -range; x <= range; ++x) {
+		for (int y = -range; y <= range; ++y) {
 			shadowFactor += textureProj(sc, vec2(dx*x, dy*y), cascade, minLight);
-			count++;
+			++count;
 		}
 	}
 	return shadowFactor / count;
