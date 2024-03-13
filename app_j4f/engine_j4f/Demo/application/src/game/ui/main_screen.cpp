@@ -81,9 +81,9 @@ namespace game {
 		const ImVec2 work_size = viewport->WorkSize;
 
 		constexpr float kLocatorSpeed = 90.0f;
-		const float width = 150.0f;
-		const float height = _showMap ? 150.0f : 10.0f;
-		const float wspace = 160.0f;
+		const float width = 100.0f;
+		const float height = _showMap ? width : 10.0f;
+		const float wspace = 10.0f;
 		const float hspace = 10.0f;
 
 		ImVec2 window_pos;
@@ -118,7 +118,7 @@ namespace game {
 	void MainScreen::draw(const float delta) {
 		//ImGui::ShowDemoWindow();
 
-		const auto bgColor = IM_COL32(0, 0, 0, 100);
+		const auto bgColor = IM_COL32(200, 200, 0, 100);
 		const std::array<ImGuiStyleColorChanger, 14u> changedColors = {
 				ImGuiStyleColorChanger{ImGuiCol_Text, IM_COL32(200, 200, 200, 200)},
 				{ImGuiCol_Button, IM_COL32(20, 20, 20, 100)},
