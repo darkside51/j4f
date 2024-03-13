@@ -49,7 +49,7 @@ namespace vulkan {
 		PATCH_LIST = 10u
 	};
 
-	enum class PoligonMode : uint8_t {
+	enum class PolygonMode : uint8_t {
 		POLYGON_MODE_FILL = 0u,
 		POLYGON_MODE_LINE = 1u,
 		POLYGON_MODE_POINT = 2u
@@ -97,23 +97,23 @@ namespace vulkan {
 	};
 
 	struct VulkanRasterizationState {
-		PoligonMode poligonMode;
+		PolygonMode polygonMode;
 		CullMode cullMode;
 		FaceOrientation faceOrientation;
 		bool discardEnable;
 
-		explicit VulkanRasterizationState(CullMode cm, PoligonMode pm = PoligonMode::POLYGON_MODE_FILL,
+		explicit VulkanRasterizationState(CullMode cm, PolygonMode pm = PolygonMode::POLYGON_MODE_FILL,
                                  FaceOrientation fo = FaceOrientation::FACE_COUNTER_CLOCKWISE,
                                  bool depthClampOn = false, bool discardOn = false,
                                  bool depthBiasOn = false) :
-			poligonMode(pm), cullMode(cm), faceOrientation(fo), discardEnable(discardOn) { }
+			polygonMode(pm), cullMode(cm), faceOrientation(fo), discardEnable(discardOn) { }
 
 		[[nodiscard]] inline VkPipelineRasterizationStateCreateInfo rasterizationInfo() const {
 			VkPipelineRasterizationStateCreateInfo rasterizationState = {};
 			rasterizationState.sType                    = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 			rasterizationState.lineWidth                = 1.0f;
 
-			rasterizationState.polygonMode              = static_cast<VkPolygonMode>(poligonMode);
+			rasterizationState.polygonMode              = static_cast<VkPolygonMode>(polygonMode);
 			rasterizationState.cullMode                 = static_cast<VkCullModeFlags>(cullMode);
 			rasterizationState.frontFace                = static_cast<VkFrontFace>(faceOrientation);
 			rasterizationState.rasterizerDiscardEnable  = discardEnable;
@@ -127,7 +127,7 @@ namespace vulkan {
 			return rasterizationState;
 		}
 
-		inline uint8_t operator()() const { return (static_cast<uint8_t>(poligonMode) << 0) |
+		inline uint8_t operator()() const { return (static_cast<uint8_t>(polygonMode) << 0) |
                                                     (static_cast<uint8_t>(cullMode) << 2) |
                                                     (static_cast<uint8_t>(faceOrientation) << 4) |
                                                     (static_cast<uint8_t>(discardEnable) << 5); } // 6 bit

@@ -1101,7 +1101,7 @@ namespace vulkan {
 		// todo: need synchronisations for cache it
 		// get value from cache
 		const uint8_t topologyKey = static_cast<uint8_t>(topology.topology) << 0 | static_cast<uint8_t>(topology.enableRestart) << 4u;   // 5 bit
-		const uint8_t rasterizationKey = static_cast<uint8_t>(rasterization.poligonMode)		<< 0u |
+		const uint8_t rasterizationKey = static_cast<uint8_t>(rasterization.polygonMode)		<< 0u |
 										 static_cast<uint8_t>(rasterization.cullMode)			<< 2u |
 										 static_cast<uint8_t>(rasterization.faceOrientation)	<< 4u |
 										 static_cast<uint8_t>(rasterization.discardEnable)		<< 5u;								    // 6 bit

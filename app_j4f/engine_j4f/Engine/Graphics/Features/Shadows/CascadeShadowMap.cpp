@@ -26,7 +26,7 @@ namespace engine {
 		vertexDescription.attributes = TexturedVertex::getVertexAttributesDescription();
 
 		VulkanPrimitiveTopology primitiveTopology = { PrimitiveTopology::TRIANGLE_LIST , false };
-		VulkanRasterizationState rasterisation(CullMode::CULL_MODE_NONE, PoligonMode::POLYGON_MODE_FILL);
+		VulkanRasterizationState rasterisation(CullMode::CULL_MODE_NONE, PolygonMode::POLYGON_MODE_FILL);
 		VulkanDepthState depthState(true, true, VK_COMPARE_OP_LESS);
 		VulkanStencilState stencilState(false);
 

@@ -97,7 +97,7 @@ namespace engine {
         _renderState.vertexDescription.bindings_strides.emplace_back(0, sizeof(ImDrawVert));
         _renderState.topology = {vulkan::PrimitiveTopology::TRIANGLE_LIST, false};
         _renderState.rasterizationState = vulkan::VulkanRasterizationState(vulkan::CullMode::CULL_MODE_NONE,
-                                                                           vulkan::PoligonMode::POLYGON_MODE_FILL);
+                                                                           vulkan::PolygonMode::POLYGON_MODE_FILL);
         _renderState.blendMode = vulkan::CommonBlendModes::blend_alpha;
         _renderState.depthState = vulkan::VulkanDepthState(false, false, VK_COMPARE_OP_LESS);
         _renderState.stencilState = vulkan::VulkanStencilState(false);

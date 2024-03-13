@@ -379,7 +379,7 @@ namespace engine {
 		}
 
 		_renderState.topology = { topology, enableRestartTopology };
-		_renderState.rasterizationState = vulkan::VulkanRasterizationState(vulkan::CullMode::CULL_MODE_BACK, vulkan::PoligonMode::POLYGON_MODE_FILL);
+		_renderState.rasterizationState = vulkan::VulkanRasterizationState(vulkan::CullMode::CULL_MODE_BACK, vulkan::PolygonMode::POLYGON_MODE_FILL);
 		_renderState.blendMode = vulkan::CommonBlendModes::blend_none;
 		_renderState.depthState = vulkan::VulkanDepthState(true, true, VK_COMPARE_OP_LESS);
 		_renderState.stencilState = vulkan::VulkanStencilState(false);
