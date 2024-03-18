@@ -79,7 +79,7 @@ namespace game {
 
     struct ObjectDescription {
         std::string description;
-        uint16_t order = 0u;
+        int16_t order = 0;
         engine::RotationsOrder rotationsOrder = engine::RotationsOrder::RO_XYZ;
         engine::vec3f scale = engine::vec3f(1.0f);
         engine::vec3f rotation = engine::vec3f(0.0f);

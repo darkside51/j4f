@@ -15,6 +15,7 @@
 #include <Engine/Graphics/Texture/TexturePtrLoader.h>
 #include <Engine/Graphics/Color/Color.h>
 #include <Engine/Core/Math/random.h>
+#include <Engine/Utils/Debug/Assert.h>
 
 #include "../../service_locator.h"
 #include "../../graphics/graphics_factory.h"
@@ -60,6 +61,9 @@ namespace game {
                 case GPUProgramDescription::Module::Compute:
                     stage = ProgramStage::COMPUTE;
                     break;
+                default:
+                    ENGINE_BREAK
+                    break;
                 }
                 psi.emplace_back(stage, "resources/shaders/" + gpuProgramDescription.modules[i]);
             }
@@ -99,7 +103,7 @@ namespace game {
             node = parent ? scene->placeToNode(meshPtr, parent) : scene->placeToWorld(meshPtr); // scene->placeToNode(mesh.release(), _mapNode); ??
 
             auto loadAnim = [&assetManager, &animationTree](
-                ref_ptr<Mesh> mainAsset, const std::string file, uint8_t id, float weight, bool infinity,
+                ref_ptr<Mesh> mainAsset, const std::string & file, uint8_t id, float weight, bool infinity,
                 float speed) {
                     MeshLoadingParams anim;
                     anim.file = "resources/assets/" + file;
@@ -128,8 +132,7 @@ namespace game {
                 animationObserver, order = object.order,
                 loadAnim = std::move(loadAnim),
                 objectTextures,
-                mesh = engine::make_ref(meshPtr), program, node,
-                &assetManager, &gpuProgramManager
+                mesh = engine::make_ref(meshPtr), program, node
                 ] (
                     std::unique_ptr<Mesh>&& asset,
                     const AssetLoadingResult result) mutable {
@@ -251,7 +254,7 @@ namespace game {
                                                                drawParams.stencilRef };
                                 });
                             meshRef->setGraphics(g);
-                            meshRef->getRenderDescriptor().order = 0u; // same order
+                            meshRef->getRenderDescriptor().order = 0; // same order
                             auto&& serviceLocator = ServiceLocator::instance();
                             auto scene = serviceLocator.getService<Scene>();
                             auto&& node2 = scene->placeToNode(meshRef.release(), node);
@@ -292,10 +295,10 @@ namespace game {
              });
 
             meshRef->setGraphics(graphics);
-            meshRef->getRenderDescriptor().order = 0u; // same order
-            auto&& node = scene->placeToNode(meshRef.release(), parent);
+            meshRef->getRenderDescriptor().order = 0; // same order
+            auto&& placedNode = scene->placeToNode(meshRef.release(), parent);
             auto matrix = engine::makeMatrix(1.0f);
-            node->value().setLocalMatrix(matrix);
+            placedNode->value().setLocalMatrix(matrix);
         }
             break;
         default:
@@ -311,11 +314,7 @@ namespace game {
 
     Unit::Unit(std::string_view name) : Entity(this), _animations(nullptr) {
         using namespace engine;
-        auto &&serviceLocator = ServiceLocator::instance();
-
-        auto &&assetManager = Engine::getInstance().getModule<AssetManager>();
-        auto &&gpuProgramManager = Engine::getInstance().getModule<Graphics>().getGpuProgramsManager();
-
+        auto && serviceLocator = ServiceLocator::instance();
         auto graphicsFactory = serviceLocator.getService<GraphicsFactory>();
 
         auto it = graphicsFactory->_objects.find(name.data());
@@ -374,8 +373,7 @@ namespace game {
     void Unit::onEvent(engine::AnimationEvent event, const engine::MeshAnimator *animator) {
         using namespace engine;
         switch (event) {
-            case AnimationEvent::NewLoop:
-                break;
+            case AnimationEvent::NewLoop: [[fallthrough]];
             case AnimationEvent::EndLoop:
                 break;
             case AnimationEvent::Finish:
@@ -448,10 +446,16 @@ namespace game {
         using namespace engine;
         const auto &p = _mapObject.getPosition();
 
+        const auto stopMove = [&]() noexcept {
+            _moveTarget = p; // stop move
+            setState(UnitState::Idle);
+        };
+
         if (p != _moveTarget) {
             const auto vec = _moveTarget - p;
             constexpr float kAngleSpeed = 12.0f;
-            if (glm::dot(vec, vec) > kAngleSpeed) {
+            const auto distance = glm::dot(vec, vec);
+            if (distance > kAngleSpeed) {
                 const float angleSpeed = kAngleSpeed * delta;
                 const auto direction = as_normalized(vec);
 
@@ -467,21 +471,24 @@ namespace game {
 
                 const float moveSpeed = kAngleSpeed * 7.7f * delta * weight;
                 const auto sub = (direction - _direction);
-                if (vec_length(sub) > angleSpeed) {
+                if (glm::dot(sub, sub) > angleSpeed * angleSpeed) {
                     _direction = as_normalized(_direction + as_normalized(sub) * angleSpeed);
                 } else {
                     _direction = direction;
                 }
-                const float rz = atan2(_direction.x, -_direction.y);
+                const float rz = std::atan2(_direction.x, -_direction.y);
+                const auto move = _direction * moveSpeed;
                 _mapObject.setRotation(vec3f(0.0f, 0.0f, rz));
-                _mapObject.setPosition(p + _direction * moveSpeed);
+                _mapObject.setPosition(p + move);
                 setState(UnitState::Running);
+                if (glm::dot(move, move) > distance) {
+                    stopMove();
+                }
             } else {
-                _moveTarget = p; // stop move
-                setState(UnitState::Idle);
+                stopMove();
             }
         } else if (_state == UnitState::Running) {
-            setState(UnitState::Idle);
+            stopMove();
         }
 
         updateAnimationState(delta);
