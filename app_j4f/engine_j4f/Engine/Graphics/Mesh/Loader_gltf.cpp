@@ -8,6 +8,8 @@
 #include <cmath>
 #include <assert.h>
 #include <cstddef>
+#include <cstdint>
+#include <string_view>
 
 namespace gltf {
 
@@ -65,22 +67,22 @@ namespace gltf {
 		const float fourZSquaredMinus1 = m[2][2] - m[0][0] - m[1][1];
 		const float fourWSquaredMinus1 = m[0][0] + m[1][1] + m[2][2];
 
-		int biggestIndex = 0;
+		uint8_t biggestIndex = 0u;
 		float fourBiggestSquaredMinus1 = fourWSquaredMinus1;
 
 		if (fourXSquaredMinus1 > fourBiggestSquaredMinus1) {
 			fourBiggestSquaredMinus1 = fourXSquaredMinus1;
-			biggestIndex = 1;
+			biggestIndex = 1u;
 		}
 
 		if (fourYSquaredMinus1 > fourBiggestSquaredMinus1) {
 			fourBiggestSquaredMinus1 = fourYSquaredMinus1;
-			biggestIndex = 2;
+			biggestIndex = 2u;
 		}
 
 		if (fourZSquaredMinus1 > fourBiggestSquaredMinus1) {
 			fourBiggestSquaredMinus1 = fourZSquaredMinus1;
-			biggestIndex = 3;
+			biggestIndex = 3u;
 		}
 
 		const float biggestVal = sqrtf(fourBiggestSquaredMinus1 + 1.0f) * 0.5f;
@@ -88,7 +90,7 @@ namespace gltf {
 
 		vec4 r;
 		switch (biggestIndex) {
-			case 0:
+			case 0u:
 			{
 				r.w = biggestVal;
 				r.x = (m[1][2] - m[2][1]) * mult;
@@ -96,7 +98,7 @@ namespace gltf {
 				r.z = (m[0][1] - m[1][0]) * mult;
 			}
 				break;
-			case 1:
+			case 1u:
 			{
 				r.w = (m[1][2] - m[2][1]) * mult;
 				r.x = biggestVal;
@@ -104,7 +106,7 @@ namespace gltf {
 				r.z = (m[2][0] + m[0][2]) * mult;
 			}
 				break;
-			case 2:
+			case 2u:
 			{
 				r.w = (m[2][0] - m[0][2]) * mult;
 				r.x = (m[0][1] + m[1][0]) * mult;
@@ -112,7 +114,7 @@ namespace gltf {
 				r.z = (m[1][2] + m[2][1]) * mult;
 			}
 				break;
-			case 3:
+			case 3u:
 			{
 				r.w = (m[0][1] - m[1][0]) * mult;
 				r.x = (m[2][0] + m[0][2]) * mult;
@@ -459,11 +461,11 @@ namespace gltf {
 	}
 
 	template <typename T, typename F, typename... Args>
-	static void parseArray(std::vector<T>& arr, F&& f, const std::string& name, const Json& js, Args&&... args) {
+	static void parseArray(std::vector<T>& arr, F&& f, std::string_view name, const Json& js, Args&&... args) {
 		if (auto targetJs = js.find(name); targetJs != js.end()) {
 			const size_t count = targetJs->size();
 			arr.resize(count);
-			for (size_t i = 0; i < count; ++i) {
+			for (size_t i = 0u; i < count; ++i) {
 				f(arr[i], (*targetJs)[i], std::forward<Args>(args)...);
 			}
 		}
