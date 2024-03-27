@@ -67,11 +67,11 @@ namespace vulkan {
 		};
 
 		struct NeedBindDescriptors {
-			uint8_t firstSet = 0;
-			uint8_t setsCount = 0;
-			uint8_t dynamicOffsetsCount = 0;
-			std::array<uint32_t, 8> dynamicOffsets{};
-			std::array<VkDescriptorSet, 8> sets{};
+			uint8_t firstSet = 0u;
+			uint8_t setsCount = 0u;
+			uint8_t dynamicOffsetsCount = 0u;
+			std::array<uint32_t, 8u> dynamicOffsets{};
+			std::array<VkDescriptorSet, 8u> sets{};
 
 			NeedBindDescriptors() = default;
 
@@ -316,7 +316,7 @@ namespace vulkan {
 			return false;
 		}
 
-		std::array<NeedBindDescriptors, 8> bindDescriptorSets(
+		std::array<NeedBindDescriptors, 8u> bindDescriptorSets(
 			const uint32_t frame,
 			const VkPipelineBindPoint pipelineBindPoint,
 			const VulkanPipeline* pipeline,
@@ -326,24 +326,24 @@ namespace vulkan {
 			const uint8_t externalSetsCount,					// количество дополнительных сетов, которые хочется привязать
 			const VkDescriptorSet* externalSets					// дополнительные сеты, которые хочется привязать
 		) {
-			std::array<NeedBindDescriptors, 8> dirtyBind;
-			dirtyBind[0].firstSet = firstSet;
+			std::array<NeedBindDescriptors, 8u> dirtyBind;
+			dirtyBind[0u].firstSet = firstSet;
 
 			uint8_t bindSetNum;
 			switch (pipelineBindPoint) {
 				case VK_PIPELINE_BIND_POINT_GRAPHICS:
 				{
-					bindSetNum = 0;
+					bindSetNum = 0u;
 				}
 					break;
 				case VK_PIPELINE_BIND_POINT_COMPUTE:
 				{
-					bindSetNum = 1;
+					bindSetNum = 1u;
 				}
 					break;
 				case VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR:
 				{
-					bindSetNum = 2;
+					bindSetNum = 2u;
 				}
 					break;
 				default:
@@ -379,11 +379,11 @@ namespace vulkan {
 			const uint8_t buffersSetsTypes = pipeline->program->getGPUBuffersSetsTypes();
 			const uint8_t setsCount = std::min(static_cast<uint8_t>(gpuSetsCount + externalSetsCount), allProgramSetsCount) - firstSet;
 
-			uint8_t dynamicBufferNum = 0;
-			uint8_t currentBindDescriptorsCount = 0;
-			uint8_t currentBind = 0;
+			uint8_t dynamicBufferNum = 0u;
+			uint8_t currentBindDescriptorsCount = 0u;
+			uint8_t currentBind = 0u;
 
-			for (uint8_t i = 0; i < setsCount; ++i) {
+			for (uint8_t i = 0u; i < setsCount; ++i) {
 				const uint8_t set = firstSet + i;
 				
 				VkDescriptorSet& bindedDescriptorSet = descriptors->descriptorSets[set];
@@ -392,7 +392,7 @@ namespace vulkan {
 				const VulkanDescriptorSet* dset = pipeline->program->getDescriptorSet(i);
 				const VkDescriptorSet& currentSet = ((dset != nullptr) ? dset->operator[](frame) : *externalSets++);
 
-				const uint32_t bufferOffset = isBufferDynamic ? dynamicOffsets[dynamicBufferNum++] : 0;
+				const uint32_t bufferOffset = isBufferDynamic ? dynamicOffsets[dynamicBufferNum++] : 0u;
 
 				if (bindedDescriptorSet != currentSet) {
 					bindedDescriptorSet = currentSet;
@@ -413,9 +413,9 @@ namespace vulkan {
 					dirtyBind[currentBind].sets[dirtyBind[currentBind].setsCount++] = currentSet;
 					++currentBindDescriptorsCount;
 				} else {
-					if (currentBindDescriptorsCount > 0) {
-						currentBindDescriptorsCount = 0;
-						dirtyBind[++currentBind].firstSet = set + 1;
+					if (currentBindDescriptorsCount > 0u) {
+						currentBindDescriptorsCount = 0u;
+						dirtyBind[++currentBind].firstSet = set + 1u;
 					} else {
 						++dirtyBind[currentBind].firstSet;
 					}
@@ -1002,7 +1002,7 @@ namespace vulkan {
 			const VkDescriptorSet* externalSets				    // дополнительные сеты, которые хочется привязать
 		) {
 			if constexpr (stated) { // use this?
-				const std::array<typename state_type::NeedBindDescriptors, 8> needBind = state.bindDescriptorSets(
+				const std::array<typename state_type::NeedBindDescriptors, 8u> needBind = state.bindDescriptorSets(
 					frame,
 					VK_PIPELINE_BIND_POINT_GRAPHICS,
 					pipeline,
@@ -1013,19 +1013,21 @@ namespace vulkan {
 					externalSets
 				);
 
-				uint8_t i = 0u;
-				while (needBind[i].setsCount) {
+				// 8 - its separation for update:
+				// needBind[i] can update sets : 0 - 3, needBinds[i+1] : 5 - 7, ...
+
+				for (const auto& bindingLayout : needBind) {
+					if (bindingLayout.setsCount == 0u) { break; }
 					vkCmdBindDescriptorSets(
 						m_commandBuffer,
 						VK_PIPELINE_BIND_POINT_GRAPHICS,
 						pipeline->program->getPipeLineLayout(),
-						needBind[i].firstSet,
-						needBind[i].setsCount,
-						needBind[i].sets.data(),
-						needBind[i].dynamicOffsetsCount,
-						needBind[i].dynamicOffsets.data()
+						bindingLayout.firstSet,
+						bindingLayout.setsCount,
+						bindingLayout.sets.data(),
+						bindingLayout.dynamicOffsetsCount,
+						bindingLayout.dynamicOffsets.data()
 					);
-					++i;
 				}
 			} else {
 				uint8_t allProgramSetsCount;

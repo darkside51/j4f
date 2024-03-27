@@ -202,6 +202,8 @@ namespace engine {
 			}
 		}
 
+		RenderedEntity* getRenderEntity() noexcept { return this; }
+
 	private:
 		EntityCreator _creator = nullptr;
         T* _entity = nullptr;

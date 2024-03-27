@@ -81,7 +81,7 @@ namespace engine {
 
 		renderData->vertexes = &vBuffer;
 		renderData->indexes = &iBuffer;
-        renderData->indexType =  VK_INDEX_TYPE_UINT32;
+        renderData->indexType = VK_INDEX_TYPE_UINT32;
 
 		vulkan::RenderData::RenderPart renderPart{
 													static_cast<uint32_t>(iOffset / sizeof(uint32_t)),	// firstIndex

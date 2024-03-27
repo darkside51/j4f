@@ -36,6 +36,8 @@ namespace engine {
         bool onInputWheelEvent(const float dx, const float dy);
         bool onInpuKeyEvent(const KeyEvent& event);
 
+        RenderedEntity* getRenderEntity() noexcept { return this; }
+
         inline static std::vector<unsigned int> imguiVsh = {};
         inline static std::vector<unsigned int> imguiPsh = {};
 

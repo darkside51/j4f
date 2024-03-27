@@ -19,6 +19,8 @@ namespace engine {
 
 		void setFrame(const std::shared_ptr<TextureFrame>& f);
 
+		RenderedEntity* getRenderEntity() noexcept { return this; }
+
 	private:
 		void createRenderData(const engine::GpuParamsType& params);
 

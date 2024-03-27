@@ -243,6 +243,8 @@ namespace engine {
 			_renderDescriptor.setRawDataForLayout(_fixedGpuLayouts[0].first, &const_cast<mat4f&>(cameraMatrix), copy, sizeof(mat4f));
 		}
 
+		RenderedEntity* getRenderEntity() noexcept { return this; }
+
 	private:
         VertexAttributes getVertexInputAttributes() const;
 		uint32_t sizeOfVertex() const;

@@ -84,7 +84,7 @@ namespace engine {
 
 		NodeRendererImpl() = default;
 		explicit NodeRendererImpl(type&& g) : RenderObject(&g->getRenderDescriptor()), _graphics(g) {
-            _renderEntity = _graphics;
+            _renderEntity = _graphics->getRenderEntity();
         }
 
         template <typename Type = type>
@@ -97,7 +97,7 @@ namespace engine {
 
 			_isGraphicsOwner = own;
 			_graphics = std::forward<Type>(g);
-            _renderEntity = _graphics;
+            _renderEntity = _graphics->getRenderEntity();
 		}
 
 		inline void resetGraphics() { _graphics = nullptr; _isGraphicsOwner = false; _renderEntity = nullptr; }
