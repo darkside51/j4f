@@ -981,16 +981,24 @@ namespace vulkan {
 
 	bool VulkanRenderer::beginFrame() {
 		// use a fence to wait until the command buffer has finished execution before using it again
-		if (auto result = vulkan::waitFenceAndReset(_vulkanDevice->device, _waitFences[_currentFrame].fence); result != VK_SUCCESS) {
+		/*if (auto result = vulkan::waitFenceAndReset(_vulkanDevice->device, _waitFences[_currentFrame].fence); result != VK_SUCCESS) {
             LOG_TAG_LEVEL(engine::LogLevel::L_ERROR, GRAPHICS, "VulkanRenderer: waitFenceAndReset result = %s", string_VkResult(result));
             return false;
-        }
+        }*/
+
+		if (const auto result = vkWaitForFences(_vulkanDevice->device, 1, &_waitFences[_currentFrame].fence, VK_TRUE, UINT64_MAX); result != VK_SUCCESS) {
+			LOG_TAG_LEVEL(engine::LogLevel::L_ERROR, GRAPHICS, "VulkanRenderer: waitFenceAndReset result = %s", string_VkResult(result));
+			return false;
+		}
 
         const VkResult acquireImageResult = _swapChain.acquireNextImage(_presentCompleteSemaphores[_currentFrame].semaphore, &_acquireImageIndex);
         if (acquireImageResult != VK_SUCCESS && acquireImageResult != VK_SUBOPTIMAL_KHR) { // acquire failed - skip this frame to present
             LOG_TAG_LEVEL(engine::LogLevel::L_ERROR, GRAPHICS, "VulkanRenderer: swapChain acquireNextImage result = %s", string_VkResult(acquireImageResult));
 			return false;
 		}
+
+		// reset fence only if acquireImageResult is VK_SUCCESS, or we can have deadlock on vkWaitForFences if fence already been reset
+		vkResetFences(_vulkanDevice->device, 1, &_waitFences[_currentFrame].fence);
 
 		if (_mainSupportCommandBuffers[_currentFrame].begin() == VK_SUCCESS) {
             for (auto&& [size, buffer] : _dynamicGPUBuffers) {
