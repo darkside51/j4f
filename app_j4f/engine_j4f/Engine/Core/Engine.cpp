@@ -210,23 +210,25 @@ namespace engine {
 	void Engine::render(const float delta,
                            const std::chrono::steady_clock::time_point& currentTime,
                            WorkerTasks && tasks) {
-		_graphics->beginFrame();
+		if (_graphics->beginFrame()) {
 
-		executeTaskCollection(std::move(tasks));
+            executeTaskCollection(std::move(tasks));
 
-        if (_application) {
-            _application->render(delta);
-        }
+            if (_application) {
+                _application->render(delta);
+            }
 
 #ifdef ENABLE_STATISTIC
-		if (_statistic) {
-            _statistic->render(delta);
-			_statistic->frame(delta);
-			_statistic->addFramePrepareTime((std::chrono::duration<float>(std::chrono::steady_clock::now() - currentTime)).count());
-		}
+            if (_statistic) {
+                _statistic->render(delta);
+                _statistic->frame(delta);
+                _statistic->addFramePrepareTime(
+                        (std::chrono::duration<float>(std::chrono::steady_clock::now() - currentTime)).count());
+            }
 #endif
 
-		_graphics->endFrame();
+            _graphics->endFrame();
+        }
 	}
 
     Version Engine::applicationVersion() const noexcept {

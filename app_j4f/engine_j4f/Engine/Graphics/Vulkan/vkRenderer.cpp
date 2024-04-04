@@ -979,17 +979,17 @@ namespace vulkan {
 		}
 	}
 
-	void VulkanRenderer::beginFrame() {
+	bool VulkanRenderer::beginFrame() {
 		// use a fence to wait until the command buffer has finished execution before using it again
 		if (auto result = vulkan::waitFenceAndReset(_vulkanDevice->device, _waitFences[_currentFrame].fence); result != VK_SUCCESS) {
             LOG_TAG_LEVEL(engine::LogLevel::L_ERROR, GRAPHICS, "VulkanRenderer: waitFenceAndReset result = %s", string_VkResult(result));
-            return;
+            return false;
         }
 
         const VkResult acquireImageResult = _swapChain.acquireNextImage(_presentCompleteSemaphores[_currentFrame].semaphore, &_acquireImageIndex);
         if (acquireImageResult != VK_SUCCESS && acquireImageResult != VK_SUBOPTIMAL_KHR) { // acquire failed - skip this frame to present
             LOG_TAG_LEVEL(engine::LogLevel::L_ERROR, GRAPHICS, "VulkanRenderer: swapChain acquireNextImage result = %s", string_VkResult(acquireImageResult));
-			return;
+			return false;
 		}
 
 		if (_mainSupportCommandBuffers[_currentFrame].begin() == VK_SUCCESS) {
@@ -1029,6 +1029,8 @@ namespace vulkan {
 				}
 			}
 		}
+
+        return true;
 	}
 
 	void VulkanRenderer::endFrame() {
@@ -1059,7 +1061,7 @@ namespace vulkan {
                 const VkResult presentResult = _swapChain.queuePresent(_presentQueue, _acquireImageIndex,
                                                                        _mainRenderCommandBuffers.m_completeSemaphores[_currentFrame].semaphore);
                 if (!((presentResult == VK_SUCCESS) || (presentResult == VK_SUBOPTIMAL_KHR))) {
-                    LOG_TAG_LEVEL(engine::LogLevel::L_ERROR, GRAPHICS, "VulkanRenderer: _swapChain queuePresent = %s", string_VkResult(presentResult));
+                    LOG_TAG_LEVEL(engine::LogLevel::L_ERROR, GRAPHICS, "VulkanRenderer: swapChain queuePresent = %s", string_VkResult(presentResult));
                 }
             }
                 break;

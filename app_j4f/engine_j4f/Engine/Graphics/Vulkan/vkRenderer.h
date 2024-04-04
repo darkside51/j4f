@@ -442,7 +442,7 @@ namespace vulkan {
 			const uint32_t binding
 		) const;
 
-		void beginFrame();
+		bool beginFrame();
 		void endFrame();
 
 		inline const VulkanDevice* getDevice() const noexcept { return _vulkanDevice; }

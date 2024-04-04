@@ -27,7 +27,7 @@ namespace engine {
 
 		void resize(const uint16_t w, const uint16_t h);
 
-		void beginFrame();
+		bool beginFrame();
 		void endFrame();
 
 		void deviceDestroyed();

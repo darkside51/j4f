@@ -132,14 +132,18 @@ namespace engine {
         }
     }
 
-    void Graphics::beginFrame() {
+    bool Graphics::beginFrame() {
         if (_renderer) {
-            _renderer->beginFrame();
+            if (!_renderer->beginFrame()) {
+                return false;
+            }
         }
 
         if (_renderHelper) {
             _renderHelper->updateFrame();
         }
+
+        return true;
     }
 
     void Graphics::endFrame() {
