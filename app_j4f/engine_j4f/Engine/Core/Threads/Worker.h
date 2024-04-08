@@ -55,8 +55,6 @@ namespace engine {
             _threadId = std::this_thread::get_id();
 
 			while (isAlive()) {
-				_wait.clear(std::memory_order_relaxed);
-
 				while (isActive()) {
 					const auto currentTime = std::chrono::steady_clock::now();
 					const std::chrono::duration<double> duration = currentTime - _time; // as default in seconds
@@ -70,15 +68,19 @@ namespace engine {
 							}
 							break;
 						case FpsLimitType::F_CPU_SLEEP:
-							if (const double t = (_targetFrameTime - durationTime); t > 0.0) {
-								if (_stealedTime <= t) {
-									std::this_thread::sleep_for(std::chrono::duration<double>(t)); // as default in seconds
-									_stealedTime = std::chrono::duration<double>(std::chrono::steady_clock::now() - currentTime).count() - t;
-									continue;
-								} else {
-									_stealedTime -= t;
-								}
-							}
+                            if (const double t = (_targetFrameTime - durationTime); t > 0.0) {
+                                std::this_thread::sleep_for(std::chrono::duration<double>(t)); // as default in seconds
+                                continue;
+                            }
+//							if (const double t = (_targetFrameTime - durationTime); t > 0.0) {
+//								if (_stealedTime <= t) {
+//									std::this_thread::sleep_for(std::chrono::duration<double>(t)); // as default in seconds
+//									_stealedTime = std::chrono::duration<double>(std::chrono::steady_clock::now() - currentTime).count() - t;
+//									continue;
+//								} else {
+//									_stealedTime -= t;
+//								}
+//							}
 							break;
 						default:
 							break;
@@ -171,6 +173,8 @@ namespace engine {
 			while (!_wait.test(std::memory_order_relaxed)) {
 				std::this_thread::yield();
 			}
+            // can clear wait
+            _wait.clear(std::memory_order_relaxed);
 		}
 
 		void setTargetFrameTime(const float t) {
@@ -215,7 +219,7 @@ namespace engine {
 		std::chrono::steady_clock::time_point _time;
 		std::atomic_uint16_t _frameId = { 0u };
 
-        double _stealedTime = 0.0f;
+//        double _stealedTime = 0.0f;
 		double _targetFrameTime = std::numeric_limits<float>::max();
 		FpsLimitType _fpsLimitType = FpsLimitType::F_DONT_CARE;
 

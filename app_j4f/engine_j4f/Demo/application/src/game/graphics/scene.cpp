@@ -108,14 +108,16 @@ namespace game {
 
         auto &mainCamera = _cameras[0];
 
-        { //
-            constexpr float radius = 700.0f;
+        if constexpr (true) { //
+            constexpr float radius = 700.0;
             static float angle = 1.0f;
             static bool night = false;
             angle += delta * 0.01f;
-            const float c = cosf(angle);
-            const float s = sinf(angle);
+            angle = std::fmod(angle, math_constants::f32::pi);
+            const float c = std::cos(angle);
+            const float s = std::sin(angle);
             const float h = (s > 0.5f) ? 1.0f : 0.0f;
+
             const vec3f lightPos(h * radius * c, 300.0f, h * radius * s);
             if (_shadowMap->setLightPosition(lightPos)) {
                 night = false;
