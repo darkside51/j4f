@@ -209,6 +209,7 @@ namespace game {
         // draw bounding boxes
         constexpr bool kDrawBoundingVolumes = false;
         if constexpr (kDrawBoundingVolumes) {
+            commandBuffer.cmdSetLineWidth(1.0f);
             renderNodesBounds(_rootNode.get(), mainCamera.getTransform(), commandBuffer, currentFrame, 0u);
         }
 

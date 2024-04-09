@@ -5,41 +5,24 @@
 namespace engine {
 
 	void Frustum::calculate(const mat4f& clip) noexcept {
-		//находим A,B,C,D для правой плоскости
-		_frustum[0][0] = clip[0][3] - clip[0][0];
-		_frustum[0][1] = clip[1][3] - clip[1][0];
-		_frustum[0][2] = clip[2][3] - clip[2][0];
-		_frustum[0][3] = clip[3][3] - clip[3][0];
-
-		//находим A,B,C,D для левой плоскости
-		_frustum[1][0] = clip[0][3] + clip[0][0];
-		_frustum[1][1] = clip[1][3] + clip[1][0];
-		_frustum[1][2] = clip[2][3] + clip[2][0];
-		_frustum[1][3] = clip[3][3] + clip[3][0];
-
-		//находим A,B,C,D для нижней плоскости
-		_frustum[2][0] = clip[0][3] + clip[0][1];
-		_frustum[2][1] = clip[1][3] + clip[1][1];
-		_frustum[2][2] = clip[2][3] + clip[2][1];
-		_frustum[2][3] = clip[3][3] + clip[3][1];
-
-		//находим A,B,C,D для верхней плоскости
-		_frustum[3][0] = clip[0][3] - clip[0][1];
-		_frustum[3][1] = clip[1][3] - clip[1][1];
-		_frustum[3][2] = clip[2][3] - clip[2][1];
-		_frustum[3][3] = clip[3][3] - clip[3][1];
-
-		//находим A,B,C,D для задней плоскости
-		_frustum[4][0] = clip[0][3] - clip[0][2];
-		_frustum[4][1] = clip[1][3] - clip[1][2];
-		_frustum[4][2] = clip[2][3] - clip[2][2];
-		_frustum[4][3] = clip[3][3] - clip[3][2];
-
-		//находим A,B,C,D для передней плоскости
-		_frustum[5][0] = clip[0][3] + clip[0][2];
-		_frustum[5][1] = clip[1][3] + clip[1][2];
-		_frustum[5][2] = clip[2][3] + clip[2][2];
-		_frustum[5][3] = clip[3][3] + clip[3][2];
+        // get A,B,C,D for right plane
+        _frustum[0] = {clip[0][3] - clip[0][0], clip[1][3] - clip[1][0], clip[2][3] - clip[2][0],
+                        clip[3][3] - clip[3][0]};
+        // get A,B,C,D for left plane
+        _frustum[1] = {clip[0][3] + clip[0][0], clip[1][3] + clip[1][0], clip[2][3] + clip[2][0],
+                        clip[3][3] + clip[3][0]};
+        // get A,B,C,D for bottom plane
+        _frustum[2] = {clip[0][3] + clip[0][1], clip[1][3] + clip[1][1], clip[2][3] + clip[2][1],
+                        clip[3][3] + clip[3][1]};
+        // get A,B,C,D for top plane
+        _frustum[3] = {clip[0][3] - clip[0][1], clip[1][3] - clip[1][1], clip[2][3] - clip[2][1],
+                        clip[3][3] - clip[3][1]};
+        // get A,B,C,D for back plane
+        _frustum[4] = {clip[0][3] - clip[0][2], clip[1][3] - clip[1][2], clip[2][3] - clip[2][2],
+                        clip[3][3] - clip[3][2]};
+        // get A,B,C,D for front plane
+        _frustum[5] = {clip[0][3] + clip[0][2], clip[1][3] + clip[1][2], clip[2][3] + clip[2][2],
+                        clip[3][3] + clip[3][2]};
 
 		_normalized = false;
 	}
@@ -47,20 +30,17 @@ namespace engine {
 	void Frustum::normalize() noexcept { // normalize frustum planes
 		if (_normalized) return;
 
-		for (uint8_t i = 0; i < 6; ++i) { // приводим уравнения плоскостей к нормальному виду
-			const float t = inv_sqrt(_frustum[i][0] * _frustum[i][0] + _frustum[i][1] * _frustum[i][1] + _frustum[i][2] * _frustum[i][2]);
-			_frustum[i][0] *= t;
-			_frustum[i][1] *= t;
-			_frustum[i][2] *= t;
-			_frustum[i][3] *= t;
+		for (auto & plane : _frustum) { // приводим уравнения плоскостей к нормальному виду
+			const float t = inv_sqrt(plane.x * plane.x + plane.y * plane.y + plane.z * plane.z);
+            plane *= t;
 		}
 
 		_normalized = true;
 	}
 
 	bool Frustum::isPointVisible(const vec3f& p) const noexcept {
-		for (uint8_t i = 0; i < 6; ++i) {
-			if (_frustum[i][0] * p.x + _frustum[i][1] * p.y + _frustum[i][2] * p.z + _frustum[i][3] < 0.0f) {
+		for (const auto & plane : _frustum) {
+			if (glm::dot(plane, vec4f(p, 1.0f)) < 0.0f) {
 				return false;
 			}
 		}
@@ -73,9 +53,9 @@ namespace engine {
 			normalize();
 		}
 
-		// Проходим через все стороны пирамиды
-		for (uint8_t i = 0; i < 6; ++i) {
-			if (_frustum[i][0] * p.x + _frustum[i][1] * p.y + _frustum[i][2] * p.z + _frustum[i][3] < -r) { // центр сферы дальше от плоскости, чем её радиус => вся сфера снаружи, возвращаем false
+		// проходим через все стороны пирамиды
+		for (const auto & plane : _frustum) {
+			if (glm::dot(plane, vec4f(p, 1.0f)) < -r) { // центр сферы дальше от плоскости, чем её радиус => вся сфера снаружи, возвращаем false
 				return false;
 			}
 		}
@@ -84,30 +64,22 @@ namespace engine {
 	}
 
 	bool Frustum::isCubeVisible_classic(const vec3f& min, const vec3f& max) const noexcept {
-		for (uint8_t i = 0; i < 6; ++i) {
-			if (_frustum[i][0] * min.x + _frustum[i][1] * min.y +
-				_frustum[i][2] * min.z + _frustum[i][3] > 0.0f)
+		for (const auto & plane : _frustum) {
+			if (plane.x * min.x + plane.y * min.y + plane.z * min.z + plane.w > 0.0f)
 				continue;
-			if (_frustum[i][0] * max.x + _frustum[i][1] * min.y +
-				_frustum[i][2] * min.z + _frustum[i][3] > 0.0f)
+			if (plane.x * max.x + plane.y * min.y + plane.z * min.z + plane.w > 0.0f)
 				continue;
-			if (_frustum[i][0] * min.x + _frustum[i][1] * max.y +
-				_frustum[i][2] * min.z + _frustum[i][3] > 0.0f)
+			if (plane.x * min.x + plane.y * max.y + plane.z * min.z + plane.w > 0.0f)
 				continue;
-			if (_frustum[i][0] * max.x + _frustum[i][1] * max.y +
-				_frustum[i][2] * min.z + _frustum[i][3] > 0.0f)
+			if (plane.x * max.x + plane.y * max.y + plane.z * min.z + plane.w > 0.0f)
 				continue;
-			if (_frustum[i][0] * min.x + _frustum[i][1] * min.y +
-				_frustum[i][2] * max.z + _frustum[i][3] > 0.0f)
+			if (plane.x * min.x + plane.y * min.y + plane.z * max.z + plane.w > 0.0f)
 				continue;
-			if (_frustum[i][0] * max.x + _frustum[i][1] * min.y +
-				_frustum[i][2] * max.z + _frustum[i][3] > 0.0f)
+			if (plane.x * max.x + plane.y * min.y + plane.z * max.z + plane.w > 0.0f)
 				continue;
-			if (_frustum[i][0] * min.x + _frustum[i][1] * max.y +
-				_frustum[i][2] * max.z + _frustum[i][3] > 0.0f)
+			if (plane.x * min.x + plane.y * max.y + plane.z * max.z + plane.w > 0.0f)
 				continue;
-			if (_frustum[i][0] * max.x + _frustum[i][1] * max.y +
-				_frustum[i][2] * max.z + _frustum[i][3] > 0.0f)
+			if (plane.x * max.x + plane.y * max.y + plane.z * max.z + plane.w > 0.0f)
 				continue;
 
 			// если мы дошли досюда, куб не внутри пирамиды.
@@ -119,15 +91,16 @@ namespace engine {
 
 	bool Frustum::isCubeVisible(const vec3f& min, const vec3f& max) const noexcept {
 		// https://gamedev.ru/code/articles/FrustumCulling
-		bool inside = true;
-		for (int i = 0; (inside && (i < 6)); ++i) {
-			const float d = std::max(min.x * _frustum[i][0], max.x * _frustum[i][0])
-				+ std::max(min.y * _frustum[i][1], max.y * _frustum[i][1])
-				+ std::max(min.z * _frustum[i][2], max.z * _frustum[i][2])
-				+ _frustum[i][3];
-			inside &= (d > 0.0f);
+		for (const auto & plane : _frustum) {
+			const auto d = std::max(min.x * plane.x, max.x * plane.x)
+				+ std::max(min.y * plane.y, max.y * plane.y)
+				+ std::max(min.z * plane.z, max.z * plane.z)
+				+ plane.z;
+            if (d <= 0.0) {
+                return false;
+            }
 		}
-		return inside;
+		return true;
 	}
 
 	Camera::Camera(const uint32_t w, const uint32_t h) :

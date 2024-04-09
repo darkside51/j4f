@@ -2,6 +2,7 @@
 
 #include "../../Core/Math/mathematic.h"
 
+#include <array>
 #include <cstdint>
 #include <memory>
 #include <vector>
@@ -31,7 +32,7 @@ namespace engine {
 	private:
 		void normalize() noexcept;
 		bool _normalized;
-		float _frustum[6][4];
+		std::array<vec4f, 6u> _frustum;
 	};
 
 	class FrustumCollection {
