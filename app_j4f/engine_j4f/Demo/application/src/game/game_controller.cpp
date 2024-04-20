@@ -1,5 +1,6 @@
 #include "game_controller.h"
 
+#include <Engine/Core/Engine.h>
 #include <Engine/Core/Math/mathematic.h>
 #include <Engine/Core/Threads/WorkersCommutator.h>
 #include <Engine/Graphics/Graphics.h>

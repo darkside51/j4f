@@ -7,6 +7,8 @@
 
 #include "Threads/TaskCommon.h"
 
+#include <Platform_device.h>
+
 #include <array>
 #include <cassert>
 #include <vector>
@@ -20,6 +22,18 @@ namespace engine {
 	class Statistic;
 	class Application;
     class WorkerThread;
+
+    class LogManager;
+    class ThreadPool2;
+    class WorkerThreadsCommutator;
+    class MemoryManager;
+    class CacheManager;
+    class FileManager;
+    class AssetManager;
+    class Input;
+//    class Device;
+    class Bus;
+    class TimerManager;
 
 	class Engine {
     private:
@@ -40,32 +54,48 @@ namespace engine {
 
 		~Engine();
 
-		inline static Engine& getInstance() noexcept {
-			static Engine engine;
-			return engine;
-		}
+        inline static Engine& getInstance() noexcept {
+
+            static_assert(ctti::UniqueTypeId<EngineModuleEnumerator>::getUniqueId<LogManager>() == 0);
+            static_assert(ctti::UniqueTypeId<EngineModuleEnumerator>::getUniqueId<Statistic>() == 1);
+            static_assert(ctti::UniqueTypeId<EngineModuleEnumerator>::getUniqueId<ThreadPool2>() == 2);
+            static_assert(ctti::UniqueTypeId<EngineModuleEnumerator>::getUniqueId<WorkerThreadsCommutator>() == 3);
+            static_assert(ctti::UniqueTypeId<EngineModuleEnumerator>::getUniqueId<MemoryManager>() == 4);
+            static_assert(ctti::UniqueTypeId<EngineModuleEnumerator>::getUniqueId<CacheManager>() == 5);
+            static_assert(ctti::UniqueTypeId<EngineModuleEnumerator>::getUniqueId<FileManager>() == 6);
+            static_assert(ctti::UniqueTypeId<EngineModuleEnumerator>::getUniqueId<AssetManager>() == 7);
+            static_assert(ctti::UniqueTypeId<EngineModuleEnumerator>::getUniqueId<Input>() == 8);
+            static_assert(ctti::UniqueTypeId<EngineModuleEnumerator>::getUniqueId<Graphics>() == 9);
+            static_assert(ctti::UniqueTypeId<EngineModuleEnumerator>::getUniqueId<Device>() == 10);
+            static_assert(ctti::UniqueTypeId<EngineModuleEnumerator>::getUniqueId<Bus>() == 11);
+            static_assert(ctti::UniqueTypeId<EngineModuleEnumerator>::getUniqueId<TimerManager>() == 12);
+
+            static Engine engine;
+            return engine;
+        }
+
 
 		void init(const EngineConfig& config);
 		void destroy();
 
 		template<typename T>
 		inline T& getModule() noexcept {
-			const auto moduleId = UniqueTypeId<EngineModuleEnumerator>::getUniqueId<T>();
+			const auto moduleId = ctti::UniqueTypeId<EngineModuleEnumerator>::getUniqueId<T>();
             assert(moduleId < _modules.size());
             return static_cast<T&>(*_modules[moduleId]);
 		}
 
 		template<typename T>
 		inline const T& getModule() const noexcept {
-			const auto moduleId = UniqueTypeId<EngineModuleEnumerator>::getUniqueId<T>();
+			const auto moduleId = ctti::UniqueTypeId<EngineModuleEnumerator>::getUniqueId<T>();
             assert(moduleId < _modules.size());
             return static_cast<const T&>(*_modules[moduleId]);
 		}
 
 		template<typename T, typename...Args>
 		void setModule(Args&&...args) {
-            UniqueTypeId<EmplacedModuleEnumerator>::getUniqueId<T>();
-			const auto moduleId = UniqueTypeId<EngineModuleEnumerator>::getUniqueId<T>();
+            ctti::UniqueTypeId<EmplacedModuleEnumerator>::getUniqueId<T>();
+			const auto moduleId = ctti::UniqueTypeId<EngineModuleEnumerator>::getUniqueId<T>();
             assert(moduleId >= _modules.size()); // module already exist
             _modules.resize(moduleId + 1u);
 			_modules[moduleId] = std::make_unique<T>(std::forward<Args>(args)...);
@@ -73,7 +103,7 @@ namespace engine {
 
         template <typename T>
         inline bool hasModule() const noexcept {
-            return UniqueTypeId<EmplacedModuleEnumerator>::getUniqueId<T>() == UniqueTypeId<EngineModuleEnumerator>::getUniqueId<T>();
+            return ctti::UniqueTypeId<EmplacedModuleEnumerator>::getUniqueId<T>() == ctti::UniqueTypeId<EngineModuleEnumerator>::getUniqueId<T>();
         }
 
 		void resize(const uint16_t w, const uint16_t h);

@@ -5,6 +5,7 @@
 namespace engine {
 
 	void Frustum::calculate(const mat4f& clip) noexcept {
+        // Gribb & Hartmann method for Fast Extraction of Viewing Frustum Planes from the World-View-Projection Matrix
         // get A,B,C,D for right plane
         _frustum[0] = {clip[0][3] - clip[0][0], clip[1][3] - clip[1][0], clip[2][3] - clip[2][0],
                         clip[3][3] - clip[3][0]};

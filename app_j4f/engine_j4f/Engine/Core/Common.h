@@ -67,6 +67,52 @@ namespace engine {
 		inline static std::atomic_uint16_t staticId = 0u;
 	};
 
+namespace compile_time_type_id {
+    template<typename Type, auto id>
+    struct TypeCounter {
+    private:
+        struct Generator {
+            friend consteval bool isDefined(TypeCounter) noexcept { return true; }
+        };
+
+        friend consteval bool isDefined(TypeCounter) noexcept;
+
+    public:
+        template<typename T = TypeCounter, auto = isDefined(T{})>
+        static consteval auto exists(bool) noexcept { return true; }
+
+        static consteval auto exists(...) noexcept { Generator(); return false; }
+    };
+
+    template<typename T, auto id = int{}>
+    consteval auto typeIndex() noexcept {
+        if constexpr (TypeCounter<nullptr_t, id>::exists(id)) {
+            return typeIndex<T, id + 1>();
+        } else {
+            return id;
+        }
+    }
+
+    template<typename T, typename U, auto id = int{}>
+    consteval auto typeIndex() noexcept {
+        if constexpr (TypeCounter<T, id>::exists(id)) {
+            return typeIndex<T, U, id + 1>();
+        } else {
+            return id;
+        }
+    }
+
+	template<typename MainType>
+	struct UniqueTypeId {
+		template<typename T>
+		static consteval inline auto getUniqueId() noexcept {
+			return typeIndex<MainType, T>();
+		}
+	};
+}
+
+namespace ctti = compile_time_type_id;
+
 	struct CommonType;
 	using CommonUniqueTypeId = UniqueTypeId<CommonType>;
 

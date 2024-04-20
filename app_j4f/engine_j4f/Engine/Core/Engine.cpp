@@ -38,7 +38,7 @@ namespace engine {
 	Engine::~Engine() {
 		destroy();
 	}
-	
+
 	void Engine::init(const EngineConfig& config) {
 		initPlatform();
 

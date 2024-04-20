@@ -47,7 +47,7 @@ namespace engine {
 
 		template <typename T, typename... Args>
 		inline T* createFromPool(Args&&... args) {
-			constexpr uint16_t type_id = getUniqueId<T>();
+			constexpr uint16_t type_id = UniqueTypeId<IMemoryPool>::getUniqueId<T>();
 			TMemoryPool<T>* pool;
 
 			auto it = _pools.find(type_id);
@@ -63,7 +63,7 @@ namespace engine {
 
 		template <typename T>
 		inline void destroyObjectStrict(T* object) { // ���� ��� ������
-			constexpr uint16_t type_id = getUniqueId<T>();
+			constexpr uint16_t type_id = UniqueTypeId<IMemoryPool>::getUniqueId<T>();
 			auto it = _pools.find(type_id);
 			if (it != _pools.end()) {
 				static_cast<TMemoryPool<T>*>(it->second)->destroyObject(object);
