@@ -58,11 +58,11 @@ namespace vulkan {
 		VkSurfaceCapabilitiesKHR surfCaps;
 		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_physicalDevice, surface, &surfCaps);
 
-		//const uint32_t fixedWidth = std::max(surfCaps.minImageExtent.width, std::min(width, surfCaps.maxImageExtent.width));
-		//const uint32_t fixedHeight = std::max(surfCaps.minImageExtent.height, std::min(height, surfCaps.maxImageExtent.height));
-		//const VkExtent2D swapchainExtent = { fixedWidth , fixedHeight };
+		const uint32_t fixedWidth = std::clamp(width, surfCaps.minImageExtent.width, surfCaps.maxImageExtent.width);
+		const uint32_t fixedHeight = std::clamp(height, surfCaps.minImageExtent.height, surfCaps.maxImageExtent.height);
+		const VkExtent2D swapchainExtent = { fixedWidth , fixedHeight };
         // hmm...
-        const VkExtent2D swapchainExtent = { width, height };
+//        const VkExtent2D swapchainExtent = { width, height };
 
 		// select a present mode for the swapchain
 

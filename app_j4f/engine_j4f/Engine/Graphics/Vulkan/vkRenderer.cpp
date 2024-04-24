@@ -913,7 +913,7 @@ namespace vulkan {
                 }
 			}
 
-			if (_width == 0 || _height == 0) { 
+			if (_width == 0u || _height == 0u) {
 				//assert(false);
 				return;
 			}
@@ -930,13 +930,14 @@ namespace vulkan {
 
 			_frameBuffers.clear();
 
-			std::vector<VkImageView> attachments(2);
-			attachments[1] = _depthStencil.view;
+//			std::vector<VkImageView> attachments(2u);
+            std::array<VkImageView, 2u> attachments;
+			attachments[1u] = _depthStencil.view;
 
-			for (size_t i = 0; i < _swapChainImagesCount; ++i) {
-				attachments[0] = _swapChain.images[i].view; // color attachment is the view of the swapchain image
+			for (size_t i = 0u; i < _swapChainImagesCount; ++i) {
+				attachments[0u] = _swapChain.images[i].view; // color attachment is the view of the swapchain image
                 VkResult result;
-				_frameBuffers.emplace_back(_vulkanDevice, _width, _height, 1,
+				_frameBuffers.emplace_back(_vulkanDevice, _width, _height, 1u,
                                            _mainRenderPass, attachments.data(),
                                            attachments.size(), nullptr,
                                            &result);
@@ -955,7 +956,7 @@ namespace vulkan {
                                                                    _swapChainImagesCount);
 
 			_presentCompleteSemaphores.reserve(_swapChainImagesCount);
-			for (size_t i = 0; i < _swapChainImagesCount; ++i) {
+			for (size_t i = 0u; i < _swapChainImagesCount; ++i) {
 				auto&& semaphore = _presentCompleteSemaphores.emplace_back(_vulkanDevice->device);
 				_mainSupportCommandBuffers.addWaitSemaphore(semaphore.semaphore, i);
 			}

@@ -34,8 +34,8 @@ namespace vulkan {
 			uint32_t indexCount = 0u;				// количество индексов
 			uint32_t vertexCount = 0u;				// количество вершин
 			uint32_t firstVertex = 0u;				// номер первой вершины
-			VkDeviceSize vbOffset = 0;				// оффсет в вершинном буфере
-			VkDeviceSize ibOffset = 0;				// оффсет в индексном буфере
+			VkDeviceSize vbOffset = 0u;				// оффсет в вершинном буфере
+			VkDeviceSize ibOffset = 0u;				// оффсет в индексном буфере
 		};
 
         uint32_t instanceCount = 1u;				// количество инстансов
