@@ -149,7 +149,7 @@ namespace engine {
         if (leaks_count) {
             printf("detected memory leaks: %lu / %llu bytes\n", leaks_count, bytes);
         } else {
-            printf("+++++ no memory leaks detected +++++");
+            printf("+++++ no memory leaks detected +++++\n");
         }
     }
 }
