@@ -8,11 +8,11 @@ layout (location = 2) in vec4 a_joints;
 layout (location = 3) in vec4 a_weights;
 layout (location = 4) in vec2 a_uv;
 
-layout (set = 0, binding = 0) uniform shadowUBO {
+layout (set = 0, binding = 0) uniform static_shadowUBO {
 	vec4 cascade_splits;
 	mat4 cascade_matrix[SHADOW_MAP_CASCADE_COUNT];
 	mat4 view;
-	vec3 camera_position;
+	vec3 light_direction;
 } u_shadow;
 
 layout(set = 1, binding = 0) uniform UBO {

@@ -8,7 +8,7 @@ layout (location = 2) in vec3 in_position;
 
 layout (location = 0) out vec4 out_color;
 
-layout (set = 0, binding = 0) uniform shadow_UBO {
+layout (set = 0, binding = 0) uniform static_shadow_UBO {
 	vec4 cascade_splits;
 	mat4 cascade_matrix[SHADOW_MAP_CASCADE_COUNT];
 	mat4 view;
@@ -62,7 +62,7 @@ void main() {
 	shadowCoord.xy = (shadowCoord.xy + 1.0) * 0.5;
 
 	vec2 useShadow = step(shadowCoord.xy, vec2(0.8, 0.8)) * step(vec2(0.1, 0.1), shadowCoord.xy);
-	float shadow = mix(1.0, filterPCF(shadowCoord / shadowCoord.w, cascade, 0.5), min(useShadow.x, useShadow.y));
+	float shadow = mix(1.0, filterPCF(shadowCoord / shadowCoord.w, cascade, 0.4), min(useShadow.x, useShadow.y));
 
 	out_color = texture(u_texture, in_uv, 0.0);
 	out_color.rgb *= shadow * 0.75;

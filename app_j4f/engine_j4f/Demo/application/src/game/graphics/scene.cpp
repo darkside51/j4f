@@ -22,6 +22,8 @@
 #include <Engine/Graphics/Features/Shadows/CascadeShadowMap.h>
 #include <Engine/Graphics/Features/Shadows/ShadowMapHelper.h>
 
+#include <Engine/Graphics/GpuProgramsManager.h>
+
 #include <cstdint>
 
 namespace game {
@@ -126,6 +128,17 @@ namespace game {
                 night = true;
                 angle += math_constants::f32::pi;
             }
+
+            //////////////////
+            auto && graphics = Engine::getInstance().getModule<Graphics>();
+            std::vector<ProgramStageInfo> psi = {
+                    {ProgramStage::VERTEX, "resources/shaders/mesh_skin.vsh.spv"},
+                    {ProgramStage::FRAGMENT, "resources/shaders/mesh_skin.psh.spv"}
+            };
+
+            auto program = graphics.getGpuProgramsManager()->getProgram(psi);
+            vec3f lightDir = normalize(lightPos);
+            program->setValueByName("light_direction", &lightDir, nullptr);
         }
 
         auto && graphics = Engine::getInstance().getModule<Graphics>();

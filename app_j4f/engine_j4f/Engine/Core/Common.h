@@ -79,12 +79,12 @@ namespace compile_time_type_id {
 
     public:
         template<typename T = TypeCounter, auto = isDefined(T{})>
-        static consteval auto exists(bool) noexcept { return true; }
+        static consteval bool exists(decltype(id)) noexcept { return true; }
 
-        static consteval auto exists(...) noexcept { Generator(); return false; }
+        static consteval bool exists(...) noexcept { Generator(); return false; }
     };
 
-    template<typename T, auto id = int{}>
+    template<typename T, auto id = size_t{}>
     consteval auto typeIndex() noexcept {
         if constexpr (TypeCounter<nullptr_t, id>::exists(id)) {
             return typeIndex<T, id + 1>();
@@ -93,7 +93,7 @@ namespace compile_time_type_id {
         }
     }
 
-    template<typename T, typename U, auto id = int{}>
+    template<typename T, typename U, auto id = size_t{}>
     consteval auto typeIndex() noexcept {
         if constexpr (TypeCounter<T, id>::exists(id)) {
             return typeIndex<T, U, id + 1>();

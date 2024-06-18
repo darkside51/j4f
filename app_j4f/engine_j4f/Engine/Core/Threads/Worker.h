@@ -99,7 +99,8 @@ namespace engine {
 					_frameId.fetch_add(1u, std::memory_order_relaxed); // increase frameId at the end of frame
 				}
 
-				_wait.test_and_set(std::memory_order_relaxed);
+                _wait.test_and_set(std::memory_order_relaxed);
+                _wait.notify_one();
 				//LOG_TAG_LEVEL(engine::LogLevel::L_DEBUG, THREAD, "pause worker thread");
 
 				if (isAlive()) {
@@ -129,17 +130,17 @@ namespace engine {
 		[[nodiscard]] inline bool isActive() const noexcept { return !_paused.test(std::memory_order_relaxed); }
         [[nodiscard]] inline bool isAlive() const noexcept { return !_stop.test(std::memory_order_acquire); }
 
-		inline void resume() {
+		inline void resume() noexcept {
 			requestResume();
 			notify();
 		}
 
-		inline void pause() {
+		inline void pause() noexcept {
 			requestPause(nullptr);
 			waitPaused();
 		}
 
-		inline void stop() {
+		inline void stop() noexcept {
 			if (!_stop.test_and_set(std::memory_order_acq_rel)) {
 				_paused.test_and_set(std::memory_order_relaxed);
 				if (_thread.joinable()) {
@@ -149,7 +150,7 @@ namespace engine {
 			}
 		}
 
-		inline void requestPause(const std::function<bool()>& onPause) {
+		inline void requestPause(const std::function<bool()>& onPause) noexcept {
 			{
 				AtomicLockF lock(_callbackLock);
 				_onPause = onPause;
@@ -157,7 +158,7 @@ namespace engine {
 			_paused.test_and_set(std::memory_order_relaxed);
 		}
 
-		inline void requestPause(std::function<bool()>&& onPause) {
+		inline void requestPause(std::function<bool()>&& onPause) noexcept {
 			{
 				AtomicLockF lock(_callbackLock);
 				_onPause = std::move(onPause);
@@ -165,23 +166,21 @@ namespace engine {
 			_paused.test_and_set(std::memory_order_relaxed);
 		}
 
-		inline void requestResume() {
+		inline void requestResume() noexcept {
 			_paused.clear(std::memory_order_relaxed);
 		}
 
-		inline void waitPaused() {
-			while (!_wait.test(std::memory_order_relaxed)) {
-				std::this_thread::yield();
-			}
+		inline void waitPaused() noexcept {
+            _wait.wait(false, std::memory_order_relaxed);
             // can clear wait
             _wait.clear(std::memory_order_relaxed);
 		}
 
-		void setTargetFrameTime(const float t) {
+		void setTargetFrameTime(const float t) noexcept {
 			_targetFrameTime = t;
 		}
 
-		void setFpsLimitType(const FpsLimitType t) {
+		void setFpsLimitType(const FpsLimitType t) noexcept {
 			_fpsLimitType = t;
 		}
 

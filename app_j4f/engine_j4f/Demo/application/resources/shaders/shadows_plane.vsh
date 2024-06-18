@@ -9,7 +9,7 @@ layout (location = 0) out vec2 out_uv;
 layout (location = 1) out float out_viewDepth;
 layout (location = 2) out vec3 out_position;
 
-layout (set = 0, binding = 0) uniform shadow_UBO {
+layout (set = 0, binding = 0) uniform static_shadow_UBO {
 	vec4 cascade_splits;
 	mat4 cascade_matrix[SHADOW_MAP_CASCADE_COUNT];
 	mat4 view;
