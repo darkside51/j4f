@@ -4,6 +4,7 @@
 #include <cmath>
 #include <vector>
 #include <atomic>
+#include <algorithm>
 
 #ifdef ENABLE_STATISTIC
 #define STATISTIC_ADD_DRAW_CALL engine::Engine::getInstance().getModule<engine::Statistic>().addDrawCall();

@@ -42,7 +42,7 @@ namespace engine {
         };
 
         template<typename T>
-        using remove_pointer_type_t = remove_pointer_type<T>::type;
+        using remove_pointer_type_t = typename remove_pointer_type<T>::type;
 
         template <typename T>
         using raw_type_name = remove_pointer_type_t<std::decay_t<T>>;
@@ -59,7 +59,7 @@ namespace engine {
         using Type = const T&;
     };
 
-	template <typename T, typename Arg = CallbackArgumentType<T>::Type>
+	template <typename T, typename Arg = typename CallbackArgumentType<T>::Type>
 	using AssetLoadingCallback = std::function<void(Arg&& asset, const AssetLoadingResult result)>;
 
 	struct AssetLoadingFlags {
@@ -181,7 +181,7 @@ namespace engine {
 
 
 			if (const AssetLoadingCallback<T>& c = callback) {
-                using callback_arg_type = CallbackArgumentType<T>::Type;
+                using callback_arg_type = typename CallbackArgumentType<T>::Type;
 				c(callback_arg_type{}, AssetLoadingResult::LOADER_NO_EXIST);
 			}
 			return T{};

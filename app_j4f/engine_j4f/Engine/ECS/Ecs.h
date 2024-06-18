@@ -2,6 +2,7 @@
 
 #include "System.h"
 
+#include <algorithm>
 #include <vector>
 
 namespace engine {

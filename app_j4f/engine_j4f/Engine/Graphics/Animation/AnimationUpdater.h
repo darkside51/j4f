@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -100,7 +101,7 @@ namespace engine {
             }
         }
 
-        inline void addTarget(const T *animation, T::TargetType target) noexcept {
+        inline void addTarget(const T *animation, typename T::TargetType target) noexcept {
             auto it = std::find_if(_animations.begin(), _animations.end(), [animation](const std::pair<T *, float> &p) {
                 return p.first == animation;
             });
@@ -110,7 +111,7 @@ namespace engine {
             }
         }
 
-        inline void removeTarget(const T *animation, T::TargetType target) noexcept {
+        inline void removeTarget(const T *animation, typename T::TargetType target) noexcept {
             auto it = std::find_if(_animations.begin(), _animations.end(), [animation](const std::pair<T *, float> &p) {
                 return p.first == animation;
             });

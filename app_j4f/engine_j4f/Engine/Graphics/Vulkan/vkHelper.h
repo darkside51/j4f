@@ -5,6 +5,7 @@
 #include <vector>
 #include <cstdint>
 #include <assert.h>
+#include <algorithm>
 
 namespace vulkan {
 

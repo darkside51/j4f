@@ -12,7 +12,7 @@ namespace engine {
 
         ref_ptr() = default;
         ref_ptr(T* ptr) : _ptr(ptr) {}
-        ref_ptr(nullptr_t) : _ptr(nullptr) {}
+        ref_ptr(std::nullptr_t) : _ptr(nullptr) {}
         ref_ptr(const std::unique_ptr<T> & ptr) : _ptr(ptr.get()) {}
 
         ~ref_ptr() { _ptr = nullptr; }
@@ -33,7 +33,7 @@ namespace engine {
             return *this;
         }
 
-        ref_ptr& operator= (nullptr_t) noexcept {
+        ref_ptr& operator= (std::nullptr_t) noexcept {
             _ptr = nullptr;
             return *this;
         }
@@ -50,7 +50,7 @@ namespace engine {
 
         explicit inline operator bool() const noexcept { return _ptr != nullptr; }
 
-        inline bool operator == (nullptr_t) noexcept { return _ptr == nullptr; }
+        inline bool operator == (std::nullptr_t) noexcept { return _ptr == nullptr; }
         inline bool operator == (const ref_ptr& ptr) noexcept { return _ptr == ptr._ptr; }
 
         element_type& operator* () {
@@ -86,7 +86,7 @@ namespace engine {
 
         ref_ptr() = default;
         ref_ptr(void* ptr) : _ptr(ptr) {}
-        ref_ptr(nullptr_t) : _ptr(nullptr) {}
+        ref_ptr(std::nullptr_t) : _ptr(nullptr) {}
         ref_ptr(std::unique_ptr<void> & ptr) : _ptr(ptr.get()) {}
 
         ~ref_ptr() { _ptr = nullptr; }
@@ -107,7 +107,7 @@ namespace engine {
             return *this;
         }
 
-        ref_ptr& operator= (nullptr_t) noexcept {
+        ref_ptr& operator= (std::nullptr_t) noexcept {
             _ptr = nullptr;
             return *this;
         }
@@ -124,7 +124,7 @@ namespace engine {
 
         explicit inline operator bool() const noexcept { return _ptr != nullptr; }
 
-        inline bool operator == (nullptr_t) noexcept { return _ptr == nullptr; }
+        inline bool operator == (std::nullptr_t) noexcept { return _ptr == nullptr; }
 
         inline element_type* operator->() noexcept { return _ptr; }
         inline const element_type* operator->() const noexcept { return _ptr; }

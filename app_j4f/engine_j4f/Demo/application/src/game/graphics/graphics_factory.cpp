@@ -180,7 +180,7 @@ namespace game {
                 };
 
                 auto const graphics = json.value("graphics", "");
-                auto const order = static_cast<uint16_t>(json.value("order", 0));
+                auto const order = static_cast<int16_t>(json.value("order", 0));
 
                 ObjectDescription description = {graphics, order};
 

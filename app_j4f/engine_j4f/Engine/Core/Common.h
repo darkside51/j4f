@@ -86,7 +86,7 @@ namespace compile_time_type_id {
 
     template<typename T, auto id = size_t{}>
     consteval auto typeIndex() noexcept {
-        if constexpr (TypeCounter<nullptr_t, id>::exists(id)) {
+        if constexpr (TypeCounter<std::nullptr_t, id>::exists(id)) {
             return typeIndex<T, id + 1>();
         } else {
             return id;
@@ -144,7 +144,7 @@ namespace ctti = compile_time_type_id;
     template <typename T>
     inline std::pair<typename T::value_type*, size_t> steal_data(T& data) {
         const size_t size = data.size();
-        auto *buffer = new T::value_type[size];
+        auto *buffer = new typename T::value_type[size];
         std::move(data.begin(), data.end(), buffer);
         return  { buffer, size };
     };

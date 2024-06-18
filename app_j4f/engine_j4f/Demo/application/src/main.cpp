@@ -9,7 +9,7 @@ int main() {
         true,                       // v_sync
         false,                      // can_continue_main_render_pass
         true,                       // use_stencil_buffer
-        engine::Version(1u, 0u, 0u)    // render_api_version
+        engine::Version(1u, 0u, 0u) // render_api_version
     };
     config.graphicsCfg.gpu_features.wideLines = 1u;
 	config.graphicsCfg.gpu_features.fillModeNonSolid = 1u; // example to enable POLYGON_MODE_LINE or POLYGON_MODE_POINT

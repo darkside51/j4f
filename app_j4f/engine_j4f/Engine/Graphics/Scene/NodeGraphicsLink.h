@@ -47,24 +47,26 @@ namespace engine {
 		Node* _node = nullptr;
 	};
 
-	template<typename T>
-	concept IsRenderAvailableType = requires(T v) {
-        [](T v) {
-            if constexpr (is_pointer_v<T> || is_smart_pointer_v<T>) {
-                v->getRenderDescriptor();
-                v->updateRenderData([]()-> engine::RenderDescriptor& { }(), mat4f(), bool());
-                v->updateModelMatrixChanged(bool());
-                v->setProgram([]() -> vulkan::VulkanGpuProgram * { return nullptr; }(),
-                              VkRenderPass()); // wow!, it work :)
-            } else {
-                v.getRenderDescriptor();
-                v.updateRenderData([]()-> engine::RenderDescriptor& { }(), mat4f(), bool());
-                v.updateModelMatrixChanged(bool());
-                v.setProgram([]() -> vulkan::VulkanGpuProgram * { return nullptr; }(),
-                              VkRenderPass());
-            }
-        }(v); // wow!, it work too :)
+	template<typename T, typename = std::enable_if_t<is_pointer_v<T> || is_smart_pointer_v<T>>>
+	concept IsRenderAvailableTypePointer = requires(T v) {
+			v->getRenderDescriptor();
+			v->updateRenderData(*static_cast<engine::RenderDescriptor*>(nullptr), mat4f(), bool());
+			v->updateModelMatrixChanged(bool());
+			v->setProgram(static_cast<vulkan::VulkanGpuProgram *>(nullptr),
+							VkRenderPass()); // wow!, it work :)
 	};
+
+	template<typename T, typename = std::enable_if_t<!is_pointer_v<T> && !is_smart_pointer_v<T>>>
+	concept IsRenderAvailableTypeObject = requires(T v) {
+			v.getRenderDescriptor();
+			v.updateRenderData(*static_cast<engine::RenderDescriptor*>(nullptr), mat4f(), bool());
+			v.updateModelMatrixChanged(bool());
+			v.setProgram(static_cast<vulkan::VulkanGpuProgram *>(nullptr),
+							VkRenderPass()); // wow!, it work :)
+	};
+
+	template<typename T>
+	concept IsRenderAvailableType = IsRenderAvailableTypePointer<T> || IsRenderAvailableTypeObject<T>;
 
 	template <typename T> requires IsRenderAvailableType<T>
 	class NodeRendererImpl : public NodeRenderer {

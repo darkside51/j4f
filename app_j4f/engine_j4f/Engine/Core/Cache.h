@@ -97,8 +97,8 @@ namespace engine {
 
         template<typename T>
         inline T* getCache() {
-            using key_type = T::key_type;
-            using value_type = T::value_type;
+            using key_type = typename T::key_type;
+            using value_type = typename T::value_type;
 
             const uint16_t key = getUniqueIdTypes<key_type, value_type>();
             if (auto&& cache = _caches.getValue(key)) {

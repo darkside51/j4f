@@ -75,7 +75,7 @@ namespace engine {
 			_ptr = nullptr;
 		}
 
-        linked_ptr(nullptr_t) : _ptr(nullptr) { }
+        linked_ptr(std::nullptr_t) : _ptr(nullptr) { }
 
         linked_ptr(element_type* ptr) : _ptr(ptr) {
 			_increase_counter();
@@ -96,7 +96,7 @@ namespace engine {
             }
         }
 
-		inline linked_ptr& operator= (nullptr_t) noexcept {
+		inline linked_ptr& operator= (std::nullptr_t) noexcept {
             reset();
 			return *this;
 		}

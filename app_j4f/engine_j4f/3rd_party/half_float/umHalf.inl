@@ -45,6 +45,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 	#pragma intrinsic(_BitScanReverse)
 #endif
 
+#include "umHalf.h"
+
 // ------------------------------------------------------------------------------------------------
 inline HalfFloat::HalfFloat(float other)
 {
@@ -463,7 +465,8 @@ inline HalfFloat operator+ (HalfFloat one, HalfFloat two)
 
 	// compute the difference between the two exponents. shifts with negative
 	// numbers are undefined, thus we need two code paths
-	register int expDiff = one.IEEE.Exp - two.IEEE.Exp;
+	// register 
+	int expDiff = one.IEEE.Exp - two.IEEE.Exp;
 	
 	if (0 == expDiff)
 	{

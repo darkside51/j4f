@@ -34,7 +34,7 @@ namespace engine {
         }
 
         template<typename T> requires AllowTarget<T>
-        inline void addTarget(const T *animation, T::TargetType target) noexcept {
+        inline void addTarget(const T *animation, typename T::TargetType target) noexcept {
             static const auto animId = UniqueTypeId<Animation>::getUniqueId<T>();
             if (_animUpdaters.size() > animId) {
                 static_cast<AnimationUpdater<T> *>(_animUpdaters[animId].get())->addTarget(animation, target);
@@ -42,7 +42,7 @@ namespace engine {
         }
 
         template<typename T> requires AllowTarget<T>
-        inline void removeTarget(const T *animation, T::TargetType target) noexcept {
+        inline void removeTarget(const T *animation, typename T::TargetType target) noexcept {
             static const auto animId = UniqueTypeId<Animation>::getUniqueId<T>();
             if (_animUpdaters.size() > animId) {
                 static_cast<AnimationUpdater<T> *>(_animUpdaters[animId].get())->removeTarget(animation, target);

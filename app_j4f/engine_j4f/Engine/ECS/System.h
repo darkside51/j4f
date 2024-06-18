@@ -29,7 +29,7 @@ namespace engine {
 	class SystemHolder : public System {
 	public:
 		template <typename... Args>
-		SystemHolder(BitMask64&& r, BitMask64&& w, Args&&...args) : System(r, w) {
+		SystemHolder(BitMask64&& r, BitMask64&& w, Args&&...args) : System(std::move(r), std::move(w)) {
 			_systemImpl = T(std::forward<Args>(args)...);
 		}
 
