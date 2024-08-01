@@ -139,18 +139,17 @@ namespace engine {
 
 	MeshSkeleton::MeshSkeleton(Mesh_Data* mData, const uint8_t latency) :
 		_skins(mData->skins), 
-		_hierarchyes(latency),
 		_nodes(latency),
 		_skinsMatrices(latency),
 		_animCalculationResult(latency),
 		_latency(latency)
 	{
 		for (uint8_t i = 0u; i < _latency; ++i) {
-			_hierarchyes[i].reserve(mData->sceneNodes.size());
-			_nodes[i].resize(mData->nodes.size());
+			_nodes[i].reserve(mData->nodes.size());
+			_nodeIdsMap.resize(mData->nodes.size());
 
 			for (const uint16_t nodeId : mData->sceneNodes) {
-				loadNode(mData, nodeId, nullptr, i);
+				loadNode2(mData, nodeId, nullptr, i);
 			}
 		}
 
@@ -180,28 +179,21 @@ namespace engine {
 		}
 	}
 
-	void MeshSkeleton::loadNode(const Mesh_Data* mData, const uint16_t nodeId, HierarchyUnique<Mesh_Node>* parent, const uint8_t h) {
+	void MeshSkeleton::loadNode2(const Mesh_Data* mData, const uint16_t nodeId, const Mesh_Node2* parent, const uint8_t h) {
 		const gltf::Node& node = mData->nodes[nodeId];
+		auto & nodesVec = _nodes[h];
+		_nodeIdsMap[nodeId] = nodesVec.size();
 
 		// parse node values
-		Mesh_Node mNode = {
+		const auto & result = nodesVec.emplace_back(Mesh_Node2{Mesh_Node{
 			node.skin,
 			{ node.translation.x, node.translation.y, node.translation.z },
 			{ node.scale.x, node.scale.y, node.scale.z },
 			{ node.rotation.w, node.rotation.x, node.rotation.y, node.rotation.z }
-		};
-
-		auto nodesHierarchy = std::make_unique<HierarchyUnique<Mesh_Node>>(std::move(mNode));
-		_nodes[h][nodeId] = nodesHierarchy.get();
-
-		if (parent) {
-			parent->addChild(std::move(nodesHierarchy));
-		} else {
-			_hierarchyes[h].push_back(std::move(nodesHierarchy));
-		}
+		}, parent});
 
 		for (const uint16_t cNodeId : node.children) {
-			loadNode(mData, cNodeId, _nodes[h][nodeId], h);
+			loadNode2(mData, cNodeId, &result, h);
 		}
 	}
 
@@ -255,7 +247,7 @@ namespace engine {
 		size_t skinId = 0u;
 		_dirtySkins = false;
 		for (const Mesh_Skin& s : _skins) {
-			const Mesh_Node& h = _nodes[updateFrame][s.skeletonRoot]->value();
+			const Mesh_Node& h = getNode(updateFrame, s.skeletonRoot);
 
 			const bool emptyInverse = _useRootTransform || !memcmp(&(h.modelMatrix), &emptyMatrix, sizeof(mat4f));
 			const auto numJoints = s.joints.size();
@@ -263,7 +255,7 @@ namespace engine {
 			std::vector<mat4f>& skin_matrices = _skinsMatrices[updateFrame][skinId];
 			if (emptyInverse) {
 				for (size_t i = 0u; i < numJoints; ++i) {
-					if (auto&& n = _nodes[updateFrame][s.joints[i]]->value(); n.dirtyModelTransform) {
+					if (const auto & n = getNode(updateFrame, s.joints[i]); n.dirtyModelTransform) {
 						skin_matrices[i] = (n.modelMatrix * s.inverseBindMatrices[i]);
 						_dirtySkins = true;
 					}
@@ -271,7 +263,7 @@ namespace engine {
 			} else {
 				const mat4f inverseTransform = glm::inverse(h.modelMatrix);
 				for (size_t i = 0u; i < numJoints; ++i) {
-					if (auto&& n = _nodes[updateFrame][s.joints[i]]->value(); n.dirtyModelTransform) {
+					if (const auto & n = getNode(updateFrame, s.joints[i]); n.dirtyModelTransform) {
 						skin_matrices[i] = inverseTransform * (n.modelMatrix * s.inverseBindMatrices[i]);
 						_dirtySkins = true;
 					}
@@ -283,10 +275,29 @@ namespace engine {
 	}
 
 	void MeshSkeleton::updateTransforms(const uint8_t updateFrame) {
-		for (auto&& h : _hierarchyes[updateFrame]) {
-			//h->execute(updateHierarchyMatrix);
-			h->execute_with<HierarchyMatrixUpdater>();
+		constexpr static auto updateNodeTransform = [](Mesh_Node2 & node) noexcept {
+			Mesh_Node& mNode = node.node;
+			mNode.dirtyModelTransform = false;
+			mNode.calculateLocalMatrix();
+
+			const auto * parent = node.parent;
+			if (parent) {
+				mNode.dirtyModelTransform |= parent->node.dirtyModelTransform;
+			}
+
+			if (mNode.dirtyModelTransform) {
+				if (parent) {
+					mNode.calculateModelMatrix(parent->node.modelMatrix);
+				} else {
+					memcpy(&mNode.modelMatrix, &mNode.localMatrix, sizeof(mat4f));
+				}
+			}
+		};
+
+		for (auto & n : _nodes[updateFrame]) {
+			updateNodeTransform(n);
 		}
+
 	}
 	////////////////////////////////
 	////////////////////////////////
@@ -320,7 +331,7 @@ namespace engine {
 				};
 
 				// min & max corners calculation
-				const Mesh_Node& node = _skeleton->_nodes[0][_meshData->meshes[i].nodeIndex]->value();
+				const Mesh_Node& node = _skeleton->getNode(0, _meshData->meshes[i].nodeIndex);
 
 				/*
 				vec3f s;
@@ -453,7 +464,7 @@ namespace engine {
 			auto & r_data = _renderDescriptor.renderData[i];
 			if (r_data == nullptr || r_data->pipeline == nullptr) continue;
 
-			const Mesh_Node& node = _skeleton->_nodes[renderFrameNum][_meshData->meshes[i].nodeIndex]->value();
+			const Mesh_Node& node = _skeleton->getNode(renderFrameNum, _meshData->meshes[i].nodeIndex);
 			
 			if (_fixedGpuLayouts[2u].first && _skeleton->dirtySkins()) {
 				if (node.skinIndex != 0xff'ffu) {
@@ -490,8 +501,8 @@ namespace engine {
             auto & r_data = renderDescriptor.renderData[i];
 			if (r_data == nullptr || r_data->pipeline == nullptr) continue;
 
-			const Mesh_Node& node = _skeleton->_nodes[renderFrameNum][_meshData->meshes[i].nodeIndex]->value();
-			
+			const Mesh_Node& node = _skeleton->getNode(renderFrameNum, _meshData->meshes[i].nodeIndex);
+
 			// для организации инстансной отрисовки мешей в различных кадрах анимаций, нужно делать storage_buffer для матриц костей и для нужной модельки брать правильное смещение
 			// + может быть нужно дописать возможность передачи параметра в r_data в нужное смещение от начала (либо копировать данные костей в общий буффер, а потом его устанавливать для gpuProgram)
 			if (_fixedGpuLayouts[2u].first && _skeleton->dirtySkins()) {

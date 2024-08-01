@@ -87,6 +87,11 @@ namespace engine {
 		}
 	};
 
+	struct Mesh_Node2 {
+		Mesh_Node node;
+		const Mesh_Node2* parent = nullptr;
+	};
+
 	struct Mesh_Data;
 	struct Mesh_Animation;
 	struct Mesh_Skin;
@@ -101,8 +106,13 @@ namespace engine {
 		MeshSkeleton(Mesh_Data* mData, const uint8_t latency);
 		~MeshSkeleton();
 
-		Mesh_Node& getNode(const uint8_t updateFrame, const uint16_t nodeId) { return _nodes[updateFrame][nodeId]->value(); }
-		[[nodiscard]] const Mesh_Node& getNode(const uint8_t updateFrame, const uint16_t nodeId) const { return _nodes[updateFrame][nodeId]->value(); }
+		[[nodiscard]] const Mesh_Node& getNode(const uint8_t updateFrame, const uint16_t nodeId) const { 
+			return _nodes[updateFrame][_nodeIdsMap[nodeId]].node;
+		}
+
+		[[nodiscard]] Mesh_Node& getNode(const uint8_t updateFrame, const uint16_t nodeId) { 
+			return _nodes[updateFrame][_nodeIdsMap[nodeId]].node;
+		}
 
         [[nodiscard]] inline uint8_t getUpdateFrame() const noexcept { return _updateFrameNum; }
 
@@ -138,7 +148,7 @@ namespace engine {
 		[[nodeiscard]] inline bool getUseRootTransform() const noexcept { return _useRootTransform; }
 
 	private:
-		void loadNode(const Mesh_Data* mData, const uint16_t nodeId, HierarchyUnique<Mesh_Node>* parent, const uint8_t h);
+		void loadNode2(const Mesh_Data* mData, const uint16_t nodeId, const Mesh_Node2* parent, const uint8_t h);
 
 		void updateSkins(const uint8_t updateFrame);
 		void updateTransforms(const uint8_t updateFrame);
@@ -150,53 +160,10 @@ namespace engine {
             return _updatedFrameNum.load(std::memory_order_relaxed);
         }
 
-		struct HierarchyMatrixUpdater {
-			inline static bool _(HierarchyUnique<Mesh_Node>* node) {
-				Mesh_Node& mNode = node->value();
-				mNode.dirtyModelTransform = false;
-				mNode.calculateLocalMatrix();
-
-				auto&& parent = node->getParent();
-				if (parent) {
-					mNode.dirtyModelTransform |= parent->value().dirtyModelTransform;
-				}
-
-				if (mNode.dirtyModelTransform) {
-					if (parent) {
-						mNode.calculateModelMatrix(parent->value().modelMatrix);
-					} else {
-						memcpy(&mNode.modelMatrix, &mNode.localMatrix, sizeof(mat4f));
-					}
-				}
-
-				return true;
-			}
-		};
-
-		inline static bool updateHierarchyMatrix(HierarchyUnique<Mesh_Node>* node) {
-			Mesh_Node& mNode = node->value();
-			mNode.dirtyModelTransform = false;
-			mNode.calculateLocalMatrix();
-
-			auto&& parent = node->getParent();
-			if (parent) {
-				mNode.dirtyModelTransform |= parent->value().dirtyModelTransform;
-			}
-
-			if (mNode.dirtyModelTransform) {
-				if (parent) {
-					mNode.calculateModelMatrix(parent->value().modelMatrix);
-				} else {
-					memcpy(&mNode.modelMatrix, &mNode.localMatrix, sizeof(mat4f));
-				}
-			}
-
-			return true;
-		}  
-
 		const std::vector<Mesh_Skin>& _skins;
-		std::vector<std::vector<std::unique_ptr<HierarchyUnique<Mesh_Node>>>> _hierarchyes;
-		std::vector<std::vector<HierarchyUnique<Mesh_Node>*>> _nodes;
+		std::vector<std::vector<Mesh_Node2>> _nodes;
+		std::vector<size_t> _nodeIdsMap;
+
 		std::vector<std::vector<std::vector<mat4f>>> _skinsMatrices;
 		std::vector<linked_ptr<Task2<void>>> _animCalculationResult;
 
@@ -217,10 +184,12 @@ namespace engine {
 
 		void createRenderData();
 
-		inline uint16_t getNodesCount() const { return _skeleton->_nodes[0].size(); }
+		inline uint16_t getNodesCount() const { 
+			return _skeleton->_nodes[0].size();
+		}
 
-		Mesh_Node& getNode(const uint8_t updateFrame, const uint16_t nodeId) { return _skeleton->_nodes[updateFrame][nodeId]->value(); }
-		const Mesh_Node& getNode(const uint8_t updateFrame, const uint16_t nodeId) const { return _skeleton->_nodes[updateFrame][nodeId]->value(); }
+		Mesh_Node& getNode(const uint8_t updateFrame, const uint16_t nodeId) { return _skeleton->getNode(updateFrame, nodeId); }
+		const Mesh_Node& getNode(const uint8_t updateFrame, const uint16_t nodeId) const { return _skeleton->getNode(updateFrame, nodeId); }
 
 		inline Mesh_Data* getMeshData() noexcept { return _meshData; }
 		inline const Mesh_Data* getMeshData() const noexcept { return _meshData; }
