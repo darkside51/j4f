@@ -270,7 +270,7 @@ namespace engine {
 	}
 
 	void MeshSkeleton::updateTransforms(const uint8_t updateFrame) {
-		constexpr static auto updateNodeTransform = [](Mesh_Node2 & node) noexcept {
+		for (auto & node : _nodes[updateFrame]) {
 			Mesh_Node& mNode = node.node;
 			mNode.dirtyModelTransform = false;
 			mNode.calculateLocalMatrix();
@@ -287,10 +287,6 @@ namespace engine {
 					memcpy(&mNode.modelMatrix, &mNode.localMatrix, sizeof(mat4f));
 				}
 			}
-		};
-
-		for (auto & n : _nodes[updateFrame]) {
-			updateNodeTransform(n);
 		}
 
 	}
