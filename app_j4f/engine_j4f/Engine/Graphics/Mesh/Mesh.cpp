@@ -145,9 +145,7 @@ namespace engine {
 		_latency(latency)
 	{
 		for (uint8_t i = 0u; i < _latency; ++i) {
-			_nodes[i].reserve(mData->nodes.size());
-			_nodeIdsMap.resize(mData->nodes.size());
-
+			_nodes[i].resize(mData->nodes.size());
 			for (const uint16_t nodeId : mData->sceneNodes) {
 				loadNode2(mData, nodeId, nullptr, i);
 			}
@@ -181,19 +179,16 @@ namespace engine {
 
 	void MeshSkeleton::loadNode2(const Mesh_Data* mData, const uint16_t nodeId, const Mesh_Node2* parent, const uint8_t h) {
 		const gltf::Node& node = mData->nodes[nodeId];
-		auto & nodesVec = _nodes[h];
-		_nodeIdsMap[nodeId] = nodesVec.size();
+		auto & current = _nodes[h][nodeId];
+		current.parent = parent;
 
-		// parse node values
-		const auto & result = nodesVec.emplace_back(Mesh_Node2{Mesh_Node{
-			node.skin,
-			{ node.translation.x, node.translation.y, node.translation.z },
-			{ node.scale.x, node.scale.y, node.scale.z },
-			{ node.rotation.w, node.rotation.x, node.rotation.y, node.rotation.z }
-		}, parent});
-
+		current.node.skinIndex = node.skin;
+		current.node.scale = {node.scale.x, node.scale.y, node.scale.z};
+		current.node.rotation = {node.rotation.w, node.rotation.x, node.rotation.y, node.rotation.z};
+		current.node.translation = {node.translation.x, node.translation.y, node.translation.z};
+		
 		for (const uint16_t cNodeId : node.children) {
-			loadNode2(mData, cNodeId, &result, h);
+			loadNode2(mData, cNodeId, &current, h);
 		}
 	}
 

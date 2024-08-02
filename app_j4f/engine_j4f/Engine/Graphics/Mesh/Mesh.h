@@ -106,12 +106,12 @@ namespace engine {
 		MeshSkeleton(Mesh_Data* mData, const uint8_t latency);
 		~MeshSkeleton();
 
-		[[nodiscard]] const Mesh_Node& getNode(const uint8_t updateFrame, const uint16_t nodeId) const { 
-			return _nodes[updateFrame][_nodeIdsMap[nodeId]].node;
+		[[nodiscard]] inline Mesh_Node& getNode(const uint8_t updateFrame, const uint16_t nodeId) { 
+			return _nodes[updateFrame][nodeId].node;
 		}
 
-		[[nodiscard]] Mesh_Node& getNode(const uint8_t updateFrame, const uint16_t nodeId) { 
-			return _nodes[updateFrame][_nodeIdsMap[nodeId]].node;
+		[[nodiscard]] inline const Mesh_Node& getNode(const uint8_t updateFrame, const uint16_t nodeId) const { 
+			return _nodes[updateFrame][nodeId].node;
 		}
 
         [[nodiscard]] inline uint8_t getUpdateFrame() const noexcept { return _updateFrameNum; }
@@ -162,7 +162,6 @@ namespace engine {
 
 		const std::vector<Mesh_Skin>& _skins;
 		std::vector<std::vector<Mesh_Node2>> _nodes;
-		std::vector<size_t> _nodeIdsMap;
 
 		std::vector<std::vector<std::vector<mat4f>>> _skinsMatrices;
 		std::vector<linked_ptr<Task2<void>>> _animCalculationResult;
