@@ -177,15 +177,15 @@ namespace engine {
 		}
 	}
 
-	void MeshSkeleton::loadNode2(const Mesh_Data* mData, const uint16_t nodeId, const Mesh_Node2* parent, const uint8_t h) {
+	void MeshSkeleton::loadNode2(const Mesh_Data* mData, const uint16_t nodeId, const Mesh_Node* parent, const uint8_t h) {
 		const gltf::Node& node = mData->nodes[nodeId];
 		auto & current = _nodes[h][nodeId];
 		current.parent = parent;
 
-		current.node.skinIndex = node.skin;
-		current.node.scale = {node.scale.x, node.scale.y, node.scale.z};
-		current.node.rotation = {node.rotation.w, node.rotation.x, node.rotation.y, node.rotation.z};
-		current.node.translation = {node.translation.x, node.translation.y, node.translation.z};
+		current.skinIndex = node.skin;
+		current.scale = {node.scale.x, node.scale.y, node.scale.z};
+		current.rotation = {node.rotation.w, node.rotation.x, node.rotation.y, node.rotation.z};
+		current.translation = {node.translation.x, node.translation.y, node.translation.z};
 		
 		for (const uint16_t cNodeId : node.children) {
 			loadNode2(mData, cNodeId, &current, h);
@@ -271,24 +271,18 @@ namespace engine {
 
 	void MeshSkeleton::updateTransforms(const uint8_t updateFrame) {
 		for (auto & node : _nodes[updateFrame]) {
-			Mesh_Node& mNode = node.node;
-			mNode.dirtyModelTransform = false;
-			mNode.calculateLocalMatrix();
+			node.dirtyModelTransform = false;
+			node.calculateLocalMatrix();
 
-			const auto * parent = node.parent;
-			if (parent) {
-				mNode.dirtyModelTransform |= parent->node.dirtyModelTransform;
-			}
-
-			if (mNode.dirtyModelTransform) {
-				if (parent) {
-					mNode.calculateModelMatrix(parent->node.modelMatrix);
-				} else {
-					memcpy(&mNode.modelMatrix, &mNode.localMatrix, sizeof(mat4f));
+			if (node.parent) {
+				node.dirtyModelTransform |= node.parent->dirtyModelTransform;
+				if (node.dirtyModelTransform) {
+					node.calculateModelMatrix(node.parent->modelMatrix);
 				}
+			} else if (node.dirtyModelTransform) {
+				memcpy(&node.modelMatrix, &node.localMatrix, sizeof(mat4f));
 			}
 		}
-
 	}
 	////////////////////////////////
 	////////////////////////////////

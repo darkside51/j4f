@@ -26,7 +26,9 @@ namespace engine {
 		mat4f localMatrix = mat4f(1.0f);
 		mat4f modelMatrix = mat4f(1.0f);
 
-		inline void calculateLocalMatrix() {
+		const Mesh_Node* parent = nullptr;
+
+		inline void calculateLocalMatrix() noexcept {
 			if (dirtyLocalTransform) {
 				// TRS matrix : T * R * S
 				memcpy(&localMatrix, &engine::emptyMatrix, sizeof(mat4f));
@@ -39,57 +41,52 @@ namespace engine {
 			}
 		}
 
-		inline void calculateModelMatrix(const mat4f& parentModel) {
+		inline void calculateModelMatrix(const mat4f& parentModel) noexcept  {
 			modelMatrix = parentModel * localMatrix;
 			// no set dirtyGlobalTransform = false here, for skin skin_matrices calculate
 		}
 
-		inline void setTranslation(const vec3f& t) {
+		inline void setTranslation(const vec3f& t) noexcept {
 			if (compare(t, translation, epsilon)) {
 				translation = t;
 				dirtyLocalTransform = true;
 			}
 		}
 
-		inline void setTranslation(vec3f&& t) {
+		inline void setTranslation(vec3f&& t) noexcept {
 			if (compare(t, translation, epsilon)) {
 				translation = std::move(t);
 				dirtyLocalTransform = true;
 			}
 		}
 
-		inline void setScale(const vec3f& s) {
+		inline void setScale(const vec3f& s) noexcept {
 			if (compare(s, scale, epsilon)) {
 				scale = s;
 				dirtyLocalTransform = true;
 			}
 		}
 
-		inline void setScale(vec3f&& s) {
+		inline void setScale(vec3f&& s) noexcept {
 			if (compare(s, scale, epsilon)) {
 				scale = std::move(s);
 				dirtyLocalTransform = true;
 			}
 		}
 
-		inline void setRotation(const quatf& r) {
+		inline void setRotation(const quatf& r)  noexcept {
 			if (compare(r, rotation, epsilon)) {
 				rotation = r;
 				dirtyLocalTransform = true;
 			}
 		}
 
-		inline void setRotation(quatf&& r) {
+		inline void setRotation(quatf&& r) noexcept {
 			if (compare(r, rotation, epsilon)) {
 				rotation = std::move(r);
 				dirtyLocalTransform = true;
 			}
 		}
-	};
-
-	struct Mesh_Node2 {
-		Mesh_Node node;
-		const Mesh_Node2* parent = nullptr;
 	};
 
 	struct Mesh_Data;
@@ -107,11 +104,11 @@ namespace engine {
 		~MeshSkeleton();
 
 		[[nodiscard]] inline Mesh_Node& getNode(const uint8_t updateFrame, const uint16_t nodeId) { 
-			return _nodes[updateFrame][nodeId].node;
+			return _nodes[updateFrame][nodeId];
 		}
 
 		[[nodiscard]] inline const Mesh_Node& getNode(const uint8_t updateFrame, const uint16_t nodeId) const { 
-			return _nodes[updateFrame][nodeId].node;
+			return _nodes[updateFrame][nodeId];
 		}
 
         [[nodiscard]] inline uint8_t getUpdateFrame() const noexcept { return _updateFrameNum; }
@@ -148,7 +145,7 @@ namespace engine {
 		[[nodeiscard]] inline bool getUseRootTransform() const noexcept { return _useRootTransform; }
 
 	private:
-		void loadNode2(const Mesh_Data* mData, const uint16_t nodeId, const Mesh_Node2* parent, const uint8_t h);
+		void loadNode2(const Mesh_Data* mData, const uint16_t nodeId, const Mesh_Node* parent, const uint8_t h);
 
 		void updateSkins(const uint8_t updateFrame);
 		void updateTransforms(const uint8_t updateFrame);
@@ -161,7 +158,7 @@ namespace engine {
         }
 
 		const std::vector<Mesh_Skin>& _skins;
-		std::vector<std::vector<Mesh_Node2>> _nodes;
+		std::vector<std::vector<Mesh_Node>> _nodes;
 
 		std::vector<std::vector<std::vector<mat4f>>> _skinsMatrices;
 		std::vector<linked_ptr<Task2<void>>> _animCalculationResult;
