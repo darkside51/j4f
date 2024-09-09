@@ -58,7 +58,7 @@ namespace engine {
 		}
 
 		static void wait(std::atomic_flag& l) {
-			while (l.test_and_set(std::memory_order_release)) {
+			while (l.test(std::memory_order_release)) {
 				std::this_thread::yield();
 			}
 		}
